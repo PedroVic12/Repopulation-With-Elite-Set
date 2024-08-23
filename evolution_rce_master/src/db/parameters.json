@@ -1,0 +1,13 @@
+{
+    "type": "rastrigin",
+    "CROSSOVER": 0.60,
+    "MUTACAO": 0.15,
+    "NUM_GENERATIONS": 100,
+    "POP_SIZE": 100,
+    "IND_SIZE": 10,
+    "funcao objetivo": "rastrigin",
+    "RCE_REPOPULATION_GENERATIONS": 50top,
+    "NUM_VAR_DIFERENTES": 1,
+    "PORCENTAGEM": 30,
+    "VALOR_LIMITE": 0.50
+}
