@@ -22,9 +22,9 @@ ind1 = [1,2,3,4,5,6,7,8,9,10]  # Exemplo de individuo de tamanho 10
 
 def evaluate(individual):
 	"""Função objetivo do problema """
-a = sum(individual)
-b = len(individual)
-return a / b
+	a = sum(individual)
+	b = len(individual)
+	return a / b
 ```
 
 5) No trecho de Código 2, é ilustrado o funcionamento ao instanciar os objetos criados das três classes do framework. Neste exemplo são utilizados o array ind1 e a função evaluate, criados anteriormente. Ao executar a função run, o usuário escolhe se deseja usar a estratégia RCE [1]. Esta função retorna a população final gerada e o melhor indivíduo da geração, gerando seu gráfico com esses mesmos parâmetros.
