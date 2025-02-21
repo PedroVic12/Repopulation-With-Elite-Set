@@ -3,7 +3,34 @@ import pandapower as pp
 import pandapower.networks as pw
 import pandas as pd
 
-from utils import Logger
+
+from rich.console import Console
+from rich.theme import Theme
+from rich.traceback import install
+
+install()
+
+class Logger:
+    def __init__(self):
+        self.console = Console(theme=Theme({
+            "success": "bold green",
+            "warning": "yellow",
+            "error": "bold red",
+            "info": "white"  # Added "info" level for default blue color
+        }))
+
+    def log(self, message, level="info"):  # Changed default level to "info"
+        """Logs a message with the specified level and color."""
+        if level == "success":
+            self.console.print(f"[success]{message}[/]")
+        elif level == "warning":
+            self.console.print(f"[warning]{message}[/]")
+        elif level == "error":
+            self.console.print(f"[error]{message}[/]")
+        else:
+            self.console.print(f"[info]{message}[/]") # Changed to "info" to use blue color
+
+
 
 class RedeEletricaPandaPower:
     def __init__(self, network_name, debug=False):
@@ -185,37 +212,37 @@ class RedeEletricaPandaPower:
 
 
         print("\nStatus Linhas")
-        display(self.net.line[["from_bus","to_bus","in_service"]])
+        print(self.net.line[["from_bus","to_bus","in_service"]])
 
         print("\nStatus Transformadores")
-        display(self.net.trafo[["hv_bus","lv_bus","in_service"]])
+        print(self.net.trafo[["hv_bus","lv_bus","in_service"]])
 
-        if self.debug:
-            print("="*80)
-            print("Rede atual")
-            print("="*80)
+        # if self.debug:
+        #     print("="*80)
+        #     print("Rede atual")
+        #     print("="*80)
 
-            ## Barramentos
-            print("\nTensões nos Barramentos (pu):")
-            display(self.net.res_bus[['vm_pu']])
+        #     ## Barramentos
+        #     print("\nTensões nos Barramentos (pu):")
+        #     display(self.net.res_bus[['vm_pu']])
 
-            ## linhas
-            print("\nPorcentagem de Carga nas Linhas (%):")
-            display(self.net.res_line[['loading_percent']])
+        #     ## linhas
+        #     print("\nPorcentagem de Carga nas Linhas (%):")
+        #     display(self.net.res_line[['loading_percent']])
 
-            print("\nPotência Aparente nas Linhas (MVA):")
-            display(self.net.res_line[['p_from_mw', 'q_from_mvar']])
-
-
-            # transformadores
-            print("\nPotencia aparente nos transformadores")
-            display(self.net.res_trafo[['p_hv_mw', 'q_hv_mvar', 's_aparente_hv_mva', 'p_lv_mw', 'q_lv_mvar', 's_aparente_lv_mva']])
+        #     print("\nPotência Aparente nas Linhas (MVA):")
+        #     display(self.net.res_line[['p_from_mw', 'q_from_mvar']])
 
 
-            print("\nPorcentagem de Carga nos transformadores (%):")
-            display(self.net.res_trafo[['loading_percent']])
+        #     # transformadores
+        #     print("\nPotencia aparente nos transformadores")
+        #     display(self.net.res_trafo[['p_hv_mw', 'q_hv_mvar', 's_aparente_hv_mva', 'p_lv_mw', 'q_lv_mvar', 's_aparente_lv_mva']])
 
-            print("="*80)
+
+        #     print("\nPorcentagem de Carga nos transformadores (%):")
+        #     display(self.net.res_trafo[['loading_percent']])
+
+        #     print("="*80)
 
 
 
@@ -334,7 +361,7 @@ class RedeEletricaPandaPower:
 
         if self.debug:
             print("\nTotal de violações e salvando num banco de dados...")
-            display(violacoes_df)
+            print(violacoes_df)
             self.console.log(f"\n\nAptidão do cenário nos barramentos, linhas e transformadores ", level = "success")
             self.console.log(f"VIOLAÇÃO TOTAL  = {fitness:.2f}\n", level = "success")
 
@@ -722,7 +749,7 @@ class RedeEletricaPandaPower:
         dataframe["potencia_aparente_nos_transformadores"] =  self.net.res_trafo[['p_hv_mw']]
         dataframe["porcentagem_de_carga_nos_transformadores"] =  self.net.res_trafo[['loading_percent']]
 
-        dataframe.to_excel("dados_rede_eletrica.xlsx")
+        dataframe.to_excel("./dados_rede_eletrica.xlsx")
         self.log("\n\n\nDados da rede eletrica em formato de tabela excel disponivel!")
 
         return dataframe

@@ -1,9 +1,13 @@
 from src.RedeEletrica import RedeEletricaPandaPower
 from pandapower.plotting import simple_plot, simple_plotly, pf_res_plotly
+import pandas as pd
 
+
+#!Run local
+# pip install pandas plotly openpyxl rich ipython matplotlib scipy pandapower
 
 #! 1) Criar a rede elétrica IEEE 14 barras, Inicializar a classe com a rede e carrega a tabela de agendamento
-rede = RedeEletricaPandaPower("14", debug=False)
+rede = RedeEletricaPandaPower("14", debug=True)
 
 #! Colocando pesos como input do usuario e os dados de entrada do agendamento
 rede.pesos["tensao"] = {"min": 100, "max": 100}
@@ -51,8 +55,7 @@ matriz_cenarios = rede.avalia_cenarios(
 # Inicializar variáveis para cálculo de violações
 violacoes_total = []
 violacoes_hash_table = {}
-#print("\nTabela agendamento")
-#display(agendamento_df)
+
 
 # Generate hash key (teste 01)
 contingencias = contingencia_df['contingencia'].to_list()
@@ -120,7 +123,7 @@ try:
     hash_df = pd.DataFrame(bd_aptidao_cenario, columns=[ 'Fitness'])
     filtered_hash_table = hash_df.loc[hash_df['Fitness'] > 0]
 
-    hash_df.to_excel("hash_table.xlsx", index=False)
+    hash_df.to_excel("./hash_table.xlsx", index=False)
 
     # 12) Calcular fitness final com somatorio das vioações com pesos de todos os cenarios
     fitness_final = sum(violacoes_total)
@@ -134,7 +137,4 @@ except Exception as e:
     
     
 results = rede.imprimir_resultados()
-#display(results)
-
-
-pf_res_plotly(rede.net)
+#pf_res_plotly(rede.net)
