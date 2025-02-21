@@ -130,7 +130,7 @@ try:
 
     # 12) Calcular fitness final com somatorio das vioações com pesos de todos os cenarios
     fitness_final = sum(violacoes_total)
-
+    results = rede.imprimir_resultados()
     rede.log(f"\nFitness do agendamento = {fitness_final:.2f}\n")
 
 
@@ -139,5 +139,3 @@ except Exception as e:
     
     
     
-results = rede.imprimir_resultados()
-#pf_res_plotly(rede.net)
