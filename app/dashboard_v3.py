@@ -69,7 +69,11 @@ class DashboardApp:
     def load_data(self):
         """Carrega os dados de entrada a partir de um arquivo Excel."""
         with st.sidebar:
+
+            st.markdown("---")  # Separa                
             st.title("Carregar Dados")
+            st.markdown("---")  # Separa                
+
             uploaded_file = st.file_uploader("Envie um arquivo Excel", type=["xlsx", "xls"])
             if uploaded_file:
                 try:
@@ -158,7 +162,10 @@ class DashboardApp:
             selected_table = self.select_table()
             if selected_table is not None:
                 # Seção de Estatísticas
-                st.sidebar.subheader("Análise Estatística")
+                st.markdown("---")  # Separa                
+                st.sidebar.title("Análise do arquivo Excel")
+                st.markdown("---")  # Separa                
+
                 stat_col = st.sidebar.selectbox("Selecione uma coluna para análise estatística", selected_table.columns)
 
                 if stat_col:
