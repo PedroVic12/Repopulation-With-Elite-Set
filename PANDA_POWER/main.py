@@ -51,10 +51,13 @@ matriz_cenarios = rede.avalia_cenarios(
         hs=18, he=24
     )
 
+rede.console.log(matriz_cenarios)
+
 #! Calculo  de otimização para achar o fitness de cada cenario
 # Inicializar variáveis para cálculo de violações
 violacoes_total = []
 violacoes_hash_table = {}
+
 
 
 # Generate hash key (teste 01)
@@ -114,7 +117,7 @@ try:
 
 
         #! Ver apenas o true in service de barras e transformadores
-        #rede.show_status()
+        rede.show_status()
 
     #! Usando dicionario nos temos os valores acumulando tirando os valores nulos
     hash_df2 = pd.DataFrame(violacoes_hash_table.items(), columns=['Hash Key', 'Fitness'])
