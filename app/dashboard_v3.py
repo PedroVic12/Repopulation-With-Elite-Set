@@ -10,6 +10,9 @@ class ChatBot:
     def __init__(self):
         if 'messages' not in st.session_state:
             st.session_state.messages = []
+            
+            
+            
 
     def display_chat(self):
         """Exibe o chat e processa as mensagens."""
@@ -151,12 +154,19 @@ class DashboardApp:
         col3.metric("Média", f"{df[stat_col].mean():.2f}", delta=-0.5, delta_color="inverse")
         col4.metric("Desvio Padrão", f"{df[stat_col].std():.2f}", delta=-0.5, delta_color="inverse")
 
+    def footer(self):
+        """Exibe o rodapé do dashboard."""
+        st.markdown("""
+            <footer>
+            <p>Powered by <a href="https://streamlit.io/">Streamlit</a> and <a href="https://plotly.com/python/">Plotly</a></p>
+            </footer>
+        """, unsafe_allow_html=True)
+        
+
     def run(self):
         """Executa o dashboard."""
         self.setup_header()
         self.load_data()
-
-        
 
         if self.df:
             selected_table = self.select_table()
@@ -199,6 +209,8 @@ class DashboardApp:
                 st.markdown("---")  # Separador
                 self.chatbot.display_chat()
                 st.markdown("---")  # Separador
+                
+        self.footer()
 
 
 if __name__ == "__main__":

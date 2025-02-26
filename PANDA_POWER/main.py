@@ -6,6 +6,9 @@ import pandas as pd
 #!Run local
 # pip install pandas plotly openpyxl rich ipython matplotlib scipy pandapower
 
+
+
+
 #! 1) Criar a rede elétrica IEEE 14 barras, Inicializar a classe com a rede e carrega a tabela de agendamento
 rede = RedeEletricaPandaPower("14", debug=True)
 
