@@ -2,7 +2,18 @@
 from RedeEletrica.rede_eletrica import Console, RedeEletricaPandaPower
 import pandas as pd
 
-
+#! Metodologia de programação tese Rainer
+# 1.Lê programação inicial do usuário
+# 2. Lê os parâmetros do AE do usuário
+# 3. Enquanto (número de repopulações ≤ maxpartida)
+# 4. Gera população inicial
+# 5. Enquanto (número de gerações ≤ g)
+# 6. Calcula a função de aptidão de cada indivíduo
+# 7. Preserva indivíduo com melhor aptidão (elitismo)
+# 8. Executa operações genéticas para evolução (seleção, cruzamento e mutação)
+# 9. Gera nova população
+# 10. Preserva indivíduo com melhor aptidão em conjunto elite automático
+# 11. Finaliza relatório com programação otimizada
 
 
 def funcao_objetivo_IEEE14(individuo, _debug = True):
