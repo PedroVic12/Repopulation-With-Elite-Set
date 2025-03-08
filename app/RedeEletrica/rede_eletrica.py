@@ -7,10 +7,6 @@ from rich.console import Console
 from rich.theme import Theme
 from rich.traceback import install
 
-# pip install pandas scipy numpy pandapower rich
-
-#! No linux, sudo pacman -S gcc-fortran openblas cmake base-devel 
-
 install()
 
 class Logger:
@@ -54,21 +50,19 @@ class RedeEletricaPandaPower:
         self.agendamento = pd.DataFrame()
         self.contingencia= pd.DataFrame()
 
-    def carregar_redes_padrao(self,network_name = "14"):
-        #!todo -> Switch para as redes disponiveis na lib
-        match network_name:
-            case "14":
-                network = pw.case14()
-            case "30":
-                network = pw.case30()
-            case "57":
-                network = pw.case57()
-            case "118":
-                network = pw.case118()
-
-            case _:
-                print("Rede não encontrada, forneça o numero como string")
-                network = None
+    def carregar_redes_padrao(self, network_name="14"):
+        """Carrega redes padrão do pandapower."""
+        if network_name == "14":
+            network = pw.case14()
+        elif network_name == "30":
+            network = pw.case30()
+        elif network_name == "57":
+            network = pw.case57()
+        elif network_name == "118":
+            network = pw.case118()
+        else:
+            print("Rede não encontrada, forneça o número como string")
+            network = None
 
         return network
 
@@ -113,51 +107,6 @@ class RedeEletricaPandaPower:
         self.contingencia = df_contingencia
 
 
-
-
-    def gerar_cenarios_completos(self, matriz_cenarios, contingencia_df):
-        """Combina cenários de agendamento com contingências"""
-        cenarios_completos = []
-
-        for cenario in matriz_cenarios:
-            for _, cont in contingencia_df.iterrows():
-                # Cria cópia segura do cenário original
-                novo_cenario = {
-                    'perfil': cenario[0],
-                    'desligamentos': cenario[1:],
-                    'contingencia': (cont['from'], cont['to'])
-                }
-                cenarios_completos.append(novo_cenario)
-
-        return cenarios_completos
-
-
-
-    def avaliar_cenario_v3(self, cenario, agendamento_df):
-        """Avalia um cenário completo com contingência"""
-        try:
-            # Resetar rede
-            self.religar_todos_os_ramos_agendamento()
-
-            # Aplicar desligamentos programados
-            self.desligar_elementos_agendamento(cenario['desligamentos'], agendamento_df)
-
-            # Aplicar contingência
-            ramo_cont = tuple(sorted(cenario['contingencia']))
-            self.desligar_elementos_agendamento([1], pd.DataFrame([{'ramo': ramo_cont}]))  # Força desligamento
-
-            # Ajustar carga e executar fluxo
-            self.ajustar_cargas(cenario['perfil'])
-            if not self.executar_fluxo_de_carga():
-                return float('inf')  # Penalidade máxima se não convergir
-
-            return self.calcular_violacoes_fitness()[0]
-
-        except Exception as e:
-            self.log(f"Erro no cenário {cenario}: {e}", 'error')
-            return float('inf')
-
-
     def hashtableindex (self, carregamento, n_carregamentos, contingencia, n_contingencias, desligamentos):
         """"
         Recebe os dados do cenário e retorna o índice da tabela hash correspondente
@@ -195,15 +144,14 @@ class RedeEletricaPandaPower:
 
         if self.debug:
             print("="*80)
-            print("\tRede atual")
+            print("Rede atual")
             print("="*80)
-            self.log(self.net)
 
             print("\nStatus Linhas")
-            print(self.net.line[["from_bus","to_bus","in_service"]])
+            display(self.net.line[["from_bus","to_bus","in_service"]])
 
             print("\nStatus Transformadores")
-            print(self.net.trafo[["hv_bus","lv_bus","in_service"]])
+            display(self.net.trafo[["hv_bus","lv_bus","in_service"]])
 
             ## Barramentos
             #print("\nTensões nos Barramentos (pu):")
@@ -229,46 +177,7 @@ class RedeEletricaPandaPower:
 
 
 
-    def extract_dataset(self):
-        """Extrai os dados da rede em um DataFrame"""
-        try:
-            dataframe = pd.DataFrame()
-
-            # Dados dos barramentos
-            dataframe["tensao_nos_barramentos"] = self.net.res_bus[['vm_pu']]
-
-            # Dados das linhas
-            dataframe["potencia_aparente_nas_linhas"] = (self.net.res_line['p_from_mw']**2 +
-                                                        self.net.res_line['q_from_mvar']**2)**0.5
-            # loading
-            dataframe["porcentagem_de_carga_nas_linhas"] = self.net.res_line[['loading_percent']]
-
-            # Dados dos transformadores
-            dataframe["potencia_aparente_nos_transformadores"] = self.net.res_trafo[['p_hv_mw']]
-            dataframe["porcentagem_de_carga_nos_transformadores"] = self.net.res_trafo[['loading_percent']]
-
-            return dataframe
-
-        except Exception as e:
-            print(f"Erro ao extrair dataset: {e}")
-
-            return pd.DataFrame()  # Retorna DataFrame vazio em caso de erro
-
-    #! Otimiazação
-    def calcular_loading_linhas(self):
-        """Calcula violações nos elementos da rede elétrica.
-        """
-        violacoes = []
-
-        for idx, loading in enumerate(self.net.res_line.loading_percent):
-            self.log(f"Linha {idx}: {loading:.2f}% carregada.")
-
-            if loading > 100:
-                violacoes.append(f"Linha {idx} sobrecarregada: {loading:.2f}%")
-
-        print(f"\n\nViolações de loading nas linhas calculadas: {violacoes}")
-        return violacoes
-
+    #! Otimização
     def calcular_violacoes_fitness(self):
         """
         Calcula as violações nos barramentos, linhas e transformadores.
@@ -344,7 +253,7 @@ class RedeEletricaPandaPower:
 
         if self.debug:
             print("\nTotal de violações e salvando num banco de dados...")
-            #display(violacoes_df)
+            display(violacoes_df)
             self.console.log(f"\n\nAptidão do cenário nos barramentos, linhas e transformadores ", level = "success")
             self.console.log(f"VIOLAÇÃO TOTAL  = {fitness:.2f}\n", level = "success")
 
@@ -373,62 +282,6 @@ class RedeEletricaPandaPower:
             return 3  # Pesado
         return 0  # Fora dos horários definidos
 
-
-    def avalia_cenarios_matlab_rainer(self, m, x, duracao, ls, le, ms, me, hs, he):
-        """
-        Avalia cenários de agendamento com base em desligamentos.
-
-        Args:
-            m (int): Horas de duração da janela de tempo.
-            x (list): Vetor de horários iniciais dos desligamentos (valores de 0 a m-1).
-            duracao (list): Vetor de duração em horas de cada desligamento.
-            ls, le, ms, me, hs, he (int): Limites iniciais e finais dos horários de carregamento leve, médio e pesado.
-
-        Returns:
-            list: Matriz que armazena todos os cenários do agendamento.
-        """
-
-        #! TODO HERE
-        # m = max(inicio + duracao for inicio, duracao, _ in desligamentos)
-
-        n = len(x)  # Número de desligamentos
-        Scen = []  # Inicializa matriz de saída
-
-        # Ajusta limite da janela de tempo se algum desligamento terminar fora da janela
-        for i in range(n):
-            if m < (x[i] + duracao[i]):
-                m = x[i] + duracao[i]
-
-        # Inicializa matrizes auxiliares
-        S = np.zeros((n, m), dtype=int)
-        Top = np.zeros(m, dtype=int)
-
-        # =================== Avaliando desligamentos por hora =================
-        for j in range(m):  # Para cada hora
-            for i in range(n):  # Para cada desligamento
-                if x[i] <= j < (x[i] + duracao[i]):
-                    S[i, j] = 1
-                Top[j] += S[i, j] * (2 ** i)
-
-        # =================== Avaliando cenários =================
-        numcenarios = 0
-        for j in range(m):
-            if j == 0:  # Condição inicial
-                if Top[j] > 0:  # Se há pelo menos um desligamento ativo
-                    numcenarios += 1
-                    perfil = self.calcular_perfil(j, ls, le, ms, me, hs, he)
-                    Scen.append([perfil] + S[:, j].tolist())
-            else:
-                if Top[j] != Top[j - 1] and Top[j] > 0:  # Nova topologia
-                    numcenarios += 1
-                    perfil = self.calcular_perfil(j, ls, le, ms, me, hs, he)
-                    Scen.append([perfil] + S[:, j].tolist())
-                else:  # Mesmo cenário, mas perfil pode mudar
-                    if j - 1 in [ms, hs]:
-                        perfil = self.calcular_perfil(j, ls, le, ms, me, hs, he)
-                        Scen[-1][0] = max(Scen[-1][0], perfil)
-
-        return Scen
 
     def avalia_cenarios(self, horas: int, hora_inicio: list, duracao: list, ls, le, ms, me, hs, he , debug = False):
         """
@@ -539,8 +392,11 @@ class RedeEletricaPandaPower:
             self.log(f"Ajustando cargas para o perfil {perfil} ({tipo})...")
 
         # usando o scaling
-        self.net.load["p_mw"] *= fator
-        self.net.load["q_mvar"] *= fator
+        #self.net.load["p_mw"] *= fator
+        #self.net.load["q_mvar"] *= fator
+        self.net.load.scaling = fator
+        #self.net.gen['vm_pu'] = 1.045
+        self.net.gen.scaling = fator
 
         self.log("Cargas ajustadas.", level = "success")
 
@@ -552,8 +408,6 @@ class RedeEletricaPandaPower:
 
         for i, estado in enumerate(estados):
             if estado == 1:  # Verifica se o ramo deve ser desligado
-
-
 
                 ramo = self.agendamento.iloc[i]["ramo"]
 
@@ -644,36 +498,6 @@ class RedeEletricaPandaPower:
 
 
     #! Old Pandapower
-    def desligar_varias_linhas(self, linhas, show_prints = False):
-        """Desliga várias linhas passadas como lista e executa o fluxo de carga para imprimir resultados."""
-        for linha_idx in linhas:
-            if linha_idx in self.net.line.index:
-                self.net.line.at[linha_idx, 'in_service'] = False
-                print(f"Linha {linha_idx} desligada.")
-            else:
-                print(f"Linha {linha_idx} não encontrada na rede.")
-
-        # Executa o fluxo de carga e imprime resultados para as linhas desligadas
-        if show_prints:
-            self.executar_fluxo_de_carga()
-            self.imprimir_resultados()
-
-    def desligar_transformadores(self, transformadores, show_prints=False):
-        """Desliga vários transformadores e executa o fluxo de carga."""
-        for transformador in transformadores:
-            if transformador in self.net.trafo.index:
-                self.net.trafo.at[transformador, 'in_service'] = False
-                print(f"Transformador {transformador} desligado.")
-            else:
-                print(f"Transformador {transformador} não encontrado na rede.")
-
-        #! Executa o fluxo de carga e imprime resultados para os trafos desligados
-        if show_prints:
-            self.executar_fluxo_de_carga()
-
-            # Calcula potência aparente após alterações
-            self.calcular_potencia_aparente_trafos()
-            self.imprimir_resultados()
 
     #! Funções matematicas
     def calcular_potencia_aparente_trafos(self):

@@ -2,7 +2,7 @@ import streamlit as st
 import pandas as pd
 import numpy as np
 from io import BytesIO
-from RedeEletrica import RedeEletricaPandaPower  # Certifique-se de que este caminho de importação esteja correto
+from rede_eletrica import RedeEletricaPandaPower  # Certifique-se de que este caminho de importação esteja correto
 
 # Configurações de layout
 st.set_page_config(page_title="Automação de Rede Elétrica", layout="wide")
