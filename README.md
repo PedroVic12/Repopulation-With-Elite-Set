@@ -1,7 +1,7 @@
 # Repopulation-With-Elite-Set
  
 ---
-##  EXEMPLO DE USO DO FRAMEWORK:
+##  EXEMPLO DE USO DO FRAMEWORK DEAP:
 ---
 
 O usuário do framework encontrará na pasta compartilhada onde possui três arquivos com extensão jupyter notebook que podem ser abertos diretamente no Google Colab. O Notebook 1 pode ser utilizado para apenas uma execução do AE. Para este fim, o usuário deverá seguir os seguintes passos:
@@ -62,8 +62,6 @@ if __name__ == "__main__":
 
 8) É possivel baixar em arquivo .xlsx a população final gerada
 
-
-
 ### **Dicas**:
 
 1) Aumente **Mutação** para maior GAP entre os valores
@@ -73,3 +71,58 @@ if __name__ == "__main__":
 3) Altere **RCE_REPOPULATION_GENERATIONS** para obter mais ou menos aplicações da Estrategia de Diversitifiação RCE
 
 ***Com os valores de Mutação, Crossover e Porcentagem altos é bem capaz de voce atingir valores proximos ao valor global 0,0 da função Rastrigin***
+
+---
+# Documentação da Classe RedeEletricaPandaPower e seu uso na funcao_objetivo_IEEE14
+---
+
+## Classe RedeEletricaPandaPower
+
+Esta classe representa uma rede elétrica usando a biblioteca Pandapower. Ela fornece funcionalidades para carregar redes padrão, validar dados de agendamento e contingência, calcular violações de fitness, ajustar cargas, desligar/religar elementos da rede e executar o fluxo de carga.
+
+### Atributos
+
+* `net`: Objeto Pandapower que representa a rede elétrica.
+* `debug`: Flag para ativar ou desativar o modo de depuração.
+* `console`: Objeto Logger para registrar mensagens.
+* `mapeamento_ramos`: Dicionário que mapeia pares de barramentos para índices de linhas e trafos.
+* `pesos`: Dicionário que define os pesos para as violações de fitness.
+* `agendamento`: DataFrame que armazena os dados de agendamento.
+* `contingencia`: DataFrame que armazena os dados de contingência.
+
+### Métodos
+
+* `carregar_redes_padrao()`: Carrega uma rede padrão do Pandapower com base no nome fornecido.
+* `criar_mapeamento_ramos()`: Cria um mapeamento de ramos (linhas e trafos) para facilitar o acesso aos elementos da rede.
+* `validar_dados()`: Valida os dados de agendamento e contingência antes de processá-los.
+* `hashtableindex()`: Calcula o índice da tabela hash correspondente a um cenário específico.
+* `log()`: Registra uma mensagem com o nível especificado.
+* `show_status()`: Exibe o status atual da rede elétrica, incluindo informações sobre linhas, transformadores e barramentos.
+* `calcular_violacoes_fitness()`: Calcula as violações de fitness, como violações de tensão e carregamento de linhas e transformadores.
+* `calcular_perfil()`: Determina o perfil de carregamento (leve, médio ou pesado) para uma determinada hora.
+* `avalia_cenarios()`: Avalia os cenários de agendamento e contingência, gerando uma matriz de cenários.
+* `executar_fluxo_de_carga()`: Executa o fluxo de carga na rede elétrica usando o algoritmo Newton-Raphson.
+* `ajustar_cargas()`: Ajusta as cargas da rede de acordo com o perfil de carregamento especificado.
+* `desligar_elementos_agendamento()`: Desliga elementos da rede (linhas e trafos) com base no cenário de agendamento.
+* `desligar_contingencia()`: Desliga elementos da rede com base no cenário de contingência.
+* `desligar_elementos()`: Desliga os elementos especificados (linhas e trafos) da rede.
+* `religar_todos_os_ramos_agendamento()`: Religa todos os ramos da rede que foram desligados durante o agendamento.
+* `imprimir_resultados()`: Imprime os resultados do fluxo de carga e salva os dados em um arquivo Excel.
+* `calcular_potencia_aparente_trafos()`: Calcula a potência aparente nos transformadores.
+* `calcular_potencia_aparente_linhas()`: Calcula a potência aparente nas linhas.
+
+
+## Uso na funcao_objetivo_IEEE14
+
+A função `funcao_objetivo_IEEE14` usa a classe `RedeEletricaPandaPower` para simular e avaliar o desempenho de um agendamento de desligamentos na rede elétrica IEEE 14 barras. 
+
+Aqui está um resumo de como a classe é utilizada na função:
+
+1. **Inicialização:** Uma instância da classe `RedeEletricaPandaPower` é criada, carregando a rede IEEE 14 barras.
+2. **Configuração:** Os pesos para as violações de fitness são definidos, e os dados de agendamento e contingência são carregados.
+3. **Avaliação de Cenários:** A função `avalia_cenarios` da classe é utilizada para gerar uma matriz de cenários, considerando os horários de início e duração dos desligamentos, bem como os perfis de carregamento.
+4. **Simulação:** Para cada cenário, o fluxo de carga é executado usando a função `executar_fluxo_de_carga` da classe. Antes da execução, as cargas são ajustadas de acordo com o perfil de carregamento do cenário, e os elementos da rede são desligados/religados conforme definido no cenário.
+5. **Cálculo de Fitness:** As violações de fitness são calculadas usando a função `calcular_violacoes_fitness` da classe. O fitness do cenário é então determinado com base nos pesos atribuídos a cada tipo de violação.
+6. **Agregação de Resultados:** Os fitness de todos os cenários são somados para obter o fitness final do agendamento.
+
+
