@@ -1,3 +1,6 @@
+
+// sudo chmod 666 /dev/ttyUSB0
+
 // === Classes organizadas ===
 class SensorRC {
   int pin;
@@ -62,6 +65,7 @@ void setup() {
   Serial.begin(9600);
   pinMode(botaoVerdePin, INPUT_PULLUP);   // Botão com resistor pullup interno
   pinMode(botaoAmareloPin, INPUT_PULLUP);
+
 }
 
 void loop() {
