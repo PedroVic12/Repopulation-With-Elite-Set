@@ -2,100 +2,26 @@ import streamlit as st
 import pandas as pd
 import numpy as np
 from components import (
-    DataModel, 
-    file_upload_component, 
-    data_table_component, 
     GraficoComponent,
-    Card, 
-    create_rce_grafico, 
+    Card,
+    create_rce_grafico,
     botao_flutuante,
-    render_navbar
+    NavigationLateral
 )
 
-class DashboardApp:
-    def __init__(self):
-        st.set_page_config(
-            page_title="Dashboard RCE Interativo",
-            page_icon="📊",
-            layout="wide", 
-            initial_sidebar_state="expanded"
-        )
-        
-        # Configurar tema escuro
-        st.markdown("""
-            <style>
-            .stApp {
-                background-color: #1a1a2e;
-                color: white;
-            }
-            .stSidebar {
-                background-color: #0f0f23;
-            }
-            </style>
-        """, unsafe_allow_html=True)
-        
-        # Inicializar modelos e componentes
-        self.data_model = DataModel()
-        self.grafico_component = GraficoComponent()
-        
-        # Inicializar estado da sessão
-        if 'page' not in st.session_state:
-            st.session_state.page = 'home'
-        if 'df' not in st.session_state:
-            st.session_state.df = pd.DataFrame()
-        
-        # Adicionar botão flutuante
-        botao_flutuante()
-        
-    def render_home(self):
-        st.title("Dashboard Interativo")
-        
-        # Cards na primeira linha
-        col1, col2, col3 = st.columns(3)
-        
-        with col1:
-            Card("Best Solution Gen", "145")
-        
-        with col2:
-            Card("Solution Fitness", "0.0024449194511966255")
-            
-        with col3:
-            Card("Best Variables", "[-0.003, 0.001, -1.768, 1.185, -1.900, 0.227, 4.695, -2.824, -1.265, -7.298]")
-        
-        # Área de upload e visualização
-        col_upload, col_graph = st.columns(2)
-        
-        with col_upload:
-            st.subheader("Dados")
-            uploaded_file = file_upload_component()
-            
-            if uploaded_file:
-                if self.data_model.load_data(uploaded_file):
-                    st.session_state.df = self.data_model.df
-                    st.success(f"Arquivo '{uploaded_file.name}' carregado com sucesso!")
-            
-            # Mostrar tabela de dados
-            data_table_component(st.session_state.df)
-        
-        with col_graph:
-            st.subheader("Visualização")
-            
-            # Seletor de tipo de gráfico
-            selected_chart = self.grafico_component.render_chart_selector()
-            
-            # Criar e exibir gráfico
-            if not st.session_state.df.empty:
-                fig = self.grafico_component.create_chart(st.session_state.df, selected_chart)
-                if fig:
-                    st.plotly_chart(fig, use_container_width=True)
-                
-                # Insights
-                with st.expander("Insights"):
-                    st.write(self.grafico_component.generate_insights(selected_chart))
-            else:
-                st.info("Carregue um arquivo para visualizar gráficos.")
+from controllers import  file_upload_component, data_table_component
+
+# Example page functions
+def home_page():
+    st.title("Home Page")
+    st.write("Welcome to the Home Page!")
+
+def about_page():
+    st.title("About Page")
+    st.write("This is the About Page.")
+
     
-    def render_page_1(self):
+def render_page_1():
         st.title("Página 1")
         
         st.subheader("Conteúdo da Página 1")
@@ -115,7 +41,7 @@ class DashboardApp:
         # Exemplo de uma métrica
         st.metric("Temperatura", "32 °C", delta="1.2 °C", delta_color="inverse")
     
-    def render_page_2(self):
+def render_page_2():
         st.title("Página 2 - Tabelas")
         
         # Simulação de tabelas do código original
@@ -141,8 +67,21 @@ class DashboardApp:
         st.subheader("Tabela Resumo")
         st.dataframe(df_resumo, use_container_width=True)
     
-    def render_graph_page(self):
+def RCEFrameworkPage():
         st.title("Página de Gráficos")
+
+        # Cards na primeira linha
+        col1, col2, col3 = st.columns(3)
+        
+        with col1:
+            Card("Best Solution Gen", "145")
+        
+        with col2:
+            Card("Solution Fitness", "0.0024449194511966255")
+            
+        with col3:
+            Card("Best Variables", "[-0.003, 0.001, -1.768, 1.185, -1.900, 0.227, 4.695, -2.824, -1.265, -7.298]")
+        
         
         # Como não temos acesso ao arquivo original, vamos criar dados fictícios para o gráfico RCE
         st.write("Como não temos acesso ao arquivo RCE original, vamos criar um gráfico com dados simulados.")
@@ -208,21 +147,7 @@ class DashboardApp:
         col1.metric("Melhor Fitness", f"{min_fitness[-1]:.6f}", delta=f"{min_fitness[0] - min_fitness[-1]:.6f}")
         col2.metric("Gerações Executadas", f"{len(gen)}", delta=None)
         col3.metric("Tempo de Execução", "2m 34s", delta=None)
-    
-    def run(self):
-        # Renderizar navegação
-        current_page = render_navbar()
-        
-        # Renderizar página atual
-        if current_page == 'home':
-            self.render_home()
-        elif current_page == 'page-1':
-            self.render_page_1()
-        elif current_page == 'page-2':
-            self.render_page_2()
-        elif current_page == 'graph-page':
-            self.render_graph_page()
 
-if __name__ == "__main__":
-    app = DashboardApp()
-    app.run()
+
+        render_page_2()
+    

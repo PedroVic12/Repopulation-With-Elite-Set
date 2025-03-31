@@ -6,44 +6,8 @@ import numpy as np
 from io import StringIO, BytesIO
 import base64
 
-# Modelo de dados
-class DataModel:
-    def __init__(self):
-        self.df = pd.DataFrame()
 
-    def load_data(self, file):
-        try:
-            if file is not None:
-                if file.name.endswith('.csv'):
-                    self.df = pd.read_csv(file)
-                elif file.name.endswith(('.xls', '.xlsx')):
-                    self.df = pd.read_excel(file)
-                else:
-                    st.error("Formato de arquivo não suportado. Por favor, envie um arquivo CSV ou Excel.")
-                    return False
-                return True
-            return False
-        except Exception as e:
-            st.error(f"Erro ao carregar arquivo: {e}")
-            return False
-
-# Componentes de Upload
-def file_upload_component(key="upload-data"):
-    st.subheader("Carregar Dados")
-    uploaded_file = st.file_uploader(
-        "Arraste e solte ou selecione os arquivos", 
-        type=["csv", "xlsx", "xls"], 
-        key=key
-    )
-    return uploaded_file
-
-# Componente de Tabela
-def data_table_component(df=None, key="data-table"):
-    if df is None or df.empty:
-        st.info("Nenhum dado disponível. Por favor, carregue um arquivo.")
-        return
     
-    st.dataframe(df, use_container_width=True, height=600)
 
 # Componente de Gráficos
 class GraficoComponent:
@@ -281,9 +245,11 @@ def botao_flutuante():
     st.components.v1.html(html_code, height=0)
 
 # Componente de Navegação
-def render_navbar():
-    st.sidebar.title("Navigation")
-    
+def NavigationLateral():
+
+    st.sidebar.title("Barra Navegação Lateral")
+    st.sidebar.markdown("---")
+
     pages = {
         "Home": "home",
         "Page 1": "page-1",
@@ -291,9 +257,90 @@ def render_navbar():
         "Graph Page": "graph-page"
     }
     
-    selected_page = st.sidebar.radio("Go to", list(pages.keys()))
+    selected_page = st.sidebar.radio("Paginas", list(pages.keys()))
     
     # Separador
     st.sidebar.markdown("---")
     
     return pages[selected_page]
+
+
+def DrawerMenuLateral():
+    utils = Utils()
+
+    temas = {
+        "titulo": "App Streamlit",
+        "paleta_dark": ["#1a365d", "#2d547d", "#38bdf8", "#f8fafc"],
+        "paleta_light": ["#f8fafc", "#e0e0e0", "#38bdf8", "#1a365d"],
+    }
+    with st.sidebar:
+        # Sidebar content
+        st.markdown(f"""
+                        <img src = "https://avatars.githubusercontent.com/u/83238564?s=200&v=4" style = "width: 50%; border-radius: 50%;">
+                        <h3 style = "color: var(--primary-color);"> {temas["titulo"]} </h3> 
+                        <p style = "color: var(--primary-color);">
+                        Ola mundo, meu nome é <strong>Pedro Victor</strong> e sou um desenvolvedor de software.
+                        </p>
+                    """, unsafe_allow_html=True)
+
+
+        with st.expander("Contato", expanded=True):
+            st.markdown("""
+                    <hr style = "border: 1px solid var(--primary-color);">
+                    <p> <i class="fas fa-user"></i> <strong>Nome:</strong> Pedro Victor </p>
+                    <p> <i class="fas fa-phone"></i> <strong>Nome:</strong> Rio de janeiro </p>
+                    <p> <i class="fas fa-envelope"></i> <strong>Nome:</strong> 21999289987 </p>
+                    <p> <i class="fas fa-map-marker-alt"></i> <strong>Nome:</strong> pedrovictorveras@id.uff.br </p>
+                    """, unsafe_allow_html=True)
+        
+    st.sidebar.markdown("---")
+
+
+
+
+class Utils:
+    def __init__(self):
+        pass
+
+    def Markdown(self, texto: str):
+        st.markdown(texto, unsafe_allow_html=True)
+
+    def CardSuspenso(self, titulo: str, conteudo: dict = {}):
+        with st.expander(titulo, expanded=True):
+            st.markdown("""
+                    <hr style = "border: 1px solid var(--primary-color);">
+                    <p> <i class="fas fa-user"></i> <strong>Nome:</strong> Pedro Victor </p>
+                    <p> <i class="fas fa-phone"></i> <strong>Nome:</strong> Rio de janeiro </p>
+                    <p> <i class="fas fa-envelope"></i> <strong>Nome:</strong> 21999289987 </p>
+                    <p> <i class="fas fa-map-marker-alt"></i> <strong>Nome:</strong> pedrovictorveras@id.uff.br </p>
+                    """, unsafe_allow_html=True)
+
+    def div(self, texto: str):
+        st.markdown(f'<div style="text-aling: center; margin: 2rem 0">{texto}</div>', unsafe_allow_html=True)
+
+    def social_links(self):
+
+        info = {
+            "link": "https://www.linkedin.com/in/pedro-victor-veras-de-lima-7b5b3b1b3/",
+            "social": "linkedin",
+        }
+
+        link_html = "".join(
+            f"<a href='{info['link']}' target='_blank'><i class='fab fa-{info['social']}' style='font-size: 24px; color: var(--primary-color);'></i></a>"
+            f"<i class={info['social']}></i>"
+
+            #for name,info in info.items():
+            
+        
+        )
+
+
+
+        self.Markdown(f"""
+            <a href="https://www.linkedin.com/in/pedro-victor-veras-de-lima-7b5b3b1b3/" target="_blank">
+                      <i class="fab fa-linkedin fa-2x"></i>
+            </a>
+                
+            <div style="text-aling: center; margin: 2rem 0"> {link_html} </div>       
+
+                    """)
