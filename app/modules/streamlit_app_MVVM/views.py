@@ -6,7 +6,9 @@ from components import (
     Card,
     create_rce_grafico,
     botao_flutuante,
-    NavigationLateral
+    NavigationLateral,
+    Utils,
+    FormularioComponent,
 )
 
 from controllers import  file_upload_component, data_table_component
@@ -150,4 +152,33 @@ def RCEFrameworkPage():
 
 
         render_page_2()
+    
+
+
+def FormularioPage(df = None):
+
+    #! Minuto 26 -> https://www.youtube.com/watch?v=BNc9yUTPzRQ
+    st.title("Página de Formulários")
+
+    FormularioComponent()
+
+
+    Utils().Markdown(
+        f""" 
+            ## Exemplo de Markdown
+
+            Este é um exemplo de texto em Markdown. Você pode adicionar **negrito**, _itálico_, [links](https://www.streamlit.io/),
+            listas:
+            - Item 1
+            - Item 2
+            - Item 3
+
+            E até mesmo imagens:
+            ![Streamlit](https://streamlit.io/images/brand/streamlit-mark-color.png)
+
+            E muito mais!
+
+        """)
+    
+
     

@@ -144,13 +144,13 @@ class ChatBot:
 # -------------------- Main App --------------------
 class DashboardAppTemplate:
     def __init__(self):
-        self._configure_page()
+        #self._configure_page()
         self.model = DataModel()
         self.view_model = DashboardViewModel(self.model)
         self.chatbot = ChatBot()
     
     def _configure_page(self):
-        #st.set_page_config(layout="wide", page_title="Dashboard Interativo")
+        st.set_page_config(layout="wide", page_title="Dashboard Interativo")
         st.markdown("""
             <style>
             .stApp {

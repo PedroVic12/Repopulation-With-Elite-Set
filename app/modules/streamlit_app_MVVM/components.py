@@ -295,6 +295,72 @@ def DrawerMenuLateral():
         
     st.sidebar.markdown("---")
 
+array_labels = ["Cat", "Dog", "Owl"]
+def Tabs():
+    tab1, tab2, tab3 = st.tabs(array_labels)
+
+    with tab1:
+        st.header(array_labels[0])
+        st.image("https://static.streamlit.io/examples/cat.jpg", width=200)
+    with tab2:
+        st.header(array_labels[1])
+        st.image("https://static.streamlit.io/examples/dog.jpg", width=200)
+    with tab3:
+        st.header(array_labels[2])
+        st.image("https://static.streamlit.io/examples/owl.jpg", width=200)
+
+def GraficoTabs():
+    tab1, tab2 = st.tabs(["📈 Chart", "🗃 Data"])
+    data = np.random.randn(10, 1)
+
+    tab1.subheader("A tab with a chart")
+    tab1.line_chart(data)
+
+    tab2.subheader("A tab with the data")
+    tab2.write(data)
+
+
+def FormularioComponent():
+    def init_values():
+        if "form_data" not in st.session_state:
+            st.session_state.form_data = {
+                "nome": "Pedro Victor",
+                "email": "",
+                "telefone": "",
+                "descricao": "",
+                "data": pd.Timestamp.today().date(),
+            }
+
+        print("\nDados da Session:", st.session_state.form_data)
+
+    init_values()
+
+    st.title("Formulário de Contato")
+    
+    nome = st.text_input("Nome", st.session_state.form_data["nome"])
+    email = st.text_input("Email", st.session_state.form_data["email"])
+    telefone = st.text_input("Telefone", st.session_state.form_data["telefone"])
+    descricao = st.text_area("Descrição", st.session_state.form_data["descricao"])
+    data = st.date_input("Data", st.session_state.form_data["data"])
+
+
+    btnSubmit = st.button("Agendar consulta")
+
+    if btnSubmit:
+        st.session_state.form_data = {
+            "nome": nome,
+            "email": email,
+            "telefone": telefone,
+            "descricao": descricao,
+            "data": data,
+        }
+
+        st.success("Formulário enviado com sucesso!")
+        st.info(f"Nome: {nome}, Email: {email}, Data: {data}")
+
+
+    st.subheader("Consultas agendadas")
+    st.write("Aqui estão as consultas agendadas para os próximos dias:")
 
 
 

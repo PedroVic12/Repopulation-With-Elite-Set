@@ -1,4 +1,4 @@
-from views import   home_page, about_page, RCEFrameworkPage, render_page_2
+from views import   FormularioPage, home_page, about_page, RCEFrameworkPage, render_page_2
 import streamlit as st
 import pandas as pd
 from PIL import Image
@@ -103,7 +103,7 @@ if __name__ == "__main__":
     elif pagina_selecionada == "Analise de dados para testes benchmarking":
         app.render_page(home_page)
     elif pagina_selecionada == "Pagina de formularios":
-        app.render_page(about_page)
+        app.render_page(FormularioPage)
     elif pagina_selecionada == "Template Dashboard":
         app.render_page(template.run())
     else:
