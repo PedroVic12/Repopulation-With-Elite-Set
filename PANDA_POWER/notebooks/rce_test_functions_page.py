@@ -88,13 +88,19 @@ def display_summary(data, exec_num):
     """Exibe o cabeçalho e o resumo da melhor solução na página principal."""
     st.header(f"Resultados da Execução: {exec_num}")
 
-    st.subheader("Resumo da Melhor Solução")
     col1, col2 = st.columns(2)
-    col1.metric("Melhor Fitness", f"{data.get('best_fitness', 'N/A'):.6f}")
-    col2.metric("Melhor Geração (Índice)", data.get('best_gen_idx', 'N/A'))
-
-    st.subheader("Melhores Variáveis")
-    st.write(data.get('best_vars', 'N/A'))
+    with col1:
+        st.markdown(
+            f"""
+            <div style="border: 2px solid #e6e6e6; border-radius: 5px; padding: 30px; margin: 10px 0; background-color: #d3d3d3;">
+            <h3 style="color: #1f77b4;">Resumo da Melhor Solução</h3>
+            <h4><strong>Melhor Fitness:</strong> {data.get('best_fitness', 'N/A'):.6f}</h4>
+            <h4><strong>Melhor Geração (Índice):</strong> {data.get('best_gen_idx', 'N/A')}</h4>
+            </div>
+            """, unsafe_allow_html=True)
+    with col2:
+        st.subheader("BEST DECISION VARIABLES")
+        st.write(data.get('best_vars', 'N/A'))
 
     with st.expander("Parâmetros Utilizados nesta Execução"):
         st.json(data.get('params', {}))
@@ -145,12 +151,14 @@ def display_consolidated_results():
     # Nome base do arquivo
     consolidated_excel_filename = "results_consolidados.xlsx"
     # Caminho completo para o arquivo
-    consolidated_excel_path = os.path.join(FOLDER_NAME, consolidated_excel_filename)
+    #   consolidated_excel_path = os.path.join(FOLDER_NAME, consolidated_excel_filename)
+    consolidated_excel_path = consolidated_excel_filename
+
 
     # Verifica a existência usando o caminho completo
     if os.path.exists(consolidated_excel_path):
         st.markdown("---")
-        st.header("Resultados Consolidados Gerais")
+        st.header("Resultados Consolidados Gerais de todas as execuções")
         try:
             # Lê o excel usando o caminho completo
             df_consolidado = pd.read_excel(consolidated_excel_path)
@@ -175,7 +183,7 @@ def display_consolidated_results():
 def main():
     """Função principal que organiza a execução do dashboard Streamlit."""
     st.set_page_config(layout="wide", page_title="Visualizador de Execuções RCE")
-    st.title("Visualizador de Resultados da Execução RCE")
+    st.title("Visualizador da Execução do Framework: Repopulation-With-Elite-Set RCE")
 
     execution_numbers = find_available_executions()
 
