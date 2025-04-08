@@ -13,7 +13,7 @@ def load_css(file_name: str):
 class App:
     def __init__(self):
         st.set_page_config(
-            page_title="Dashboard Interativo 2025 - RCE",
+            page_title="Dashboard Interativo 2025 - RCE V5",
             page_icon="📊",
             layout="wide", 
             initial_sidebar_state="expanded"
