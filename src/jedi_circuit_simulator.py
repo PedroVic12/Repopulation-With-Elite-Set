@@ -22,6 +22,11 @@ def adicionar_componente(tipo, valor=""):
     x, y = st.session_state.ultima_pos
     dx, dy = direcoes[st.session_state.direcao_atual]
     nova_pos = (x + dx, y + dy)
+    
+    # Adiciona um deslocamento adicional para os componentes que estão abaixo
+    if st.session_state.direcao_atual == 'down':
+        nova_pos = (nova_pos[0], nova_pos[1] - 1)
+    
     st.session_state.componentes.append({
         "tipo": tipo,
         "valor": valor,
@@ -32,7 +37,7 @@ def adicionar_componente(tipo, valor=""):
 
 def desenhar_circuito(componentes):
     with schemdraw.Drawing() as d:
-        for comp in componentes:
+        for i, comp in enumerate(componentes):
             tipo = comp.get("tipo")
             valor = comp.get("valor", "")
             orientacao = comp.get("orientacao", "right").lower()
@@ -54,15 +59,21 @@ def desenhar_circuito(componentes):
             else:
                 continue
 
+            dx, dy = direcoes[orientacao]
+            xy = (xy[0] + i * dx, xy[1] + i * dy)
+
             d += base.at(xy).anchor(anchor)
+
+        if componentes:
+            d += elm.Line().at(componentes[-1]["xy"]).to(componentes[0]["xy"])
 
         buf = io.BytesIO()
         d.draw()
-        d.save(buf, format='png')
+        d.save(buf)
         buf.seek(0)
         return Image.open(buf)
 
-st.title("🧠 Jedi Circuit Builder - Engenharia 2D")
+st.title("🧠 Jedi Circuit Builder - Engenharia Eletrica UFF")
 
 col1, col2 = st.columns(2)
 
