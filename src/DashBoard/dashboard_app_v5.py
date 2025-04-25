@@ -44,6 +44,27 @@ def select_execution(execution_numbers):
     )
     return selected_num
 
+def select_execution_with_tabs(execution_numbers):
+    """Exibe as execuções como abas e retorna o número da execução selecionada dinamicamente."""
+    st.header("Seleção da Execução")
+    
+    # Inicializa o estado da aba ativa no session_state
+    if "active_tab_index" not in st.session_state:
+        st.session_state["active_tab_index"] = 0  # Começa com a primeira aba ativa
+
+    # Cria uma aba para cada número de execução
+    tabs = st.tabs([f"Execução {num}" for num in execution_numbers])
+    
+    # Atualiza o índice da aba ativa com base na interação do usuário
+    for i, tab in enumerate(tabs):
+        with tab:
+            if st.session_state["active_tab_index"] != i:
+                st.session_state["active_tab_index"] = i
+            st.write(f"Você está visualizando os dados da execução {execution_numbers[i]}")
+
+    # Retorna o número da execução correspondente à aba ativa
+    return execution_numbers[st.session_state["active_tab_index"]]
+
 def load_execution_data(exec_num):
     """Carrega os dados .pkl e a figura .json para a execução especificada,
        buscando na pasta FOLDER_NAME."""
@@ -96,7 +117,7 @@ class SummaryComponent:
         with col1:
             st.markdown(
                 f"""
-                <div style="border: 2px solid #e6e6e6; border-radius: 5px; padding: 30px; margin: 10px 0; background-color: #d3d3d3;">
+                <div style="border: 2px solid #e6e6e6; border-radius: 5px; padding: 30px; margin: 10px 0; background-color: #d5d5d5;">
                 <h3 style="color: #1f77b4;">Resumo da Melhor Solução</h3>
                 <h4><strong>Melhor Fitness:</strong> {data.get('best_fitness', 'N/A'):.6f}</h4>
                 <h4><strong>Melhor Geração (Índice):</strong> {data.get('best_gen_idx', 'N/A')}</h4>
@@ -194,6 +215,7 @@ class ConsolidatedResultsComponent:
             st.info(f"Arquivo de resultados consolidados ({consolidated_excel_path}) não encontrado.")
 
 
+
 class DashboardApp:
     """Classe principal do aplicativo Dashboard."""
     
@@ -202,6 +224,10 @@ class DashboardApp:
         st.set_page_config(layout="wide", page_title="Visualizador de Execuções RCE")
         self.execution_numbers = find_available_executions()
         
+        # Inicializa o estado da execução selecionada no session_state
+        if "selected_execution" not in st.session_state:
+            st.session_state["selected_execution"] = None
+
     def run(self):
         """Executa o aplicativo Dashboard."""
         st.title("Framework Repopulation-With-Elite-Set RCE")
@@ -210,31 +236,39 @@ class DashboardApp:
             st.error(f"Nenhum arquivo de resultado ('dashboard_data_*.pkl') encontrado na pasta '{FOLDER_NAME}'.")
             st.info("Certifique-se de que executou o script principal ('app.py' ou similar) que gera esses arquivos na pasta correta.")
             st.stop()
-            
-        selected_exec_num = select_execution(self.execution_numbers)
         
-        if selected_exec_num:
-            data, fig = load_execution_data(selected_exec_num)
+        # Seleciona dinamicamente a execução com abas
+        selected_execution = select_execution_with_tabs(self.execution_numbers)
+        
+        # Atualiza o estado da execução selecionada no session_state
+        if st.session_state["selected_execution"] != selected_execution:
+            st.session_state["selected_execution"] = selected_execution
+        
+        # Exibe o valor da execução selecionada
+        st.write(f"Execução selecionada: {st.session_state['selected_execution']}")
+        
+        # Carrega os dados da execução selecionada
+        if st.session_state["selected_execution"]:
+            data, fig = load_execution_data(st.session_state["selected_execution"])
             
             if data:
                 # Área principal: cada componente é encapsulado em um container
                 with st.container():
-                    SummaryComponent.render(data, selected_exec_num)
+                    SummaryComponent.render(data, st.session_state["selected_execution"])
                 
                 with st.container():
                     StatisticsTableComponent.render(data)
                 
                 with st.container():
-                    ConvergenceGraphComponent.render(fig, selected_exec_num)
+                    ConvergenceGraphComponent.render(fig, st.session_state["selected_execution"])
                 
                 with st.container():
                     ConsolidatedResultsComponent.render()
         else:
-            # Se execution_numbers não estiver vazio, selectbox sempre terá um valor.
-            # Mas por segurança, podemos adicionar:
             st.warning("Nenhuma execução selecionada ou disponível.")
 
 
+            
 # --- Execução ---
 if __name__ == "__main__":
     app = DashboardApp()
