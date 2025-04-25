@@ -254,16 +254,18 @@ class DashboardApp:
             if data:
                 # Área principal: cada componente é encapsulado em um container
                 with st.container():
+
+                    ConsolidatedResultsComponent.render()
                     SummaryComponent.render(data, st.session_state["selected_execution"])
-                
-                with st.container():
-                    StatisticsTableComponent.render(data)
+
                 
                 with st.container():
                     ConvergenceGraphComponent.render(fig, st.session_state["selected_execution"])
                 
+                
                 with st.container():
-                    ConsolidatedResultsComponent.render()
+                    StatisticsTableComponent.render(data)
+                
         else:
             st.warning("Nenhuma execução selecionada ou disponível.")
 
