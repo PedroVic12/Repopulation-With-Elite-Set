@@ -237,6 +237,10 @@ class DashboardApp:
             st.info("Certifique-se de que executou o script principal ('app.py' ou similar) que gera esses arquivos na pasta correta.")
             st.stop()
         
+        
+        ConsolidatedResultsComponent.render()
+
+
         # Seleciona dinamicamente a execução com abas
         selected_execution = select_execution_with_tabs(self.execution_numbers)
         
@@ -255,7 +259,6 @@ class DashboardApp:
                 # Área principal: cada componente é encapsulado em um container
                 with st.container():
 
-                    ConsolidatedResultsComponent.render()
                     SummaryComponent.render(data, st.session_state["selected_execution"])
 
                 
