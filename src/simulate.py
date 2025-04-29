@@ -276,6 +276,10 @@ for i in range(num_loops):
         # to finish rendering previous graphs if complex.
         time.sleep(1) 
         simulate_orbit() 
+        time.sleep(1) # Pause to allow rendering
+        simulate_orbit_3d() # Call the 3D version
+
+        
     except Exception as e:
         print(f"[Iteration {i+1}] *** ERROR in Orbit Simulation: {e} ***")
     print(f"[Iteration {i+1}] === Orbit Finished ===\n")
