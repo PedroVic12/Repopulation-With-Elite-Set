@@ -24,7 +24,7 @@ def DrawerSideBar():
     page_options = {
         "🧩 Core Template": template.run, # Reference the method directly
         "🤖 C3po Chatbot":C3poChatbotPage,
-        #🚀 Framework RCE": dashboard.run(),
+       " ⚡Framework RCE": dashboard.run(),
 
        # "📊 Benchmarking Analysis": BenchmarkingPage,
        #⚡ Old Dash": home_page.HomePage()

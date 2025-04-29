@@ -6,14 +6,27 @@ import plotly.graph_objects as go
 import pandas as pd
 import os
 import glob # Importar glob para encontrar arquivos
+import json
 
-FOLDER_NAME = "output" # Nome da pasta onde os arquivos estão localizados
-
+#OLDER_NAME = "./output" #  pasta onde os arquivos estão localizados
+FOLDER_NAME = os.path.abspath("output")
 
 class Utils:
     """Classe Utilitária para funções auxiliares do Dashboard."""
     def __init__(self):
         pass
+
+    def load_files(self):
+        # Teste para arquivo .pkl
+        with open("output/dashboard_data_1.pkl", "rb") as f:
+            data = pickle.load(f)
+            print(data)
+
+        # Teste para arquivo .json
+        with open("output/dashboard_fig_1.json", "r") as f:
+            fig = json.load(f)
+            print(fig)
+
 
     # --- Funções Auxiliares ---
     def find_available_executions(self):
@@ -34,7 +47,7 @@ class Utils:
                 st.warning(f"Não foi possível extrair o número de execução do arquivo: {f_path}")
         return sorted(execution_numbers) # Retorna a lista ordenada
 
-    def select_execution(execution_numbers):
+    def select_execution(self,execution_numbers):
         """Exibe o seletor na barra lateral e retorna o número da execução selecionada."""
         st.sidebar.header("Seleção da Execução")
         selected_num = st.sidebar.selectbox(
@@ -43,7 +56,7 @@ class Utils:
         )
         return selected_num
 
-    def select_execution_with_tabs(execution_numbers):
+    def select_execution_with_tabs(self,execution_numbers):
         """Exibe as execuções como abas e retorna o número da execução selecionada dinamicamente."""
         st.header("Seleção da Execução")
         
@@ -64,7 +77,7 @@ class Utils:
         # Retorna o número da execução correspondente à aba ativa
         return execution_numbers[st.session_state["active_tab_index"]]
 
-    def load_execution_data(exec_num):
+    def load_execution_data(self, exec_num):
         """Carrega os dados .pkl e a figura .json para a execução especificada,
         buscando na pasta FOLDER_NAME."""
         data = None
@@ -72,6 +85,10 @@ class Utils:
         # Modificado para construir o caminho dentro de FOLDER_NAME
         data_file_selected = os.path.join(FOLDER_NAME, f"dashboard_data_{exec_num}.pkl")
         fig_file_selected = os.path.join(FOLDER_NAME, f"dashboard_fig_{exec_num}.json")
+
+
+        files = self.load_files()
+        print(files)
 
         st.sidebar.markdown("---") # Separador visual
 
@@ -101,29 +118,22 @@ class Utils:
             fig = None
 
         return data, fig
-
-
-class Controller:    
+class Controller:
     """Classe Controlador MVC"""
 
-    # --- Configuração ---
-    def init(self,delete_files=True):
+    def __init__(self, delete_files=False):
         self.utils = Utils()
         self.execution_numbers = self.utils.find_available_executions()
-        
-        # Inicializa o estado da execução selecionada no session_state
-        if "selected_execution" not in st.session_state:
-            st.session_state["selected_execution"] = None
+        self.set_state("selected_execution", None)
+        self.set_state("active_tab_index", 0)
 
-
-        # Garante que a pasta exista (útil se rodar antes do script gerador por algum motivo)
+        # Garante que a pasta exista
         if not os.path.exists(FOLDER_NAME):
             st.warning(f"A pasta '{FOLDER_NAME}' não foi encontrada. Criando pasta vazia.")
             os.makedirs(FOLDER_NAME)
 
-
         if delete_files:
-            # apaga os arquivos da pasta primero
+            # Apaga os arquivos da pasta primeiro
             for file in os.listdir(FOLDER_NAME):
                 file_path = os.path.join(FOLDER_NAME, file)
                 try:
@@ -132,37 +142,34 @@ class Controller:
                 except Exception as e:
                     st.warning(f"Erro ao apagar arquivo {file_path}: {e}")
 
+        print("Controller configurado com sucesso.")
 
+    def set_state(self, key, default_value):
+        """Gerencia o estado no st.session_state."""
+        if key not in st.session_state:
+            st.session_state[key] = default_value
 
-    def __init__(self):
-        print("Setting up the controller...")
-        self.init()
-
-    def select_execution_with_tabs(self,execution_numbers):
+    def select_execution_with_tabs(self, execution_numbers):
         """Exibe as execuções como abas e retorna o número da execução selecionada dinamicamente."""
         st.header("Seleção da Execução")
-        
+
         # Inicializa o estado da aba ativa no session_state
         if "active_tab_index" not in st.session_state:
             st.session_state["active_tab_index"] = 0  # Começa com a primeira aba ativa
 
         # Cria uma aba para cada número de execução
         tabs = st.tabs([f"Execução {num}" for num in execution_numbers])
-        
+
         # Atualiza o índice da aba ativa com base na interação do usuário
         for i, tab in enumerate(tabs):
             with tab:
+                # Atualiza o índice da aba ativa
                 if st.session_state["active_tab_index"] != i:
                     st.session_state["active_tab_index"] = i
-                st.write(f"Você está visualizando os dados da execução {execution_numbers[i]}")
+
+                # Exibe os dados da aba ativa
+                if st.session_state["active_tab_index"] == i:
+                    st.write(f"Você está visualizando os dados da execução {execution_numbers[i]}")
 
         # Retorna o número da execução correspondente à aba ativa
         return execution_numbers[st.session_state["active_tab_index"]]
-
-
-    def setState(self, state):
-                
-        # # Inicializa o estado da execução selecionada no session_state
-                if state not in st.session_state:
-                    st.session_state["selected_execution"] = None
-
