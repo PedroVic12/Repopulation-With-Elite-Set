@@ -10,7 +10,7 @@ from AlgEvolutivoRCE.Dashboard import DashboardApp
 
 
 # Import functions benchmark
-from functions_fitness.functions_benchmarking import rosenbrock_benchmark
+from utils.functions_fitness.functions_benchmarking import rosenbrock_benchmark
 
 
 
@@ -25,7 +25,6 @@ if __name__ == "__main__":
 
     results_consolidados = []  # Initialize an empty list to store results
     execution_times = []  # Lista para armazenar os tempos de execução
-    figs = []  # List to store figures
 
 
     #! ainda seria possivel criar um pacote no pip e instanciar?

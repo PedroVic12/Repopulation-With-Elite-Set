@@ -10,10 +10,9 @@ import os
 
 import numpy as np
 import matplotlib.pyplot as plt
-from IPython.display import display
 
 
-from .Setup import params
+from Setup import params
 
 #!pip install streamlit pandas plotly openpyxl
 
@@ -356,7 +355,6 @@ class DashboardApp:
         }
 
         df = pd.DataFrame(data)
-        display(df)
         if save:
             df.to_excel("./statistics_RCE.xlsx", index=False)
 
