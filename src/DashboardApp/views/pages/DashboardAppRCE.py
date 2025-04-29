@@ -1,218 +1,178 @@
-# -*- coding: utf-8 -*-
 import streamlit as st
-import pickle
-import plotly.io as pio
-import plotly.graph_objects as go
 import pandas as pd
-import os
-import glob # Importar glob para encontrar arquivos
+import plotly.graph_objects as go
 
-# --- Configuração ---
-FOLDER_NAME = "output" # Nome da pasta onde os arquivos estão localizados
 
-# Garante que a pasta exista (útil se rodar antes do script gerador por algum motivo)
-if not os.path.exists(FOLDER_NAME):
-    st.warning(f"A pasta '{FOLDER_NAME}' não foi encontrada. Criando pasta vazia.")
-    os.makedirs(FOLDER_NAME)
+class StreamlitDashboard:
+    def __init__(self):
+        """Inicializa o dashboard."""
+        self.df = None
+        self.chatbot = None
 
-# --- Funções Auxiliares ---
+        self.setup_session_state()
+        self.setup_chatbot()
 
-def find_available_executions():
-    """Encontra arquivos .pkl de execução na pasta especificada
-       e retorna os números de execução ordenados."""
-    # Modificado para buscar dentro da pasta FOLDER_NAME
-    search_pattern = os.path.join(FOLDER_NAME, "dashboard_data_*.pkl")
-    data_files = glob.glob(search_pattern)
-    execution_numbers = []
-    for f_path in data_files:
-        try:
-            # Extrai apenas o nome do arquivo do caminho completo
-            filename_only = os.path.basename(f_path)
-            # Extrai o número do nome do arquivo (ex: 'dashboard_data_5.pkl' -> 5)
-            num_str = filename_only.split('_')[-1].split('.')[0]
-            execution_numbers.append(int(num_str))
-        except (IndexError, ValueError):
-            st.warning(f"Não foi possível extrair o número de execução do arquivo: {f_path}")
-    return sorted(execution_numbers) # Retorna a lista ordenada
+        self.setup_header()
+        self.load_data()
+        self.select_table()
+        self.select_axes()
 
-def select_execution(execution_numbers):
-    """Exibe o seletor na barra lateral e retorna o número da execução selecionada."""
-    st.sidebar.header("Seleção da Execução")
-    selected_num = st.sidebar.selectbox(
-        "Selecione o número da execução para visualizar:",
-        execution_numbers # Já vem ordenada da função anterior
-    )
-    return selected_num
 
-def select_execution_with_tabs(execution_numbers):
-    """Exibe as execuções como abas e retorna o número da execução selecionada dinamicamente."""
-    st.header("Seleção da Execução")
-    
-    # Inicializa o estado da aba ativa no session_state
-    if "active_tab_index" not in st.session_state:
-        st.session_state["active_tab_index"] = 0  # Começa com a primeira aba ativa
+# componentes
+    def setup_header(self):
+        """Configura o cabeçalho do dashboard."""
+        col1, col2, col3 = st.columns([1, 8, 1])
 
-    # Cria uma aba para cada número de execução
-    tabs = st.tabs([f"Execução {num}" for num in execution_numbers])
-    
-    # Atualiza o índice da aba ativa com base na interação do usuário
-    for i, tab in enumerate(tabs):
-        with tab:
-            if st.session_state["active_tab_index"] != i:
-                st.session_state["active_tab_index"] = i
-            st.write(f"Você está visualizando os dados da execução {execution_numbers[i]}")
-
-    # Retorna o número da execução correspondente à aba ativa
-    return execution_numbers[st.session_state["active_tab_index"]]
-
-def load_execution_data(exec_num):
-    """Carrega os dados .pkl e a figura .json para a execução especificada,
-       buscando na pasta FOLDER_NAME."""
-    data = None
-    fig = None
-    # Modificado para construir o caminho dentro de FOLDER_NAME
-    data_file_selected = os.path.join(FOLDER_NAME, f"dashboard_data_{exec_num}.pkl")
-    fig_file_selected = os.path.join(FOLDER_NAME, f"dashboard_fig_{exec_num}.json")
-
-    st.sidebar.markdown("---") # Separador visual
-
-    # Carregar Dados
-    try:
-        with open(data_file_selected, 'rb') as f:
-            data = pickle.load(f)
-        st.sidebar.success(f"Dados da execução {exec_num} carregados de '{FOLDER_NAME}'.")
-    except FileNotFoundError:
-        st.error(f"Erro Crítico: Arquivo de dados selecionado ({data_file_selected}) não encontrado.")
-        st.stop() # Para se o arquivo esperado não for encontrado
-    except Exception as e:
-        st.error(f"Erro ao carregar dados de {data_file_selected}: {e}")
-        st.stop() # Para em caso de erro de carregamento
-
-    # Carregar Figura
-    try:
-        # Verifica a existência usando o caminho completo
-        if os.path.exists(fig_file_selected):
-            fig = pio.read_json(fig_file_selected)
-            st.sidebar.success(f"Figura da execução {exec_num} carregada de '{FOLDER_NAME}'.")
-        else:
-            st.sidebar.warning(f"Arquivo da figura ({fig_file_selected}) não encontrado.")
-            fig = None
-    except Exception as e:
-        st.error(f"Erro ao carregar figura de {fig_file_selected}: {e}")
-        fig = None
-
-    return data, fig
-
-# --- Componentes da Interface de Usuário ---
-
-class SummaryComponent:
-    """Componente para exibir o resumo da melhor solução."""
-    
-    @staticmethod
-    def render(data, exec_num):
-        """Exibe o cabeçalho e o resumo da melhor solução."""
-        st.header(f"Resultados da Execução: {exec_num}")
-
-        col1, col2 = st.columns(2)
         with col1:
-            st.markdown(
-                f"""
-                <div style="border: 2px solid #e6e6e6; border-radius: 5px; padding: 30px; margin: 10px 0; background-color: #d5d5d5;">
-                <h3 style="color: #1f77b4;">Resumo da Melhor Solução</h3>
-                <h4><strong>Melhor Fitness:</strong> {data.get('best_fitness', 'N/A'):.6f}</h4>
-                <h4><strong>Melhor Geração (Índice):</strong> {data.get('best_gen_idx', 'N/A')}</h4>
-                </div>
-                """, unsafe_allow_html=True)
+            st.button("≡")
+
         with col2:
-            st.subheader("BEST DECISION VARIABLES")
-            st.write(data.get('best_vars', 'N/A'))
+            st.title("Dashboard Interativo")
 
-        with st.expander("Parâmetros Utilizados nesta Execução"):
-            st.json(data.get('params', {}))
+        with col3:
+            if st.button("🔔"):
+                st.session_state.show_chat = not st.session_state.show_chat
+
+    def load_data(self):
+        """Carrega os dados de entrada a partir de um arquivo Excel."""
+        with st.sidebar:
+
+            st.markdown("---")  # Separa
+            st.title("Carregar Dados")
+            st.markdown("---")  # Separa
+
+            uploaded_file = st.file_uploader("Envie um arquivo Excel", type=["xlsx", "xls"])
+            if uploaded_file:
+                try:
+                    self.df = pd.read_excel(uploaded_file, sheet_name=None)  # Carrega todas as tabelas
+                    st.success("Arquivo carregado com sucesso!")
+                except Exception as e:
+                    st.error(f"Erro ao carregar arquivo: {e}")
+            else:
+                st.info("Envie um arquivo Excel para começar.")
+
+    def select_table(self):
+        """Seleciona uma tabela do arquivo Excel carregado."""
+        if self.df:
+            table_name = st.sidebar.selectbox("Selecione a tabela", list(self.df.keys()))
+            return self.df[table_name]
+        return None
+
+    def select_axes(self, df):
+        """Seleciona as colunas para os eixos X e Y."""
+        x_col = st.sidebar.selectbox("Selecione a coluna para o eixo X", df.columns)
+        y_col = st.sidebar.selectbox("Selecione a coluna para o eixo Y", df.columns)
+        return x_col, y_col
+
+    def create_scatter_plot(self, df, x_col, y_col):
+        """Cria um gráfico de dispersão."""
+        fig = go.Figure()
+        fig.add_trace(go.Scatter(
+            x=df[x_col], y=df[y_col],
+            mode='lines+markers', name=f'{y_col} vs {x_col}'
+        ))
+        fig.update_layout(
+            title=f'Gráfico de {y_col} vs {x_col}',
+            xaxis_title=x_col,
+            yaxis_title=y_col,
+            template='plotly_dark',
+            plot_bgcolor='rgba(0,0,0,0)',
+            paper_bgcolor='rgba(0,0,0,0)'
+        )
+        st.plotly_chart(fig, use_container_width=True)
+
+    def create_bar_plot(self, df, x_col, y_col):
+        """Cria um gráfico de barras."""
+        fig = go.Figure()
+        fig.add_trace(go.Bar(
+            x=df[x_col], y=df[y_col], name=f'{y_col} vs {x_col}'
+        ))
+        fig.update_layout(
+            title=f'Gráfico de Barras: {y_col} vs {x_col}',
+            xaxis_title=x_col,
+            yaxis_title=y_col,
+            template='plotly_dark',
+            plot_bgcolor='rgba(0,0,0,0)',
+            paper_bgcolor='rgba(0,0,0,0)'
+        )
+        st.plotly_chart(fig, use_container_width=True)
+
+    def create_pie_chart(self, df, x_col, y_col):
+        """Cria um gráfico de pizza."""
+        fig = go.Figure(data=[go.Pie(
+            labels=df[x_col], values=df[y_col]
+        )])
+        fig.update_layout(
+            title=f'Gráfico de Pizza: {y_col} por {x_col}',
+            template='plotly_dark',
+            plot_bgcolor='rgba(0,0,0,0)',
+            paper_bgcolor='rgba(0,0,0,0)'
+        )
+        st.plotly_chart(fig, use_container_width=True)
+
+    def display_statistics(self, df, stat_col):
+        """Exibe estatísticas da coluna selecionada."""
+        col1, col2, col3, col4 = st.columns(4)
+        col1.metric("Mínimo", f"{df[stat_col].min():.2f}", delta=-0.5, delta_color="inverse")
+        col2.metric("Máximo", f"{df[stat_col].max():.2f}", delta=-0.5, delta_color="inverse")
+        col3.metric("Média", f"{df[stat_col].mean():.2f}", delta=-0.5, delta_color="inverse")
+        col4.metric("Desvio Padrão", f"{df[stat_col].std():.2f}", delta=-0.5, delta_color="inverse")
+
+    def footer(self):
+        """Exibe o rodapé do dashboard."""
+        st.markdown("""
+            <footer>
+            <p>Powered by <a href="https://streamlit.io/">Streamlit</a> and <a href="https://plotly.com/python/">Plotly</a></p>
+            </footer>
+        """, unsafe_allow_html=True)
 
 
-class StatisticsTableComponent:
-    """Componente para exibir a tabela de estatísticas por geração."""
-    
-    @staticmethod
-    def render(data):
-        """Exibe a tabela de estatísticas por geração, se disponível."""
-        if 'logbook_data' in data and isinstance(data['logbook_data'], dict):
-            st.subheader("Estatísticas por Geração")
-            try:
-                log_data = data['logbook_data']
-                statics = log_data.get('statics', {})
-                stats_data = {
-                    "Geração": log_data.get('generation', []),
-                    "Min Fitness": statics.get('min_fitness', []),
-                    "Média Fitness": statics.get('avg_fitness', []),
-                    "Max Fitness": statics.get('max_fitness', []),
-                    "Std Dev Fitness": statics.get('std_fitness', [])
-                }
-                lengths = {key: len(value) for key, value in stats_data.items()}
-                if len(set(lengths.values())) <= 1:
-                    if lengths and list(lengths.values())[0] > 0:
-                        stats_df = pd.DataFrame(stats_data)
-                        st.dataframe(stats_df, use_container_width=True)
-                    else:
-                        st.info("Não há dados de estatísticas por geração para exibir.")
-                else:
-                    st.warning("Dados de estatísticas por geração têm tamanhos inconsistentes.")
-                    st.json(lengths)
+    def RCE_HomePage(self):
+        """Executa o dashboard."""
+        self.setup_header()
+        self.load_data()
 
-            except Exception as e:
-                st.warning(f"Não foi possível exibir tabela de estatísticas: {e}")
-                st.write("Dados do logbook encontrados:")
-                st.json(data.get('logbook_data', {}))
-        else:
-            st.info("Dados do logbook não encontrados ou em formato inválido no arquivo .pkl.")
+        if self.df:
+            selected_table = self.select_table()
+            if selected_table is not None:
+                # Seção de Estatísticas
+                st.markdown("---")  # Separa
+                st.sidebar.title("Análise do arquivo Excel")
+                st.markdown("---")  # Separa
 
+                stat_col = st.sidebar.selectbox("Selecione uma coluna para análise estatística", selected_table.columns)
 
-class ConvergenceGraphComponent:
-    """Componente para exibir o gráfico de convergência."""
-    
-    @staticmethod
-    def render(fig, exec_num):
-        """Exibe o gráfico de convergência na página principal."""
-        st.header(f"Gráfico de Convergência (Execução {exec_num})")
-        if fig:
-            st.plotly_chart(fig, use_container_width=True)
-        else:
-            st.warning("Figura não disponível para exibição.")
+                if stat_col:
+                    self.display_statistics(selected_table, stat_col)
 
+                # Configuração de Eixos para os Gráficos
+                x_col, y_col = self.select_axes(selected_table)
 
-class ConsolidatedResultsComponent:
-    """Componente para exibir os resultados consolidados."""
-    
-    @staticmethod
-    def render():
-        """Verifica e exibe a seção de resultados consolidados."""
-        # Nome base do arquivo
-        consolidated_excel_filename = "results_consolidados.xlsx"
-        # Caminho completo para o arquivo
-        consolidated_excel_path = consolidated_excel_filename
+                # Exibir tabela
+                st.subheader("Tabela Selecionada")
+                st.dataframe(selected_table, use_container_width=True)
 
-        # Verifica a existência usando o caminho completo
-        if os.path.exists(consolidated_excel_path):
-            st.markdown("---")
-            st.header("Resultados Consolidados Gerais de todas as execuções")
-            try:
-                # Lê o excel usando o caminho completo
-                df_consolidado = pd.read_excel(consolidated_excel_path)
-                st.dataframe(df_consolidado)
-                # Abre o arquivo usando o caminho completo para o botão de download
-                with open(consolidated_excel_path, "rb") as fp:
-                    st.download_button(
-                        label="Baixar Resultados Consolidados (Excel)",
-                        data=fp,
-                        # Usa o nome base do arquivo para o download
-                        file_name=consolidated_excel_filename,
-                        mime="application/vnd.ms-excel"
-                    )
-            except Exception as e:
-                st.error(f"Erro ao ler o arquivo consolidado {consolidated_excel_path}: {e}")
-        else:
-            st.info(f"Arquivo de resultados consolidados ({consolidated_excel_path}) não encontrado.")
+                # Exibir gráficos
+                st.subheader("Gráficos")
+                graph_type = st.radio(
+                    "Tipo de Gráfico",
+                    ('Dispersão', 'Barras', 'Pizza'),
+                    horizontal=True
+                )
 
+                if graph_type == 'Dispersão':
+                    self.create_scatter_plot(selected_table, x_col, y_col)
+                elif graph_type == 'Barras':
+                    self.create_bar_plot(selected_table, x_col, y_col)
+                elif graph_type == 'Pizza':
+                    self.create_pie_chart(selected_table, x_col, y_col)
 
+        # Menu direito do chatbot
+        if st.session_state.show_chat:
+            with st.sidebar:
+                st.markdown("---")  # Separador
+                self.chatbot.display_chat()
+                st.markdown("---")  # Separador
+
+        self.footer()
 

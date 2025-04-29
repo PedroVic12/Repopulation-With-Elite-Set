@@ -1,5 +1,9 @@
 # --- Componentes da Interface de Usuário ---
 
+import streamlit as st
+import os
+import pandas as pd
+
 class SummaryComponent:
     """Componente para exibir o resumo da melhor solução."""
     
@@ -108,4 +112,5 @@ class ConsolidatedResultsComponent:
                 st.error(f"Erro ao ler o arquivo consolidado {consolidated_excel_path}: {e}")
         else:
             st.info(f"Arquivo de resultados consolidados ({consolidated_excel_path}) não encontrado.")
+
 
