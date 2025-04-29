@@ -7,15 +7,7 @@ class StreamlitDashboard:
     def __init__(self):
         """Inicializa o dashboard."""
         self.df = None
-        self.chatbot = None
-
-        self.setup_session_state()
-        self.setup_chatbot()
-
-        self.setup_header()
-        self.load_data()
-        self.select_table()
-        self.select_axes()
+        self.HomePage()
 
 
 # componentes
@@ -127,7 +119,7 @@ class StreamlitDashboard:
         """, unsafe_allow_html=True)
 
 
-    def RCE_HomePage(self):
+    def HomePage(self):
         """Executa o dashboard."""
         self.setup_header()
         self.load_data()
