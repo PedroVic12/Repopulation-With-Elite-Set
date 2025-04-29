@@ -8,8 +8,6 @@ import json
 import pandas as pd
 from scipy.optimize import minimize
 
-from IPython.display import display
-
 
 class AlgoritimoEvolutivoRCE:
     def __init__(self, setup, DEBUG = True):
@@ -25,9 +23,6 @@ class AlgoritimoEvolutivoRCE:
         self.hof = tools.HallOfFame(1)
         self.POPULATION = self.setup.toolbox.population(n=self.setup.POP_SIZE)
         self.hof.update(self.POPULATION)
-
-        if self.setup.DADOS_ENTRADA:
-            self.POP_OPTIMIZATION = self.setup.toolbox.population(n=self.setup.POP_SIZE)
 
         self.pop_RCE = []
         self.best_solutions_array = []
@@ -104,7 +99,6 @@ class AlgoritimoEvolutivoRCE:
     def show_ind_df(self, array, text, save = True):
         df = pd.DataFrame(array)
         print(text)
-        display(df.head(50))
         if save:
             df.to_excel(f"pop_final.xlsx")
 
@@ -262,7 +256,7 @@ class AlgoritimoEvolutivoRCE:
         )  # retorna uma pop com lista de individuos de var de decisão
 
         # Avaliar o fitness da população atual
-        self.avaliarFitnessIndividuos(current_population)
+        self.setup.avaliarFitnessIndividuos(current_population)
         self.calculateFitnessGeneration(current_population)
 
         #! b - Coloca o elite hof da pop anterior  no topo (0)
@@ -347,13 +341,6 @@ class AlgoritimoEvolutivoRCE:
 
         return self.pop_RCE
 
-    def avaliarFitnessIndividuos(self, pop):
-        """Avaliar o fitness dos indivíduos da população atual."""
-        fitnesses = map(self.setup.toolbox.evaluate, pop)
-        for ind, fit in zip(pop, fitnesses):
-            if ind.fitness.values:
-                ind.fitness.values = [fit]
-
     def calculateFitnessGeneration(self, new_pop):
         # Calculando o fitness para geração
         for ind in new_pop:
@@ -361,56 +348,30 @@ class AlgoritimoEvolutivoRCE:
                 fitness_value = self.setup.toolbox.evaluate(ind)
                 ind.fitness.values = (fitness_value,)
 
-    def checkDecisionVariablesAndFitnessFunction(
-        self, decision_variables, fitness_function
-    ):
+    def _avaliarFitnessIndividuos(self, pop):
+        """Avaliar o fitness dos indivíduos da população atual."""
+        fitnesses = map(self.setup.toolbox.evaluate, pop)
+        for ind, fit in zip(pop, fitnesses):
+            if ind.fitness.values:
+                ind.fitness.values = [fit]
 
-        # Verificar se as variáveis de decisão e a função de fitness foram fornecidas
-        if decision_variables is None and fitness_function is None:
 
-            # Gerar variáveis de decisão aleatórias para os indivíduos
-            decision_variables = [
-                random.random() for _ in range(self.setup.SIZE_INDIVIDUAL)
-            ]
 
-            # Definir a função de fitness padrão como a função Rastrigin
-            fitness_function = self.setup.rastrigin_decisionVariables
 
-        if decision_variables is None or fitness_function is None:
-            if not hasattr(self, "decision_variables") or not hasattr(
-                self, "fitness_function"
-            ):
-                raise ValueError(
-                    "Variáveis de decisão e função de fitness não definidas. Use set_decision_variables_and_fitness_function primeiro."
-                )
-        else:
-            self.decision_variables = decision_variables
-            self.fitness_function = fitness_function
-            print("DEBUG", self.decision_variables, self.fitness_function)
-
-            # Definir a função de fitness com base na função fornecida
-            def fitness_func(individual):
-                #return self.fitness_function(individual, decision_variables)
-                return self.fitness_function(individual)
-
-            # Registrar a função de fitness no toolbox
-            self.setup.toolbox.register("evaluate", fitness_func)
 
     #! Main LOOP
-    def run(self,  RCE=False, decision_variables=None, fitness_function=None, num_pop=0):
+    def run(self,  RCE=False, num_pop=0):
 
-        if self.setup.DADOS_ENTRADA:
-            population = [self.POPULATION, self.POP_OPTIMIZATION]
-        else:
-            population = [self.POPULATION]
+        population = [self.POPULATION]
 
-        # Avaliar o fitness da população inicial
-        self.avaliarFitnessIndividuos(population[num_pop])
+        #DEBUG 09/04 - Certificar em criar a população correta e avaliar sua funcao fitness
 
-        # Selecionando as variaveis de decisao e afuncao objeti
-        self.checkDecisionVariablesAndFitnessFunction(
-            decision_variables, fitness_function
-        )
+        #! Avaliar o fitness da população inicial
+        #self.setup.checkDecisionVariablesAndFitnessFunction(
+        #    self.POPULATION, self.setup.funcao_objetivo
+        #)
+        #self.setup.avaliarFitnessIndividuos(population)
+
 
         #! Loop principal através das gerações
         for current_generation in range(self.setup.NGEN):
@@ -438,8 +399,18 @@ class AlgoritimoEvolutivoRCE:
 
             #  Avaliar o fitness dos novos indivíduos
             invalid_ind = [ind for ind in offspring if not ind.fitness.valid]
+
+            #! Evaluate each individual separately
+            for ind in invalid_ind:
+                # call the 'funcao_objetivo_IEEE14' using the current individual attributes
+                fitness = self.setup.toolbox.evaluate(ind)
+
+                # Assign the fitness value to the individual
+                ind.fitness.values = [fitness]
+
+            # faz um map dos valores de fitness de cada individuo
             fitnesses = map(self.setup.toolbox.evaluate, invalid_ind)
-            for ind, fit in zip(invalid_ind, fitnesses):
+            for ind, fit in zip(invalid_ind, list(fitnesses)):
                 ind.fitness.values = [fit]
 
             #! Aplicar RCE
