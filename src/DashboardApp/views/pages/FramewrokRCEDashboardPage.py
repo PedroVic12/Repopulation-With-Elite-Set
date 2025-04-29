@@ -1,41 +1,56 @@
 
 
 # --- Componentes da Interface de Usuário ---
-from components.dash_rce_components import ConsolidatedResultsComponent, SummaryComponent, StatisticsTableComponent, ConvergenceGraphComponent 
+from ..components.dash_rce_components import ConsolidatedResultsComponent, SummaryComponent, StatisticsTableComponent, ConvergenceGraphComponent 
 
 
 #backend
-from controllers.Utils import FOLDER_NAME, find_available_executions, load_execution_data 
-from controllers.Utils import Controller
+from controllers.Utils import Controller,FOLDER_NAME, Utils
 
 
 # Frontend
 import streamlit as st
-import pickle
-import plotly.io as pio
-import plotly.graph_objects as go
-import pandas as pd
-import os
-import glob # Importar glob para encontrar arquivos
+
+
+# Configuração menu lateral
+class DrawerSideBar:
+    """Classe para gerenciar a barra lateral do aplicativo."""
+
+    def __init__(self):
+        """Inicializa a barra lateral com os números de execução disponíveis."""
+        self.st = st
+
+
+    def render(self):
+        """Renderiza a barra lateral."""
+        self.st.sidebar.title("Seleção da Execução com algortimo evolutivo")
+
+        utils.load_execution_data(self.st.session_state["selected_execution"])
+        self.st.sidebar.markdown("---") # Separador visual
+
 
 
 controller = Controller()
 menu_lateral = DrawerSideBar()
+utils = Utils()
 
 
+# --- Classe Principal do Aplicativo ---
 class FrameworkRCEDashboard:
     """Classe principal do aplicativo Dashboard."""
     
     def __init__(self):
         """Inicializa o aplicativo."""
-        st.set_page_config(layout="wide", page_title="Visualizador de Execuções RCE")
-        self.execution_numbers = find_available_executions()
+        #st.set_page_config(layout="wide", page_title="Visualizador de Execuções RCE")
+        self.execution_numbers = utils.find_available_executions(
+            
+        )
         
         # Inicializa o estado da execução selecionada no session_state
         if "selected_execution" not in st.session_state:
             st.session_state["selected_execution"] = None
 
-    
+
     def header(self):
         """Cabeçalho do aplicativo."""
         """Executa o aplicativo Dashboard."""
@@ -65,7 +80,7 @@ class FrameworkRCEDashboard:
         
         # Carrega os dados da execução selecionada
         if st.session_state["selected_execution"]:
-            data, fig = load_execution_data(st.session_state["selected_execution"])
+            data, fig = utils.load_execution_data()
             
             if data:
                 # Área principal: cada componente é encapsulado em um container

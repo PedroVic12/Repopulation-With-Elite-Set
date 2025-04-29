@@ -14,9 +14,9 @@ import os
 #     PYDUB_AVAILABLE = False
 
 
-from config import API_KEY, DEFAULT_MODEL, historico_c3po_inicial, CSS
+from .config import API_KEY, DEFAULT_MODEL, historico_c3po_inicial, CSS
 
-from graficos import funcao_seno, sinal_pwm, circuito_rc
+from .graficos import funcao_seno, sinal_pwm, circuito_rc
 
 # --- Backend AI and TTS Class ---
 class AssistenteGenAI:
@@ -253,7 +253,8 @@ def handle_gemini_response(assistente: AssistenteGenAI):
 # --- Main Page Function ---
 def C3poChatbotPage():
     """Sets up the main page layout and logic."""
-    st.set_page_config(page_title="C3PO Assistente", layout="wide", page_icon="🤖")
+    
+    #st.set_page_config(page_title="C3PO Assistente", layout="wide", page_icon="🤖")
 
     # --- Apply CSS ---
     st.markdown(CSS, unsafe_allow_html=True)

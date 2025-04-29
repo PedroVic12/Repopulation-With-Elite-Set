@@ -2,8 +2,8 @@
 import streamlit as st
 from views.pages.themes import Theme
 
-from views.pages.screens import  RCEFrameworkPage, AgendamentosRedesPage, BenchmarkingPage, FormularioPage, TabExamplePage
-
+from views.pages.screens import  RCEFrameworkPage, AgendamentosRedesPage, BenchmarkingPage,  TabExamplePage
+from views.pages.FramewrokRCEDashboardPage import FrameworkRCEDashboard
 from views.pages.c3po_chatbot_page import C3poChatbotPage
 
 def DrawerSideBar():
@@ -13,15 +13,18 @@ def DrawerSideBar():
     st.sidebar.title("🧭 Side Bar Navigation")
     st.sidebar.markdown("---") # Separator
 
+
+    dashboard = FrameworkRCEDashboard()
+
     # Combine page options into a dictionary for cleaner mapping
     # Key: Display Name, Value: Function/Method to call
     page_options = {
-        "⚡ RCE Dashboard": AgendamentosRedesPage,
+        "🧩 Core Template": template.run, # Reference the method directly
         "🤖 C3po Chatbot":C3poChatbotPage,
-        "📊 Benchmarking Analysis": BenchmarkingPage,
-        "🚀 Framework RCE": RCEFrameworkPage,
+       # "📊 Benchmarking Analysis": BenchmarkingPage,
+        #"🚀 Framework RCE": dashboard.run(),
+       # "⚡ RCE Dashboard": AgendamentosRedesPage,
         "📑 Tab Demonstration": TabExamplePage,
-        "🧩 Core Template": template.run # Reference the method directly
     }
 
     # Use radio buttons for page selection
@@ -54,7 +57,7 @@ class DashboardAppTemplate:
 class App:
     def __init__(self):
         st.set_page_config(
-            #page_title="Clean Dashboard App",
+            page_title="Clean Dashboard App",
             page_icon="📊",
             layout="wide",
             initial_sidebar_state="expanded"

@@ -247,9 +247,9 @@ class DashboardApp:
             # check se o diretorio output exists
             if not os.path.exists("./output"):
                 os.makedirs("./output")
-                print("Diretório 'output' criado com sucesso.")
+                print("\n\nDiretório 'output' criado com sucesso.")
             else:
-                print("Diretório 'output' já existe.")
+                print("\n\nDiretório 'output' já existe.")
 
             data_file = f"./output/dashboard_data_{execution_num}.pkl"
             fig_file = f"./output/dashboard_fig_{execution_num}.json"
