@@ -5,6 +5,7 @@ from views.pages.themes import Theme
 from views.pages.screens import  RCEFrameworkPage, AgendamentosRedesPage, BenchmarkingPage,  TabExamplePage
 from views.pages.FramewrokRCEDashboardPage import FrameworkRCEDashboard
 from views.pages.c3po_chatbot_page import C3poChatbotPage
+from views.pages.StreamlitDashbord import StreamlitDashboard
 
 def DrawerSideBar():
     """Placeholder for a sidebar class to manage navigation and settings."""
@@ -13,17 +14,20 @@ def DrawerSideBar():
     st.sidebar.title("🧭 Side Bar Navigation")
     st.sidebar.markdown("---") # Separator
 
-
     dashboard = FrameworkRCEDashboard()
+    template = DashboardAppTemplate()
+    home_page = StreamlitDashboard()
+
 
     # Combine page options into a dictionary for cleaner mapping
     # Key: Display Name, Value: Function/Method to call
     page_options = {
         "🧩 Core Template": template.run, # Reference the method directly
         "🤖 C3po Chatbot":C3poChatbotPage,
+        #🚀 Framework RCE": dashboard.run(),
+
        # "📊 Benchmarking Analysis": BenchmarkingPage,
-        #"🚀 Framework RCE": dashboard.run(),
-       # "⚡ RCE Dashboard": AgendamentosRedesPage,
+       #⚡ Old Dash": home_page.HomePage()
         "📑 Tab Demonstration": TabExamplePage,
     }
 
@@ -67,7 +71,7 @@ class App:
         # The below CSS is a simple attempt; for full control, more specific CSS is needed.
         st.markdown(Theme, unsafe_allow_html=True)
 
-    def render_page(self, page_function):
+    def run(self, page_function):
         """Calls the function responsible for rendering the selected page."""
         # page_function might be a function or a method like template.run
         if callable(page_function):
@@ -79,8 +83,8 @@ class App:
 if __name__ == "__main__":
 
     app = App() # Initialize app config and styling
-    template = DashboardAppTemplate()
+
     menu_lateral, pagina_selecionada = DrawerSideBar()
 
     # Render the selected page by calling its function/method
-    app.render_page(pagina_selecionada)
+    app.run(pagina_selecionada)

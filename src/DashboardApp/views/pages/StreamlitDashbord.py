@@ -7,7 +7,9 @@ class StreamlitDashboard:
     def __init__(self):
         """Inicializa o dashboard."""
         self.df = None
-        self.HomePage()
+        
+
+        #self.HomePage()
 
 
 # componentes
@@ -23,14 +25,16 @@ class StreamlitDashboard:
 
         with col3:
             if st.button("🔔"):
-                st.session_state.show_chat = not st.session_state.show_chat
+                
+                    st.success("Chatbot ativado!")
+            else:
+                    st.warning("Chatbot desativado!")
 
     def load_data(self):
         """Carrega os dados de entrada a partir de um arquivo Excel."""
         with st.sidebar:
 
-            st.markdown("---")  # Separa
-            st.title("Carregar Dados")
+            st.title("Dashboard de Análise de Dados")
             st.markdown("---")  # Separa
 
             uploaded_file = st.file_uploader("Envie um arquivo Excel", type=["xlsx", "xls"])
@@ -124,6 +128,7 @@ class StreamlitDashboard:
         self.setup_header()
         self.load_data()
 
+
         if self.df:
             selected_table = self.select_table()
             if selected_table is not None:
@@ -159,12 +164,6 @@ class StreamlitDashboard:
                 elif graph_type == 'Pizza':
                     self.create_pie_chart(selected_table, x_col, y_col)
 
-        # Menu direito do chatbot
-        if st.session_state.show_chat:
-            with st.sidebar:
-                st.markdown("---")  # Separador
-                self.chatbot.display_chat()
-                st.markdown("---")  # Separador
 
         self.footer()
 
