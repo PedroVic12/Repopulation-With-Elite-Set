@@ -10,11 +10,10 @@
 	          <img src="https://github.com/user-attachments/assets/21e2218a-3df3-4757-8234-eb59c91490c3" alt="Descrição Imagem 1">
     </td>
     <td>
-![image](https://github.com/user-attachments/assets/5e46cfe2-c669-42ef-9dd5-4f526a82753b)
+	    	          <img src="https://github.com/user-attachments/assets/5e46cfe2-c669-42ef-9dd5-4f526a82753b" alt="Descrição Imagem 1">
+
     </td>
-    <td>
-      <img src="imagem3.jpg" alt="Descrição Imagem 3">
-    </td>
+
   </tr>
 </table>
 
