@@ -4,6 +4,10 @@
 ##  EXEMPLO DE USO DO FRAMEWORK DEAP:
 ---
 
+![image](https://github.com/user-attachments/assets/21e2218a-3df3-4757-8234-eb59c91490c3)
+
+
+
 O usuário do framework encontrará na pasta compartilhada onde possui três arquivos com extensão jupyter notebook que podem ser abertos diretamente no Google Colab. O Notebook 1 pode ser utilizado para apenas uma execução do AE. Para este fim, o usuário deverá seguir os seguintes passos:
 
 1) Crie um arquivo chamado `parameters.json`
@@ -118,6 +122,9 @@ streamlit run dashboard_rce_app_v9.py
 ---
 
 ## Classe RedeEletricaPandaPower
+
+![image](https://github.com/user-attachments/assets/1291f753-d5c8-44b5-8cc2-460b1a6bd5ca)
+
 
 Esta classe representa uma rede elétrica usando a biblioteca Pandapower. Ela fornece funcionalidades para carregar redes padrão, validar dados de agendamento e contingência, calcular violações de fitness, ajustar cargas, desligar/religar elementos da rede e executar o fluxo de carga.
 
