@@ -12,8 +12,6 @@
     <td>
 	    	          <img src="https://github.com/user-attachments/assets/5e46cfe2-c669-42ef-9dd5-4f526a82753b" alt="Descrição Imagem 1">
 
-    </td>
-
   </tr>
 </table>
 
