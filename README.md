@@ -8,6 +8,24 @@ O usuário do framework encontrará na pasta compartilhada onde possui três arq
 
 1) Crie um arquivo chamado `parameters.json`
 
+```´py
+params = {
+    "ARRAY_VAR": array_decisions,
+    'LIMITE_VAR': [0, 31],
+
+    'NUM_GENERATIONS': 100,
+    'CROSSOVER': 0.8,
+    'MUTACAO': 0.85,
+
+    'POP_SIZE': 10,
+    'IND_SIZE': 5,
+
+    'RCE_REPOPULATION_GENERATIONS': 20,
+    'NUM_VAR_DIFERENTES': 1,
+    'PORCENTAGEM': 0.3,
+    'DELTA_MIN': 0.05
+  }
+```
 
 2) Pegue o exemplo dos valores no arquivo localizado em:
 https://drive.google.com/drive/folders/1j8Hia_ofFMzTyzUUv27oqj1Nq5lLskSg?usp=drive_link
@@ -18,7 +36,7 @@ https://drive.google.com/drive/folders/1j8Hia_ofFMzTyzUUv27oqj1Nq5lLskSg?usp=dri
 
 Código 1: Exemplo de indivíduo e função objetivo 
 ```python
-ind1 = [1,2,3,4,5,6,7,8,9,10]  # Exemplo de individuo de tamanho 10
+ind1 = [1,2,3,4,5,6,7,8,9,10]  # Exemplo de individuo de tamanho 10 e inteiro
 
 def evaluate(individual):
 	"""Função objetivo do problema """
@@ -33,26 +51,31 @@ def evaluate(individual):
 Código 2: Código Main para execução do framework
 
 ```python
-if __name__ == "__main__":
-    # Instancia dos objetos	
-    setup = Setup(params)
-    alg = AlgoritimoEvolutivoRCE(setup)
-    data_visual = DataExploration()
 
- # Função que executa o algoritmo evolutivo
+
+if __name__ == "__main__":
+
+    # Instanciando os Objetos
+    setup = Setup(params, fitness_function= funcao_objetivo_IEEE14)
+    alg = AlgoritimoEvolutivoRCE(setup,DEBUG= False)
+    dashboard = DashboardApp()
+
+    # Loop Algoritmo Evolutivo podendo receber a função objetivo e as variaveis do problema
     pop_with_repopulation, logbook_with_repopulation, best_variables = alg.run(
-        RCE=True,
-        fitness_function=evaluate, # Nome da função objetivo do problema
-        decision_variables=(ind1), # Nome do array das variaveis de decisão
+        RCE=False,
     )
+
     print("\n\nEvolução concluída  - 100%")
 
-    # Visualização dos resultados
-    data_visual.show_rastrigin_benchmark(logbook_with_repopulation, best_variables)
-
-    best_solution_generation, best_solution_variables, best_fitness = data_visual.visualize(
-        logbook_with_repopulation, pop_with_repopulation, repopulation=True
+    # Resultados
+    x, y, z, fig = dashboard.visualize(
+        logbook_with_repopulation, pop_with_repopulation,
     )
+
+
+
+     
+
 ```
 
 
