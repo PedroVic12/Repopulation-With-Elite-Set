@@ -9,6 +9,8 @@ O usuário do framework encontrará na pasta compartilhada onde possui três arq
 1) Crie um arquivo chamado `parameters.json`
 
 ```´py
+array_decisions =  [14,15,14,18,15]
+
 params = {
     "ARRAY_VAR": array_decisions,
     'LIMITE_VAR': [0, 31],
