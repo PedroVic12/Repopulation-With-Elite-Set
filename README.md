@@ -53,6 +53,14 @@ def evaluate(individual):
 Código 2: Código Main para execução do framework
 
 ```python
+# Import RCE Framework
+from AlgEvolutivoRCE.Setup import Setup, params
+from AlgEvolutivoRCE.alg_evolutivo_rce import AlgoritimoEvolutivoRCE
+from AlgEvolutivoRCE.Dashboard import DashboardApp
+
+
+# Import functions benchmark
+from utils.functions_fitness.functions_benchmarking import rosenbrock_benchmark
 
 
 if __name__ == "__main__":
@@ -74,18 +82,26 @@ if __name__ == "__main__":
         logbook_with_repopulation, pop_with_repopulation,
     )
 
-
-
-     
-
 ```
 
 
-6) Execute todas as células desse Notebook.
 
-7) Para obter resultados e gráficos diferentes, modifique os parâmetros evolutivos do arquivo JSON, salve e execute novamente.
+6) Para obter resultados e gráficos diferentes, modifique os parâmetros evolutivos do arquivo JSON, salve e execute novamente.
 
-8) É possivel baixar em arquivo .xlsx a população final gerada
+7) É possivel baixar em arquivo .xlsx a população final gerada
+
+8) A versão frontend dos resultados ficam localizados em:
+
+   		/src/DashboardApp/dashboard_rce_app_v9.py
+
+9) Excute o arquivo do frontend
+
+```py
+streamlit run dashboard_rce_app_v9.py
+```
+
+
+10) A versão esta em desenvolvimento desde 10/04/2025 e segue buscando melhorias e contribuições em outros programadores para construir uma interface em Streamlit e programação funcional para obter um sistema que surporte diferentes execuções com tabelas e graficos dos resultados do algoritimo evolutivo com ou sem a estrategia RCE
 
 ### **Dicas**:
 
