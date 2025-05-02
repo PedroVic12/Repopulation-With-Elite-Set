@@ -2,23 +2,18 @@ import time
 import numpy as np
 import pandas as pd
 
-
 # Import RCE Framework
 from AlgEvolutivoRCE.Setup import Setup, params
 from AlgEvolutivoRCE.alg_evolutivo_rce import AlgoritimoEvolutivoRCE
 from AlgEvolutivoRCE.Dashboard import DashboardApp
 
-
 # Import functions benchmark
 from utils.functions_fitness.functions_benchmarking import rosenbrock_benchmark
-
-
 
 options = {
         "key": True,
         "value": 5,
     }
-
 
 
 def run_framework():
@@ -101,17 +96,15 @@ def run_framework():
     print("\n\n")
     print("FIM DO PROGRAMA")
 
+results_consolidados = []  # Initialize an empty list to store results
+execution_times = []  # Lista para armazenar os tempos de execução
 
 if __name__ == "__main__":
-
-    results_consolidados = []  # Initialize an empty list to store results
-    execution_times = []  # Lista para armazenar os tempos de execução
 
     #! ainda seria possivel criar um pacote no pip e instanciar?
     setup = Setup(params, rosenbrock_benchmark)
     alg = AlgoritimoEvolutivoRCE(setup, DEBUG=False)
     dashboard = DashboardApp()
-
 
     run_framework()
     
