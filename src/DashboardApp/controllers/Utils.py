@@ -24,7 +24,7 @@ class Utils:
 
         # Teste para arquivo .json
         with open("output/dashboard_fig_1.json", "r") as f:
-            fig = json.load(f)
+            fig = json.load(f,encoding="utf-8")
             print(fig)
 
 

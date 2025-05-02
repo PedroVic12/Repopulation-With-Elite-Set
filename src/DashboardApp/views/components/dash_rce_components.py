@@ -108,6 +108,9 @@ class ConsolidatedResultsComponent:
                         file_name=consolidated_excel_filename,
                         mime="application/vnd.ms-excel"
                     )
+                
+                st.title("Tempo de Execução")
+                st.write(df_consolidado[""])
             except Exception as e:
                 st.error(f"Erro ao ler o arquivo consolidado {consolidated_excel_path}: {e}")
         else:

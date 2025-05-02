@@ -7,6 +7,9 @@ from views.pages.FramewrokRCEDashboardPage import FrameworkRCEDashboard
 from views.pages.c3po_chatbot_page import C3poChatbotPage
 from views.pages.StreamlitDashbord import StreamlitDashboard
 
+
+
+
 def DrawerSideBar():
     """Placeholder for a sidebar class to manage navigation and settings."""
 
@@ -18,13 +21,12 @@ def DrawerSideBar():
     template = DashboardAppTemplate()
     home_page = StreamlitDashboard()
 
-
     # Combine page options into a dictionary for cleaner mapping
     # Key: Display Name, Value: Function/Method to call
     page_options = {
         "🧩 Core Template": template.run, # Reference the method directly
         "🤖 C3po Chatbot":C3poChatbotPage,
-       " ⚡Framework RCE": dashboard.run(),
+       #" ⚡Framework RCE": dashboard.run(),
 
        # "📊 Benchmarking Analysis": BenchmarkingPage,
        #⚡ Old Dash": home_page.HomePage()

@@ -221,7 +221,7 @@ class DashboardApp:
     
     def __init__(self):
         """Inicializa o aplicativo."""
-        st.set_page_config(layout="wide", page_title="Visualizador de Execuções RCE")
+        #st.set_page_config(layout="wide", page_title="Visualizador de Execuções RCE")
         self.execution_numbers = find_available_executions()
         
         # Inicializa o estado da execução selecionada no session_state
