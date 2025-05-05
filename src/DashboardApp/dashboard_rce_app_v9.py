@@ -6,7 +6,7 @@ from views.pages.screens import  RCEFrameworkPage, AgendamentosRedesPage, Benchm
 from views.pages.FramewrokRCEDashboardPage import FrameworkRCEDashboard
 from views.pages.c3po_chatbot_page import C3poChatbotPage
 from views.pages.StreamlitDashbord import StreamlitDashboard
-
+from views.pages.code_editor_page import CodeEditorPage
 
 
 
@@ -30,6 +30,7 @@ def DrawerSideBar():
 
        # "📊 Benchmarking Analysis": BenchmarkingPage,
        #⚡ Old Dash": home_page.HomePage()
+        "📊 Python Editor": CodeEditorPage,
         "📑 Tab Demonstration": TabExamplePage,
     }
 
