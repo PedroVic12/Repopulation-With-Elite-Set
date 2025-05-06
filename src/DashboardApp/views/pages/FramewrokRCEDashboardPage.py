@@ -100,7 +100,7 @@ class FrameworkRCEDashboard:
 
             if st.button("Confirmar Execução Selecionada"):
                 st.session_state["selected_execution"] = selected_execution
-                st.experimental_rerun()
+                st.rerun()
 
         # Exibe os dados da execução selecionada
         if "selected_execution" in st.session_state and st.session_state["selected_execution"] is not None:
