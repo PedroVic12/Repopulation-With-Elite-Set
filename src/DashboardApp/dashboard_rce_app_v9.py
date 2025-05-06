@@ -11,44 +11,31 @@ from views.pages.code_editor_page import CodeEditorPage
 
 
 def DrawerSideBar():
-    """Placeholder for a sidebar class to manage navigation and settings."""
-
-    # --- Sidebar Navigation ---
+    """Menu lateral único para navegação."""
     st.sidebar.title("🧭 Side Bar Navigation")
-    st.sidebar.markdown("---") # Separator
+    st.sidebar.markdown("---")  # Separador visual
 
-    dashboard = FrameworkRCEDashboard()
-    template = DashboardAppTemplate()
-    home_page = StreamlitDashboard()
-
-    # Combine page options into a dictionary for cleaner mapping
-    # Key: Display Name, Value: Function/Method to call
+    # Opções de páginas
     page_options = {
-        "🧩 Core Template": template.run, # Reference the method directly
-        "🤖 C3po Chatbot":C3poChatbotPage,
-       #" ⚡Framework RCE": dashboard.run(),
-
-       # "📊 Benchmarking Analysis": BenchmarkingPage,
-       #⚡ Old Dash": home_page.HomePage()
-        "📊 Python Editor": CodeEditorPage,
+        "⚡ Framework RCE": FrameworkRCEDashboard().run,
+        "🤖 C3po Chatbot": C3poChatbotPage,
+        "📊 Benchmarking Analysis": BenchmarkingPage,
         "📑 Tab Demonstration": TabExamplePage,
+        "📊 Python Editor": CodeEditorPage,
     }
 
-    # Use radio buttons for page selection
-    pagina_selecionada_key = st.sidebar.radio(
-        "Select Page:",
-        options=list(page_options.keys()), # Get the display names for options
-        key="main_nav_radio" # Unique key for the widget
+    # Navegação com rádio buttons
+    selected_page = st.sidebar.radio(
+        "Select a page:",
+        options=list(page_options.keys()),
+        key="main_nav_radio"
     )
 
     st.sidebar.markdown("---")
     st.sidebar.info("Select a page above to view its content.")
 
-    # --- Page Rendering ---
-    # Get the function/method associated with the selected display name
-    page_to_render = page_options[pagina_selecionada_key]
-
-    return st.sidebar, page_to_render # Return the function/method to be called
+    # Retorna a função da página selecionada
+    return page_options[selected_page]
 
 
 # ---Core Template ---
@@ -67,7 +54,7 @@ class App:
             page_title="Clean Dashboard App",
             page_icon="📊",
             layout="wide",
-            initial_sidebar_state="expanded"
+            #initial_sidebar_state="expanded"
         )
 
         # Apply dark theme using Streamlit's base themes and CSS override
@@ -87,7 +74,7 @@ if __name__ == "__main__":
 
     app = App() # Initialize app config and styling
 
-    menu_lateral, pagina_selecionada = DrawerSideBar()
+    pagina_selecionada = DrawerSideBar()
 
     # Render the selected page by calling its function/method
     app.run(pagina_selecionada)
