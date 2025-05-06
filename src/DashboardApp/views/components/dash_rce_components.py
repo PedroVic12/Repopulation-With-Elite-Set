@@ -4,6 +4,11 @@ import streamlit as st
 import os
 import pandas as pd
 
+
+#path_foler_output = os.path.join(os.path.dirname(__file__), "output")
+path_foler_output = r"..\src\output"
+print(path_foler_output)
+
 class SummaryComponent:
     """Componente para exibir o resumo da melhor solução."""
     
@@ -87,7 +92,7 @@ class ConsolidatedResultsComponent:
     def render():
         """Verifica e exibe a seção de resultados consolidados."""
         # Nome base do arquivo
-        consolidated_excel_filename = "results_consolidados.xlsx"
+        consolidated_excel_filename = f"{path_foler_output}\consolidated_results.xlsx"
         # Caminho completo para o arquivo
         consolidated_excel_path = consolidated_excel_filename
 
