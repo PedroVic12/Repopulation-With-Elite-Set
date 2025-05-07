@@ -12,8 +12,10 @@ echo Instalando...
 
 call pip install -r requirements.txt
 
-echo Inicio do Programa
+echo Inicio do Programa...
 call python run_rce_framework.py
+
+
 REM Verifica se a execução do script foi bem sucedida (opcional, mas recomendado)
 IF %ERRORLEVEL% NEQ 0 (
     echo Erro ao executar run_rce_framework.py. Saindo.
@@ -26,15 +28,15 @@ IF %ERRORLEVEL% NEQ 0 (
 REM Navega para o diretório DashboardApp e inicia a aplicação Streamlit
 echo Iniciando aplicação Streamlit em DashboardApp/dashboard_rce_app_v9.py...
 pushd DashboardApp
+
+
 REM Usa 'start cmd /k' para abrir uma nova janela de console para o Streamlit
 REM '/k' mantém a janela aberta após a execução do comando (útil para ver logs)
 start cmd /k streamlit run dashboard_rce_app_v9.py
 popd
 
-echo Script de inicialização concluído na janela principal.
 echo A janela do Streamlit foi aberta separadamente.
 
-REM Adiciona um pause para manter esta janela do terminal aberta
 REM Remova o comando 'exit /b 0' se quiser que a janela só feche manualmente
 pause
 
