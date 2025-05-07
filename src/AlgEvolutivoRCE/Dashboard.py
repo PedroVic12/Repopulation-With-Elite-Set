@@ -233,17 +233,12 @@ class DashboardApp:
             print(f"Best Fitness: {best_solution_fitness}")
             print("="*90)
 
-            
-
             grafico_RCE = self.graficoRCE(generation, array_values, repopulation=repopulation)
 
-            # Exibir a figura no notebook
-            #fig.show()
 
              # --- MODIFIED: Define filenames based on execution_num ---
             if execution_num is None:
-                # Decide fallback behavior or raise error if number is always required
-                # Option 1: Raise error (safer if logic depends on it)
+
                 print("WARN: execution_num not provided. Using default filenames.")
 
                 raise ValueError("Execution number (execution_num) must be provided to visualize for saving files.")
@@ -259,10 +254,9 @@ class DashboardApp:
 
                 data_file = f"./output/dashboard_data_{execution_num}.pkl"
                 fig_file = f"./output/dashboard_fig_{execution_num}.json"
-                print(f"INFO: Arquivos de saída para execução {execution_num}: {data_file}, {fig_file}")
+                #print(f"INFO: Arquivos de saída para execução {execution_num}: {data_file}, {fig_file}")
 
                 # --- Salvar dados e figura para o script Streamlit ---
-                print(f"INFO: Salvando dados para visualizador Streamlit (Execução {execution_num})...\n") # Added execution num here
                 data_to_save = {
                     'execution_num': execution_num, # Store execution number in data
                     'best_gen_idx': best_solution_index,
@@ -278,7 +272,7 @@ class DashboardApp:
             # Salvar a figura em formato HTML
             fig_filename = f"output/grafico_execucao_{execution_num}.html"
             grafico_RCE.write_html(fig_filename)
-            print(f"INFO: Figura salva em {fig_filename}")
+            #print(f"INFO: Figura salva em {fig_filename}")
 
 
             # Salva os dados no arquivo .pkl numerado
@@ -293,7 +287,7 @@ class DashboardApp:
             print(f"INFO: Dados e figura para execução {execution_num} salvos com sucesso.") # Added execution num here
 
         except Exception as e:
-            print(f"ERRO em visualize (Execução {execution_num}): {e}") # Added execution num here
+            print(f"\nERRO em visualize (Execução {execution_num}): {e}") # Added execution num here
             return -1, [], float('inf'), None
 
         return best_solution_index, best_solution_variables, best_solution_fitness, grafico_RCE

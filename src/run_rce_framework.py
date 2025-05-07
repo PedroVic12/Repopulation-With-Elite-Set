@@ -30,8 +30,7 @@ def run_framework():
 
             # Resultados
             x, y, z, fig = dashboard.visualize(logbook_with_repopulation, pop_with_repopulation, execution_num=i + 1)
-            print(fig)
-
+            
 
             end_time = time.time()  # Finaliza a contagem do tempo para cada execução
             execution_time = end_time - start_time
