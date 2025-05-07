@@ -7,6 +7,12 @@ pushd .
 REM Navega para o diretório src e executa o primeiro script Python
 echo Executando script em src/run_rce_framework.py...
 cd src
+
+echo Instalando...
+
+call pip install -r requirements.txt
+
+echo Inicio do Programa
 call python run_rce_framework.py
 REM Verifica se a execução do script foi bem sucedida (opcional, mas recomendado)
 IF %ERRORLEVEL% NEQ 0 (
