@@ -124,7 +124,7 @@ class DashboardApp:
         figure = go.Figure()   # Create new figure if None
 
         figure.add_trace(
-            go.Line(
+            go.Scatter(
                 x=gen,
                 #y=lista["min_fitness"],
                 y = lista[0],
@@ -137,7 +137,7 @@ class DashboardApp:
         
 
         figure.add_trace(
-            go.Line(
+            go.Scatter(
                 x=gen,
                 #y=lista["avg_fitness"],
                 y = lista[1],
@@ -151,7 +151,7 @@ class DashboardApp:
         
         
         figure.add_trace(
-            go.Line(
+            go.Scatter(
                 x=gen,
                 #y=lista["max_fitness"],
                 y = lista[2],
