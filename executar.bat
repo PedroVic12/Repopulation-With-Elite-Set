@@ -12,6 +12,11 @@ echo Instalando...
 
 call pip install -r requirements.txt --break-system-packages --no-cache-dir --disable-pip-version-check --quiet
 
+
+echo Instalacao concluida.
+
+call cls 
+
 echo Inicio do Programa...
 call python run_rce_framework.py
 
