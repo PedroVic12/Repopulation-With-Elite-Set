@@ -14,6 +14,7 @@ import os
 import pickle
 import json
 
+
 # Corrige o erro no carregamento do JSON
 def load_execution_data(self, exec_num):
     """Carrega os dados .pkl e a figura .json para a execução especificada."""
@@ -69,14 +70,23 @@ class DrawerSideBar:
 
 # --- Classe Principal do Aplicativo ---
 class FrameworkRCEDashboard:
-    """Classe principal do aplicativo Dashboard."""
-
     def __init__(self):
         self.controller = Controller()
         self.utils = Utils()
         self.execution_numbers = self.controller.execution_numbers
-        # Inicializa o controlador e utilitários
-        menu_lateral = DrawerSideBar()
+        self.menu_lateral = DrawerSideBar()
+        
+        # Initialize session state if not exists
+        if "selected_execution" not in st.session_state:
+            st.session_state["selected_execution"] = None
+        if "active_tab" not in st.session_state:
+            st.session_state["active_tab"] = 0
+
+    def handle_tab_change(self, tab_index: int, execution_number: int):
+        """Gerencia mudanças de aba e atualiza o estado."""
+        st.session_state["active_tab"] = tab_index
+        st.session_state["selected_execution"] = execution_number
+
 
     def header(self):
         """Cabeçalho do aplicativo."""
@@ -93,20 +103,32 @@ class FrameworkRCEDashboard:
         # Renderiza os resultados consolidados
         ConsolidatedResultsComponent.render()
 
-        # Seleção de execução
+        # Seleção de execução com tabs
         with st.container():
             st.subheader("Seleção da Execução")
-            selected_execution = self.controller.select_execution_with_tabs(self.execution_numbers)
+            
+            # Create tabs
+            tabs = st.tabs([f"Execução {num}" for num in self.execution_numbers])
+            
+            # Handle tab content and state
+            for i, (tab, exec_num) in enumerate(zip(tabs, self.execution_numbers)):
+                with tab:
+                    if i != st.session_state["active_tab"]:
+                        self.handle_tab_change(i, exec_num)
+                    
+                    st.write(f"Visualizando dados da execução {exec_num}")
+                    
+                    # Add a select button for each tab
+                    if st.button(f"Selecionar Execução {exec_num}", key=f"select_btn_{exec_num}"):
+                        self.handle_tab_change(i, exec_num)
+                        st.rerun()
 
-            if st.button("Confirmar Execução Selecionada"):
-                st.session_state["selected_execution"] = selected_execution
-                st.rerun()
+        # Display selected execution data
+        if st.session_state["selected_execution"] is not None:
+            st.markdown("---")
+            st.subheader(f"Dados da Execução {st.session_state['selected_execution']}")
 
-        # Exibe os dados da execução selecionada
-        if "selected_execution" in st.session_state and st.session_state["selected_execution"] is not None:
-            st.write(f"Você está visualizando os dados da execução {st.session_state['selected_execution']}")
-
-            # Carrega os dados
+            # Load and display data
             data, fig = self.utils.load_execution_data(st.session_state["selected_execution"])
 
             if data:
@@ -119,5 +141,14 @@ class FrameworkRCEDashboard:
             else:
                 st.error("Erro ao carregar os dados.")
         else:
-            st.warning("Nenhuma execução selecionada ou disponível.")
+            st.warning("Selecione uma execução para visualizar os dados.")
+
+        self.footer()
+
+    def footer(self):
+        """Rodapé do aplicativo."""
+        st.markdown("---")
+        st.info("Desenvolvido por Pedro Victor Veras e Rainer Zanghi em um projeto PIBIC pela UFF - 2024/2025")
+        st.info("Este é um exemplo de rodapé. Você pode personalizá-lo conforme necessário.")
+        st.markdown("---")
 
