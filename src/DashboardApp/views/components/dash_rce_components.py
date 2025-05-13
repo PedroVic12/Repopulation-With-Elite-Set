@@ -92,7 +92,8 @@ class ConsolidatedResultsComponent:
     def render():
         """Verifica e exibe a seção de resultados consolidados."""
         # Nome base do arquivo
-        consolidated_excel_filename = f"{path_foler_output}\consolidated_results.xlsx"
+        consolidated_excel_filename = rf"{path_foler_output}\results_consolidados.xlsx"
+        
         # Caminho completo para o arquivo
         consolidated_excel_path = consolidated_excel_filename
 

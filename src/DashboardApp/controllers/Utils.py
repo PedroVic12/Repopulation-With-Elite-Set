@@ -7,9 +7,25 @@ import pandas as pd
 import os
 import glob # Importar glob para encontrar arquivos
 import json
+import pathlib
 
 #OLDER_NAME = "./output" #  pasta onde os arquivos estão localizados
-FOLDER_NAME = os.path.abspath("output")
+#FOLDER_NAME = os.path.abspath("output")
+#FOLDER_NAME = os.path.join(pathlib.Path(__file__).parent.resolve(), "output") # Caminho absoluto para a pasta de saída
+
+
+#FOLDER_NAME = pathlib.Path(__file__).parent / "output" # Caminho absoluto para a pasta de saída
+
+
+
+# Get the relative path to output directory
+FOLDER_NAME = pathlib.Path("output")
+
+# Create output directory if it doesn't exist
+FOLDER_NAME.mkdir(exist_ok=True)
+
+print("\nFOLDER_NAME = ", FOLDER_NAME)
+
 
 class Utils:
     """Classe Utilitária para funções auxiliares do Dashboard."""
@@ -18,34 +34,33 @@ class Utils:
 
     def load_files(self):
         # Teste para arquivo .pkl
-        with open("output/dashboard_data_1.pkl", "rb") as f:
+        with open(FOLDER_NAME / "dashboard_data_1.pkl", "rb") as f:
             data = pickle.load(f)
-            print(data)
+            #print(data)
 
         # Teste para arquivo .json
-        with open("output/dashboard_fig_1.json", "r") as f:
-            fig = json.load(f,encoding="utf-8")
-            print(fig)
+        with open(FOLDER_NAME / "dashboard_fig_1.json", "r") as f:
+            fig = json.load(f)
+            #print(fig)
 
 
     # --- Funções Auxiliares ---
     def find_available_executions(self):
         """Encontra arquivos .pkl de execução na pasta especificada
         e retorna os números de execução ordenados."""
-        # Modificado para buscar dentro da pasta FOLDER_NAME
-        search_pattern = os.path.join(FOLDER_NAME, "dashboard_data_*.pkl")
-        data_files = glob.glob(search_pattern)
+        # Use pathlib pattern matching
+        data_files = list(FOLDER_NAME.glob("dashboard_data_*.pkl"))
         execution_numbers = []
+        
         for f_path in data_files:
             try:
-                # Extrai apenas o nome do arquivo do caminho completo
-                filename_only = os.path.basename(f_path)
-                # Extrai o número do nome do arquivo (ex: 'dashboard_data_5.pkl' -> 5)
-                num_str = filename_only.split('_')[-1].split('.')[0]
+                # Extract number from filename using Path
+                num_str = f_path.stem.split('_')[-1]
                 execution_numbers.append(int(num_str))
             except (IndexError, ValueError):
                 st.warning(f"Não foi possível extrair o número de execução do arquivo: {f_path}")
-        return sorted(execution_numbers) # Retorna a lista ordenada
+        
+        return sorted(execution_numbers)
 
     def select_execution(self,execution_numbers):
         """Exibe o seletor na barra lateral e retorna o número da execução selecionada."""
@@ -82,9 +97,10 @@ class Utils:
         buscando na pasta FOLDER_NAME."""
         data = None
         fig = None
-        # Modificado para construir o caminho dentro de FOLDER_NAME
-        data_file_selected = os.path.join(FOLDER_NAME, f"dashboard_data_{exec_num}.pkl")
-        fig_file_selected = os.path.join(FOLDER_NAME, f"dashboard_fig_{exec_num}.json")
+        
+        # Use pathlib to construct paths
+        data_file_selected = FOLDER_NAME / f"dashboard_data_{exec_num}.pkl"
+        fig_file_selected = FOLDER_NAME / f"dashboard_fig_{exec_num}.json"
 
 
         files = self.load_files()
@@ -118,6 +134,11 @@ class Utils:
             fig = None
 
         return data, fig
+    
+
+
+
+
 class Controller:
     """Classe Controlador MVC"""
 
