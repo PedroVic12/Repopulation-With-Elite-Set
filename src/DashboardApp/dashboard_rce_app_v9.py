@@ -18,8 +18,8 @@ def DrawerSideBar():
     # Opções de páginas
     page_options = {
         "⚡ Framework RCE": FrameworkRCEDashboard().run,
-        "🤖 C3po Chatbot": C3poChatbotPage,
-        "📊 Benchmarking Analysis": BenchmarkingPage,
+        #"🤖 C3po Chatbot": C3poChatbotPage,
+        #"📊 Benchmarking Analysis": BenchmarkingPage,
         "📑 Tab Demonstration": TabExamplePage,
         "📊 Python Editor": CodeEditorPage,
     }
