@@ -5,10 +5,9 @@ REM Salva o diretório atual
 pushd .
 
 REM Navega para o diretório src e executa o primeiro script Python
-echo Executando script em src/run_rce_framework.py...
 cd src
 
-echo Instalando...
+echo Instalando as biblotecas python necessarias...
 
 call pip install -r requirements.txt --break-system-packages --no-cache-dir --disable-pip-version-check --quiet
 
@@ -18,6 +17,7 @@ echo Instalacao concluida.
 call cls 
 
 echo Inicio do Programa...
+echo Executando script em src/run_rce_framework.py...
 call python run_rce_framework.py
 
 
