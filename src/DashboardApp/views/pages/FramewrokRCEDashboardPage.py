@@ -10,9 +10,7 @@ from controllers.Utils import Controller,FOLDER_NAME, Utils
 
 # Frontend
 import streamlit as st
-import os
-import pickle
-import json
+
 
 
 
@@ -33,6 +31,26 @@ class DrawerSideBar:
         self.st.sidebar.markdown("---")  # Separador visual
 
 
+## Controlador de Gerenciamento de Estado
+class UseState:
+    """Classe para gerenciar o estado do Streamlit."""
+
+    @staticmethod
+    def initialize_state(key, default_value):
+        """Inicializa uma chave no session_state com um valor padrão."""
+        if key not in st.session_state:
+            st.session_state[key] = default_value
+
+    @staticmethod
+    def get_state(key, default_value=None):
+        """Obtém o valor de uma chave no session_state."""
+        return st.session_state.get(key, default_value)
+
+    @staticmethod
+    def set_state(key, value):
+        """Define o valor de uma chave no session_state."""
+        st.session_state[key] = value
+        print("State atualizado:", key, "=", value)  
 
 
 # --- Classe Principal do Aplicativo ---
@@ -42,41 +60,32 @@ class FrameworkRCEDashboard:
         self.utils = Utils()
         self.execution_numbers = self.controller.execution_numbers
         self.menu_lateral = DrawerSideBar()
-        
-        # Initialize session state if not exists
-        if "selected_execution" not in st.session_state:
-            st.session_state["selected_execution"] = None
-        if "active_tab" not in st.session_state:
-            st.session_state["active_tab"] = 0
+
+        # Inicializa os estados necessários
+        UseState.initialize_state("selected_execution", None)
+        UseState.initialize_state("active_tab", 0)
 
     def handle_tab_change(self, tab_index: int, execution_number: int):
         """Gerencia mudanças de aba e atualiza o estado."""
-        st.session_state["active_tab"] = tab_index
-        st.session_state["selected_execution"] = execution_number
-
-
-    def header(self):
-        """Cabeçalho do aplicativo."""
-        st.title("Framework Repopulation-With-Elite-Set RCE")
-        st.subheader("Resultados Consolidados Gerais de todas as execuções")
-
-        if not self.execution_numbers:
-            st.error("Nenhum arquivo de resultado encontrado.")
-            st.stop()
-
-    def render_html_files(self, html_files):
-        """Renderiza os arquivos .html no Streamlit."""
-        for html_file in html_files:
-            try:
-                st.subheader(f"Grafico: {html_file.name}")
-                with open(html_file, "r", encoding="utf-8") as f:
-                    html_content = f.read()
-                    # Renderiza o conteúdo HTML no Streamlit
-                    st.components.v1.html(html_content, height=800, scrolling=True)
-            except Exception as e:
-                st.error(f"Erro ao renderizar o arquivo {html_file.name}: {e}")
+        UseState.set_state("active_tab", tab_index)
+        UseState.set_state("selected_execution", execution_number)
 
     def run(self):
+
+        # Adiciona CSS personalizado para estilizar as abas
+        st.markdown(
+            """
+            <style>
+            /* Estiliza as abas */
+            div.streamlit-tabs div[data-baseweb="tab"] {
+                font-size: 25px; /* Aumenta o tamanho da fonte */
+                padding: 10px 10px; /* Aumenta o espaçamento interno */
+            }
+            </style>
+            """,
+            unsafe_allow_html=True,
+        )
+
         self.header()
 
         # Renderiza os resultados consolidados
@@ -86,49 +95,39 @@ class FrameworkRCEDashboard:
         with st.container():
             st.subheader("Seleção da Execução")
             
-            # Create tabs
+            # Cria abas
             tabs = st.tabs([f"Execução {num}" for num in self.execution_numbers])
-            
-            # Handle tab content and state
+
+            # Renderiza o conteúdo de cada aba
             for i, (tab, exec_num) in enumerate(zip(tabs, self.execution_numbers)):
                 with tab:
-                    if i != st.session_state["active_tab"]:
+                    # Atualiza o estado da aba ativa
+                    if UseState.get_state("active_tab") != i:
                         self.handle_tab_change(i, exec_num)
-                    
-                    st.write(f"Visualizando dados da execução {exec_num}")
-                    
-                    # Add a select button for each tab
-                    if st.button(f"Selecionar Execução {exec_num}", key=f"select_btn_{exec_num}"):
-                        self.handle_tab_change(i, exec_num)
-                        st.rerun()
 
-        # Display selected execution data
-        if st.session_state["selected_execution"] is not None:
-            st.markdown("---")
-            st.subheader(f"Dados da Execução {st.session_state['selected_execution']}")
+                    # Carrega os dados e o gráfico da execução
+                    dados = self.utils.load_execution_data(exec_num)
 
-
-            number_state = st.session_state['selected_execution']
-
-            # Load the selected execution data
-            print(f"Loading data for execution {number_state}")
-
-            # Load and display data
-            data, fig = self.utils.load_execution_data(number_state)
-
-            if data:
-                with st.container():
-                    SummaryComponent.render(data, st.session_state["selected_execution"])
-                with st.container():
-                    GraficoRCEComponent.render(fig, st.session_state["selected_execution"])
-                with st.container():
-                    StatisticsTableComponent.render(data)
-            else:
-                st.error("Erro ao carregar os dados.")
-        else:
-            st.warning("Selecione uma execução para visualizar os dados.")
+                    if dados:
+                        with st.container():
+                            SummaryComponent.render(dados, exec_num)
+                        with st.container():
+                            GraficoRCEComponent.render(exec_num)  # Passa o exec_num para carregar o gráfico correto
+                        with st.container():
+                            StatisticsTableComponent.render(dados)
+                    else:
+                        st.error(f"Erro ao carregar os dados da execução {exec_num}.")
+      
 
         self.footer()
+
+    def header(self):
+        """Cabeçalho do aplicativo."""
+        st.title("Framework Repopulation-With-Elite-Set RCE")
+
+        if not self.execution_numbers:
+            st.error("Nenhum arquivo de resultado encontrado.")
+            st.stop()
 
     def footer(self):
         """Rodapé do aplicativo."""
@@ -136,4 +135,3 @@ class FrameworkRCEDashboard:
         st.info("Desenvolvido por Pedro Victor Veras e Rainer Zanghi em um projeto PIBIC pela UFF - 2024/2025")
         st.info("Este é um exemplo de rodapé. Você pode personalizá-lo conforme necessário.")
         st.markdown("---")
-

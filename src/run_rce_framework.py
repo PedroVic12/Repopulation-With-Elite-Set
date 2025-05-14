@@ -8,11 +8,17 @@ from AlgEvolutivoRCE.alg_evolutivo_rce import AlgoritimoEvolutivoRCE
 from AlgEvolutivoRCE.Dashboard import DashboardApp
 
 # Import functions benchmark
-from utils.functions_fitness.functions_benchmarking import rosenbrock_benchmark
+from utils.functions_fitness.functions_benchmarking import rosenbrock_benchmark,esfera_benchmark,rastrigin
 
 options = {
         "key": True,
         "value": 5,
+        "parametros_opcionais": [
+             {"MUTACAO": [90,80,70]},
+             {"CROSSOVER": [90,80,70]},
+             {'NUM_GENERATIONS': [100, 200, 300]},
+
+        ]
     }
 
 
@@ -102,8 +108,10 @@ if __name__ == "__main__":
 
     #! ainda seria possivel criar um pacote no pip e instanciar?
     setup = Setup(params, rosenbrock_benchmark)
-    alg = AlgoritimoEvolutivoRCE(setup, DEBUG=False)
+    alg = AlgoritimoEvolutivoRCE(setup, DEBUG=True)
     dashboard = DashboardApp()
 
     run_framework()
     
+
+

@@ -5,37 +5,65 @@ import streamlit as st
 import os
 import pandas as pd
 
-from DashboardApp.controllers.Utils import Utils, FOLDER_NAME
+#! TODO SABER PEGAR IMPORT TUDO DE CONTROLLER E UTILS
 
+# Ajuste conforme a estrutura do projeto
+BASE_DIR = pathlib.Path(__file__).resolve().parent.parent.parent  
+# Define o caminho relativo para a pasta "output" dentro do projeto
+FOLDER_NAME = BASE_DIR / "output"
 path_foler_output = FOLDER_NAME
 
 print(path_foler_output)
+
+def get_media_time_execution_dataset( df_consolidado):
+                # Limpa a coluna para remover o texto "segundos" e converte para float
+        df_consolidado["execution_time"] = df_consolidado["execution_time"].str.replace(" segundos", "").astype(float)
+
+                # Calcula a média da coluna execution_time
+        media_execution_time = df_consolidado["execution_time"].mean()
+
+
+        return media_execution_time
 
 class SummaryComponent:
     """Componente para exibir o resumo da melhor solução."""
     
     @staticmethod
-    def render(data, exec_num):
+    def render(data, exec_num, debug = False):
         """Exibe o cabeçalho e o resumo da melhor solução."""
-        st.header(f"Resultados da Execução: {exec_num}")
+        st.subheader(f"Resultados da Execução: {exec_num}")
+        
+        if debug:
+            st.write(data)
 
+        with st.expander("Parâmetros Utilizados nesta Execução"):
+            st.json(data.get('params', {}))
+        
         col1, col2 = st.columns(2)
         with col1:
             st.markdown(
                 f"""
                 <div style="border: 2px solid #e6e6e6; border-radius: 5px; padding: 30px; margin: 10px 0; background-color: #d5d5d5;">
                 <h3 style="color: #1f77b4;">Resumo da Melhor Solução</h3>
+                <h4><strong>Melhor Geração:</strong> {data.get('best_gen_idx', 'N/A')}</h4>
                 <h4><strong>Melhor Fitness:</strong> {data.get('best_fitness', 'N/A'):.6f}</h4>
-                <h4><strong>Melhor Geração (Índice):</strong> {data.get('best_gen_idx', 'N/A')}</h4>
-                <h4><strong>Tempo de execução (segundos):</strong> NaN </h4>
                 </div>
                 """, unsafe_allow_html=True)
         with col2:
-            st.subheader("BEST DECISION VARIABLES")
+            st.markdown(
+                f"""
+                <div style="border: 2px solid #e6e6e6; border-radius: 5px; padding: 10px; margin: 10px 0; background-color: #d5d5d5;">
+                <h3 style="color: #1f77b4;">BEST DECISION VARIABLES</h3>
+
+                """, unsafe_allow_html = True
+            )
             st.write(data.get('best_vars', 'N/A'))
 
-        with st.expander("Parâmetros Utilizados nesta Execução"):
-            st.json(data.get('params', {}))
+
+            
+        st.markdown("---")
+
+        
 
 
 class StatisticsTableComponent:
@@ -44,6 +72,9 @@ class StatisticsTableComponent:
     @staticmethod
     def render(data):
         """Exibe a tabela de estatísticas por geração, se disponível."""
+
+        st.markdown("---")
+
         if 'logbook_data' in data and isinstance(data['logbook_data'], dict):
             st.subheader("Estatísticas por Geração")
             try:
@@ -75,27 +106,55 @@ class StatisticsTableComponent:
             st.info("Dados do logbook não encontrados ou em formato inválido no arquivo .pkl.")
 
 
+
+        # Renderizar Tabela de população final com formato Tabela x Grafico
+        #! TODO alterar para gerar arquivo pop_final.xlsx sempre
+
+        df_pop_final = pd.read_excel(rf"{path_foler_output}/pop_final.xlsx")
+        if df_pop_final is not None:
+            st.markdown("---")
+            st.subheader("Tabela de População Final")
+            st.write(df_pop_final)
+        else:
+            st.warning("Tabela de população final não encontrada.")
+
+        
+
+
+
 class GraficoRCEComponent:
     """Componente para exibir o gráfico de convergência."""
     
     @staticmethod
-    def render(fig, exec_num):
-        """Exibe o gráfico de convergência na página principal."""
+    def render(exec_num):
+        """Exibe os gráficos de convergência na página principal."""
         st.header(f"Gráfico RCE - Generations x Fitness (Execução {exec_num})")
-        if fig:
-            st.plotly_chart(fig, use_container_width=True)
+        
+        # Caminho do arquivo HTML
+        html_file = path_foler_output / f"grafico_execucao_{exec_num}.html"
+        
+        if html_file.exists():
+            with open(html_file, 'r', encoding='utf-8') as f:
+                #print(f"Carregando arquivo HTML: {html_file}")
+                html_content = f.read()
+                st.components.v1.html(html_content, height=500, scrolling=True)
         else:
-            st.warning("Figura não disponível para exibição.")
+            st.warning(f"Arquivo HTML não encontrado para a execução {exec_num}.")
+        
+        
 
 
 class ConsolidatedResultsComponent:
     """Componente para exibir os resultados consolidados."""
+
+    
+
     
     @staticmethod
     def render():
         """Verifica e exibe a seção de resultados consolidados."""
         # Nome base do arquivo
-        consolidated_excel_filename = rf"{path_foler_output}\results_consolidados.xlsx"
+        consolidated_excel_filename = rf"{path_foler_output}/results_consolidados.xlsx"
         
         # Caminho completo para o arquivo
         consolidated_excel_path = consolidated_excel_filename
@@ -108,21 +167,37 @@ class ConsolidatedResultsComponent:
                 # Lê o excel usando o caminho completo
                 df_consolidado = pd.read_excel(consolidated_excel_path)
                 st.dataframe(df_consolidado)
+
+                time_exec_media = get_media_time_execution_dataset(df_consolidado)
+                st.write(f"Média do tempo de Execução em segundos = ",time_exec_media)
+
                 # Abre o arquivo usando o caminho completo para o botão de download
                 with open(consolidated_excel_path, "rb") as fp:
                     st.download_button(
                         label="Baixar Resultados Consolidados (Excel)",
                         data=fp,
                         # Usa o nome base do arquivo para o download
-                        file_name=consolidated_excel_filename,
+                        file_name="resultados",
                         mime="application/vnd.ms-excel"
                     )
                 
-                st.title("Tempo de Execução")
-                st.write(df_consolidado[""])
+                
+
             except Exception as e:
                 st.error(f"Erro ao ler o arquivo consolidado {consolidated_excel_path}: {e}")
         else:
             st.info(f"Arquivo de resultados consolidados ({consolidated_excel_path}) não encontrado.")
+        st.markdown("---")
 
 
+
+
+# UX - Notes
+"""
+- User usa os parametros do JSON para editar a função objetivo e os dados do DEAP
+- Parametros fixos so tem um unico valor
+- Cada Pgina do Framework Dashboard renderiza os dados de varias execucoes
+- Os parametros que podem ser variados usando o test_20_functions do pibic anterior 
+- Uso de checkbox para permitir o uso de um expander para 3 caixas de texto com os 3 valores possiveis para aquele parametro
+- 
+"""

@@ -13,7 +13,7 @@ import pathlib
 
 # Define o diretório base como o diretório raiz do projeto
 BASE_DIR = pathlib.Path(__file__).resolve().parent.parent.parent  # Ajuste conforme a estrutura do projeto
-print("BASE_DIR =", BASE_DIR)
+#print("BASE_DIR =", BASE_DIR)
 
 # Define o caminho relativo para a pasta "output" dentro do projeto
 FOLDER_NAME = BASE_DIR / "output"
@@ -22,7 +22,7 @@ FOLDER_NAME = BASE_DIR / "output"
 FOLDER_NAME.mkdir(parents=True, exist_ok=True)
 
 print("\nFOLDER_NAME =", FOLDER_NAME)
-print("FOLDER RAIZ =", FOLDER_NAME.parent)
+#print("FOLDER RAIZ =", FOLDER_NAME.parent)
 
 class Utils:
     """Classe Utilitária para funções auxiliares do Dashboard."""
@@ -115,7 +115,6 @@ class Utils:
         
         # Use pathlib to construct paths
         data_file_selected = FOLDER_NAME / f"dashboard_data_{exec_num}.pkl"
-        fig_file_selected = FOLDER_NAME / f"dashboard_fig_{exec_num}.json"
 
 
         files = self.load_files(exec_num)
@@ -135,19 +134,8 @@ class Utils:
             st.stop() # Para em caso de erro de carregamento
 
         # Carregar Figura
-        try:
-            # Verifica a existência usando o caminho completo
-            if os.path.exists(fig_file_selected):
-                fig = pio.read_json(fig_file_selected)
-                st.sidebar.success(f"Figura da execução {exec_num} carregada de '{FOLDER_NAME}'.")
-            else:
-                st.sidebar.warning(f"Arquivo da figura ({fig_file_selected}) não encontrado.")
-                fig = None
-        except Exception as e:
-            st.error(f"Erro ao carregar figura de {fig_file_selected}: {e}")
-            fig = None
 
-        return data, fig
+        return data
     
 
 

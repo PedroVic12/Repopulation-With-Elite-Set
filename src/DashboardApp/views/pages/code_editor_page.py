@@ -46,19 +46,7 @@ if len(numeric_cols) > 0:
 else:
     st.warning("Não foram encontradas colunas numéricas para plotar o histograma (ou dados não carregados).")
 
-# Exemplo de Print
-print("Exemplo de saída de texto: Análise concluída.")
 
-# Você pode adicionar código Plotly aqui também:
-# import plotly.express as px
-# if len(numeric_cols) > 0:
-#    st.subheader(f"Gráfico de Dispersão (Plotly)")
-#    if len(numeric_cols) >= 2:
-#       fig_plotly = px.scatter(df, x=numeric_cols[0], y=numeric_cols[1], title="Plotly Scatter Plot")
-#       # A linha crucial para exibir o gráfico Plotly:
-#       st.plotly_chart(fig_plotly)
-#    else:
-#       st.warning("São necessárias pelo menos 2 colunas numéricas para o gráfico de dispersão Plotly.")
 """
 
 # --- Model Functions ---
