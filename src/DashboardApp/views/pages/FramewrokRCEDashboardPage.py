@@ -1,7 +1,7 @@
 
 
 # --- Componentes da Interface de Usuário ---
-from ..components.dash_rce_components import ConsolidatedResultsComponent, SummaryComponent, StatisticsTableComponent, ConvergenceGraphComponent 
+from ..components.dash_rce_components import ConsolidatedResultsComponent, SummaryComponent, StatisticsTableComponent, GraficoRCEComponent 
 
 
 #backend
@@ -14,39 +14,6 @@ import os
 import pickle
 import json
 
-
-# Corrige o erro no carregamento do JSON
-def load_execution_data(self, exec_num):
-    """Carrega os dados .pkl e a figura .json para a execução especificada."""
-    data = None
-    fig = None
-    data_file_selected = os.path.join(FOLDER_NAME, f"dashboard_data_{exec_num}.pkl")
-    fig_file_selected = os.path.join(FOLDER_NAME, f"dashboard_fig_{exec_num}.json")
-
-    # Carregar Dados
-    try:
-        with open(data_file_selected, 'rb') as f:
-            data = pickle.load(f)
-        st.sidebar.success(f"Dados da execução {exec_num} carregados de '{FOLDER_NAME}'.")
-    except FileNotFoundError:
-        st.error(f"Erro Crítico: Arquivo de dados selecionado ({data_file_selected}) não encontrado.")
-        return None, None
-    except Exception as e:
-        st.error(f"Erro ao carregar dados de {data_file_selected}: {e}")
-        return None, None
-
-    # Carregar Figura
-    try:
-        if os.path.exists(fig_file_selected):
-            with open(fig_file_selected, 'r') as f:
-                fig = json.load(f)  # Remove o argumento 'encoding'
-            st.sidebar.success(f"Figura da execução {exec_num} carregada de '{FOLDER_NAME}'.")
-        else:
-            st.sidebar.warning(f"Arquivo da figura ({fig_file_selected}) não encontrado.")
-    except Exception as e:
-        st.error(f"Erro ao carregar figura de {fig_file_selected}: {e}")
-
-    return data, fig
 
 
 # Configuração da barra lateral
@@ -97,6 +64,18 @@ class FrameworkRCEDashboard:
             st.error("Nenhum arquivo de resultado encontrado.")
             st.stop()
 
+    def render_html_files(self, html_files):
+        """Renderiza os arquivos .html no Streamlit."""
+        for html_file in html_files:
+            try:
+                st.subheader(f"Grafico: {html_file.name}")
+                with open(html_file, "r", encoding="utf-8") as f:
+                    html_content = f.read()
+                    # Renderiza o conteúdo HTML no Streamlit
+                    st.components.v1.html(html_content, height=800, scrolling=True)
+            except Exception as e:
+                st.error(f"Erro ao renderizar o arquivo {html_file.name}: {e}")
+
     def run(self):
         self.header()
 
@@ -128,14 +107,20 @@ class FrameworkRCEDashboard:
             st.markdown("---")
             st.subheader(f"Dados da Execução {st.session_state['selected_execution']}")
 
+
+            number_state = st.session_state['selected_execution']
+
+            # Load the selected execution data
+            print(f"Loading data for execution {number_state}")
+
             # Load and display data
-            data, fig = self.utils.load_execution_data(st.session_state["selected_execution"])
+            data, fig = self.utils.load_execution_data(number_state)
 
             if data:
                 with st.container():
                     SummaryComponent.render(data, st.session_state["selected_execution"])
                 with st.container():
-                    ConvergenceGraphComponent.render(fig, st.session_state["selected_execution"])
+                    GraficoRCEComponent.render(fig, st.session_state["selected_execution"])
                 with st.container():
                     StatisticsTableComponent.render(data)
             else:

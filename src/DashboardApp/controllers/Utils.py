@@ -9,39 +9,54 @@ import glob # Importar glob para encontrar arquivos
 import json
 import pathlib
 
-#OLDER_NAME = "./output" #  pasta onde os arquivos estão localizados
-#FOLDER_NAME = os.path.abspath("output")
-#FOLDER_NAME = os.path.join(pathlib.Path(__file__).parent.resolve(), "output") # Caminho absoluto para a pasta de saída
 
 
-#FOLDER_NAME = pathlib.Path(__file__).parent / "output" # Caminho absoluto para a pasta de saída
+# Define o diretório base como o diretório raiz do projeto
+BASE_DIR = pathlib.Path(__file__).resolve().parent.parent.parent  # Ajuste conforme a estrutura do projeto
+print("BASE_DIR =", BASE_DIR)
 
+# Define o caminho relativo para a pasta "output" dentro do projeto
+FOLDER_NAME = BASE_DIR / "output"
 
+# Cria a pasta "output" se ela não existir
+FOLDER_NAME.mkdir(parents=True, exist_ok=True)
 
-# Get the relative path to output directory
-FOLDER_NAME = pathlib.Path("output")
-
-# Create output directory if it doesn't exist
-FOLDER_NAME.mkdir(exist_ok=True)
-
-print("\nFOLDER_NAME = ", FOLDER_NAME)
-
+print("\nFOLDER_NAME =", FOLDER_NAME)
+print("FOLDER RAIZ =", FOLDER_NAME.parent)
 
 class Utils:
     """Classe Utilitária para funções auxiliares do Dashboard."""
     def __init__(self):
         pass
 
-    def load_files(self):
-        # Teste para arquivo .pkl
-        with open(FOLDER_NAME / "dashboard_data_1.pkl", "rb") as f:
-            data = pickle.load(f)
-            #print(data)
+    def load_files(self,exec_num):
+        """Carrega os dados .pkl e a figura .json para a execução especificada."""
+        data = None
+        fig = None
+        data_file_selected = os.path.join(FOLDER_NAME, f"dashboard_data_{exec_num}.pkl")
+        fig_file_selected = os.path.join(FOLDER_NAME, f"dashboard_fig_{exec_num}.json")
 
-        # Teste para arquivo .json
-        with open(FOLDER_NAME / "dashboard_fig_1.json", "r") as f:
-            fig = json.load(f)
-            #print(fig)
+        # Carregar Dados
+        try:
+            with open(data_file_selected, 'rb') as f:
+                data = pickle.load(f)
+        except Exception as e:
+            print(f"Erro ao carregar o arquivo .pkl: {e}")
+            raise
+
+        # Carregar Figura
+        try:
+            with open(fig_file_selected, 'r', encoding='utf-8') as f:
+                fig = json.load(f)
+        except UnicodeDecodeError:
+            # Tente outra codificação, como ISO-8859-1, se UTF-8 falhar
+            with open(fig_file_selected, 'r', encoding='ISO-8859-1') as f:
+                fig = json.load(f)
+        except Exception as e:
+            print(f"Erro ao carregar o arquivo JSON: {e}")
+            raise
+
+        return data, fig
 
 
     # --- Funções Auxiliares ---
@@ -103,8 +118,7 @@ class Utils:
         fig_file_selected = FOLDER_NAME / f"dashboard_fig_{exec_num}.json"
 
 
-        files = self.load_files()
-        print(files)
+        files = self.load_files(exec_num)
 
         st.sidebar.markdown("---") # Separador visual
 

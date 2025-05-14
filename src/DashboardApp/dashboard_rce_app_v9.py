@@ -9,13 +9,20 @@ from views.pages.StreamlitDashbord import StreamlitDashboard
 from views.pages.code_editor_page import CodeEditorPage
 
 
+import sys
+from pathlib import Path
+
+# Adiciona o diretório raiz do projeto ao PYTHONPATH
+sys.path.append(str(Path(__file__).resolve().parent.parent.parent.parent))
+
 
 def DrawerSideBar():
     """Menu lateral único para navegação."""
-    st.sidebar.title("🧭 Side Bar Navigation")
+    st.sidebar.title("🧭 Menu Dashboard")
+    st.sidebar.image("https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRHVsZ1z9B-HIP8Ddsks0mP3aETeG1CkYixtA&s", width=700)
     st.sidebar.markdown("---")  # Separador visual
 
-    # Opções de páginas
+    # Opções de páginas 
     page_options = {
         "⚡ Framework RCE": FrameworkRCEDashboard().run,
         #"🤖 C3po Chatbot": C3poChatbotPage,
@@ -36,15 +43,6 @@ def DrawerSideBar():
 
     # Retorna a função da página selecionada
     return page_options[selected_page]
-
-
-# ---Core Template ---
-class DashboardAppTemplate:
-    """Placeholder for a more complex dashboard structure/template."""
-    def run(self):
-        st.title("🧩 Core Dashboard Template Page")
-        st.write("This content comes from the `DashboardAppTemplate.run()` method.")
-        st.info("This demonstrates how you might integrate a reusable dashboard class structure.")
 
 
 # --- Main Application Class ---

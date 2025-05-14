@@ -1,12 +1,14 @@
 # --- Componentes da Interface de Usuário ---
 
+import pathlib
 import streamlit as st
 import os
 import pandas as pd
 
+from DashboardApp.controllers.Utils import Utils, FOLDER_NAME
 
-#path_foler_output = os.path.join(os.path.dirname(__file__), "output")
-path_foler_output = r"..\src\output"
+path_foler_output = FOLDER_NAME
+
 print(path_foler_output)
 
 class SummaryComponent:
@@ -25,6 +27,7 @@ class SummaryComponent:
                 <h3 style="color: #1f77b4;">Resumo da Melhor Solução</h3>
                 <h4><strong>Melhor Fitness:</strong> {data.get('best_fitness', 'N/A'):.6f}</h4>
                 <h4><strong>Melhor Geração (Índice):</strong> {data.get('best_gen_idx', 'N/A')}</h4>
+                <h4><strong>Tempo de execução (segundos):</strong> NaN </h4>
                 </div>
                 """, unsafe_allow_html=True)
         with col2:
@@ -72,13 +75,13 @@ class StatisticsTableComponent:
             st.info("Dados do logbook não encontrados ou em formato inválido no arquivo .pkl.")
 
 
-class ConvergenceGraphComponent:
+class GraficoRCEComponent:
     """Componente para exibir o gráfico de convergência."""
     
     @staticmethod
     def render(fig, exec_num):
         """Exibe o gráfico de convergência na página principal."""
-        st.header(f"Gráfico de Convergência (Execução {exec_num})")
+        st.header(f"Gráfico RCE - Generations x Fitness (Execução {exec_num})")
         if fig:
             st.plotly_chart(fig, use_container_width=True)
         else:
