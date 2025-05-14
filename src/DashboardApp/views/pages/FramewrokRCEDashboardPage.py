@@ -148,13 +148,11 @@ class FrameworkRCEDashboard:
             div.stButton > button {
                 background-color: #4CAF50; /* Verde */
                 color: white; /* Cor do texto */
-                border: none;
-                padding: 10px 20px;
+                padding: 12px 20px;
                 text-align: center;
-                text-decoration: none;
                 display: inline-block;
                 font-size: 25px;
-                margin: 4px 2px;
+                margin: 2px 2px;
                 cursor: pointer;
                 border-radius: 8px;
             }
@@ -178,7 +176,7 @@ class FrameworkRCEDashboard:
                 # Exibe a imagem de carregamento no "diálogo"
                 with dialog_placeholder.container():
                     img_gif_loading = "/home/pedrov12/Documentos/GitHub/Repopulation-With-Elite-Set/src/assets/humans_evolution.gif"
-                    st.image(img_gif_loading, width=800)
+                    st.image(img_gif_loading, width=1200)
                     st.subheader("Executando o script principal no terminal... por favor aguarde...")
 
                 # Simula a execução do script (substitua pelo seu comando real)
@@ -204,5 +202,8 @@ class FrameworkRCEDashboard:
         """Rodapé do aplicativo."""
         st.markdown("---")
         st.info("Desenvolvido por Pedro Victor Veras e Rainer Zanghi em um projeto PIBIC pela UFF - 2024/2025")
-        st.info("Este é um exemplo de rodapé. Você pode personalizá-lo conforme necessário.")
+        st.link_button(
+            url="https://github.com/PedroVic12/Repopulation-With-Elite-Set",
+            label="Visite a Documentação do Projeto nesse link",
+        )
         st.markdown("---")

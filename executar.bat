@@ -17,17 +17,17 @@ echo Instalacao concluida.
 call cls 
 
 echo Inicio do Programa...
-echo Executando script em src/run_rce_framework.py...
-call python run_rce_framework.py
+@REM echo Executando script em src/run_rce_framework.py...
+@REM call python run_rce_framework.py
 
 
-REM Verifica se a execução do script foi bem sucedida (opcional, mas recomendado)
-IF %ERRORLEVEL% NEQ 0 (
-    echo Erro ao executar run_rce_framework.py. Saindo.
-    popd
-    pause
-    exit /b %ERRORLEVEL%
-)
+@REM REM Verifica se a execução do script foi bem sucedida (opcional, mas recomendado)
+@REM IF %ERRORLEVEL% NEQ 0 (
+@REM     echo Erro ao executar run_rce_framework.py. Saindo.
+@REM     popd
+@REM     pause
+@REM     exit /b %ERRORLEVEL%
+@REM )
 
 
 REM Navega para o diretório DashboardApp e inicia a aplicação Streamlit

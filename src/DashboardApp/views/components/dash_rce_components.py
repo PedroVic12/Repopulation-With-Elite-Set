@@ -17,16 +17,6 @@ def get_folder_path():
 path_foler_output = get_folder_path()
 
 
-def get_media_time_execution_dataset( df_consolidado):
-                # Limpa a coluna para remover o texto "segundos" e converte para float
-        df_consolidado["execution_time"] = df_consolidado["execution_time"].str.replace(" segundos", "").astype(float)
-
-                # Calcula a média da coluna execution_time
-        media_execution_time = df_consolidado["execution_time"].mean()
-
-
-        return media_execution_time
-
 class CardSolutions:
     """Componente para exibir o resumo da melhor solução."""
     
@@ -155,6 +145,13 @@ class ConsolidatedResultsComponent:
     @staticmethod
     def render():
         """Verifica e exibe a seção de resultados consolidados."""
+
+
+        
+
+
+
+
         # Nome base do arquivo
         consolidated_excel_filename = rf"{path_foler_output}/results_consolidados.xlsx"
         
@@ -168,10 +165,17 @@ class ConsolidatedResultsComponent:
             try:
                 # Lê o excel usando o caminho completo
                 df_consolidado = pd.read_excel(consolidated_excel_path)
-                st.dataframe(df_consolidado)
+                df_consolidado["execution_time"] = df_consolidado["execution_time"].str.replace(" segundos", "").astype(float)
 
-                time_exec_media = get_media_time_execution_dataset(df_consolidado)
+                # Calcula a média da coluna execution_time
+                exec_time = df_consolidado["execution_time"]
+                time_exec_media = exec_time.mean()
+                tempo_total = exec_time.sum()
+                
+                st.dataframe(df_consolidado)
                 st.write(f"Média do tempo de Execução em segundos = ",round(time_exec_media,3))
+                st.write("Tempo total de execução = ", round(tempo_total,2))
+
 
                 # Abre o arquivo usando o caminho completo para o botão de download
                 with open(consolidated_excel_path, "rb") as fp:
