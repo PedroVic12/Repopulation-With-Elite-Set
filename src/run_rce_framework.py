@@ -108,7 +108,7 @@ if __name__ == "__main__":
 
     #! ainda seria possivel criar um pacote no pip e instanciar?
     setup = Setup(params, rosenbrock_benchmark)
-    alg = AlgoritimoEvolutivoRCE(setup, DEBUG=True)
+    alg = AlgoritimoEvolutivoRCE(setup, DEBUG=False)
     dashboard = DashboardApp()
 
     run_framework()

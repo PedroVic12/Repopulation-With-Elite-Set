@@ -121,6 +121,10 @@ class FrameworkRCEDashboard:
 
         self.footer()
 
+    def atualizar_pagina(self):
+        """Atualiza a página."""
+        st.rerun()
+
     def header(self):
         """Cabeçalho do aplicativo."""
         st.markdown("---")
@@ -138,6 +142,8 @@ class FrameworkRCEDashboard:
                 # Executa o script Python
                 os.system(f"python {script_path}")
                 st.success("Script executado com sucesso!")
+                st.rerun()
+
             except Exception as e:
                 st.error(f"Erro ao executar o script: {e}")
 

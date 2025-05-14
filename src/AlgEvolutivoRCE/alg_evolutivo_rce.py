@@ -71,39 +71,7 @@ class AlgoritimoEvolutivoRCE:
                 break
         return is_clone
 
-    def generateInfoIndividual(self, new_pop, generation):
-        ind_array = []
-
-        for i, ind in enumerate(new_pop):
-            # print(f"Index[{ind.index}] - ind_variables {ind} \n Fitness = {ind.fitness.values} ")
-
-            ind.index = i
-
-            ind_info = {
-                "Generations": generation,
-                "index": ind.index,
-                "Variaveis de Decisão": ind,
-                "Fitness": ind.fitness.values[0],
-                "RCE": ind.rce,
-                "Diversidade": np.sum(ind),
-            }
-
-            # Adicionar a informação de clone ao dicionário
-            # is_clone = self.checkClonesInPop(ind, new_pop)
-            # ind_info["CLONE"] = "SIM" if is_clone else "NAO"
-
-            ind_array.append(ind_info)
-
-        return ind_array
-
-    def show_ind_df(self, array, text, save = True):
-        df = pd.DataFrame(array)
-        print(text)
-        if save:
-            df.to_excel(f"pop_final.xlsx")
-
-        # contar quantos SIM na coluna CLONE se a coluna RCE for SIM
-        # display(df[df["RCE"] != ""].value_counts())
+    
 
     def criterio1(self, new_pop, porcentagem, k=30):
         """Seleciona os candidatos ao conjunto elite com base nas diferenças percentuais de aptidão."""
@@ -289,7 +257,6 @@ class AlgoritimoEvolutivoRCE:
         if self.DEBUG:
             self.cout(f"CRITERIO 3 - População aleatória modificada [HOF,RCE,Aleatorio] ")
 
-            self.show_ind_df(conjunto_elite, "Individuos da nova população aleatória")
 
         return new_pop
 
@@ -364,15 +331,6 @@ class AlgoritimoEvolutivoRCE:
 
         population = [self.POPULATION]
 
-        #DEBUG 09/04 - Certificar em criar a população correta e avaliar sua funcao fitness
-
-        #! Avaliar o fitness da população inicial
-        #self.setup.checkDecisionVariablesAndFitnessFunction(
-        #    self.POPULATION, self.setup.funcao_objetivo
-        #)
-        #self.setup.avaliarFitnessIndividuos(population)
-
-
         #! Loop principal através das gerações
         for current_generation in range(self.setup.NGEN):
 
@@ -426,8 +384,10 @@ class AlgoritimoEvolutivoRCE:
                 population[num_pop][:] = new_population
             else:
                 population[num_pop][:] = offspring
-                #conjunto_elite = self.generateInfoIndividual(population[num_pop][:], current_generation + 1)
-                #self.show_ind_df(conjunto_elite, "Individuos da nova população aleatória")
+            
+            # Gera o Excel com a pop com RCE em Excel
+            conjunto_elite = self.generateInfoIndividual(population[num_pop][:], current_generation + 1)
+            self.show_ind_df(conjunto_elite, "Individuos da nova população aleatória")
 
             # Registrar estatísticas no logbook
             self.elitismoSimples(population[num_pop])
@@ -460,3 +420,39 @@ class AlgoritimoEvolutivoRCE:
         print(
             "==========================================================================================================\n"
         )
+    def generateInfoIndividual(self, new_pop, generation):
+        ind_array = []
+
+        for i, ind in enumerate(new_pop):
+            # print(f"Index[{ind.index}] - ind_variables {ind} \n Fitness = {ind.fitness.values} ")
+
+            ind.index = i
+
+            ind_info = {
+                "Generations": generation,
+                "index": ind.index,
+                "Variaveis de Decisão": ind,
+                "Fitness": ind.fitness.values[0],
+                "RCE": ind.rce,
+                "Diversidade": np.sum(ind),
+            }
+
+            # Adicionar a informação de clone ao dicionário
+            # is_clone = self.checkClonesInPop(ind, new_pop)
+            # ind_info["CLONE"] = "SIM" if is_clone else "NAO"
+
+            ind_array.append(ind_info)
+
+        return ind_array
+
+    def show_ind_df(self, array, text, save = True):
+        df = pd.DataFrame(array)
+        print(text)
+        if save:
+            df.to_excel(f"pop_final.xlsx")
+
+        if self.DEBUG:
+            print(df)
+
+        # contar quantos SIM na coluna CLONE se a coluna RCE for SIM
+        # display(df[df["RCE"] != ""].value_counts())
