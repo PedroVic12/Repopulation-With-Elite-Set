@@ -3,6 +3,7 @@
 
 #%%writefile app.py
 
+import pathlib
 import streamlit as st
 import pandas as pd
 import plotly.graph_objects as go
@@ -18,6 +19,21 @@ import matplotlib.pyplot as plt
 
 from .Setup import params
 
+
+def get_folder_path():
+    BASE_DIR = pathlib.Path(__file__).resolve().parent.parent.parent  
+
+    # Define o caminho relativo para a pasta "output" dentro do projeto
+    FOLDER_NAME = BASE_DIR / "output"
+
+    # Cria a pasta "output" se ela não existir
+    FOLDER_NAME.mkdir(parents=True, exist_ok=True)
+    print("\nFOLDER_NAME =", FOLDER_NAME)
+    #print("FOLDER RAIZ =", FOLDER_NAME.parent)
+
+    return FOLDER_NAME
+
+FOLDER_NAME = get_folder_path()
 
 class DashboardApp:
     """Classe principal para criar o dashboard interativo com Streamlit."""
@@ -246,14 +262,12 @@ class DashboardApp:
             else:
 
                 # check se o diretorio output exists
-                if not os.path.exists("./output"):
-                    os.makedirs("./output")
-                    print("Diretório 'output' criado com sucesso.")
-                else:
-                    print("Diretório 'output' já existe.")
+                output_path = f"{FOLDER_NAME}/src/output"
 
-                data_file = f"./output/dashboard_data_{execution_num}.pkl"
-                fig_file = f"./output/dashboard_fig_{execution_num}.json"
+
+
+                data_file = f"{output_path}/dashboard_data_{execution_num}.pkl"
+                fig_file = f"{output_path}/dashboard_fig_{execution_num}.json"
                 #print(f"INFO: Arquivos de saída para execução {execution_num}: {data_file}, {fig_file}")
 
                 # --- Salvar dados e figura para o script Streamlit ---
@@ -270,9 +284,8 @@ class DashboardApp:
                 }
 
             # Salvar a figura em formato HTML
-            fig_filename = f"output/grafico_execucao_{execution_num}.html"
+            fig_filename = f"{output_path}/grafico_execucao_{execution_num}.html"
             grafico_RCE.write_html(fig_filename)
-            #print(f"INFO: Figura salva em {fig_filename}")
 
 
             # Salva os dados no arquivo .pkl numerado
@@ -284,6 +297,8 @@ class DashboardApp:
             fig_json = pio.to_json(grafico_RCE)
             with open(fig_file, 'w') as f:
                 f.write(fig_json)
+
+                
             print(f"INFO: Dados e figura para execução {execution_num} salvos com sucesso.") # Added execution num here
 
         except Exception as e:
