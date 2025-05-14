@@ -6,7 +6,7 @@ from ..components.dash_rce_components import ConsolidatedResultsComponent, Summa
 
 #backend
 from controllers.Utils import Controller,FOLDER_NAME, Utils
-
+import os
 
 # Frontend
 import streamlit as st
@@ -123,11 +123,28 @@ class FrameworkRCEDashboard:
 
     def header(self):
         """Cabeçalho do aplicativo."""
+        st.markdown("---")
         st.title("Framework Repopulation-With-Elite-Set RCE")
+        st.markdown("---")
+
+
+        # Botão com ícone de play para executar um script Python
+        if st.button("▶️ Executar Script"):
+
+            script_path = FOLDER_NAME.parent / "run_rce_framework.py" # Substitua pelo caminho do seu script
+            st.write(script_path)
+
+            try:
+                # Executa o script Python
+                os.system(f"python {script_path}")
+                st.success("Script executado com sucesso!")
+            except Exception as e:
+                st.error(f"Erro ao executar o script: {e}")
 
         if not self.execution_numbers:
             st.error("Nenhum arquivo de resultado encontrado.")
             st.stop()
+
 
     def footer(self):
         """Rodapé do aplicativo."""

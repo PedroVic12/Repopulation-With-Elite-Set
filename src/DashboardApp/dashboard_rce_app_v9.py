@@ -49,7 +49,7 @@ def DrawerSideBar():
 class App:
     def __init__(self):
         st.set_page_config(
-            page_title="Clean Dashboard App",
+            page_title="UFF RCE Web App",
             page_icon="📊",
             layout="wide",
             #initial_sidebar_state="expanded"
