@@ -8,11 +8,13 @@ import pandas as pd
 #! TODO SABER PEGAR IMPORT TUDO DE CONTROLLER E UTILS
 
 # Ajuste conforme a estrutura do projeto
-BASE_DIR = pathlib.Path(__file__).resolve().parent.parent.parent  
-# Define o caminho relativo para a pasta "output" dentro do projeto
-FOLDER_NAME = BASE_DIR / "output"
-path_foler_output = FOLDER_NAME
+def get_folder_path():
+    BASE_DIR = pathlib.Path(__file__).resolve().parent.parent.parent  
+    # Define o caminho relativo para a pasta "output" dentro do projeto
+    FOLDER_NAME = BASE_DIR / "output"
+    return FOLDER_NAME
 
+path_foler_output = get_folder_path()
 print(path_foler_output)
 
 def get_media_time_execution_dataset( df_consolidado):
@@ -43,7 +45,7 @@ class SummaryComponent:
         with col1:
             st.markdown(
                 f"""
-                <div style="border: 2px solid #e6e6e6; border-radius: 5px; padding: 30px; margin: 10px 0; background-color: #d5d5d5;">
+                <div style="border: 2px solid #e6e6e6; border-radius: 15px; padding: 12px; margin: 10px 5; background-color: #d5d5d5;">
                 <h3 style="color: #1f77b4;">Resumo da Melhor Solução</h3>
                 <h4><strong>Melhor Geração:</strong> {data.get('best_gen_idx', 'N/A')}</h4>
                 <h4><strong>Melhor Fitness:</strong> {data.get('best_fitness', 'N/A'):.6f}</h4>
@@ -52,7 +54,7 @@ class SummaryComponent:
         with col2:
             st.markdown(
                 f"""
-                <div style="border: 2px solid #e6e6e6; border-radius: 5px; padding: 10px; margin: 10px 0; background-color: #d5d5d5;">
+                <div style="border: 2px solid #e6e6e6; border-radius: 15px; padding: 10px; margin: 10px 0; background-color: #d5d5d5;">
                 <h3 style="color: #1f77b4;">BEST DECISION VARIABLES</h3>
 
                 """, unsafe_allow_html = True

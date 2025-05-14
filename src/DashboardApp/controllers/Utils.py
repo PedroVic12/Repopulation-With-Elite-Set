@@ -27,14 +27,26 @@ print("\nFOLDER_NAME =", FOLDER_NAME)
 class Utils:
     """Classe Utilitária para funções auxiliares do Dashboard."""
     def __init__(self):
-        pass
+        self.apagar_arquivos()
+
+    def apagar_arquivos(self):
+        data_file_selected = FOLDER_NAME 
+        try:
+            for file in os.listdir(data_file_selected):
+                file_path = os.path.join(data_file_selected, file)
+                os.remove(file_path)
+                print(f"Arquivo {file_path} removido com sucesso.")
+ 
+
+        except Exception as e:
+
+            print(f"Erro ao remover arquivo {file_path}: {e}")
+
 
     def load_files(self,exec_num):
         """Carrega os dados .pkl e a figura .json para a execução especificada."""
         data = None
-        fig = None
         data_file_selected = os.path.join(FOLDER_NAME, f"dashboard_data_{exec_num}.pkl")
-        fig_file_selected = os.path.join(FOLDER_NAME, f"dashboard_fig_{exec_num}.json")
 
         # Carregar Dados
         try:
@@ -44,20 +56,8 @@ class Utils:
             print(f"Erro ao carregar o arquivo .pkl: {e}")
             raise
 
-        # Carregar Figura
-        try:
-            with open(fig_file_selected, 'r', encoding='utf-8') as f:
-                fig = json.load(f)
-        except UnicodeDecodeError:
-            # Tente outra codificação, como ISO-8859-1, se UTF-8 falhar
-            with open(fig_file_selected, 'r', encoding='ISO-8859-1') as f:
-                fig = json.load(f)
-        except Exception as e:
-            print(f"Erro ao carregar o arquivo JSON: {e}")
-            raise
 
-        return data, fig
-
+        return data
 
     # --- Funções Auxiliares ---
     def find_available_executions(self):
@@ -86,46 +86,25 @@ class Utils:
         )
         return selected_num
 
-    def select_execution_with_tabs(self,execution_numbers):
-        """Exibe as execuções como abas e retorna o número da execução selecionada dinamicamente."""
-        st.header("Seleção da Execução")
-        
-        # Inicializa o estado da aba ativa no session_state
-        if "active_tab_index" not in st.session_state:
-            st.session_state["active_tab_index"] = 0  # Começa com a primeira aba ativa
-
-        # Cria uma aba para cada número de execução
-        tabs = st.tabs([f"Execução {num}" for num in execution_numbers])
-        
-        # Atualiza o índice da aba ativa com base na interação do usuário
-        for i, tab in enumerate(tabs):
-            with tab:
-                if st.session_state["active_tab_index"] != i:
-                    st.session_state["active_tab_index"] = i
-                st.write(f"Você está visualizando os dados da execução {execution_numbers[i]}")
-
-        # Retorna o número da execução correspondente à aba ativa
-        return execution_numbers[st.session_state["active_tab_index"]]
+    
 
     def load_execution_data(self, exec_num):
         """Carrega os dados .pkl e a figura .json para a execução especificada,
         buscando na pasta FOLDER_NAME."""
         data = None
-        fig = None
         
         # Use pathlib to construct paths
         data_file_selected = FOLDER_NAME / f"dashboard_data_{exec_num}.pkl"
 
-
         files = self.load_files(exec_num)
 
-        st.sidebar.markdown("---") # Separador visual
+        #st.sidebar.markdown("---") # Separador visual
 
         # Carregar Dados
         try:
             with open(data_file_selected, 'rb') as f:
                 data = pickle.load(f)
-            st.sidebar.success(f"Dados da execução {exec_num} carregados de '{FOLDER_NAME}'.")
+            st.sidebar.success(f"INFO:Dados da execução {exec_num} carregados de '{FOLDER_NAME}'.")
         except FileNotFoundError:
             st.error(f"Erro Crítico: Arquivo de dados selecionado ({data_file_selected}) não encontrado.")
             st.stop() # Para se o arquivo esperado não for encontrado
@@ -133,7 +112,6 @@ class Utils:
             st.error(f"Erro ao carregar dados de {data_file_selected}: {e}")
             st.stop() # Para em caso de erro de carregamento
 
-        # Carregar Figura
 
         return data
     

@@ -22,7 +22,7 @@ options = {
     }
 
 
-def run_framework():
+def run_framework(RCE = False):
     if options["key"]:
 
         for i in range(options["value"]):
@@ -31,7 +31,7 @@ def run_framework():
             start_time = time.time()  # Inicia a contagem do tempo para cada execução
 
             # Loop principal do Algoritmo Evolutivo
-            pop_with_repopulation, logbook_with_repopulation, best_variables = alg.run(RCE=True)
+            pop_with_repopulation, logbook_with_repopulation, best_variables = alg.run(RCE)
             print("\n\nEvolução concluída  - 100%")
 
             # Resultados
@@ -107,11 +107,13 @@ execution_times = []  # Lista para armazenar os tempos de execução
 if __name__ == "__main__":
 
     #! ainda seria possivel criar um pacote no pip e instanciar?
-    setup = Setup(params, rosenbrock_benchmark)
+    setup = Setup(params, rastrigin)
     alg = AlgoritimoEvolutivoRCE(setup, DEBUG=False)
     dashboard = DashboardApp()
 
-    run_framework()
+    run_framework(
+         RCE= True, # True = RCE, False = Algoritmo Evolutivo Deap com minimização
+    )
     
 
 
