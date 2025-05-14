@@ -21,7 +21,8 @@ def get_folder_path():
     # Cria a pasta "output" se ela não existir
     FOLDER_NAME.mkdir(parents=True, exist_ok=True)
     print("\nFOLDER_NAME =", FOLDER_NAME)
-    #print("FOLDER RAIZ =", FOLDER_NAME.parent)
+    print("FOLDER RAIZ do projeto =", FOLDER_NAME.parent)
+    print("\n")
 
     return FOLDER_NAME
 
@@ -96,33 +97,36 @@ class Utils:
         """Carrega os dados .pkl e a figura .json para a execução especificada,
         buscando na pasta FOLDER_NAME."""
         data = None
+
+        files = self.load_files(exec_num)
+
+            # Use pathlib to construct paths
+        data_file_selected = FOLDER_NAME / f"dashboard_data_{exec_num}.pkl"
+
+            #st.sidebar.markdown("---") # Separador visual
+
+            # Carregar Dados
+        try:
+                with open(data_file_selected, 'rb') as f:
+                    data = pickle.load(f)
+                st.sidebar.success(f"INFO:Dados da execução {exec_num} carregados de '{FOLDER_NAME}'.")
+                
+        except FileNotFoundError:
+                st.error(f"Erro Crítico: Arquivo de dados selecionado ({data_file_selected}) não encontrado.")
+                st.stop() # Para se o arquivo esperado não for encontrado
+        except Exception as e:
+                st.error(f"Erro ao carregar dados de {data_file_selected}: {e}")
+                st.stop() # Para em caso de erro de carregamento
         
         # verifica se a pasta esta vazia
         if not os.listdir(FOLDER_NAME):
             print("A pasta está vazia.")
 
-            files = self.load_files(exec_num)
-
-                    # Use pathlib to construct paths
-            data_file_selected = FOLDER_NAME / f"dashboard_data_{exec_num}.pkl"
-
-            #st.sidebar.markdown("---") # Separador visual
-
-            # Carregar Dados
-            try:
-                with open(data_file_selected, 'rb') as f:
-                    data = pickle.load(f)
-                st.sidebar.success(f"INFO:Dados da execução {exec_num} carregados de '{FOLDER_NAME}'.")
-            except FileNotFoundError:
-                st.error(f"Erro Crítico: Arquivo de dados selecionado ({data_file_selected}) não encontrado.")
-                st.stop() # Para se o arquivo esperado não for encontrado
-            except Exception as e:
-                st.error(f"Erro ao carregar dados de {data_file_selected}: {e}")
-                st.stop() # Para em caso de erro de carregamento
+            
 
         else:
-            print(f"A pasta não está vazia, possui  arquivos.")
-            self.apagar_arquivos()
+            print(f"[DEBUG] A pasta não está vazia, possui  arquivos.")
+            #self.apagar_arquivos()
 
 
         return data

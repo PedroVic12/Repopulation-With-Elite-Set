@@ -50,7 +50,7 @@ class UseState:
     def set_state(key, value):
         """Define o valor de uma chave no session_state."""
         st.session_state[key] = value
-        print("State atualizado:", key, "=", value)  
+        #print("State atualizado:", key, "=", value)  
 
 
 # --- Classe Principal do Aplicativo ---
@@ -108,15 +108,20 @@ class FrameworkRCEDashboard:
                     # Carrega os dados e o gráfico da execução
                     dados = self.utils.load_execution_data(exec_num)
 
+                    
                     if dados:
-                        with st.container():
-                            SummaryComponent.render(dados, exec_num)
-                        with st.container():
-                            GraficoRCEComponent.render(exec_num)  # Passa o exec_num para carregar o gráfico correto
-                        with st.container():
-                            StatisticsTableComponent.render(dados)
+                        try:
+                            with st.container():
+                                SummaryComponent.render(dados, exec_num)
+                            with st.container():
+                                GraficoRCEComponent.render(exec_num)  # Passa o exec_num para carregar o gráfico correto
+                            with st.container():
+                                StatisticsTableComponent.render(dados)
+                        except Exception as e:
+                            st.error(f"Erro ao carregar os dados da execução {exec_num}.",e)
+
                     else:
-                        st.error(f"Erro ao carregar os dados da execução {exec_num}.")
+                        st.error("Não foi encontrado nenhum conjunto de dados")
       
 
         self.footer()

@@ -15,7 +15,7 @@ def get_folder_path():
     return FOLDER_NAME
 
 path_foler_output = get_folder_path()
-print(path_foler_output)
+
 
 def get_media_time_execution_dataset( df_consolidado):
                 # Limpa a coluna para remover o texto "segundos" e converte para float
@@ -112,6 +112,9 @@ class StatisticsTableComponent:
         # Renderizar Tabela de população final com formato Tabela x Grafico
         #! TODO alterar para gerar arquivo pop_final.xlsx sempre
 
+        # Caminho do arquivo Excel
+        print("DEBUG",path_foler_output.parent)
+        
         df_pop_final = pd.read_excel(rf"{path_foler_output}/pop_final.xlsx")
         if df_pop_final is not None:
             st.markdown("---")
@@ -136,10 +139,12 @@ class GraficoRCEComponent:
         html_file = path_foler_output / f"grafico_execucao_{exec_num}.html"
         
         if html_file.exists():
-            with open(html_file, 'r', encoding='utf-8') as f:
-                #print(f"Carregando arquivo HTML: {html_file}")
-                html_content = f.read()
-                st.components.v1.html(html_content, height=500, scrolling=True)
+            try:
+                with open(html_file, 'r', encoding='utf-8') as f:
+                    html_content = f.read()
+                    st.components.v1.html(html_content, height=500, scrolling=True)
+            except Exception as error:
+                st.warning("Erro ao renderizar o grafico", error)
         else:
             st.warning(f"Arquivo HTML não encontrado para a execução {exec_num}.")
         

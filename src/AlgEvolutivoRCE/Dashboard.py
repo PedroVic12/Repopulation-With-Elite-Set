@@ -262,13 +262,10 @@ class DashboardApp:
             else:
 
                 # check se o diretorio output exists
-                output_path = f"{FOLDER_NAME}/src/output"
-
-
+                output_path = f"{FOLDER_NAME}/"
 
                 data_file = f"{output_path}/dashboard_data_{execution_num}.pkl"
                 fig_file = f"{output_path}/dashboard_fig_{execution_num}.json"
-                #print(f"INFO: Arquivos de saída para execução {execution_num}: {data_file}, {fig_file}")
 
                 # --- Salvar dados e figura para o script Streamlit ---
                 data_to_save = {
@@ -302,7 +299,8 @@ class DashboardApp:
             print(f"INFO: Dados e figura para execução {execution_num} salvos com sucesso.") # Added execution num here
 
         except Exception as e:
-            print(f"\nERRO em visualize (Execução {execution_num}): {e}") # Added execution num here
+            print(f"\n\n\nERRO em visualize (Execução {execution_num}): {e}") # Added execution num here
+            st.sidebar.info("Erro em visualize: ",e)
             return -1, [], float('inf'), None
 
         return best_solution_index, best_solution_variables, best_solution_fitness, grafico_RCE
