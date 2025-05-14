@@ -10,6 +10,8 @@ from AlgEvolutivoRCE.Dashboard import DashboardApp
 # Import functions benchmark
 from utils.functions_fitness.functions_benchmarking import rosenbrock_benchmark,esfera_benchmark,rastrigin
 
+from get_folder import FOLDER_NAME
+
 options = {
         "key": True,
         "value": 5,
@@ -87,8 +89,8 @@ def run_framework(RCE = False):
     results_consolidados_df["execution_time"] = results_consolidados_df["execution_time"].apply(lambda x: f"{x:.2f} segundos")
 
     # exportar para excel
-    results_consolidados_df.to_excel("results_consolidados.xlsx", index=False)
-
+    results_consolidados_df.to_excel(f"{FOLDER_NAME}/results_consolidados.xlsx", index=False)
+    print("SALVANDO EM... ",FOLDER_NAME)
      # Display or use the results
     print("\nResultados Consolidados:")
     results_consolidados_df.sort_values(by="best_fitness", inplace=True)

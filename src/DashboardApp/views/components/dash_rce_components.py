@@ -11,7 +11,7 @@ import pandas as pd
 def get_folder_path():
     BASE_DIR = pathlib.Path(__file__).resolve().parent.parent.parent  
     # Define o caminho relativo para a pasta "output" dentro do projeto
-    FOLDER_NAME = BASE_DIR / "output"
+    FOLDER_NAME = BASE_DIR.parent.parent / "src" / "output"
     return FOLDER_NAME
 
 path_foler_output = get_folder_path()
@@ -27,7 +27,7 @@ def get_media_time_execution_dataset( df_consolidado):
 
         return media_execution_time
 
-class SummaryComponent:
+class CardSolutions:
     """Componente para exibir o resumo da melhor solução."""
     
     @staticmethod
@@ -45,8 +45,8 @@ class SummaryComponent:
         with col1:
             st.markdown(
                 f"""
-                <div style="border: 2px solid #e6e6e6; border-radius: 15px; padding: 12px; margin: 10px 5; background-color: #d5d5d5;">
-                <h3 style="color: #1f77b4;">Resumo da Melhor Solução</h3>
+                <div style="border: 2px solid #e6e6e6; border-radius: 15px; padding: 12px; margin: 10px 5; background-color: #7F7F7F;">
+                <h3 style="color: #144c73;">Resumo da Melhor Solução</h3>
                 <h4><strong>Melhor Geração:</strong> {data.get('best_gen_idx', 'N/A')}</h4>
                 <h4><strong>Melhor Fitness:</strong> {data.get('best_fitness', 'N/A'):.6f}</h4>
                 </div>
@@ -54,8 +54,8 @@ class SummaryComponent:
         with col2:
             st.markdown(
                 f"""
-                <div style="border: 2px solid #e6e6e6; border-radius: 15px; padding: 10px; margin: 10px 0; background-color: #d5d5d5;">
-                <h3 style="color: #1f77b4;">BEST DECISION VARIABLES</h3>
+                <div style="border: 2px solid #e6e6e6; border-radius: 15px; padding: 10px; margin: 10px 0; background-color: #7F7F7F;">
+                <h3 style="color: #144c73;">BEST DECISION VARIABLES</h3>
 
                 """, unsafe_allow_html = True
             )
@@ -67,7 +67,6 @@ class SummaryComponent:
 
         
 
-
 class StatisticsTableComponent:
     """Componente para exibir a tabela de estatísticas por geração."""
     
@@ -77,45 +76,44 @@ class StatisticsTableComponent:
 
         st.markdown("---")
 
-        if 'logbook_data' in data and isinstance(data['logbook_data'], dict):
-            st.subheader("Estatísticas por Geração")
-            try:
-                log_data = data['logbook_data']
-                statics = log_data.get('statics', {})
-                stats_data = {
-                    "Geração": log_data.get('generation', []),
-                    "Min Fitness": statics.get('min_fitness', []),
-                    "Média Fitness": statics.get('avg_fitness', []),
-                    "Max Fitness": statics.get('max_fitness', []),
-                    "Std Dev Fitness": statics.get('std_fitness', [])
-                }
-                lengths = {key: len(value) for key, value in stats_data.items()}
-                if len(set(lengths.values())) <= 1:
-                    if lengths and list(lengths.values())[0] > 0:
-                        stats_df = pd.DataFrame(stats_data)
-                        st.dataframe(stats_df, use_container_width=True)
+        def get_logbook_deap_info():
+            if 'logbook_data' in data and isinstance(data['logbook_data'], dict):
+                st.subheader("Estatísticas por Geração")
+                try:
+                    log_data = data['logbook_data']
+                    statics = log_data.get('statics', {})
+                    stats_data = {
+                        "Geração": log_data.get('generation', []),
+                        "Min Fitness": statics.get('min_fitness', []),
+                        "Média Fitness": statics.get('avg_fitness', []),
+                        "Max Fitness": statics.get('max_fitness', []),
+                        "Std Dev Fitness": statics.get('std_fitness', [])
+                    }
+                    lengths = {key: len(value) for key, value in stats_data.items()}
+                    if len(set(lengths.values())) <= 1:
+                        if lengths and list(lengths.values())[0] > 0:
+                            stats_df = pd.DataFrame(stats_data)
+                            st.dataframe(stats_df, use_container_width=True)
+                        else:
+                            st.info("Não há dados de estatísticas por geração para exibir.")
                     else:
-                        st.info("Não há dados de estatísticas por geração para exibir.")
-                else:
-                    st.warning("Dados de estatísticas por geração têm tamanhos inconsistentes.")
-                    st.json(lengths)
+                        st.warning("Dados de estatísticas por geração têm tamanhos inconsistentes.")
+                        st.json(lengths)
 
-            except Exception as e:
-                st.warning(f"Não foi possível exibir tabela de estatísticas: {e}")
-                st.write("Dados do logbook encontrados:")
-                st.json(data.get('logbook_data', {}))
-        else:
-            st.info("Dados do logbook não encontrados ou em formato inválido no arquivo .pkl.")
+                except Exception as e:
+                    st.warning(f"Não foi possível exibir tabela de estatísticas: {e}")
+                    st.write("Dados do logbook encontrados:")
+                    st.json(data.get('logbook_data', {}))
+            else:
+                st.info("Dados do logbook não encontrados ou em formato inválido no arquivo .pkl.")
 
-
+        get_logbook_deap_info()
 
         # Renderizar Tabela de população final com formato Tabela x Grafico
         #! TODO alterar para gerar arquivo pop_final.xlsx sempre
+        #print("\n\nDEBUG ARQUIVO POP FINAL",excel_file)
+        df_pop_final = pd.read_excel(f"{path_foler_output}/pop_final.xlsx")
 
-        # Caminho do arquivo Excel
-        print("DEBUG",path_foler_output.parent)
-        
-        df_pop_final = pd.read_excel(rf"{path_foler_output}/pop_final.xlsx")
         if df_pop_final is not None:
             st.markdown("---")
             st.subheader("Tabela de População Final")
@@ -154,9 +152,6 @@ class GraficoRCEComponent:
 class ConsolidatedResultsComponent:
     """Componente para exibir os resultados consolidados."""
 
-    
-
-    
     @staticmethod
     def render():
         """Verifica e exibe a seção de resultados consolidados."""
@@ -176,7 +171,7 @@ class ConsolidatedResultsComponent:
                 st.dataframe(df_consolidado)
 
                 time_exec_media = get_media_time_execution_dataset(df_consolidado)
-                st.write(f"Média do tempo de Execução em segundos = ",time_exec_media)
+                st.write(f"Média do tempo de Execução em segundos = ",round(time_exec_media,3))
 
                 # Abre o arquivo usando o caminho completo para o botão de download
                 with open(consolidated_excel_path, "rb") as fp:
@@ -199,12 +194,3 @@ class ConsolidatedResultsComponent:
 
 
 
-# UX - Notes
-"""
-- User usa os parametros do JSON para editar a função objetivo e os dados do DEAP
-- Parametros fixos so tem um unico valor
-- Cada Pgina do Framework Dashboard renderiza os dados de varias execucoes
-- Os parametros que podem ser variados usando o test_20_functions do pibic anterior 
-- Uso de checkbox para permitir o uso de um expander para 3 caixas de texto com os 3 valores possiveis para aquele parametro
-- 
-"""

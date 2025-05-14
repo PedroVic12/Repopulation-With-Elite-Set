@@ -20,11 +20,11 @@ params = {
     "ARRAY_VAR": array_decisions,
     'LIMITE_VAR': [0, 31],
 
-    'NUM_GENERATIONS': 100,
+    'NUM_GENERATIONS': 200,
     'CROSSOVER': 0.9,
     'MUTACAO': 0.15,
 
-    'POP_SIZE': 50,
+    'POP_SIZE': 100,
     'IND_SIZE': 5,
 
     'RCE_REPOPULATION_GENERATIONS': 10,

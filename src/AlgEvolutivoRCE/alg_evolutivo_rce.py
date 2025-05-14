@@ -1,3 +1,4 @@
+import pathlib
 import numpy as np
 import math
 from deap import base, creator, tools
@@ -7,6 +8,8 @@ import time
 import json
 import pandas as pd
 from scipy.optimize import minimize
+
+
 
 
 class AlgoritimoEvolutivoRCE:
@@ -385,9 +388,7 @@ class AlgoritimoEvolutivoRCE:
             else:
                 population[num_pop][:] = offspring
             
-            # Gera o Excel com a pop com RCE em Excel
-            conjunto_elite = self.generateInfoIndividual(population[num_pop][:], current_generation + 1)
-            self.show_ind_df(conjunto_elite, "Individuos da nova população aleatória")
+        
 
             # Registrar estatísticas no logbook
             self.elitismoSimples(population[num_pop])
@@ -395,6 +396,11 @@ class AlgoritimoEvolutivoRCE:
             record = self.stats.compile(population[num_pop])
             self.logbook.record(gen=current_generation, **record)
 
+
+        # Gera o Excel com a pop com RCE em Excel
+        conjunto_elite = self.generateInfoIndividual(population[num_pop][:], current_generation + 1)
+        self.show_ind_df(conjunto_elite, "Individuos da nova população aleatória")
+        
         # Retornar população final, logbook e elite
         return population[num_pop], self.logbook, self.hof[0]
 
@@ -449,7 +455,25 @@ class AlgoritimoEvolutivoRCE:
         df = pd.DataFrame(array)
         print(text)
         if save:
-            df.to_excel(f"pop_final.xlsx")
+
+            # Pega a pasta atual
+            def get_folder_path():
+                BASE_DIR = pathlib.Path(__file__).resolve().parent.parent.parent  
+
+                # Define o caminho relativo para a pasta "output" dentro do projeto
+                FOLDER_NAME = BASE_DIR / "src" /"output"
+                # Cria a pasta "output" se ela não existir
+                FOLDER_NAME.mkdir(parents=True, exist_ok=True)
+                #print("FOLDER_NAME =", FOLDER_NAME)
+                
+                return FOLDER_NAME
+            FOLDER_NAME = get_folder_path()
+
+            print(".")
+            print(".")
+            print(".")
+            df.to_excel(f"{FOLDER_NAME}/pop_final.xlsx")
+            print("Salvando nova população...")
 
         if self.DEBUG:
             print(df)

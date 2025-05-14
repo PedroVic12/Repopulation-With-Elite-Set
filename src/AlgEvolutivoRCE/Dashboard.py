@@ -24,11 +24,11 @@ def get_folder_path():
     BASE_DIR = pathlib.Path(__file__).resolve().parent.parent.parent  
 
     # Define o caminho relativo para a pasta "output" dentro do projeto
-    FOLDER_NAME = BASE_DIR / "output"
+    FOLDER_NAME = BASE_DIR / "src" / "output"
 
     # Cria a pasta "output" se ela não existir
     FOLDER_NAME.mkdir(parents=True, exist_ok=True)
-    print("\nFOLDER_NAME =", FOLDER_NAME)
+    print("\nFOLDER_NAME [DEBUG] =", FOLDER_NAME)
     #print("FOLDER RAIZ =", FOLDER_NAME.parent)
 
     return FOLDER_NAME
@@ -187,7 +187,7 @@ class DashboardApp:
             xaxis_title="Generation",
             yaxis_title="Fitness",
             legend_title="Algoritimo Evolutivo",
-            template="plotly", #      ['ggplot2', 'seaborn', 'simple_white', 'plotly', 'plotly_white', ...]
+            template="seaborn", #      ['ggplot2', 'seaborn', 'simple_white', 'plotly', 'plotly_white', ...]
             overwrite= True
             )
 
@@ -262,9 +262,10 @@ class DashboardApp:
             else:
 
                 # check se o diretorio output exists
-                output_path = f"{FOLDER_NAME}/"
+                output_path = f"{FOLDER_NAME}"
 
                 data_file = f"{output_path}/dashboard_data_{execution_num}.pkl"
+
                 fig_file = f"{output_path}/dashboard_fig_{execution_num}.json"
 
                 # --- Salvar dados e figura para o script Streamlit ---
@@ -296,7 +297,8 @@ class DashboardApp:
                 f.write(fig_json)
 
                 
-            print(f"INFO: Dados e figura para execução {execution_num} salvos com sucesso.") # Added execution num here
+            print(f"\n[INFO]: Dados e figura para execução {execution_num} salvos com sucesso.") # Added execution num here
+            print(fig_filename)
 
         except Exception as e:
             print(f"\n\n\nERRO em visualize (Execução {execution_num}): {e}") # Added execution num here
@@ -341,6 +343,6 @@ class DashboardApp:
 
         df = pd.DataFrame(data)
         if save:
-            df.to_excel("./statistics_RCE.xlsx", index=False)
+            df.to_excel(f"{FOLDER_NAME}/statistics_RCE.xlsx", index=False)
 
         return avg_fitness, std_fitness

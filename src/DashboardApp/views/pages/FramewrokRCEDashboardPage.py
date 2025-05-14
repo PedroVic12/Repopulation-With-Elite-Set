@@ -1,7 +1,7 @@
 
 
 # --- Componentes da Interface de Usuário ---
-from ..components.dash_rce_components import ConsolidatedResultsComponent, SummaryComponent, StatisticsTableComponent, GraficoRCEComponent 
+from ..components.dash_rce_components import ConsolidatedResultsComponent, CardSolutions, StatisticsTableComponent, GraficoRCEComponent 
 
 
 #backend
@@ -112,7 +112,7 @@ class FrameworkRCEDashboard:
                     if dados:
                         try:
                             with st.container():
-                                SummaryComponent.render(dados, exec_num)
+                                CardSolutions.render(dados, exec_num)
                             with st.container():
                                 GraficoRCEComponent.render(exec_num)  # Passa o exec_num para carregar o gráfico correto
                             with st.container():
@@ -130,26 +130,69 @@ class FrameworkRCEDashboard:
         """Atualiza a página."""
         st.rerun()
 
+    @st.dialog("Loading...")
+    def CircleLoading():
+        st.write(f"Why is your favorite function Benchmark?")
+        st.image("/home/pedrov12/Documentos/GitHub/Repopulation-With-Elite-Set/src/assets/uff_logo.jpg")
+
     def header(self):
         """Cabeçalho do aplicativo."""
         st.markdown("---")
         st.title("Framework Repopulation-With-Elite-Set RCE")
         st.markdown("---")
 
+        # Adiciona CSS personalizado para estilizar o botão
+        st.markdown(
+            """
+            <style>
+            div.stButton > button {
+                background-color: #4CAF50; /* Verde */
+                color: white; /* Cor do texto */
+                border: none;
+                padding: 10px 20px;
+                text-align: center;
+                text-decoration: none;
+                display: inline-block;
+                font-size: 25px;
+                margin: 4px 2px;
+                cursor: pointer;
+                border-radius: 8px;
+            }
+            div.stButton > button:hover {
+                background-color: #45a049; /* Verde mais escuro ao passar o mouse */
+            }
+            </style>
+            """,
+            unsafe_allow_html=True,
+        )
 
         # Botão com ícone de play para executar um script Python
-        if st.button("▶️ Executar Script"):
-
-            script_path = FOLDER_NAME.parent / "run_rce_framework.py" # Substitua pelo caminho do seu script
+        if st.button("▶️ Executar Script", type="secondary"):
+            script_path = FOLDER_NAME.parent / "run_rce_framework.py"  # Substitua pelo caminho do seu script
             st.write(script_path)
 
+            # Cria um espaço temporário para o "diálogo"
+            dialog_placeholder = st.empty()
+
             try:
-                # Executa o script Python
+                # Exibe a imagem de carregamento no "diálogo"
+                with dialog_placeholder.container():
+                    img_gif_loading = "/home/pedrov12/Documentos/GitHub/Repopulation-With-Elite-Set/src/assets/humans_evolution.gif"
+                    st.image(img_gif_loading, width=800)
+                    st.subheader("Executando o script principal no terminal... por favor aguarde...")
+
+                # Simula a execução do script (substitua pelo seu comando real)
                 os.system(f"python {script_path}")
+
+                # Remove o "diálogo" após a execução
+                dialog_placeholder.empty()
+
                 st.success("Script executado com sucesso!")
                 st.rerun()
 
             except Exception as e:
+                # Remove o "diálogo" em caso de erro
+                dialog_placeholder.empty()
                 st.error(f"Erro ao executar o script: {e}")
 
         if not self.execution_numbers:
