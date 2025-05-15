@@ -175,7 +175,7 @@ class FrameworkRCEDashboard:
             try:
                 # Exibe a imagem de carregamento no "diálogo"
                 with dialog_placeholder.container():
-                    img_gif_loading = "/home/pedrov12/Documentos/GitHub/Repopulation-With-Elite-Set/src/assets/humans_evolution.gif"
+                    img_gif_loading =  FOLDER_NAME.parent / "assets/humans_evolution.gif"
                     st.image(img_gif_loading, width=1200)
                     st.subheader("Executando o script principal no terminal... por favor aguarde...")
 

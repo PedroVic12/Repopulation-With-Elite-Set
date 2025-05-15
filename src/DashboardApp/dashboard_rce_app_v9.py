@@ -19,7 +19,7 @@ sys.path.append(str(Path(__file__).resolve().parent.parent.parent.parent))
 def DrawerSideBar():
     """Menu lateral único para navegação."""
     st.sidebar.title("🧭 Menu Dashboard")
-    st.sidebar.image("https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRHVsZ1z9B-HIP8Ddsks0mP3aETeG1CkYixtA&s", width=700)
+    st.sidebar.image("https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRHVsZ1z9B-HIP8Ddsks0mP3aETeG1CkYixtA&s", width=800)
     st.sidebar.markdown("---")  # Separador visual
 
     # Opções de páginas 
@@ -55,8 +55,6 @@ class App:
             #initial_sidebar_state="expanded"
         )
 
-        # Apply dark theme using Streamlit's base themes and CSS override
-        # The below CSS is a simple attempt; for full control, more specific CSS is needed.
         st.markdown(Theme, unsafe_allow_html=True)
 
     def run(self, page_function):
