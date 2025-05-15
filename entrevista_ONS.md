@@ -1,4 +1,4 @@
-## Destaques para a Entrevista ONS
+## Destaques para a Entrevista ONS com SIN(Sistema Interligado Nacional)
 ---
 - Destaque seus projetos de Redes Elétricas com Pandapower.
 
