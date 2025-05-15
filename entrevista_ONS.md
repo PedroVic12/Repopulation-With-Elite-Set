@@ -4,6 +4,12 @@
 
 - Fale sobre suas habilidades com IA e integração de sistemas complexos.
 
+## Apresentação
+- Nome, idade, cidade, Curso atual, faculade e Ano de conclusão
+- Experencias profionais e trabalho voluntario
+- Pontos fortes: Organização, trabalho em equipe, comunicação é importante com storytelling e ideias de inovação
+- Pontos de melhoria: Organização, gerenciamento de projetos e horarios.
+
 1) Conexão com a Missão da ONS
 
 Destaque o interesse em sistemas elétricos com AutoCad e tecnologia aplicada à energia com estudos em Fluxo de potencia como é aprendizado no meu artigo.
