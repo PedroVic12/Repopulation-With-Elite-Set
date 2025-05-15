@@ -10,6 +10,19 @@
 - Pontos fortes: Organização, trabalho em equipe, comunicação é importante com storytelling e ideias de inovação
 - Pontos de melhoria: Organização, gerenciamento de projetos e horarios.
 
+🗣️ Frases para a Entrevista:
+
+"Minha missão é transformar ideias em soluções reais que impactem diretamente a eficiência dos sistemas elétricos."
+
+"Eu sei que a inovação e a automação são a chave para otimizar sistemas complexos, e eu posso contribuir com minha experiência em Python, Machine Learning e análise de dados."
+
+"Meu foco é criar soluções inteligentes e escaláveis para redes elétricas, garantindo segurança, eficiência e inovação."
+
+"Com minha experiência em Pandapower, sei como simular cenários complexos e otimizar redes elétricas para evitar falhas e melhorar a confiabilidade."
+
+"Vejo essa oportunidade na ONS como um passo importante para aplicar minhas habilidades em projetos de impacto nacional."
+
+
 1) Conexão com a Missão da ONS
 
 Destaque o interesse em sistemas elétricos com AutoCad e tecnologia aplicada à energia com estudos em Fluxo de potencia como é aprendizado no meu artigo.
@@ -32,17 +45,6 @@ Se possível, traga exemplos práticos, como detecção de anomalias em redes el
 
 Estou alinhado com as tendências de energias renováveis e automação industrial, que são áreas de interesse para qualquer empresa. Quero me especializar em Automação, IA e IoT para otimizar sistemas elétricos e torná-los mais eficientes.
 
-🗣️ Frases para a Entrevista:
-
-"Minha missão é transformar ideias em soluções reais que impactem diretamente a eficiência dos sistemas elétricos."
-
-"Eu sei que a inovação e a automação são a chave para otimizar sistemas complexos, e eu posso contribuir com minha experiência em Python, Machine Learning e análise de dados."
-
-"Meu foco é criar soluções inteligentes e escaláveis para redes elétricas, garantindo segurança, eficiência e inovação."
-
-"Com minha experiência em Pandapower, sei como simular cenários complexos e otimizar redes elétricas para evitar falhas e melhorar a confiabilidade."
-
-"Vejo essa oportunidade na ONS como um passo importante para aplicar minhas habilidades em projetos de impacto nacional."
 
 
 ## Classe RedeEletricaPandaPower
