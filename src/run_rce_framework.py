@@ -14,7 +14,7 @@ from get_folder import FOLDER_NAME
 
 options = {
         "key": True,
-        "value": 5,
+        "value": 7,
         "parametros_opcionais": [
              {"MUTACAO": [90,80,70]},
              {"CROSSOVER": [90,80,70]},

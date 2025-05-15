@@ -9,10 +9,10 @@ cd src
 
 echo Instalando as biblotecas python necessarias...
 
-call pip install -r requirements.txt --break-system-packages --no-cache-dir --disable-pip-version-check --quiet
+@call pip install -r requirements.txt --break-system-packages --no-cache-dir --disable-pip-version-check --quiet
 
 
-echo Instalacao concluida.
+@echo Instalacao concluida.
 
 call cls 
 
