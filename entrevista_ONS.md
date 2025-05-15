@@ -4,6 +4,8 @@
 
 - Fale sobre suas habilidades com IA e integração de sistemas complexos.
 
+- Onde voce se imagina colaborando dentro da engenharia eletrica?
+
 ## Apresentação
 - Nome, idade, cidade, Curso atual, faculade e Ano de conclusão (1 min)
 - Experencias profionais e trabalho voluntario (5 min)
