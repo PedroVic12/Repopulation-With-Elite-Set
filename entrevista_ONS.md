@@ -46,33 +46,27 @@ Estou alinhado com as tendências de energias renováveis e automação industri
 
 Esta classe representa uma rede elétrica usando a biblioteca Pandapower. Ela fornece funcionalidades para carregar redes padrão, validar dados de agendamento e contingência, calcular violações de fitness, ajustar cargas, desligar/religar elementos da rede e executar o fluxo de carga.
 
-### Atributos
-
-* net: Objeto Pandapower que representa a rede elétrica.
-* debug: Flag para ativar ou desativar o modo de depuração.
-* console: Objeto Logger para registrar mensagens.
-* mapeamento_ramos: Dicionário que mapeia pares de barramentos para índices de linhas e trafos.
-* pesos: Dicionário que define os pesos para as violações de fitness.
-* agendamento: DataFrame que armazena os dados de agendamento.
-* contingencia: DataFrame que armazena os dados de contingência.
-
 ### Métodos
 
 * carregar_redes_padrao(): Carrega uma rede padrão do Pandapower com base no nome fornecido.
 * criar_mapeamento_ramos(): Cria um mapeamento de ramos (linhas e trafos) para facilitar o acesso aos elementos da rede.
 * validar_dados(): Valida os dados de agendamento e contingência antes de processá-los.
 * hashtableindex(): Calcula o índice da tabela hash correspondente a um cenário específico.
-* log(): Registra uma mensagem com o nível especificado.
 * show_status(): Exibe o status atual da rede elétrica, incluindo informações sobre linhas, transformadores e barramentos.
+  
 * calcular_violacoes_fitness(): Calcula as violações de fitness, como violações de tensão e carregamento de linhas e transformadores.
 * calcular_perfil(): Determina o perfil de carregamento (leve, médio ou pesado) para uma determinada hora.
 * avalia_cenarios(): Avalia os cenários de agendamento e contingência, gerando uma matriz de cenários.
+  
 * executar_fluxo_de_carga(): Executa o fluxo de carga na rede elétrica usando o algoritmo Newton-Raphson.
+  
 * ajustar_cargas(): Ajusta as cargas da rede de acordo com o perfil de carregamento especificado.
+  
 * desligar_elementos_agendamento(): Desliga elementos da rede (linhas e trafos) com base no cenário de agendamento.
 * desligar_contingencia(): Desliga elementos da rede com base no cenário de contingência.
 * desligar_elementos(): Desliga os elementos especificados (linhas e trafos) da rede.
 * religar_todos_os_ramos_agendamento(): Religa todos os ramos da rede que foram desligados durante o agendamento.
+  
 * imprimir_resultados(): Imprime os resultados do fluxo de carga e salva os dados em um arquivo Excel.
 * calcular_potencia_aparente_trafos(): Calcula a potência aparente nos transformadores.
 * calcular_potencia_aparente_linhas(): Calcula a potência aparente nas linhas.
