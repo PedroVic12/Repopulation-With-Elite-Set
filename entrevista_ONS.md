@@ -1,11 +1,14 @@
 ## Destaques para a Entrevista ONS com SIN(Sistema Interligado Nacional)
 ---
 - Destaque seus projetos de Redes Elétricas com Pandapower.
-
+- Area voltada para planejamento de sistemas eletricos
 - Fale sobre suas habilidades com IA e integração de sistemas complexos.
-
 - Onde voce se imagina colaborando dentro da engenharia eletrica?
 
+## Entrevista com gestor
+- Storytelling com minhas experiencias profissionais
+- Resumo da entrevista com a RH
+- 
   
 ⚡ Engenharia Elétrica, Energias Renováveis e Automação:
 Minha missão é desenvolver software com tecnologias de ponta aplicados engenharia elétrica para criar soluções que impulsionem a Indústria 4.0 no foco de Automação Industrial e cidades Inteligentes e com grande foco em sustentabilidade com uso de energias renováveis (solar e eólica). Tenho interesse em microcontroladores, microprocessadores onde quero aplicar IA e robótica para otimizar processos elétricos e industriais, desenvolvendo tecnologias que tornem o mundo mais eficiente e sustentável.
