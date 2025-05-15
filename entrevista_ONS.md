@@ -12,6 +12,9 @@
 - Pontos fortes: Organização, trabalho em equipe, comunicação é importante com storytelling e ideias de inovação (3 min)
 - Pontos de melhoria: Organização, gerenciamento de projetos e horarios. (1 min)
 
+⚡ Engenharia Elétrica, Energias Renováveis e Automação:
+Minha missão é integrar software e engenharia elétrica para criar soluções que impulsionem a Indústria 4.0 e a sustentabilidade. Tenho interesse em microcontroladores, microprocessadores, automação industrial e energias renováveis (solar e eólica). Quero aplicar IA e robótica para otimizar processos elétricos e industriais, desenvolvendo tecnologias que tornem o mundo mais eficiente e sustentável.
+
 Total = 1 + 5 + 2 + 1 = 10 min
 
 
