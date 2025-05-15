@@ -12,6 +12,8 @@
 
 Total = 1 + 5 + 2 + 1 = 10 min
 
+
+
 🗣️ Frases para a Entrevista:
 
 "Minha missão é transformar ideias em soluções reais que impactem diretamente a eficiência dos sistemas elétricos."
