@@ -5,10 +5,12 @@
 - Fale sobre suas habilidades com IA e integração de sistemas complexos.
 
 ## Apresentação
-- Nome, idade, cidade, Curso atual, faculade e Ano de conclusão
-- Experencias profionais e trabalho voluntario
-- Pontos fortes: Organização, trabalho em equipe, comunicação é importante com storytelling e ideias de inovação
-- Pontos de melhoria: Organização, gerenciamento de projetos e horarios.
+- Nome, idade, cidade, Curso atual, faculade e Ano de conclusão (1 min)
+- Experencias profionais e trabalho voluntario (5 min)
+- Pontos fortes: Organização, trabalho em equipe, comunicação é importante com storytelling e ideias de inovação (3 min)
+- Pontos de melhoria: Organização, gerenciamento de projetos e horarios. (1 min)
+
+Total = 1 + 5 + 2 + 1 = 10 min
 
 🗣️ Frases para a Entrevista:
 
