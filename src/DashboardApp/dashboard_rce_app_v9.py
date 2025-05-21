@@ -15,6 +15,17 @@ from pathlib import Path
 # Adiciona o diretório raiz do projeto ao PYTHONPATH
 sys.path.append(str(Path(__file__).resolve().parent.parent.parent.parent))
 
+options = {
+        "key": True,
+        "value": 5,
+        "parametros_opcionais": [
+             {"MUTACAO": [90,80,70]},
+             {"CROSSOVER": [90,80,70]},
+             {'NUM_GENERATIONS': [100, 200, 300]},
+
+        ]
+    }
+
 
 def DrawerSideBar():
     """Menu lateral único para navegação."""
@@ -24,11 +35,11 @@ def DrawerSideBar():
 
     # Opções de páginas 
     page_options = {
-        "⚡ Framework RCE": FrameworkRCEDashboard().run,
+        "⚡ Framework RCE": FrameworkRCEDashboard(options).run,
         #"🤖 C3po Chatbot": C3poChatbotPage,
         #"📊 Benchmarking Analysis": BenchmarkingPage,
         "📑 Tab Demonstration": TabExamplePage,
-        "📊 Python Editor": CodeEditorPage,
+        #"📊 Python Editor": CodeEditorPage,
     }
 
     # Navegação com rádio buttons
@@ -51,10 +62,10 @@ def DrawerSideBar():
 class App:
     def __init__(self):
         st.set_page_config(
-            page_title="UFF RCE Web App",
+            page_title="UFF RCE Web App 2025",
             page_icon="📊",
             layout="wide",
-            #initial_sidebar_state="expanded"
+            initial_sidebar_state="collapsed"
         )
 
         st.markdown(Theme, unsafe_allow_html=True)
@@ -66,6 +77,9 @@ class App:
             page_function()
         else:
             st.error("Invalid page function provided.")
+
+
+
 
 # --- Main Execution ---
 if __name__ == "__main__":

@@ -17,7 +17,17 @@ import matplotlib.pyplot as plt
 
 #!pip install streamlit pandas plotly openpyxl
 
-from .Setup import params
+#from .Setup import params
+import json
+
+def load_params(file_path):
+    with open(file_path, "r") as file:
+        params = json.load(file)
+    return params
+
+
+params = load_params(r"C:\Users\Pedro Victor R V\Documents\GitHub\Repopulation-With-Elite-Set\src\AlgEvolutivoRCE\params.json")
+print("params .json [DEBUG] =", params)
 
 
 def get_folder_path():

@@ -55,11 +55,12 @@ class UseState:
 
 # --- Classe Principal do Aplicativo ---
 class FrameworkRCEDashboard:
-    def __init__(self):
+    def __init__(self, options = None):
         self.controller = Controller()
         self.utils = Utils()
         self.execution_numbers = self.controller.execution_numbers
         self.menu_lateral = DrawerSideBar()
+        self.options = options
 
         # Inicializa os estados necessários
         UseState.initialize_state("selected_execution", None)
@@ -88,10 +89,14 @@ class FrameworkRCEDashboard:
 
         self.header()
 
+        # Opções de execução para multiplos parametros de algoritmo Genético
+        st.write("## Opções de Execução")
+        st.write(self.options)
+
         # Renderiza os resultados consolidados
         ConsolidatedResultsComponent.render()
 
-        # Seleção de execução com tabs
+        #! Seleção de execução com tabs para cada execução
         with st.container():
             st.subheader("Seleção da Execução")
             
@@ -105,18 +110,16 @@ class FrameworkRCEDashboard:
                     if UseState.get_state("active_tab") != i:
                         self.handle_tab_change(i, exec_num)
 
-                    # Carrega os dados e o gráfico da execução
+                    # botao para sincronizar os dados do JSON e o arquivo python run
                     json_button = st.button("Carregar Dados", key=f"load_data_{exec_num}")
                     if json_button:
                         # Atualiza o estado da execução selecionada
-                        UseState.set_state("selected_execution", exec_num)
-                        dados = self.utils.load_execution_data(exec_num, debug=True)
                         self.atualizar_pagina()
 
                     else:
                         dados = self.utils.load_execution_data(exec_num, debug=False)
 
-                    
+                    # Carrega os dados e o gráfico da execução
                     if dados:
                         try:
                             with st.container():
@@ -174,30 +177,35 @@ class FrameworkRCEDashboard:
 
         # Botão com ícone de play para executar um script Python
         if st.button("▶️ Executar Script", type="secondary"):
-            script_path = FOLDER_NAME.parent / "run_rce_framework.py"  # Substitua pelo caminho do seu script
-            st.write(script_path)
-
+            # Use raw string and quotes for Windows path with spaces
+            script_path = FOLDER_NAME.parent / "run_rce_framework.py"
+            
             # Cria um espaço temporário para o "diálogo"
             dialog_placeholder = st.empty()
 
             try:
-                # Exibe a imagem de carregamento no "diálogo"
-                with dialog_placeholder.container():
-                    img_gif_loading =  FOLDER_NAME.parent / "assets/humans_evolution.gif"
-                    st.image(img_gif_loading, width=1200)
-                    st.subheader("Executando o script principal no terminal... por favor aguarde...")
+                # Verifica se o GIF existe
+                img_gif_loading = FOLDER_NAME.parent / "assets" / "humans_evolution.gif"
+                
+                if img_gif_loading.exists():
+                    with dialog_placeholder.container():
+                        st.image(str(img_gif_loading), width=1200)
+                        st.subheader("Executando o script principal no terminal... por favor aguarde...")
 
-                # Simula a execução do script (substitua pelo seu comando real)
-                os.system(f"python {script_path}")
+                # Executa o script usando aspas duplas para o caminho
+                command = f'python "{script_path}"'
+                return_code = os.system(command)
 
                 # Remove o "diálogo" após a execução
                 dialog_placeholder.empty()
 
-                st.success("Script executado com sucesso!")
-                st.rerun()
+                if return_code == 0:
+                    st.success("Script executado com sucesso!")
+                    st.rerun()
+                else:
+                    st.error(f"Erro ao executar o script. Código de retorno: {return_code}")
 
             except Exception as e:
-                # Remove o "diálogo" em caso de erro
                 dialog_placeholder.empty()
                 st.error(f"Erro ao executar o script: {e}")
 
@@ -213,5 +221,7 @@ class FrameworkRCEDashboard:
         st.link_button(
             url="https://github.com/PedroVic12/Repopulation-With-Elite-Set",
             label="Visite a Documentação do Projeto nesse link",
+            type="primary",
+            icon="📖",
         )
         st.markdown("---")

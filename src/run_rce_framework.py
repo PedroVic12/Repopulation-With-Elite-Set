@@ -20,11 +20,11 @@ def load_params(file_path):
     return params
 
 
-params = load_params("params.json")
+params = load_params(r"C:\Users\Pedro Victor R V\Documents\GitHub\Repopulation-With-Elite-Set\src\AlgEvolutivoRCE\params.json")
 
 options = {
         "key": True,
-        "value": 10,
+        "value": 5,
         "parametros_opcionais": [
              {"MUTACAO": [90,80,70]},
              {"CROSSOVER": [90,80,70]},

@@ -35,8 +35,8 @@ class CardSolutions:
         with col1:
             st.markdown(
                 f"""
-                <div style="border: 2px solid #e6e6e6; border-radius: 15px; padding: 12px; margin: 10px 5; background-color: #7F7F7F;">
-                <h3 style="color: #144c73;">Resumo da Melhor Solução</h3>
+                <div style="border: 2px solid #e6e6e6; border-radius: 15px; padding: 12px; margin: 10px 5; background-color: #b2b2b2;">
+                <h3 style="color: #1f2db4;">Resumo da Melhor Solução</h3>
                 <h4><strong>Melhor Geração:</strong> {data.get('best_gen_idx', 'N/A')}</h4>
                 <h4><strong>Melhor Fitness:</strong> {data.get('best_fitness', 'N/A'):.6f}</h4>
                 </div>
@@ -44,8 +44,8 @@ class CardSolutions:
         with col2:
             st.markdown(
                 f"""
-                <div style="border: 2px solid #e6e6e6; border-radius: 15px; padding: 10px; margin: 10px 0; background-color: #7F7F7F;">
-                <h3 style="color: #144c73;">BEST DECISION VARIABLES</h3>
+                <div style="border: 2px solid #e6e6e6; border-radius: 15px; padding: 10px; margin: 10px 0; background-color: #b2b2b2;">
+                <h3 style="color: #1f2db4;">MELHORES VARIÁVEIS DE DECISÃO</h3>
 
                 """, unsafe_allow_html = True
             )
