@@ -46,7 +46,7 @@ def run_framework(RCE = False):
             execution_times.append(execution_time)  # Armazena o tempo de execução
 
             # Append results to the list
-            results_consolidados.append({"execution": i + 1, "solution_variables": y, "best_fitness": z, "execution_time": execution_time})
+            results_consolidados.append({"execution": i + 1, "solution_variables": y, "best_fitness": z, "best_generations": x,"execution_time": execution_time})
 
     else: # Use st.pyplot with stash=False to prevent overwriting
         print("False! Rodando o framework uma unica vez!")
@@ -63,7 +63,7 @@ def run_framework(RCE = False):
         execution_time = end_time - start_time
 
         # Append results to the list (for single execution)
-        results_consolidados.append({"execution": 1, "solution_variables": y, "best_fitness": z, "execution_time": execution_time})
+        results_consolidados.append({"execution": i + 1, "solution_variables": y, "best_fitness": z, "best_generations": x,"execution_time": execution_time})
 
         print(f"Tempo de execução: {execution_time:.2f} segundos")
 

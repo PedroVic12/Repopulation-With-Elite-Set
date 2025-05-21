@@ -7,7 +7,7 @@ import streamlit as st
 options_main_file = st.session_state.get("current_options", {
     "name": "default python script",
     "key": True,
-    "value": 3,
+    "value": 10,
     "parametros_opcionais": [
         {"MUTACAO": [90,80,70, 60]},
         {"CROSSOVER": [5,10, 15, 20]},

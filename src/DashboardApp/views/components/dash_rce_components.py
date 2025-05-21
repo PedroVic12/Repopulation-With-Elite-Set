@@ -135,13 +135,22 @@ class GraficoRCEComponent:
                 with open(html_file, 'r', encoding='utf-8') as f:
                     html_content = f.read()
                     st.components.v1.html(html_content, height=500, scrolling=True)
+                    
+                # st.link_button(
+                #                     label="Baixar Gráfico",
+                #                     url=html_file,
+                #                     help="Baixar o gráfico gerado para a execução atual.",
+                #                     icon="📥",)      
+
+
             except Exception as error:
                 st.warning("Erro ao renderizar o grafico", error)
         else:
             st.warning(f"Arquivo HTML não encontrado para a execução {exec_num}.")
-        
-        
 
+        # Adiciona o botão de download
+            
+        
 class StatisticsTableComponent:
     """Componente para exibir a tabela de estatísticas por geração."""
 
