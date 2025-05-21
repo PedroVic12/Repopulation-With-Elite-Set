@@ -91,7 +91,7 @@ class Utils:
         )
         return selected_num
 
-    def load_execution_data(self, exec_num, debug=True):
+    def load_execution_data(self, exec_num, debug=False):
         """Carrega os dados .pkl e a figura .json para a execução especificada,
         buscando na pasta FOLDER_NAME."""
         data = None

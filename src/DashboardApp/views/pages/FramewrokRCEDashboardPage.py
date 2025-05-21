@@ -106,7 +106,15 @@ class FrameworkRCEDashboard:
                         self.handle_tab_change(i, exec_num)
 
                     # Carrega os dados e o gráfico da execução
-                    dados = self.utils.load_execution_data(exec_num)
+                    json_button = st.button("Carregar Dados", key=f"load_data_{exec_num}")
+                    if json_button:
+                        # Atualiza o estado da execução selecionada
+                        UseState.set_state("selected_execution", exec_num)
+                        dados = self.utils.load_execution_data(exec_num, debug=True)
+                        self.atualizar_pagina()
+
+                    else:
+                        dados = self.utils.load_execution_data(exec_num, debug=False)
 
                     
                     if dados:

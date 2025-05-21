@@ -3,18 +3,28 @@ import numpy as np
 import pandas as pd
 
 # Import RCE Framework
-from AlgEvolutivoRCE.Setup import Setup, params
+from AlgEvolutivoRCE.Setup import Setup
 from AlgEvolutivoRCE.alg_evolutivo_rce import AlgoritimoEvolutivoRCE
 from AlgEvolutivoRCE.Dashboard import DashboardApp
 
 # Import functions benchmark
-from utils.functions_fitness.functions_benchmarking import rosenbrock_benchmark,esfera_benchmark,rastrigin
+from utils.functions_fitness.functions_benchmarking import rosenbrock_benchmark,esfera_benchmark,rastrigin, evaluate
 
 from get_folder import FOLDER_NAME
+import json
+
+
+def load_params(file_path):
+    with open(file_path, "r") as file:
+        params = json.load(file)
+    return params
+
+
+params = load_params("params.json")
 
 options = {
         "key": True,
-        "value": 7,
+        "value": 10,
         "parametros_opcionais": [
              {"MUTACAO": [90,80,70]},
              {"CROSSOVER": [90,80,70]},
@@ -109,9 +119,9 @@ execution_times = []  # Lista para armazenar os tempos de execução
 if __name__ == "__main__":
 
     #! ainda seria possivel criar um pacote no pip e instanciar?
-    setup = Setup(params, rastrigin)
+    setup = Setup(params, evaluate)
     alg = AlgoritimoEvolutivoRCE(setup, DEBUG=False)
-    dashboard = DashboardApp()
+    dashboard = DashboardApp(options)
 
     run_framework(
          RCE= True, # True = RCE, False = Algoritmo Evolutivo Deap com minimização

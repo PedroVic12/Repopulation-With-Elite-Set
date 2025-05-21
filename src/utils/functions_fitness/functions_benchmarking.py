@@ -8,7 +8,7 @@ def evaluate(individual):
 	"""Função objetivo do problema """
 	a = sum(individual)
 	b = len(individual)
-	return a / b
+	return b / a
 
 
 def rastrigin(individual ):

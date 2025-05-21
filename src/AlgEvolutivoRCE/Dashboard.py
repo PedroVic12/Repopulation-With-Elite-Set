@@ -38,10 +38,11 @@ FOLDER_NAME = get_folder_path()
 class DashboardApp:
     """Classe principal para criar o dashboard interativo com Streamlit."""
 
-    def __init__(self):
+    def __init__(self,options):
         st.set_page_config(layout="wide", page_title="Dashboard Interativo")
         self.df = None
         self.fit_array = []
+        self.optirons = options
 
     # codigo antigo
 

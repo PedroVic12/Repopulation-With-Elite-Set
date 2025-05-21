@@ -12,7 +12,7 @@ def load_params(file_path):
         params = json.load(file)
     return params
 
-#params = load_params(     r"./parameters.json" )
+#params = load_params(     r"parameters.json" )
 
 array_decisions =  [14,15,14,18,15]
 
@@ -32,6 +32,8 @@ params = {
     'PORCENTAGEM': 0.2,
     'DELTA_MIN': 2
   }
+
+
 
 
 
