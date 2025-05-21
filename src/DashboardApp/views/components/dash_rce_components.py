@@ -17,6 +17,65 @@ def get_folder_path():
 path_foler_output = get_folder_path()
 
 
+        
+
+
+class ConsolidatedResultsComponent:
+    """Componente para exibir os resultados consolidados."""    
+
+    @staticmethod
+    def render():
+        """Verifica e exibe a seção de resultados consolidados."""
+
+        # Nome base do arquivo
+        consolidated_excel_filename = rf"{path_foler_output}/results_consolidados.xlsx"
+        
+        # Caminho completo para o arquivo
+        consolidated_excel_path = consolidated_excel_filename
+
+        def button_save_excel(arquivo, nome_arquivo):
+            # Abre o arquivo usando o caminho completo para o botão de download
+            with open(arquivo, "rb") as fp:
+                        st.download_button(
+                            label="Baixar Resultados Consolidados (Excel)",
+                            data=fp,
+                            # Usa o nome base do arquivo para o download
+                            file_name=nome_arquivo,
+                            mime="application/vnd.ms-excel"
+                        )
+
+        # Verifica a existência usando o caminho completo
+        if os.path.exists(consolidated_excel_path):
+            st.header("✅ Resultados Consolidados Gerais de todas as execuções")
+            try:
+                # Lê o excel usando o caminho completo
+                df_consolidado = pd.read_excel(consolidated_excel_path)
+                df_consolidado["execution_time"] = df_consolidado["execution_time"].str.replace(" segundos", "").astype(float)
+
+                # Calcula a média da coluna execution_time
+                exec_time = df_consolidado["execution_time"]
+                time_exec_media = exec_time.mean()
+                tempo_total = exec_time.sum()
+                
+                st.dataframe(df_consolidado)
+                st.write(f"Média do tempo de Execução em segundos = ",round(time_exec_media,3))
+                st.write("Tempo total de execução = ", round(tempo_total,2))
+
+                # Adiciona o botão de download
+                button_save_excel(consolidated_excel_path, "results_consolidados.xlsx")
+
+
+    
+                
+
+            except Exception as e:
+                st.error(f"Erro ao ler o arquivo consolidado {consolidated_excel_path}: {e}")
+        else:
+            st.info(f"Arquivo de resultados consolidados ({consolidated_excel_path}) não encontrado.")
+        st.markdown("---")
+
+
+
 class CardSolutions:
     """Componente para exibir o resumo da melhor solução."""
     
@@ -28,7 +87,7 @@ class CardSolutions:
         if debug:
             st.write(data)
 
-        with st.expander("Parâmetros Utilizados nesta Execução no arquivo params.json", expanded=True):
+        with st.expander("Parâmetros Utilizados nesta Execução no arquivo params.json", expanded=False):
             st.json(data.get('params', {}))
         
         col1, col2 = st.columns(2)
@@ -57,8 +116,44 @@ class CardSolutions:
 
         
 
+
+
+class GraficoRCEComponent:
+    """Componente para exibir o gráfico de convergência."""
+    
+    @staticmethod
+    def render(exec_num):
+        """Exibe os gráficos de convergência na página principal."""
+        st.header(f"📉 Gráfico RCE - Generations x Fitness (Execução {exec_num})")
+        
+        # Caminho do arquivo HTML
+        html_file = path_foler_output / f"grafico_execucao_{exec_num}.html"
+        
+        if html_file.exists():
+            try:
+                with open(html_file, 'r', encoding='utf-8') as f:
+                    html_content = f.read()
+                    st.components.v1.html(html_content, height=500, scrolling=True)
+            except Exception as error:
+                st.warning("Erro ao renderizar o grafico", error)
+        else:
+            st.warning(f"Arquivo HTML não encontrado para a execução {exec_num}.")
+        
+        
+
 class StatisticsTableComponent:
     """Componente para exibir a tabela de estatísticas por geração."""
+
+    def button_save_excel(arquivo, nome_arquivo):
+            # Abre o arquivo usando o caminho completo para o botão de download
+            with open(arquivo, "rb") as fp:
+                        st.download_button(
+                            label="Baixar Resultados Consolidados (Excel)",
+                            data=fp,
+                            # Usa o nome base do arquivo para o download
+                            file_name=nome_arquivo,
+                            mime="application/vnd.ms-excel"
+                        )
     
     @staticmethod
     def render(data):
@@ -84,6 +179,7 @@ class StatisticsTableComponent:
                         if lengths and list(lengths.values())[0] > 0:
                             stats_df = pd.DataFrame(stats_data)
                             st.dataframe(stats_df, use_container_width=True)
+                            #button_save_excel(f"{path_foler_output}/statics_by_generation.xlsx", "statics_by_generation.xlsx")
                         else:
                             st.info("Não há dados de estatísticas por geração para exibir.")
                     else:
@@ -102,99 +198,21 @@ class StatisticsTableComponent:
         # Renderizar Tabela de população final com formato Tabela x Grafico
         #! TODO alterar para gerar arquivo pop_final.xlsx sempre
         #print("\n\nDEBUG ARQUIVO POP FINAL",excel_file)
-        df_pop_final = pd.read_excel(f"{path_foler_output}/pop_final.xlsx")
+        arquivo = f"{path_foler_output}/pop_final.xlsx"
+        df_pop_final = pd.read_excel(arquivo)
 
         if df_pop_final is not None:
             st.markdown("---")
             st.subheader("Tabela de População Final")
-            st.write(df_pop_final)
+            df_pop_final = df_pop_final.drop(columns=["Unnamed: 0", "index"], errors='ignore')
+            st.dataframe(df_pop_final, use_container_width=True)
+
+            
+            # Abre o arquivo usando o caminho completo para o botão de download
+            
+            
         else:
             st.warning("Tabela de população final não encontrada.")
 
         
-
-
-
-class GraficoRCEComponent:
-    """Componente para exibir o gráfico de convergência."""
-    
-    @staticmethod
-    def render(exec_num):
-        """Exibe os gráficos de convergência na página principal."""
-        st.header(f"Gráfico RCE - Generations x Fitness (Execução {exec_num})")
-        
-        # Caminho do arquivo HTML
-        html_file = path_foler_output / f"grafico_execucao_{exec_num}.html"
-        
-        if html_file.exists():
-            try:
-                with open(html_file, 'r', encoding='utf-8') as f:
-                    html_content = f.read()
-                    st.components.v1.html(html_content, height=500, scrolling=True)
-            except Exception as error:
-                st.warning("Erro ao renderizar o grafico", error)
-        else:
-            st.warning(f"Arquivo HTML não encontrado para a execução {exec_num}.")
-        
-        
-
-
-class ConsolidatedResultsComponent:
-    """Componente para exibir os resultados consolidados."""
-
-    @staticmethod
-    def render():
-        """Verifica e exibe a seção de resultados consolidados."""
-
-
-        
-
-
-
-
-        # Nome base do arquivo
-        consolidated_excel_filename = rf"{path_foler_output}/results_consolidados.xlsx"
-        
-        # Caminho completo para o arquivo
-        consolidated_excel_path = consolidated_excel_filename
-
-        # Verifica a existência usando o caminho completo
-        if os.path.exists(consolidated_excel_path):
-            st.markdown("---")
-            st.header("Resultados Consolidados Gerais de todas as execuções")
-            try:
-                # Lê o excel usando o caminho completo
-                df_consolidado = pd.read_excel(consolidated_excel_path)
-                df_consolidado["execution_time"] = df_consolidado["execution_time"].str.replace(" segundos", "").astype(float)
-
-                # Calcula a média da coluna execution_time
-                exec_time = df_consolidado["execution_time"]
-                time_exec_media = exec_time.mean()
-                tempo_total = exec_time.sum()
-                
-                st.dataframe(df_consolidado)
-                st.write(f"Média do tempo de Execução em segundos = ",round(time_exec_media,3))
-                st.write("Tempo total de execução = ", round(tempo_total,2))
-
-
-                # Abre o arquivo usando o caminho completo para o botão de download
-                with open(consolidated_excel_path, "rb") as fp:
-                    st.download_button(
-                        label="Baixar Resultados Consolidados (Excel)",
-                        data=fp,
-                        # Usa o nome base do arquivo para o download
-                        file_name="resultados",
-                        mime="application/vnd.ms-excel"
-                    )
-                
-                
-
-            except Exception as e:
-                st.error(f"Erro ao ler o arquivo consolidado {consolidated_excel_path}: {e}")
-        else:
-            st.info(f"Arquivo de resultados consolidados ({consolidated_excel_path}) não encontrado.")
-        st.markdown("---")
-
-
-
 

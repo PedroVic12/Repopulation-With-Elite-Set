@@ -81,7 +81,7 @@ class FrameworkRCEDashboard:
     def render_execution_options(self):
         """Renderiza as opções de execução de forma interativa."""
 
-
+        st.markdown("### ⚒ Configuração do Framework")
         with st.expander("🔧 Opções de Execução", expanded=False):
             config_name = st.text_input("Nome da Configuração", "Config 1")
 
@@ -137,57 +137,57 @@ class FrameworkRCEDashboard:
                 )
 
             # Update options dictionary
-        current_config = {
-            "name": config_name,
-            "key": key_enabled,
-            "value": value_input,
-            "parametros_opcionais": [
-                {"MUTACAO": selected_mutation},
-                {"CROSSOVER": selected_crossover},
-                {"NUM_GENERATIONS": selected_generations}
-            ]
-        }
+            current_config = {
+                "name": config_name,
+                "key": key_enabled,
+                "value": value_input,
+                "parametros_opcionais": [
+                    {"MUTACAO": selected_mutation},
+                    {"CROSSOVER": selected_crossover},
+                    {"NUM_GENERATIONS": selected_generations}
+                ]
+            }
 
-        # Store current configuration in session state
-        UseState.set_state("current_options", current_config)
+            # Store current configuration in session state
+            UseState.set_state("current_options", current_config)
 
-        # Show current configuration
+            # Show current configuration
         col1, col2 = st.columns(2)
         with col1:
-            st.markdown("### Configuração Atual:")
-            st.json(current_config)
-            
-            if st.button("💾 Salvar Como Nova Configuração"):
-                saved_configs = UseState.get_state("saved_configurations", [])
-                saved_configs.append(current_config)
-                UseState.set_state("saved_configurations", saved_configs)
-                st.success(f"Configuração '{config_name}' salva! ({value_input}x execuções)")
+                st.markdown("### Configuração Atual:")
+                st.json(current_config)
+                
+                if st.button("💾 Salvar Como Nova Configuração"):
+                    saved_configs = UseState.get_state("saved_configurations", [])
+                    saved_configs.append(current_config)
+                    UseState.set_state("saved_configurations", saved_configs)
+                    st.success(f"Configuração '{config_name}' salva! ({value_input}x execuções)")
 
         with col2:
 
-            # Show saved configurations
-            st.markdown("### Configurações Salvas:")
-            saved_configs = UseState.get_state("saved_configurations", [])
-            
-            if saved_configs:
-                for idx, config in enumerate(saved_configs):
-                    with st.expander(f"📋 Config {idx+1}: {config['name']} ({config['value']}x execuções)", expanded=False):
-                        st.json(config)
-                        col1, col2 = st.columns(2)
-                        with col1:
-                            if st.button("🔄 Play Configuração", key=f"load_{idx}"):
-                                self.options = config.copy()
-                                st.success(f"Configuração '{config['name']}' carregada!")
-                                self.run_script(FOLDER_NAME.parent / "run_rce_framework.py")
-                                st.rerun()
-                        with col2:
-                            if st.button("🗑️ Deletar", key=f"delete_{idx}"):
-                                saved_configs.pop(idx)
-                                UseState.set_state("saved_configurations", saved_configs)
-                                st.success(f"Configuração removida!")
-                                st.rerun()
-            else:
-                st.info("Nenhuma configuração salva ainda.")
+                # Show saved configurations
+                st.markdown("### Configurações Salvas:")
+                saved_configs = UseState.get_state("saved_configurations", [])
+                
+                if saved_configs:
+                    for idx, config in enumerate(saved_configs):
+                        with st.expander(f"📋 Config {idx+1}: {config['name']} ({config['value']}x execuções)", expanded=False):
+                            st.json(config)
+                            col1, col2 = st.columns(2)
+                            with col1:
+                                if st.button("🔄 Play Configuração", key=f"load_{idx}"):
+                                    self.options = config.copy()
+                                    st.success(f"Configuração '{config['name']}' carregada!")
+                                    self.run_script(FOLDER_NAME.parent / "run_rce_framework.py")
+                                    st.rerun()
+                            with col2:
+                                if st.button("🗑️ Deletar", key=f"delete_{idx}"):
+                                    saved_configs.pop(idx)
+                                    UseState.set_state("saved_configurations", saved_configs)
+                                    st.success(f"Configuração removida!")
+                                    st.rerun()
+                else:
+                    st.info("Nenhuma configuração salva ainda.")
 
         return current_config
 
@@ -206,19 +206,36 @@ class FrameworkRCEDashboard:
             """,
             unsafe_allow_html=True,
         )
-
-        self.header()
-
+        
         # Opções de execução para multiplos parametros de algoritmo Genético
         options_dashboard = self.render_execution_options()
 
+        # Botão com ícone de play para executar um script Python
+        if st.button("▶️ Executar Script", type="primary"):
+                  
+            # Ensure we have current options in session state
+            if "current_options" not in st.session_state:
+                st.error("Por favor, configure as opções .JSON e options_main_file primeiro!")
+                return
+                
+            # Use raw string and quotes for Windows path with spaces
+            script_path = FOLDER_NAME.parent / "run_rce_framework.py"
 
+            # Run the script
+            self.run_script(script_path)
+
+
+
+        
+        self.header()
+
+        
         # Renderiza os resultados consolidados
         ConsolidatedResultsComponent.render()
 
         #! Seleção de execução com tabs para cada execução
         with st.container():
-            st.subheader("Seleção da Execução")
+            st.subheader("🔄 Seleção da Execução")
             
             # Cria abas
             tabs = st.tabs([f"Execução {num}" for num in self.execution_numbers])
@@ -299,7 +316,7 @@ class FrameworkRCEDashboard:
     def header(self):
         """Cabeçalho do aplicativo."""
         st.markdown("---")
-        st.title("Framework Repopulation-With-Elite-Set RCE")
+        st.title("⚡Framework Repopulation-With-Elite-Set RCE - V 9.8.1 ⚡")
         st.markdown("---")
 
         # Adiciona CSS personalizado para estilizar o botão
@@ -307,7 +324,7 @@ class FrameworkRCEDashboard:
             """
             <style>
             div.stButton > button {
-                background-color: #4CAF50; /* Verde */
+                background-color: #008000; /* Verde */
                 color: white; /* Cor do texto */
                 padding: 12px 20px;
                 text-align: center;
@@ -325,19 +342,7 @@ class FrameworkRCEDashboard:
             unsafe_allow_html=True,
         )
 
-        # Botão com ícone de play para executar um script Python
-        if st.button("▶️ Executar Script", type="secondary"):
-                  
-            # Ensure we have current options in session state
-            if "current_options" not in st.session_state:
-                st.error("Por favor, configure as opções .JSON e options_main_file primeiro!")
-                return
-                
-            # Use raw string and quotes for Windows path with spaces
-            script_path = FOLDER_NAME.parent / "run_rce_framework.py"
-
-            # Run the script
-            self.run_script(script_path)
+        
         
 
 
