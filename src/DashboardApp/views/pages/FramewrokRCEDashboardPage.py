@@ -11,7 +11,7 @@ import os
 # Frontend
 import streamlit as st
 
-
+#from ....config import ConfigManager
 
 
 # Configuração da barra lateral
@@ -60,16 +60,141 @@ class FrameworkRCEDashboard:
         self.utils = Utils()
         self.execution_numbers = self.controller.execution_numbers
         self.menu_lateral = DrawerSideBar()
-        self.options = options
+
+        # Default options
+        self.default_options = {
+            "key": True,
+            "value": 5,
+            "parametros_opcionais": [
+                {"MUTACAO": 90},
+                {"CROSSOVER": 15},
+                {"NUM_GENERATIONS": 100}
+            ]
+        }
+    
+        # Initialize options from parameter or use default
+        self.options = options if options is not None else self.default_options
+
 
         # Inicializa os estados necessários
         UseState.initialize_state("selected_execution", None)
         UseState.initialize_state("active_tab", 0)
+        UseState.initialize_state("saved_configurations", [])
+
 
     def handle_tab_change(self, tab_index: int, execution_number: int):
         """Gerencia mudanças de aba e atualiza o estado."""
         UseState.set_state("active_tab", tab_index)
         UseState.set_state("selected_execution", execution_number)
+
+    def render_execution_options(self):
+        """Renderiza as opções de execução de forma interativa."""
+
+
+        with st.expander("🔧 Opções de Execução", expanded=False):
+            config_name = st.text_input("Nome da Configuração", "Config 1")
+
+            col1, col2 = st.columns(2)
+            
+            with col1:
+                # Checkbox option
+                key_enabled = st.checkbox(
+                "Habilitar Multiplas Execuções", 
+                value=self.options.get("key", True),
+                help="Ativa/Desativa múltiplas execuções do algoritmo"
+                )          
+
+                # Numeric input
+                value_input = st.number_input(
+                    "Quantidade de Execuções", 
+                    min_value=1,
+                    max_value=100,
+                    value=self.options.get("value", 5),
+                    step=1,
+                    help="Número de vezes que este conjunto de parâmetros será executado"
+
+                )
+
+            with col2:
+                st.subheader("Parâmetros Opcionais")
+                
+                # Mutation Rate
+                mutation_rates = [90, 80, 70]
+                selected_mutation = st.selectbox(
+                    "Taxa de Mutação (%)",
+                    options=mutation_rates,
+                    index=0,
+                    help="Selecione a taxa de mutação desejada"
+                )
+
+                # Crossover Rate
+                crossover_rates = [90, 80, 70]
+                selected_crossover = st.selectbox(
+                    "Taxa de Crossover (%)",
+                    options=crossover_rates,
+                    index=0,
+                    help="Selecione a taxa de crossover desejada"
+                )
+
+                # Number of Generations
+                generation_options = [100, 200, 300]
+                selected_generations = st.selectbox(
+                    "Número de Gerações",
+                    options=generation_options,
+                    index=0,
+                    help="Selecione o número de gerações"
+                )
+
+            # Update options dictionary
+        current_config = {
+            "name": config_name,
+            "key": key_enabled,
+            "value": value_input,
+            "parametros_opcionais": [
+                {"MUTACAO": selected_mutation},
+                {"CROSSOVER": selected_crossover},
+                {"NUM_GENERATIONS": selected_generations}
+            ]
+        }
+
+        # Show current configuration
+        col1, col2 = st.columns(2)
+        with col1:
+            st.markdown("### Configuração Atual:")
+            st.json(current_config)
+            
+            if st.button("💾 Salvar Como Nova Configuração"):
+                saved_configs = UseState.get_state("saved_configurations", [])
+                saved_configs.append(current_config)
+                UseState.set_state("saved_configurations", saved_configs)
+                st.success(f"Configuração '{config_name}' salva! ({value_input}x execuções)")
+
+        with col2:
+
+            # Show saved configurations
+            st.markdown("### Configurações Salvas:")
+            saved_configs = UseState.get_state("saved_configurations", [])
+            
+            if saved_configs:
+                for idx, config in enumerate(saved_configs):
+                    with st.expander(f"📋 Config {idx+1}: {config['name']} ({config['value']}x execuções)", expanded=False):
+                        st.json(config)
+                        col1, col2 = st.columns(2)
+                        with col1:
+                            if st.button("🔄 Usar Esta", key=f"load_{idx}"):
+                                self.options = config.copy()
+                                st.success(f"Configuração '{config['name']}' carregada!")
+                                st.rerun()
+                        with col2:
+                            if st.button("🗑️ Deletar", key=f"delete_{idx}"):
+                                saved_configs.pop(idx)
+                                UseState.set_state("saved_configurations", saved_configs)
+                                st.success(f"Configuração removida!")
+                                st.rerun()
+            else:
+                st.info("Nenhuma configuração salva ainda.")
+
+        return current_config
 
     def run(self):
 
@@ -90,8 +215,8 @@ class FrameworkRCEDashboard:
         self.header()
 
         # Opções de execução para multiplos parametros de algoritmo Genético
-        st.write("## Opções de Execução")
-        st.write(self.options)
+        options_dashboard = self.render_execution_options()
+
 
         # Renderiza os resultados consolidados
         ConsolidatedResultsComponent.render()
@@ -110,14 +235,8 @@ class FrameworkRCEDashboard:
                     if UseState.get_state("active_tab") != i:
                         self.handle_tab_change(i, exec_num)
 
-                    # botao para sincronizar os dados do JSON e o arquivo python run
-                    json_button = st.button("Carregar Dados", key=f"load_data_{exec_num}")
-                    if json_button:
-                        # Atualiza o estado da execução selecionada
-                        self.atualizar_pagina()
 
-                    else:
-                        dados = self.utils.load_execution_data(exec_num, debug=False)
+                    dados = self.utils.load_execution_data(exec_num, debug=False)
 
                     # Carrega os dados e o gráfico da execução
                     if dados:
@@ -202,12 +321,11 @@ class FrameworkRCEDashboard:
                 if return_code == 0:
                     st.success("Script executado com sucesso!")
                     st.rerun()
-                else:
-                    st.error(f"Erro ao executar o script. Código de retorno: {return_code}")
+
 
             except Exception as e:
                 dialog_placeholder.empty()
-                st.error(f"Erro ao executar o script: {e}")
+                st.error(f"Erro ao executar o script. Código de retorno: {return_code} e Erro: {e}")
 
         if not self.execution_numbers:
             st.error("Nenhum arquivo de resultado encontrado.")

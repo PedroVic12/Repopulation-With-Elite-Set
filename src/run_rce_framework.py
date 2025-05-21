@@ -10,8 +10,9 @@ from AlgEvolutivoRCE.Dashboard import DashboardApp
 # Import functions benchmark
 from utils.functions_fitness.functions_benchmarking import rosenbrock_benchmark,esfera_benchmark,rastrigin, evaluate
 
-from get_folder import FOLDER_NAME
+from config import FOLDER_NAME
 import json
+import streamlit as st
 
 
 def load_params(file_path):
@@ -22,22 +23,24 @@ def load_params(file_path):
 
 params = load_params(r"C:\Users\Pedro Victor R V\Documents\GitHub\Repopulation-With-Elite-Set\src\AlgEvolutivoRCE\params.json")
 
-options = {
-        "key": True,
-        "value": 5,
-        "parametros_opcionais": [
-             {"MUTACAO": [90,80,70]},
-             {"CROSSOVER": [90,80,70]},
-             {'NUM_GENERATIONS': [100, 200, 300]},
+# Remove the hardcoded options_main_file
+options_main_file = st.session_state.get("current_options", {
+    "name": "default python script",
+    "key": True,
+    "value": 3,
+    "parametros_opcionais": [
+        {"MUTACAO": 90},
+        {"CROSSOVER": 10},
+        {"NUM_GENERATIONS": 100}
+    ]
+})
 
-        ]
-    }
 
 
 def run_framework(RCE = False):
-    if options["key"]:
+    if options_main_file["key"]:
 
-        for i in range(options["value"]):
+        for i in range(options_main_file["value"]):
             print("\nExecução", i + 1)
 
             start_time = time.time()  # Inicia a contagem do tempo para cada execução
@@ -121,11 +124,14 @@ if __name__ == "__main__":
     #! ainda seria possivel criar um pacote no pip e instanciar?
     setup = Setup(params, evaluate)
     alg = AlgoritimoEvolutivoRCE(setup, DEBUG=False)
-    dashboard = DashboardApp(options)
+    dashboard = DashboardApp(options_main_file)
 
     run_framework(
          RCE= True, # True = RCE, False = Algoritmo Evolutivo Deap com minimização
     )
+
+    print("Using configuration from dashboard:")
+    print(params)
     
 
 
