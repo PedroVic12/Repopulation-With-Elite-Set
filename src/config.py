@@ -1,6 +1,24 @@
 import json
 from pathlib import Path
 import pathlib
+import streamlit as st
+
+
+options_main_file = st.session_state.get("current_options", {
+    "name": "default python script",
+    "key": True,
+    "value": 3,
+    "parametros_opcionais": [
+        {"MUTACAO": 90},
+        {"CROSSOVER": 10},
+        {"NUM_GENERATIONS": 100}
+    ]
+})
+
+
+
+
+
 
 def get_folder_path():
     BASE_DIR = pathlib.Path(__file__).resolve().parent  

@@ -15,16 +15,20 @@ from pathlib import Path
 # Adiciona o diretório raiz do projeto ao PYTHONPATH
 sys.path.append(str(Path(__file__).resolve().parent.parent.parent.parent))
 
-options = {
-        "key": True,
-        "value": 5,
-        "parametros_opcionais": [
-             {"MUTACAO": [90,80,70]},
-             {"CROSSOVER": [90,80,70]},
-             {'NUM_GENERATIONS': [100, 200, 300]},
 
-        ]
-    }
+options_main_file = st.session_state.get("current_options", {
+    "name": "default python script",
+    "key": True,
+    "value": 3,
+    "parametros_opcionais": [
+        {"MUTACAO": [90,80,70,60]},
+        {"CROSSOVER": [5,10,15,20]},
+        {"NUM_GENERATIONS": [100,200,300,400]},
+    ]
+})
+
+#from ..config import  options_main_file
+
 
 
 def DrawerSideBar():
@@ -35,7 +39,7 @@ def DrawerSideBar():
 
     # Opções de páginas 
     page_options = {
-        "⚡ Framework RCE": FrameworkRCEDashboard(options).run,
+        "⚡ Framework RCE": FrameworkRCEDashboard(options_main_file).run,
         #"🤖 C3po Chatbot": C3poChatbotPage,
         #"📊 Benchmarking Analysis": BenchmarkingPage,
         "📑 Tab Demonstration": TabExamplePage,

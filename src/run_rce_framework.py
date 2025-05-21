@@ -7,10 +7,8 @@ from AlgEvolutivoRCE.Setup import Setup
 from AlgEvolutivoRCE.alg_evolutivo_rce import AlgoritimoEvolutivoRCE
 from AlgEvolutivoRCE.Dashboard import DashboardApp
 
-# Import functions benchmark
-from utils.functions_fitness.functions_benchmarking import rosenbrock_benchmark,esfera_benchmark,rastrigin, evaluate
 
-from config import FOLDER_NAME
+from config import FOLDER_NAME, options_main_file
 import json
 import streamlit as st
 
@@ -20,21 +18,11 @@ def load_params(file_path):
         params = json.load(file)
     return params
 
+# Import functions benchmark
+from utils.functions_fitness.functions_benchmarking import rosenbrock_benchmark,esfera_benchmark,rastrigin, evaluate
+
 
 params = load_params(r"C:\Users\Pedro Victor R V\Documents\GitHub\Repopulation-With-Elite-Set\src\AlgEvolutivoRCE\params.json")
-
-# Remove the hardcoded options_main_file
-options_main_file = st.session_state.get("current_options", {
-    "name": "default python script",
-    "key": True,
-    "value": 3,
-    "parametros_opcionais": [
-        {"MUTACAO": 90},
-        {"CROSSOVER": 10},
-        {"NUM_GENERATIONS": 100}
-    ]
-})
-
 
 
 def run_framework(RCE = False):

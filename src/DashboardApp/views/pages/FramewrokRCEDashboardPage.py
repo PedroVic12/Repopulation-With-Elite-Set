@@ -61,19 +61,10 @@ class FrameworkRCEDashboard:
         self.execution_numbers = self.controller.execution_numbers
         self.menu_lateral = DrawerSideBar()
 
-        # Default options
-        self.default_options = {
-            "key": True,
-            "value": 5,
-            "parametros_opcionais": [
-                {"MUTACAO": 90},
-                {"CROSSOVER": 15},
-                {"NUM_GENERATIONS": 100}
-            ]
-        }
+
     
         # Initialize options from parameter or use default
-        self.options = options if options is not None else self.default_options
+        self.options = options 
 
 
         # Inicializa os estados necessários
@@ -157,6 +148,9 @@ class FrameworkRCEDashboard:
             ]
         }
 
+        # Store current configuration in session state
+        UseState.set_state("current_options", current_config)
+
         # Show current configuration
         col1, col2 = st.columns(2)
         with col1:
@@ -181,9 +175,10 @@ class FrameworkRCEDashboard:
                         st.json(config)
                         col1, col2 = st.columns(2)
                         with col1:
-                            if st.button("🔄 Usar Esta", key=f"load_{idx}"):
+                            if st.button("🔄 Play Configuração", key=f"load_{idx}"):
                                 self.options = config.copy()
                                 st.success(f"Configuração '{config['name']}' carregada!")
+                                self.run_script(FOLDER_NAME.parent / "run_rce_framework.py")
                                 st.rerun()
                         with col2:
                             if st.button("🗑️ Deletar", key=f"delete_{idx}"):
@@ -259,12 +254,48 @@ class FrameworkRCEDashboard:
     def atualizar_pagina(self):
         """Atualiza a página."""
         st.rerun()
+        print("Atualizando a página...")
 
     @st.dialog("Loading...")
     def CircleLoading():
         st.write(f"Why is your favorite function Benchmark?")
         st.image("/home/pedrov12/Documentos/GitHub/Repopulation-With-Elite-Set/src/assets/uff_logo.jpg")
 
+    
+    def run_script(self, script_path):
+        """Executa um script Python."""
+        # Cria um espaço temporário para o "diálogo"
+        dialog_placeholder = st.empty()
+
+        try:
+                # Verifica se o GIF existe
+                img_gif_loading = FOLDER_NAME.parent / "assets" / "humans_evolution.gif"
+                
+                if img_gif_loading.exists():
+                    with dialog_placeholder.container():
+                        st.image(str(img_gif_loading), width=1200)
+                        st.subheader("Executando o script principal no terminal... por favor aguarde...")
+
+                # Executa o script usando aspas duplas para o caminho
+                command = f'python "{script_path}"'
+                return_code = os.system(command)
+
+                # Remove o "diálogo" após a execução
+                dialog_placeholder.empty()
+
+                if return_code == 0:
+                    st.success("Script executado com sucesso!")
+                    self.atualizar_pagina()
+
+
+        except Exception as e:
+                dialog_placeholder.empty()
+                st.error(f"Erro ao executar o script. Código de retorno: {return_code} e Erro: {e}")
+
+        if not self.execution_numbers:
+            st.error("Nenhum arquivo de resultado encontrado.")
+            st.stop()
+    
     def header(self):
         """Cabeçalho do aplicativo."""
         st.markdown("---")
@@ -296,40 +327,21 @@ class FrameworkRCEDashboard:
 
         # Botão com ícone de play para executar um script Python
         if st.button("▶️ Executar Script", type="secondary"):
+                  
+            # Ensure we have current options in session state
+            if "current_options" not in st.session_state:
+                st.error("Por favor, configure as opções .JSON e options_main_file primeiro!")
+                return
+                
             # Use raw string and quotes for Windows path with spaces
             script_path = FOLDER_NAME.parent / "run_rce_framework.py"
-            
-            # Cria um espaço temporário para o "diálogo"
-            dialog_placeholder = st.empty()
 
-            try:
-                # Verifica se o GIF existe
-                img_gif_loading = FOLDER_NAME.parent / "assets" / "humans_evolution.gif"
-                
-                if img_gif_loading.exists():
-                    with dialog_placeholder.container():
-                        st.image(str(img_gif_loading), width=1200)
-                        st.subheader("Executando o script principal no terminal... por favor aguarde...")
-
-                # Executa o script usando aspas duplas para o caminho
-                command = f'python "{script_path}"'
-                return_code = os.system(command)
-
-                # Remove o "diálogo" após a execução
-                dialog_placeholder.empty()
-
-                if return_code == 0:
-                    st.success("Script executado com sucesso!")
-                    st.rerun()
+            # Run the script
+            self.run_script(script_path)
+        
 
 
-            except Exception as e:
-                dialog_placeholder.empty()
-                st.error(f"Erro ao executar o script. Código de retorno: {return_code} e Erro: {e}")
-
-        if not self.execution_numbers:
-            st.error("Nenhum arquivo de resultado encontrado.")
-            st.stop()
+    
 
 
     def footer(self):
