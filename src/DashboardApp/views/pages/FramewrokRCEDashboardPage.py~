@@ -188,7 +188,6 @@ class FrameworkRCEDashboard:
                     for idx, config in enumerate(saved_configs):
                         with st.expander(f"📋 Config {idx+1}: {config['name']} ({config['value']}x execuções)",
                                         expanded=False):
-                            st.write(config)
                             st.dataframe(config)
                             col1, col2 = st.columns(2)
                             with col1:
