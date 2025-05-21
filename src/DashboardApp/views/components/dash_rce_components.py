@@ -87,9 +87,7 @@ class CardSolutions:
         if debug:
             st.write(data)
 
-        with st.expander("Parâmetros Utilizados nesta Execução no arquivo params.json", expanded=False):
-            st.json(data.get('params', {}))
-        
+
         col1, col2 = st.columns(2)
         with col1:
             st.markdown(
@@ -111,6 +109,9 @@ class CardSolutions:
             st.write(data.get('best_vars', 'N/A'))
 
 
+        with st.expander("Parâmetros Utilizados nesta Execução no arquivo params.json", expanded=False, icon="⚙️"):
+            st.json(data.get('params', {}))
+        
             
         st.markdown("---")
 

@@ -9,9 +9,9 @@ options_main_file = st.session_state.get("current_options", {
     "key": True,
     "value": 3,
     "parametros_opcionais": [
-        {"MUTACAO": 90},
-        {"CROSSOVER": 10},
-        {"NUM_GENERATIONS": 100}
+        {"MUTACAO": [90,80,70, 60]},
+        {"CROSSOVER": [5,10, 15, 20]},
+        {"NUM_GENERATIONS": [100, 200, 300, 400]}
     ]
 })
 
@@ -38,37 +38,3 @@ FOLDER_NAME = get_folder_path()
 
 
 
-class ConfigManager:
-    CONFIG_FILE = Path("configs/options_main_file.json")
-    
-    @classmethod
-    def initialize(cls):
-        """Initialize configuration file with default values"""
-        default_config = {
-            "key": True,
-            "value": 5,
-            "parametros_opcionais": [
-                {"MUTACAO": 90},
-                {"CROSSOVER": 90},
-                {"NUM_GENERATIONS": 100}
-            ]
-        }
-        
-        cls.CONFIG_FILE.parent.mkdir(exist_ok=True)
-        if not cls.CONFIG_FILE.exists():
-            cls.save_config(default_config)
-        return default_config
-
-    @classmethod
-    def load_config(cls):
-        """Load current configuration"""
-        if cls.CONFIG_FILE.exists():
-            with open(cls.CONFIG_FILE, 'r') as f:
-                return json.load(f)
-        return cls.initialize()
-
-    @classmethod
-    def save_config(cls, config):
-        """Save configuration to file"""
-        with open(cls.CONFIG_FILE, 'w') as f:
-            json.dump(config, f, indent=4)

@@ -82,62 +82,84 @@ class FrameworkRCEDashboard:
         """Renderiza as opções de execução de forma interativa."""
 
         st.markdown("### ⚒ Configuração do Framework")
+        options = st.session_state.get("current_options", self.options)
+
         with st.expander("🔧 Opções de Execução", expanded=False):
             config_name = st.text_input("Nome da Configuração", "Config 1")
 
             col1, col2 = st.columns(2)
-            
+
             with col1:
                 # Checkbox option
                 key_enabled = st.checkbox(
-                "Habilitar Multiplas Execuções", 
-                value=self.options.get("key", True),
-                help="Ativa/Desativa múltiplas execuções do algoritmo"
-                )          
+                    "Habilitar Multiplas Execuções",
+                    value=self.options.get("key", True),
+                    help="Ativa/Desativa múltiplas execuções do algoritmo"
+                )
 
                 # Numeric input
                 value_input = st.number_input(
-                    "Quantidade de Execuções", 
+                    "Quantidade de Execuções",
                     min_value=1,
                     max_value=100,
                     value=self.options.get("value", 5),
                     step=1,
                     help="Número de vezes que este conjunto de parâmetros será executado"
-
                 )
+
+                # Initialize current_config with a default value
+                current_config = {
+                    "name": config_name,
+                    "key": key_enabled,
+                    "value": value_input,
+                    "parametros_opcionais": []  # Default to an empty list
+                }
+
+                if st.button("💾 Salvar Como Nova Configuração"):
+                    saved_configs = UseState.get_state("saved_configurations", [])
+                    saved_configs.append(current_config)
+                    UseState.set_state("saved_configurations", saved_configs)
+                    st.success(f"Configuração '{config_name}' salva! ({value_input}x execuções)")
 
             with col2:
                 st.subheader("Parâmetros Opcionais")
-                
-                # Mutation Rate
-                mutation_rates = [90, 80, 70]
-                selected_mutation = st.selectbox(
-                    "Taxa de Mutação (%)",
-                    options=mutation_rates,
-                    index=0,
-                    help="Selecione a taxa de mutação desejada"
-                )
 
-                # Crossover Rate
-                crossover_rates = [90, 80, 70]
-                selected_crossover = st.selectbox(
-                    "Taxa de Crossover (%)",
-                    options=crossover_rates,
-                    index=0,
-                    help="Selecione a taxa de crossover desejada"
-                )
+                # Ensure options["parametros_opcionais"] exists
+                if "parametros_opcionais" in self.options and isinstance(self.options["parametros_opcionais"], list):
+                    # Display the mutation options
+                    if len(self.options["parametros_opcionais"]) > 0:
+                        mutation_options = self.options["parametros_opcionais"][0]["MUTACAO"]
+                        selected_mutation = st.selectbox(
+                            "Taxa de Mutação (%)",
+                            options=mutation_options,
+                            index=0,
+                            help="Selecione a taxa de mutação desejada"
+                        )
 
-                # Number of Generations
-                generation_options = [100, 200, 300]
-                selected_generations = st.selectbox(
-                    "Número de Gerações",
-                    options=generation_options,
-                    index=0,
-                    help="Selecione o número de gerações"
-                )
+                    # Crossover Rate
+                    if len(self.options["parametros_opcionais"]) > 1:
+                        crossover_options = self.options["parametros_opcionais"][1]["CROSSOVER"]
+                        selected_crossover = st.selectbox(
+                            "Taxa de Crossover (%)",
+                            options=crossover_options,
+                            index=0,
+                            help="Selecione a taxa de crossover desejada"
+                        )
 
-            # Update options dictionary
-            current_config = {
+                    # Number of Generations
+                    if len(self.options["parametros_opcionais"]) > 2:
+                        generation_options = self.options["parametros_opcionais"][2]["NUM_GENERATIONS"]
+                        selected_generations = st.selectbox(
+                            "Número de Gerações",
+                            options=generation_options,
+                            index=0,
+                            help="Selecione o número de gerações"
+                        )
+                else:
+                    st.error("A estrutura de 'parametros_opcionais' está incorreta.")
+
+        # Update options dictionary
+        current_config = {
                 "name": config_name,
                 "key": key_enabled,
                 "value": value_input,
@@ -146,39 +168,33 @@ class FrameworkRCEDashboard:
                     {"CROSSOVER": selected_crossover},
                     {"NUM_GENERATIONS": selected_generations}
                 ]
-            }
+        }
 
             # Store current configuration in session state
-            UseState.set_state("current_options", current_config)
+        UseState.set_state("current_options", current_config)
 
-            # Show current configuration
+        # Show current configuration
         col1, col2 = st.columns(2)
         with col1:
                 st.markdown("### Configuração Atual:")
-                st.json(current_config)
-                
-                if st.button("💾 Salvar Como Nova Configuração"):
-                    saved_configs = UseState.get_state("saved_configurations", [])
-                    saved_configs.append(current_config)
-                    UseState.set_state("saved_configurations", saved_configs)
-                    st.success(f"Configuração '{config_name}' salva! ({value_input}x execuções)")
+                st.json(current_config, expanded=False)
 
         with col2:
-
                 # Show saved configurations
                 st.markdown("### Configurações Salvas:")
                 saved_configs = UseState.get_state("saved_configurations", [])
-                
+
                 if saved_configs:
                     for idx, config in enumerate(saved_configs):
-                        with st.expander(f"📋 Config {idx+1}: {config['name']} ({config['value']}x execuções)", expanded=False):
+                        with st.expander(f"📋 Config {idx+1}: {config['name']} ({config['value']}x execuções)",
+                                        expanded=False):
                             st.json(config)
                             col1, col2 = st.columns(2)
                             with col1:
                                 if st.button("🔄 Play Configuração", key=f"load_{idx}"):
                                     self.options = config.copy()
                                     st.success(f"Configuração '{config['name']}' carregada!")
-                                    self.run_script(FOLDER_NAME.parent / "run_rce_framework.py")
+                                    #self.run_script(FOLDER_NAME.parent / "run_rce_framework.py")
                                     st.rerun()
                             with col2:
                                 if st.button("🗑️ Deletar", key=f"delete_{idx}"):
@@ -255,8 +271,11 @@ class FrameworkRCEDashboard:
                         try:
                             with st.container():
                                 CardSolutions.render(dados, exec_num)
+
+
                             with st.container():
                                 GraficoRCEComponent.render(exec_num)  # Passa o exec_num para carregar o gráfico correto
+                                
                             with st.container():
                                 StatisticsTableComponent.render(dados)
                         except Exception as e:
