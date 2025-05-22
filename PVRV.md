@@ -1,6 +1,50 @@
 # Resumo Pedro Victor Veras em 2025
 ---
 
+# Plano de Estudo e Projetos – Mestre Pedro Victor
+
+### 🗓️ Estrutura Diária – 2 Projetos + 4h de Estudos
+
+1. **Rotina Base (8h por dia)**
+   - 3h – Projeto 1 (AI, Frontend ou Backend)
+   - 3h – Projeto 2 (AI, Frontend ou Backend)
+   - 4h – Estudos (Matemática, Programação, Eletromagnetismo, Sinais e Sistemas)
+
+2. **Intensidade Progressiva**
+   - Início com exercícios básicos e projetos simples, avançando para projetos complexos e sistemas inteligentes com WebSocket, ESP32 e backend robusto.
+   - Revisão diária do que foi estudado e praticado.
+
+3. **Simulados Semanais (Domingo)**
+   - Programação (Cálculos, Algoritmos e Estrutura de Dados)
+   - Matemática Avançada (Cálculo, Álgebra Linear e Estatística)
+   - Engenharia Elétrica (Circuitos, Eletromagnetismo e Sistemas)
+
+### 📚 Matérias e Conteúdos Importantes
+
+- **Matemática**: Cálculo Diferencial, Álgebra Linear, Equações Diferenciais, Análise de Sinais
+- **Programação**: Estruturas de Dados, Algoritmos, Machine Learning, WebSocket, Integração de Sistemas
+- **Engenharia Elétrica**: Circuitos Elétricos, Eletromagnetismo, Sistemas Lineares, Análise de Redes
+
+### 📝 Testes e Avaliação
+- Testes semanais para medir progresso
+- Revisão com simulados e exercícios difíceis para consolidar conhecimento
+
+### 🚀 Flow Científico para Programação
+- Criar sistemas inteligentes com IA aplicada
+- Desenvolver APIs avançadas e sistemas embarcados (ESP32, microcontroladores)
+- Criar dashboards para análise de dados
+- Trabalhar com simulação de redes elétricas e automação
+
+### 🎯 Meta Semanal
+- Finalizar 2 projetos menores
+- Estudo consistente por 7 dias (28h no total)
+- Praticar exercícios físicos intensos para fortalecer o corpo e a mente
+
+### 💥 Motivação
+"Seja o melhor. Inove. Crie. Evolua. O universo responde à sua intensidade."
+
+
+
 ### 22/05/2025
 
 📚 Carreira e Estudos:
