@@ -8,7 +8,7 @@
 ## Entrevista com gestor
 - Storytelling com minhas experiencias profissionais
 - Resumo da entrevista com a RH
-- 
+  
   
 ⚡ Engenharia Elétrica, Energias Renováveis e Automação:
 Minha missão é desenvolver software com tecnologias de ponta aplicados engenharia elétrica para criar soluções que impulsionem a Indústria 4.0 no foco de Automação Industrial e cidades Inteligentes e com grande foco em sustentabilidade com uso de energias renováveis (solar e eólica). Tenho interesse em microcontroladores, microprocessadores onde quero aplicar IA e robótica para otimizar processos elétricos e industriais, desenvolvendo tecnologias que tornem o mundo mais eficiente e sustentável.
@@ -22,19 +22,69 @@ Minha missão é desenvolver software com tecnologias de ponta aplicados engenha
 
 Total = 1 + 5 + 2 + 1 = 10 min
 
+Roteiro para Entrevista - ONS (10 Minutos)
+
+    Apresentação Pessoal (1 minuto)
+
+        Nome: Pedro Victor Veras
+
+        Idade: 27 anos
+
+        Cidade: Niterói, RJ
+
+        Curso: Engenharia Elétrica, 7º período na UFF
+
+        Conclusão prevista: 2025
+
+        Interesse em integração entre IA, automação industrial e energia renovável.
+
+    Experiências Profissionais (5 minutos)
+
+        Desenvolvedor há 5 anos com experiência em Python, FastAPI, Flask e integração de sistemas.
+
+        Experiência com IA, Machine Learning, análise de dados, desenvolvimento de sistemas web e automação industrial.
+
+        Projetos de impacto real, como:
+
+            Sistema de agendamento para redes elétricas usando PandaPower e algoritmos genéticos para otimização.
+
+            Chatbots com integração N8N e automação para atendimento inteligente.
+
+            Aplicativos com sistemas de pedidos e gestão integrada para delivery.
+
+        Destaque para o uso de PandaPower em simulações de redes elétricas, análise de carga e contingências para melhorar a eficiência e segurança.
+
+    Pontos Fortes (2 minutos)
+
+        Criatividade para resolver problemas complexos.
+
+        Capacidade de aprendizado rápido e adaptação a novos cenários.
+
+        Experiência prática com desenvolvimento fullstack e integração de sistemas.
+
+        Habilidades em automação de processos industriais e análise de sistemas elétricos.
+
+    Pontos de Melhoria (1 minuto)
+
+        Melhorar a organização em projetos longos.
+
+        Aprimorar a gestão de tempo e priorização de tarefas.
+
+        Desenvolver habilidades de liderança para coordenação de equipes.
 
 
 🗣️ Frases para a Entrevista:
 
-"Minha missão é transformar ideias em soluções reais que impactem diretamente a eficiência dos sistemas elétricos."
+    "Minha missão é transformar ideias em soluções reais que impactem diretamente a eficiência dos sistemas elétricos."
 
-"Eu sei que a inovação e a automação são a chave para otimizar sistemas complexos, e eu posso contribuir com minha experiência em Python, Machine Learning e análise de dados."
+    "Eu sei que a inovação e a automação são a chave para otimizar sistemas complexos, e eu posso contribuir com minha experiência em Python, Machine Learning e análise de dados."
 
-"Meu foco é criar soluções inteligentes e escaláveis para redes elétricas, garantindo segurança, eficiência e inovação."
+    "Meu foco é criar soluções inteligentes e escaláveis para redes elétricas, garantindo segurança, eficiência e inovação."
 
-"Com minha experiência em Pandapower, sei como simular cenários complexos e otimizar redes elétricas para evitar falhas e melhorar a confiabilidade."
+    "Com minha experiência em Pandapower, sei como simular cenários complexos e otimizar redes elétricas para evitar falhas e melhorar a confiabilidade."
 
-"Vejo essa oportunidade na ONS como um passo importante para aplicar minhas habilidades em projetos de impacto nacional."
+    "Vejo essa oportunidade na ONS como um passo importante para aplicar minhas habilidades em projetos de impacto nacional."
+
 
 
 1) Conexão com a Missão da ONS
