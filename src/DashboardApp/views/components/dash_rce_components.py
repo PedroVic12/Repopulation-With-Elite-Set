@@ -99,14 +99,36 @@ class CardSolutions:
                 </div>
                 """, unsafe_allow_html=True)
         with col2:
-            st.markdown(
-                f"""
-                <div style="border: 2px solid #e6e6e6; border-radius: 15px; padding: 10px; margin: 10px 0; background-color: #b2b2b2;">
-                <h3 style="color: #1f2db4;">MELHORES VARIÁVEIS DE DECISÃO</h3>
 
-                """, unsafe_allow_html = True
-            )
-            st.write(data.get('best_vars', 'N/A'))
+            
+            # Exibe as melhores variáveis de decisão em formato de tabela com nomes personalizados
+            best_vars = data.get('best_vars', [])
+            if isinstance(best_vars, (list, tuple)):
+                df_best_vars = pd.DataFrame(
+                    {"Valor": best_vars},
+                    index=[f"VAR {i+1}" for i in range(len(best_vars))]
+                )
+                df_best_vars.index.name = "Melhores Variáveis de Decisão"
+                # Converte o DataFrame para HTML e insere no markdown
+                st.markdown(
+                    f"""
+                    <div style="border: 2px solid #e6e6e6; border-radius: 15px; padding: 10px; margin: 10px 0; background-color: #b2b2b2;">
+                    <h3 style="color: #1f2db4;">MELHORES VARIÁVEIS DE DECISÃO</h3>
+                    {df_best_vars.to_html(classes='dataframe', border=0)}
+                    </div>
+                    """, unsafe_allow_html=True
+                )
+
+                st.dataframe(df_best_vars, use_container_width=True)
+            else:
+                st.markdown(
+                    f"""
+                    <div style="border: 2px solid #e6e6e6; border-radius: 15px; padding: 10px; margin: 10px 0; background-color: #b2b2b2;">
+                    <h3 style="color: #1f2db4;">MELHORES VARIÁVEIS DE DECISÃO</h3>
+                    {best_vars}
+                    </div>
+                    """, unsafe_allow_html=True
+                )
 
 
         with st.expander("Parâmetros Utilizados nesta Execução no arquivo params.json", expanded=False, icon="⚙️"):
