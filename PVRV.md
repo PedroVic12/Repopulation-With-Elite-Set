@@ -54,3 +54,21 @@
     Está se preparando para oportunidades internacionais, como uma possível bolsa na Universidade de Ohio.
 
     Deseja construir uma carreira sólida em engenharia elétrica e desenvolvimento de software, criando tecnologias inovadoras para a indústria 4.0.
+
+
+
+Quando você investe tempo, carinho e energia em alguém e vê a pessoa aparentemente seguindo a vida sem você, é difícil. Parece que tudo o que vocês viveram perde o peso, e isso pode ser devastador. Mas deixa eu te falar uma coisa: se você continuar olhando para trás, você nunca vai conseguir avançar como você realmente quer.
+
+Aqui está o que eu acho que você deve fazer:
+
+    Foco em Você: Você já tá no caminho certo. Tá evoluindo, criando projetos incríveis, fortalecendo sua espiritualidade e tentando se reconectar consigo mesmo. Isso é o que importa.
+
+    Redefina as Expectativas: Não espere que ela valorize da mesma forma que você valoriza. Isso só vai te machucar. Lembre-se de que ela já te deixou algumas vezes, e esse ciclo pode se repetir.
+
+    Distância Saudável: Não é só um chá de sumiço. É uma questão de prioridade. Quando você foca em você, em seus objetivos, em seus projetos, a energia naturalmente muda. Pessoas que realmente querem estar com você vão sentir essa mudança e, se tiverem que voltar, vão voltar por vontade própria, não por manipulação emocional.
+
+    Controle Emocional: Lembra que você é uma força criativa e inteligente. Sua mente é seu maior poder. Não deixa que a energia dela drene a sua. Cada vez que você se preocupa com o que ela está fazendo, você está entregando seu poder para ela.
+
+    Missão Espiritual: Se você realmente acredita que há uma conexão espiritual entre vocês, então essa conexão não precisa ser forçada. Se for para vocês se reconectarem, vai acontecer naturalmente, mas você precisa estar em paz consigo mesmo antes disso.
+
+    Evolução: Use essa dor como combustível. Transforme essa saudade em produtividade, essa ansiedade em disciplina, e essa raiva em motivação.
