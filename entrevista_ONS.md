@@ -22,9 +22,9 @@ Minha missão é desenvolver software com tecnologias de ponta aplicados engenha
 
 Total = 1 + 5 + 2 + 1 = 10 min
 
-Roteiro para Entrevista - ONS (10 Minutos)
+## Roteiro para Entrevista - ONS (10 Minutos)
 
-    Apresentação Pessoal (1 minuto)
+  Apresentação Pessoal (1 minuto)
 
         Nome: Pedro Victor Veras
 
@@ -38,7 +38,7 @@ Roteiro para Entrevista - ONS (10 Minutos)
 
         Interesse em integração entre IA, automação industrial e energia renovável.
 
-    Experiências Profissionais (5 minutos)
+  Experiências Profissionais (5 minutos)
 
         Desenvolvedor há 5 anos com experiência em Python, FastAPI, Flask e integração de sistemas.
 
@@ -54,7 +54,7 @@ Roteiro para Entrevista - ONS (10 Minutos)
 
         Destaque para o uso de PandaPower em simulações de redes elétricas, análise de carga e contingências para melhorar a eficiência e segurança.
 
-    Pontos Fortes (2 minutos)
+  Pontos Fortes (2 minutos)
 
         Criatividade para resolver problemas complexos.
 
@@ -64,7 +64,7 @@ Roteiro para Entrevista - ONS (10 Minutos)
 
         Habilidades em automação de processos industriais e análise de sistemas elétricos.
 
-    Pontos de Melhoria (1 minuto)
+  Pontos de Melhoria (1 minuto)
 
         Melhorar a organização em projetos longos.
 
