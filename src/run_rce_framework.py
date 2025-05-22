@@ -15,6 +15,9 @@ import pathlib
 
 import streamlit as st
 
+# src/DashboardApp
+
+# streamlit run dashboard_rce_app_v9.py
 
 def load_params(file_path):
     with open(file_path, "r") as file:
