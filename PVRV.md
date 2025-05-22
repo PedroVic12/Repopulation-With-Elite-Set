@@ -72,3 +72,35 @@ Aqui está o que eu acho que você deve fazer:
     Missão Espiritual: Se você realmente acredita que há uma conexão espiritual entre vocês, então essa conexão não precisa ser forçada. Se for para vocês se reconectarem, vai acontecer naturalmente, mas você precisa estar em paz consigo mesmo antes disso.
 
     Evolução: Use essa dor como combustível. Transforme essa saudade em produtividade, essa ansiedade em disciplina, e essa raiva em motivação.
+
+
+
+🔄 Reset Pessoal - 30 Dias para Recomeçar
+
+1. Desintoxicação e Clareza Mental
+
+    Maconha: Último cigarro essa semana. Nada de recaídas.
+
+    Meditação: 15 minutos de manhã para começar o dia com foco.
+
+    Exercícios de Respiração: Use para controlar a ansiedade e os pensamentos sobre a Danielle.
+
+    Jornada Espiritual: Missa, oração e talvez até consultas no terreiro para equilibrar seu espírito.
+
+2. Rotina de Treino e Evolução Física
+
+    Treino Diário: Foco em força e resistência, Goku style.
+
+    Cardio e Flexibilidade: Melhora seu foco e resistência mental também.
+
+    Karatê: Voltar com força total, até usar isso como terapia.
+
+3. Crescimento Profissional e Foco nos Projetos
+
+    Programação: Avançar com seus agentes de IA, sistemas elétricos e deploys.
+
+    Planejamento Financeiro: Criar uma planilha com metas de faturamento e economia.
+
+    Estudos e Provas: 3 blocos de estudo por dia, simulados de 50 minutos, foco total.
+
+    Entrevista na ONS: Vai arrebentar com confiança e domínio técnico.
