@@ -19,7 +19,9 @@
 
 
 
-O usuário do framework encontrará na pasta compartilhada onde possui três arquivos com extensão jupyter notebook que podem ser abertos diretamente no Google Colab. O Notebook 1 pode ser utilizado para apenas uma execução do AE. Para este fim, o usuário deverá seguir os seguintes passos:
+Na pasta compartilhada onde possui três arquivos com extensão jupyter notebook que podem ser abertos diretamente no Google Colab. O Notebook 1 pode ser utilizado para apenas uma execução do AE. Para este fim, o usuário deverá seguir os seguintes passos:
+
+Se voce tiver windoes execute apens o arquivo `instalador.bat` e depois `executar.bat`
 
 1) Crie um arquivo chamado `parameters.json`
 
@@ -44,12 +46,8 @@ params = {
   }
 ```
 
-2) Pegue o exemplo dos valores no arquivo localizado em:
-https://drive.google.com/drive/folders/1j8Hia_ofFMzTyzUUv27oqj1Nq5lLskSg?usp=drive_link
 
-3) Copie e cole esses valores no arquivo de parâmetros criado.
-
-4) Adapte a função objetivo e as variáveis de decisão para o seu problema de otimização. Crie um array multidimensional de valores float ou int e crie uma função em Python que represente o problema. No trecho de Código 1, é ilustrada a definição de um array ind1 para as variáveis de decisão e uma função evaluate que representa a função objetivo.
+2) Adapte a função objetivo e as variáveis de decisão para o seu problema de otimização. Crie um array multidimensional de valores float ou int e crie uma função em Python que represente o problema. No trecho de Código 1, é ilustrada a definição de um array ind1 para as variáveis de decisão e uma função evaluate que representa a função objetivo.
 
 Código 1: Exemplo de indivíduo e função objetivo 
 ```python
@@ -62,7 +60,7 @@ def evaluate(individual):
 	return a / b
 ```
 
-5) No trecho de Código 2, é ilustrado o funcionamento ao instanciar os objetos criados das três classes do framework. Neste exemplo são utilizados o array ind1 e a função evaluate, criados anteriormente. Ao executar a função run, o usuário escolhe se deseja usar a estratégia RCE [1]. Esta função retorna a população final gerada e o melhor indivíduo da geração, gerando seu gráfico com esses mesmos parâmetros.
+3) No trecho de Código 2, é ilustrado o funcionamento ao instanciar os objetos criados das três classes do framework. Neste exemplo são utilizados o array ind1 e a função evaluate, criados anteriormente. Ao executar a função run, o usuário escolhe se deseja usar a estratégia RCE [1]. Esta função retorna a população final gerada e o melhor indivíduo da geração, gerando seu gráfico com esses mesmos parâmetros.
 
 
 Código 2: Código Main para execução do framework
@@ -101,22 +99,22 @@ if __name__ == "__main__":
 
 
 
-6) Para obter resultados e gráficos diferentes, modifique os parâmetros evolutivos do arquivo JSON, salve e execute novamente.
+4) Para obter resultados e gráficos diferentes, modifique os parâmetros evolutivos do arquivo JSON, salve e execute novamente.
 
-7) É possivel baixar em arquivo .xlsx a população final gerada
+5) É possivel baixar em arquivo .xlsx a população final gerada
 
-8) A versão frontend dos resultados ficam localizados em:
+6) A versão frontend dos resultados ficam localizados em:
 
    		/src/DashboardApp/dashboard_rce_app_v9.py
 
-9) Excute o arquivo do frontend
+7) Excute o arquivo do frontend
 
 ```py
 streamlit run dashboard_rce_app_v9.py
 ```
 
 
-10) A versão esta em desenvolvimento desde 10/04/2025 e segue buscando melhorias e contribuições em outros programadores para construir uma interface em Streamlit e programação funcional para obter um sistema que surporte diferentes execuções com tabelas e graficos dos resultados do algoritimo evolutivo com ou sem a estrategia RCE
+8) A versão esta em desenvolvimento desde 10/04/2025 e segue buscando melhorias e contribuições em outros programadores para construir uma interface em Streamlit e programação funcional para obter um sistema que surporte diferentes execuções com tabelas e graficos dos resultados do algoritimo evolutivo com ou sem a estrategia RCE
 
 ### **Dicas**:
 
