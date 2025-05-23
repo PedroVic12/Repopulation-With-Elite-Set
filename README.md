@@ -136,6 +136,8 @@ streamlit run dashboard_rce_app_v9.py
 
 ![image](https://github.com/user-attachments/assets/1291f753-d5c8-44b5-8cc2-460b1a6bd5ca)
 
+**Simulador de Redes Elétricas: Um software para simular o comportamento da rede em diferentes cenários, prevendo falhas e otimizando o fluxo de energia.**
+
 
 Esta classe representa uma rede elétrica usando a biblioteca Pandapower. Ela fornece funcionalidades para carregar redes padrão, validar dados de agendamento e contingência, calcular violações de fitness, ajustar cargas, desligar/religar elementos da rede e executar o fluxo de carga.
 
