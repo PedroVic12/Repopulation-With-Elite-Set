@@ -261,10 +261,10 @@ class StatisticsTableComponent:
         if df_pop_final is not None:
             st.markdown("---")
             st.subheader("Tabela de População Final")
-            df_pop_final = df_pop_final.drop(columns=["Unnamed: 0", "index"], errors='ignore')
+            df_pop_final = df_pop_final.drop(columns=["Unnamed: 0", "index", "Generations"], errors='ignore')
             st.dataframe(df_pop_final, use_container_width=True)
 
-            
+
             # Abre o arquivo usando o caminho completo para o botão de download
             
             
