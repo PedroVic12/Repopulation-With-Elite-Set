@@ -58,8 +58,8 @@ class ConsolidatedResultsComponent:
                 tempo_total = exec_time.sum()
                 
                 st.dataframe(df_consolidado)
-                st.write(f"Média do tempo de Execução em segundos = ",round(time_exec_media,3))
-                st.write("Tempo total de execução = ", round(tempo_total,2))
+                st.write(f"Média do tempo de Execução (em segundos) = ",round(time_exec_media,3))
+                st.write("Tempo total de execução (em segundos) = ", round(tempo_total,2))
 
                 # Adiciona o botão de download
                 button_save_excel(consolidated_excel_path, "results_consolidados.xlsx")
@@ -75,72 +75,69 @@ class ConsolidatedResultsComponent:
         st.markdown("---")
 
 
-
 class CardSolutions:
     """Componente para exibir o resumo da melhor solução."""
-    
+
     @staticmethod
-    def render(data, exec_num, debug = False):
+    def render(data, exec_num, debug=False):
         """Exibe o cabeçalho e o resumo da melhor solução."""
         st.subheader(f"Resultados da Execução: {exec_num}")
-        
+
         if debug:
             st.write(data)
 
+        # Obter os dados necessários
+        best_gen_idx = data.get('best_gen_idx', 'N/A')
+        best_fitness = data.get('best_fitness', float('nan'))
+        best_vars = data.get('best_vars', [])
 
-        col1, col2 = st.columns(2)
-        with col1:
-            st.markdown(
-                f"""
-                <div style="
-                    border: 2px solid #e6e6e6; 
-                    border-radius: 15px; 
-                    padding: 60px 1px; 
-                    background-color: #b2b2b2;
-                    display: flex;
-                    flex-direction: column;
-                    align-items: center;
-                    justify-content: center;
-                    text-align: center; 
-                ">
+        # Criar tabela de variáveis de decisão
+        if isinstance(best_vars, (list, tuple)) and len(best_vars) > 0:
+            best_vars_table = pd.DataFrame(
+                {"Valor": best_vars},
+                index=[f"VAR {i+1}" for i in range(len(best_vars))]
+            ).to_html(classes='dataframe', border=1, justify='center', index_names=True, index=True)
+        else:
+            best_vars_table = "<p>Nenhuma variável encontrada.</p>"
+
+        # Renderizar o card com os dados
+        st.markdown(
+            f"""
+            <div style="
+                border: 2px solid #e6e6e6; 
+                border-radius: 15px; 
+                padding: 10px; 
+                background-color: #c4c4c4;
+                margin-bottom: 20px;
+                display: flex;
+                flex-direction: row;
+                justify-content: space-between;
+                align-items: flex-start;
+            ">
+                <div style="flex: 1; margin-right: 100px;">
+                    <hr style="border: 2px solid blue; margin: 20px 0;">
                     <h2 style="color: #1f2db4; margin-bottom: 18px;">Resumo da Melhor Solução</h2>
-                    <h2 style="margin: 8px 0;"><strong>Melhor Geração:</strong> {data.get('best_gen_idx', 'N/A')}</h2>
-                    <h2 style="margin: 8px 0;"><strong>Melhor Fitness:</strong> {data.get('best_fitness', 'N/A'):.6f}</h2>
+                    <hr style="border: 2px solid blue; margin: 20px 0;">
+                    <h2><strong>Melhor Geração:</strong> {best_gen_idx}</h2>
+                    <h2><strong>Melhor Fitness:</strong> {best_fitness:.6f}</h2>
                 </div>
-                """, unsafe_allow_html=True)
-        
-        with col2:
-            # Exibe as melhores variáveis de decisão em formato de tabela com nomes personalizados
-            best_vars = data.get('best_vars', [])
-            if isinstance(best_vars, (list, tuple)):
-                df_best_vars = pd.DataFrame(
-                    {"Valor": best_vars},
-                    index=[f"VAR {i+1}" for i in range(len(best_vars))]
-                )
-                df_best_vars.index.name = "Melhores Variáveis de Decisão"
-                # Converte o DataFrame para HTML e insere no markdown
-                st.markdown(
-                    f"""
-                    <div style="border: 2px solid #e6e6e6; border-radius: 15px; padding: 10px; margin: 10px 0; background-color: #b2b2b2;">
-                    <h2 style="color: #1f2db4;">MELHORES VARIÁVEIS DE DECISÃO</h2>
-                    {df_best_vars.to_html(classes='dataframe', border=1, justify='center', index_names=True, index=True, col_space=100)}
-                    </div>
-                    """, unsafe_allow_html=True
-                )
+                <hr style="border: 2px solid red; margin: 20px 0;">
+                <div style="flex: 1;">
+                    <hr style="border: 2px solid blue; margin: 20px 0;">
+                    <h2 style="color: #1f2db4;">Melhores Variáveis de Decisão</h2>
+                    <hr style="border: 2px solid blue; margin: 20px 0;">
+                    {best_vars_table}
+                </div>
+            </div>
+            """,
+            unsafe_allow_html=True
+        )
 
-                #st.dataframe(df_best_vars, use_container_width=True)
-
-
-
-
-        with st.expander("Parâmetros Utilizados nesta Execução no arquivo params.json", expanded=False, icon="⚙️"):
+        # Expandir para mostrar os parâmetros utilizados
+        with st.expander("Parâmetros Utilizados nesta Execução", expanded=False):
             st.json(data.get('params', {}))
-        
-            
+
         st.markdown("---")
-
-        
-
 
 
 class GraficoRCEComponent:
