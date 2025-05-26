@@ -58,7 +58,7 @@ class ConsolidatedResultsComponent:
                 tempo_total = exec_time.sum()
                 
                 st.dataframe(df_consolidado)
-                st.write(f"Média do tempo de Execução (em segundos) = ",round(time_exec_media,3))
+                st.write(f"Média do tempo de cada execução (em segundos) = ",round(time_exec_media,3))
                 st.write("Tempo total de execução (em segundos) = ", round(tempo_total,2))
 
                 # Adiciona o botão de download
