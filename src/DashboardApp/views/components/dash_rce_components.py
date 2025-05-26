@@ -100,38 +100,64 @@ class CardSolutions:
         else:
             best_vars_table = "<p>Nenhuma variável encontrada.</p>"
 
-        # Renderizar o card com os dados
-        st.markdown(
-            f"""
-            <div style="
-                border: 2px solid #e6e6e6; 
-                border-radius: 15px; 
-                padding: 10px; 
-                background-color: #c4c4c4;
-                margin-bottom: 20px;
-                display: flex;
-                flex-direction: row;
-                justify-content: space-between;
-                align-items: flex-start;
-            ">
-                <div style="flex: 1; margin-right: 100px;">
-                    <hr style="border: 2px solid blue; margin: 20px 0;">
-                    <h2 style="color: #1f2db4; margin-bottom: 18px;">Resumo da Melhor Solução</h2>
-                    <hr style="border: 2px solid blue; margin: 20px 0;">
+        # Criar layout com duas colunas
+        col1, col2 = st.columns(2)
+
+        # Card 1: Resumo da Melhor Solução
+        with col1:
+            # Safely format best_fitness
+            import math
+            if isinstance(best_fitness, (int, float)) and not math.isnan(best_fitness):
+                best_fitness_str = f"{best_fitness:.6f}"
+            else:
+                best_fitness_str = str(best_fitness)
+            st.markdown(
+                f"""
+                <div style="
+                    border: 2px solid #e6e6e6; 
+                    border-radius: 15px; 
+                    padding:40px;
+                    background-color: #c4c4c4;
+                    height: 400px;
+                    display: flex;
+                    flex-direction: column;
+                    justify-content: center;
+                    align-items: center;
+                ">
+                    <hr style="border: 2px solid blue; width: 80%;">
+                    <h2 style="color: #1f2db4; text-align: center;">Resumo da Melhor Solução</h2>
+                    <hr style="border: 2px solid blue; width: 80%;">
                     <h2><strong>Melhor Geração:</strong> {best_gen_idx}</h2>
-                    <h2><strong>Melhor Fitness:</strong> {best_fitness:.6f}</h2>
+                    <h2><strong>Melhor Fitness:</strong> {best_fitness_str}</h2>
                 </div>
-                <hr style="border: 2px solid red; margin: 20px 0;">
-                <div style="flex: 1;">
-                    <hr style="border: 2px solid blue; margin: 20px 0;">
-                    <h2 style="color: #1f2db4;">Melhores Variáveis de Decisão</h2>
-                    <hr style="border: 2px solid blue; margin: 20px 0;">
+                """,
+                unsafe_allow_html=True
+            )
+
+        # Card 2: Melhores Variáveis de Decisão
+        with col2:
+            st.markdown(
+                f"""
+                <div style="
+                    border: 2px solid #e6e6e6; 
+                    border-radius: 15px; 
+                    padding: 20px; 
+                    background-color: #c4c4c4;
+                    margin-bottom: 20px;
+                    height: 100%;
+                    display: flex;
+                    flex-direction: column;
+                    justify-content: center;
+                    align-items: center;
+                ">                    
+                    <hr style="border: 2px solid blue; width: 80%;">
+                    <h2 style="color: #1f2db4; text-align: center;">Melhores Variáveis de Decisão</h2>
+                    <hr style="border: 2px solid blue; width: 80%;">
                     {best_vars_table}
                 </div>
-            </div>
-            """,
-            unsafe_allow_html=True
-        )
+                """,
+                unsafe_allow_html=True
+            )
 
         # Expandir para mostrar os parâmetros utilizados
         with st.expander("Parâmetros Utilizados nesta Execução", expanded=False):
