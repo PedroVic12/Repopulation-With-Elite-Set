@@ -92,10 +92,20 @@ class CardSolutions:
         with col1:
             st.markdown(
                 f"""
-                <div style="border: 2px solid #e6e6e6; border-radius: 15px; padding: 12px; margin: 10px 5; background-color: #b2b2b2;">
-                <h3 style="color: #1f2db4;">Resumo da Melhor Solução</h3>
-                <h4><strong>Melhor Geração:</strong> {data.get('best_gen_idx', 'N/A')}</h4>
-                <h4><strong>Melhor Fitness:</strong> {data.get('best_fitness', 'N/A'):.6f}</h4>
+                <div style="
+                    border: 2px solid #e6e6e6; 
+                    border-radius: 15px; 
+                    padding: 60px 1px; 
+                    background-color: #b2b2b2;
+                    display: flex;
+                    flex-direction: column;
+                    align-items: center;
+                    justify-content: center;
+                    text-align: center; 
+                ">
+                    <h2 style="color: #1f2db4; margin-bottom: 18px;">Resumo da Melhor Solução</h2>
+                    <h2 style="margin: 8px 0;"><strong>Melhor Geração:</strong> {data.get('best_gen_idx', 'N/A')}</h2>
+                    <h2 style="margin: 8px 0;"><strong>Melhor Fitness:</strong> {data.get('best_fitness', 'N/A'):.6f}</h2>
                 </div>
                 """, unsafe_allow_html=True)
         
@@ -112,8 +122,8 @@ class CardSolutions:
                 st.markdown(
                     f"""
                     <div style="border: 2px solid #e6e6e6; border-radius: 15px; padding: 10px; margin: 10px 0; background-color: #b2b2b2;">
-                    <h3 style="color: #1f2db4;">MELHORES VARIÁVEIS DE DECISÃO</h3>
-                    {df_best_vars.to_html(classes='dataframe', border=0)}
+                    <h2 style="color: #1f2db4;">MELHORES VARIÁVEIS DE DECISÃO</h2>
+                    {df_best_vars.to_html(classes='dataframe', border=1, justify='center', index_names=True, index=True, col_space=100)}
                     </div>
                     """, unsafe_allow_html=True
                 )
