@@ -98,9 +98,8 @@ class CardSolutions:
                 <h4><strong>Melhor Fitness:</strong> {data.get('best_fitness', 'N/A'):.6f}</h4>
                 </div>
                 """, unsafe_allow_html=True)
+        
         with col2:
-
-            
             # Exibe as melhores variáveis de decisão em formato de tabela com nomes personalizados
             best_vars = data.get('best_vars', [])
             if isinstance(best_vars, (list, tuple)):
@@ -119,16 +118,9 @@ class CardSolutions:
                     """, unsafe_allow_html=True
                 )
 
-                st.dataframe(df_best_vars, use_container_width=True)
-            else:
-                st.markdown(
-                    f"""
-                    <div style="border: 2px solid #e6e6e6; border-radius: 15px; padding: 10px; margin: 10px 0; background-color: #b2b2b2;">
-                    <h3 style="color: #1f2db4;">MELHORES VARIÁVEIS DE DECISÃO</h3>
-                    {best_vars}
-                    </div>
-                    """, unsafe_allow_html=True
-                )
+                #st.dataframe(df_best_vars, use_container_width=True)
+
+
 
 
         with st.expander("Parâmetros Utilizados nesta Execução no arquivo params.json", expanded=False, icon="⚙️"):
