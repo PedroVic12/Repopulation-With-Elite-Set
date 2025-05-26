@@ -1,173 +1,203 @@
-from rede_eletrica import RedeEletricaPandaPower
-from pandapower.plotting import simple_plot, simple_plotly, pf_res_plotly
 import pandas as pd
+import pandapower as pp
+import pandapower.networks as ppnets
+import pandapower.plotting as ppl
+from pandapower.plotting.plotly import pf_res_plotly
+from rede_eletrica import RedeEletricaPandaPower
+from matplotlib.lines import Line2D
+import matplotlib.pyplot as mplt
+import numpy as np
+from IPython.display import display
 
 
-# YouTube Tutorial: https://www.youtube.com/watch?v=4LQLZQWPaPM
-import pandapower.networks as nw
-import pandapower.plotting as plot
-import matplotlib.pyplot as plt
-import seaborn
-
-colors = seaborn.color_palette()
-
-
-#! 1) Criar a rede elétrica IEEE 14 barras, Inicializar a classe com a rede e carrega a tabela de agendamento
-rede = RedeEletricaPandaPower("14", debug=True)
+# Supondo que RedeEletricaPandaPower seja uma classe definida
+network_name = "14"
+rede = RedeEletricaPandaPower(network_name, debug=True)
 net = rede.net
-net = nw.mv_oberrhein()
+exibir_tabelas = False
 
-print(net)
+# Aumentar o estresse na rede significa que mais linhas se tornam críticas,
+# o que é bom para fins de demonstração da análise de contingência.
 
+# Desativar a subestação externa (external grid)
+net.ext_grid['in_service'] = False
 
-bc = plot.create_bus_collection(net, buses=net.bus.index, color=colors[0], size=80, zorder=1)
-lc = plot.create_line_collection(net, lines=net.line.index, color='grey', zorder=2)
+# Aumentar a carga padrão para estressar ainda mais a rede:
+net.load.scaling = 1.5
 
-long_lines = net.line.loc[net.line.length_km > 2.].index
-lcl = plot.create_line_collection(net, lines=long_lines, color=colors[2], zorder=2)
-plot.draw_collections([lc, bc, lcl])
-plt.show()
+# Ajustar as tensões terminais dos geradores para que as tensões dos barramentos e estejam dentro de uma faixa mais prática, de 0.95 pu a 1.05 pu.
+net.gen['vm_pu'] = 1.045
 
+# Realizar um despacho simples de geradores maximizando os três primeiros geradores e definindo o quarto como slack.
+net.gen.loc[0, 'p_mw'] = 120
+net.gen.loc[1, 'p_mw'] = 100
+net.gen.loc[2, 'p_mw'] = 100
+net.gen.loc[3, 'slack'] = True
 
+# Executar o Fluxo de Potência na condição base
+pp.runpp(net, numba=False)
+print("Fluxo de Potencia executado!")
 
-def funcao_objetivo_IEEE14(individuo, _debug = False):
+# Imprimir a Geração Total e a Carga como uma Verificação Rápida
+gen_mw_total = net.res_gen['p_mw'].sum()
+imports_mw_total = net.res_ext_grid['p_mw'].sum()
 
-    #! 1) Criar a rede elétrica IEEE 14 barras, Inicializar a classe com a rede e carrega a tabela de agendamento
-    rede = RedeEletricaPandaPower("14", debug=_debug)
+print('Geração total em MW:', gen_mw_total + imports_mw_total)
+print('Geração total importada em MW:', imports_mw_total)
+print('Geração total local em MW:', gen_mw_total)
+print('Carga total em MW:', net.res_load['p_mw'].sum())
 
-    #=====================================================
+# Exibir tabelas se solicitado
+if exibir_tabelas:
+                print("\n--- Tabelas Detalhadas da Rede ---")
+                print(f"Nome da Rede: IEEE {network_name}")
+                print("\nEstrutura Completa da Rede (Objeto 'net'):")
+                print(net)
 
-    #! Colocando pesos como input do usuario e os dados de entrada do agendamento
-    rede.pesos["tensao"] = {"min": 100, "max": 100}
-    rede.pesos["loading_linhas"] = 100
-    rede.pesos["loading_trafos"] = 100
-
-    #=====================================================
-
-    # Tabela agendamentos em xlsx hardcoded
-    agendamento_df = pd.DataFrame([
-        {"ramo": [1, 4], "inicio": "14:00", "duracao": 6 ,"prioridade": 4},
-        {"ramo": [1, 3], "inicio": "15:00", "duracao": 5, "prioridade": 1},
-        {"ramo": [3, 6], "inicio": "14:00", "duracao": 6, "prioridade": 1},
-        {"ramo": [11, 12], "inicio": "18:00", "duracao": 6, "prioridade": 1},
-        {"ramo": [9, 10], "inicio": "15:00", "duracao": 4, "prioridade": 1}
-    ])
-
-    contingencia_df = pd.DataFrame([
-            {"contingencia":1,  "from":2 , "to": 3},
-            {"contingencia":2,  "from":5 , "to": 12},
-            {"contingencia":3,  "from":12 , "to": 13},
-    ])
-
-    # Converter horários de início para horas do dia
-    agendamento_df['inicio'] = agendamento_df['inicio'].apply(lambda x: int(x.split(':')[0]))
-
-    # Calcular horário de término em horas do dia
-    agendamento_df['final'] = agendamento_df.apply(lambda row: (row['inicio'] + row['duracao']) % 24, axis=1)
-
-    # Calcular a duração total do agendamento em horas
-    duracao_total_agendamento = (agendamento_df['inicio']+agendamento_df['duracao']).max()
-    rede.validar_dados(agendamento_df, contingencia_df)
+                if 'gen' in net:
+                    print("\nTabela de Geradores ('net.gen'):")
+                    display(net.gen)
 
 
-    # passando a variavel de decisão na função objetivo
-    agendamento_df["inicio"] = individuo
+                if 'load' in net:
+                    print("\nTabela de Cargas ('net.load'):")
+                    display(net.load)
 
-    # TODO -> Corrgir a coluna final com a duração para cada cenarios
-    #display(agendamento_df)
-    #agendamento_df["final"] = agendamento_df.apply(lambda row: (row['inicio'] + row['duracao']) % 24, axis=1)
 
-    # Calcular a duração total do agendamento em horas
-    #duracao_total_agendamento = (agendamento_df['inicio']+agendamento_df['duracao']).max()
+                if 'res_gen' in net:
+                     print("\nTabela de Resultados dos Geradores ('net.res_gen'):")
+                     display(net.res_gen)
 
-    #=====================================================
 
-    # 2)  Avaliar cenários e criar matriz de cenários
-    matriz_cenarios = rede.avalia_cenarios(
-            horas = duracao_total_agendamento,
-            hora_inicio=agendamento_df['inicio'],
-            duracao=agendamento_df['duracao'],
-            ls=0, le=8,
-            ms=8, me=18,
-            hs=18, he=24
+                if 'res_bus' in net:
+                    print("\nTabela de Resultados dos Barramentos ('net.res_bus'):")
+                    display(net.res_bus)
+
+
+                # Adicionar outras tabelas comuns se existirem na sua rede
+                if 'line' in net:
+                     print("\nTabela de Linhas ('net.line'):")
+                     display(net.line)
+
+
+                if 'res_line' in net:
+                     print("\nTabela de Resultados das Linhas ('net.res_line'):")
+                     display(net.res_line)
+
+
+                if 'trafo' in net:
+                     print("\nTabela de Transformadores ('net.trafo'):")
+                     display(net.trafo)
+
+                if 'res_trafo' in net:
+                     print("\nTabela de Resultados dos Transformadores ('net.res_trafo'):")
+                     display(net.res_trafo)
+
+
+                print("\n--- Fim das Tabelas ---")
+
+
+# --- Análise de Contingência para encontrar linhas críticas ---
+
+def realizar_analise_contingencia(rede, vmax=1.05, vmin=0.95, line_loading_max=100):
+    """
+    Realiza a análise de contingência para cada linha na rede
+    e retorna os índices das linhas críticas.
+    """
+    linhas = rede.line.index
+    indices_linhas_criticas = []
+
+    print("\nRealizando análise de contingência para as linhas...")
+    for l in linhas:
+        # Temporariamente desativar a linha (simulando a contingência)
+        rede.line.loc[l, 'in_service'] = False
+        try:
+            # Executar o fluxo de potência com a contingência
+            pp.runpp(rede, numba=False)
+
+            # Verificar violações (limites de tensão e carregamento de linha)
+            if rede.res_bus.vm_pu.max() > vmax or rede.res_bus.vm_pu.min() < vmin or rede.res_line.loading_percent.max() > line_loading_max:
+                indices_linhas_criticas.append(l)
+
+        except pp.LoadflowNotConverged:
+            print(f"Fluxo de potência não convergiu para a contingência da linha {l}. Considerada crítica.")
+            indices_linhas_criticas.append(l)
+        except Exception as e:
+            print(f"Ocorreu um erro durante o fluxo de potência para a contingência da linha {l}: {e}")
+            # Dependendo dos requisitos da sua análise, você pode querer tratar outros erros como críticos
+            # indices_linhas_criticas.append(l)
+        finally:
+            # Sempre retornar a linha ao serviço
+            rede.line.loc[l, 'in_service'] = True
+            # Executar o fluxo de potência na condição base novamente se o fluxo de potência falhou durante a contingência
+            pp.runpp(rede, numba=False)
+
+    return list(set(indices_linhas_criticas)) # Remover duplicatas
+
+
+
+# --- Plotagem com cores de status ---
+def plotar_rede_com_status(rede, indices_linhas_criticas):
+    """
+    Plota a rede com cores personalizadas para barramentos, linhas e transformadores.
+    Linhas críticas são destacadas em vermelho.
+    """
+    # Barramentos: verde = em serviço, vermelho = fora
+    bus_color = ['green' if status else 'red' for status in rede.bus.in_service]
+
+    # Linhas: vermelha se crítica ou fora de serviço
+    line_color = []
+    for i in rede.line.index:
+        if not rede.line.at[i, 'in_service'] or i in indices_linhas_criticas:
+            line_color.append('red')
+        else:
+            line_color.append('green')
+
+    # Transformadores (se houver)
+    trafo_color = ['blue' if status else 'red' for status in rede.trafo.in_service] if not rede.trafo.empty else None
+
+    # Plotagem única with tudo configurado
+    # Store the axes object returned by simple_plot
+
+    ax = ppl.simple_plot(
+            rede,
+            bus_color=bus_color,
+            line_color=line_color,
+            trafo_color=trafo_color,
+            ext_grid_color='black',
+            ext_grid_size= 2.0,
+            line_width=2.0,
+            bus_size=2,
+            trafo_size=3,
+            plot_line_switches=True,
+           
         )
-    #=====================================================
+        
+        # Legenda manual
+    legenda = [
+            Line2D([0], [0], marker='o', color='w', label='Barramentos Ativo',
+                markerfacecolor='green', markersize=10),
+            Line2D([0], [0], marker='o', color='w', label='Linhas de trasmissão: Crítico / Inativo',
+                markerfacecolor='red', markersize=10),
+            Line2D([0], [0], marker='o', color='w', label='Transformadores',
+                markerfacecolor='blue', markersize=10),
+        ]
 
-    #! Calculo  de otimização para achar o fitness de cada cenario
-    violacoes_total = []
-    violacoes_hash_table = {}
+        # Add the legend to the axes
+    ax.legend(handles=legenda, loc='best')
+    ax.set_title("Status da Rede Elétrica IEEE 14 - Crítico (Vermelho) x Normal (Verde)")
 
-    # Generate hash key (teste 01)
-    contingencias = contingencia_df['contingencia'].to_list()
-    num_carregamentos = 3
-    num_contingencias = len(contingencias) # 3
-    num_desligamentos = len(agendamento_df) # 5
-
-    # FAZENDO UM BANCO EM MEMORIA DE EXECUÇÃO
-    bd_aptidao_cenario =[-1.0]*(num_contingencias* num_carregamentos*(2**num_desligamentos) )
-
-    try:
-        # 3) Processar cada cenário da matriz de cenários
-        for cenario in matriz_cenarios:
-            perfil = cenario[0]
-            estado_ramos = cenario[1:]
-
-            # 4) Ajustar carregamento para o perfil do cenário
-            rede.ajustar_cargas(perfil)
-
-            # Loop through contingencies before calculating violations for the scenario
-            for contingencia_atual in range(num_contingencias):
-                contingencia_atual += 1
-
-                #5)  Ligar todos os ramos antes de aplicar mudanças
-                rede.religar_todos_os_ramos_agendamento()
-
-                # 6) Fazendo os deligamentos com base na tabela em .xlsx e nos cenários calculados
-                rede.desligar_elementos_agendamento(estado_ramos)
-
-                # 7) Identifica ramos afetados pela contingência
-                ramo_contingencia = list(contingencia_df.loc[contingencia_df['contingencia'] == contingencia_atual, ['from', 'to']].values[0])
-                rede.log(f"\n{contingencia_atual}) Ramo da contingencia = { ramo_contingencia}\n")
-
-                # 8) Desliga os ramos afetados
-                rede.desligar_contingencia(ramo_contingencia)
-
-                # 9) Executar fluxo de potência para o cenário com contingência
-                if rede.executar_fluxo_de_carga():
-
-                    # 10) Calcular violações com pesos e armazenar os resultados
-                    fitness, violacoes_df = rede.calcular_violacoes_fitness()
-                    violacoes_total.append(fitness)
-
-                else:
-                    fitness = rede.pesos["demanda"] # penalidade com valor default de 99
+    mplt.show()
 
 
-                #02/05/25 - Testar hashtable mais generica fora do for loop
-
-                #! 11) Store violation in the hash table
-                hash_key = rede.hashtableindex(perfil, num_carregamentos, contingencia_atual, num_contingencias, estado_ramos)
-                violacoes_hash_table[hash_key] = fitness
-                bd_aptidao_cenario[hash_key] = fitness
-                rede.log(f"Hash key = { hash_key}\n")
 
 
-            #! Ver apenas o true in service de barras e transformadores
-            rede.show_status()
+# Executar a análise de contingência
+critical_lines_indx = realizar_analise_contingencia(net)
+print(f"Índices das linhas críticas = {critical_lines_indx} ")
 
-        #! Usando dicionario nos temos os valores acumulando tirando os valores nulos
-        hash_df2 = pd.DataFrame(violacoes_hash_table.items(), columns=['Hash Key', 'Fitness'])
+# Executar a plotagem
+plotar_rede_com_status(net, critical_lines_indx)
 
-        # Passando os valores do array direto no dataframe com os index como chave (hash = chave, valor)
-        hash_df = pd.DataFrame(bd_aptidao_cenario, columns=[ 'Fitness'])
-        filtered_hash_table = hash_df.loc[hash_df['Fitness'] > 0]
-
-        hash_df.to_excel("hash_table.xlsx", index=False)
-
-        # 12) Calcular fitness final com somatorio das vioações com pesos de todos os cenarios
-        fitness_final = sum(violacoes_total)
-        rede.log(f"\nFitness do agendamento = {fitness_final:.2f}\n")
-        return fitness_final
-
-    except Exception as e:
-        print(f"\nErro: {e}")
+print("\n\nPlot da Rede com cores de status pela tensão nos barramentos")
+pf_res_plotly(net)
