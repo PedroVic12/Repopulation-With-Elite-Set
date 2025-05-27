@@ -77,6 +77,10 @@ class PDFGenerator(FPDF):
 # Streamlit Interface
 def EasyPDF():
     st.title("Gerador de PDF com Unicode")
+    st.markdown("---", unsafe_allow_html=True)
+    st.subheader("Preencha os campos abaixo para gerar seu PDF")
+
+    # Entradas de texto para título, subtítulo, corpo do texto e rodapé
     titulo = st.text_input("Título", "Meu PDF Gerado")
     subtitulo = st.text_input("Subtítulo", "Subtítulo do PDF")
     texto = st.text_area("Texto", "Este é o corpo do texto do PDF.")
@@ -115,4 +119,6 @@ def EasyPDF():
         st.download_button("Baixar PDF", data=open(output_path, "rb").read(), file_name="output.pdf")
 
 
-EasyPDF()
+    st.rerun()
+    
+#EasyPDF()
