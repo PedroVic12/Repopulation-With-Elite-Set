@@ -7,7 +7,7 @@ from views.pages.FramewrokRCEDashboardPage import FrameworkRCEDashboard
 from views.pages.c3po_chatbot_page import C3poChatbotPage
 from views.pages.StreamlitDashbord import StreamlitDashboard
 from views.pages.code_editor_page import CodeEditorPage
-
+from views.pages.EasyPDF_page import EasyPDF
 
 import sys
 from pathlib import Path
@@ -45,6 +45,7 @@ def DrawerSideBar():
         #"📊 Benchmarking Analysis": BenchmarkingPage,
         "📑 Tab Demonstration": TabExamplePage,
         #"📊 Python Editor": CodeEditorPage,
+        "Gerador de PDF": EasyPDF,
     }
 
     # Navegação com rádio buttons
