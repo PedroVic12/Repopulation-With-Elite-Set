@@ -264,6 +264,10 @@ class StatisticsTableComponent:
             df_pop_final = df_pop_final.drop(columns=["Unnamed: 0", "index", "Generations"], errors='ignore')
             st.dataframe(df_pop_final, use_container_width=True)
 
+            df_pop_final["Parentesco"] = df_pop_final["Diversidade"].apply(
+
+                lambda x: "Baixo" if x > 0 and x < 50 else "Médio" if x < 70 else "Alto"
+            )
 
             # Abre o arquivo usando o caminho completo para o botão de download
             
