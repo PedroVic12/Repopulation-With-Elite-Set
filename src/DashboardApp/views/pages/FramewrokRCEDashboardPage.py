@@ -227,6 +227,8 @@ class FrameworkRCEDashboard:
         # Opções de execução para multiplos parametros de algoritmo Genético
         options_dashboard = self.render_execution_options()
 
+
+        st.info("⚠️ Configuração de parametros do Framework esta ainda em desenvolvimento, por favor, aguarde a versão 10.0 do Framework para uma melhor experiência de usuário.")
         # Botão com ícone de play para executar um script Python
         if st.button("▶️ Executar Script", type="primary"):
                   

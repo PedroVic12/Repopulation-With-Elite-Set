@@ -40,14 +40,33 @@ def OptionsEditor():
     # Formulário para editar opções
     with st.form("options_editor"):
         options["name"] = st.text_input("Nome do Script", options["name"])
-        options["key"] = st.checkbox("Chave Ativada", options["key"])
-        options["value"] = st.slider("Valor", 1, 10, options["value"])
+        options["key"] = st.checkbox("MUltiplas execuções Ativada", options["key"])
+        
+        if options["key"]:
+
+            # Slider para quantidade de execuções
+            options["value"] = st.slider("Quantidade de Execuções", 5, 30, options["value"])
+        else:
+            options["value"] = 1
+        # Exibir opções de parâmetros
 
         # Editar parâmetros opcionais
         st.write("Parâmetros Opcionais:")
         for param in options["parametros_opcionais"]:
             for key, values in param.items():
                 param[key] = st.multiselect(f"{key}:", values, default=values)
+
+                text_field = st.text_input(
+                    f"Editar {key} (separado por vírgulas):",
+                    value=", ".join(map(str, values)),
+                    key=f"{key}_input"
+                )
+                if text_field:
+                    param[key] = [int(x) for x in text_field.split(",")]
+        # Exibir opções editadas
+        st.write("Opções Editadas:")
+        st.json(options)
+        
 
         # Botão para salvar alterações
         if st.form_submit_button("Salvar Alterações"):
