@@ -80,7 +80,18 @@ def EasyPDF():
 
     # Entrada de tabela em CSV
     st.subheader("Tabela")
-    tabela = st.text_area("Insira os dados da tabela em formato CSV", "Horário,Atividade,Duração,Status\n08h30-08h40,Aquecimento mental,10 min,✔️\n08h40-09h10,Simulado 1,30 min,❌")
+    texto_csv = """"
+    Horário,Atividade,Prioridade,Observações
+    17:42,Deslocamento para casa,Urgente,Não perder tempo+ se possível+ revisar algo no caminho
+    18:00,Jantar rápido e prático,Urgente,Algo leve para não pesar
+    18:30,Estudo - Capítulos 1 a 5 (mais importantes),Alta,Foco total+ sem distrações
+    20:00,Estudo - Capítulos 6 a 10 (revisão rápida ou tópicos chave),Média,Se o tempo permitir+ dar uma olhada geral
+    21:00,Resolução da Prova Antiga 1,Alta,Simular o ambiente da prova+ cronometrar
+    22:30,Resolução da Prova Antiga 2,Alta,Focar nos erros da primeira prova
+    00:00,Revisão rápida de fórmulas e conceitos chave,Média,Pontos fracos ou que geram mais dúvidas
+    00:30,Dormir,Urgente,Descanso é essencial para a prova
+                """
+    tabela = st.text_area("Insira os dados da tabela em formato CSV", value = texto_csv, height=200)
     
     # Processar CSV e substituir vírgulas dentro das células por "+"
     linhas = tabela.split("\n")
