@@ -9,6 +9,8 @@ from views.pages.StreamlitDashbord import StreamlitDashboard
 from views.pages.code_editor_page import CodeEditorPage
 from views.pages.EasyPDF_page import EasyPDF
 
+
+
 import sys
 from pathlib import Path
 
@@ -28,7 +30,30 @@ options_main_file = st.session_state.get("current_options", {
 })
 
 
-#from ..config import  options_main_file
+#! from ..config import  options_main_file
+
+def OptionsEditor():
+    """Interface para editar `options_main_file`."""
+    st.subheader("Editar Configurações")
+    options = st.session_state["current_options"]
+
+    # Formulário para editar opções
+    with st.form("options_editor"):
+        options["name"] = st.text_input("Nome do Script", options["name"])
+        options["key"] = st.checkbox("Chave Ativada", options["key"])
+        options["value"] = st.slider("Valor", 1, 10, options["value"])
+
+        # Editar parâmetros opcionais
+        st.write("Parâmetros Opcionais:")
+        for param in options["parametros_opcionais"]:
+            for key, values in param.items():
+                param[key] = st.multiselect(f"{key}:", values, default=values)
+
+        # Botão para salvar alterações
+        if st.form_submit_button("Salvar Alterações"):
+            st.session_state["current_options"] = options
+            st.success("Configurações atualizadas com sucesso!")
+
 
 
 
@@ -52,8 +77,12 @@ def DrawerSideBar():
     selected_page = st.sidebar.radio(
         "Select a page:",
         options=list(page_options.keys()),
+        format_func=lambda x: x.replace("_", " ").title(),
+        horizontal=True,
         key="main_nav_radio"
     )
+
+    st.experimental_set_query_params(page=selected_page)
 
     st.sidebar.markdown("---")
     st.sidebar.info("Select a page above to view its content.")
@@ -89,10 +118,15 @@ class App:
 
 # --- Main Execution ---
 if __name__ == "__main__":
+    app = App()  # Initialize app config and styling
 
-    app = App() # Initialize app config and styling
+    # Obter parâmetros de URL
+    query_params = st.experimental_get_query_params()
+    selected_page = query_params.get("page", ["framework_rce"])[0]
 
+    # Renderizar a página selecionada
     pagina_selecionada = DrawerSideBar()
-
-    # Render the selected page by calling its function/method
     app.run(pagina_selecionada)
+
+# Exibir editor de opções na página principal
+    OptionsEditor()

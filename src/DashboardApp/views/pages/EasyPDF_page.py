@@ -2,6 +2,10 @@ import streamlit as st
 from fpdf import FPDF
 import pandas as pd
 
+def ler_arquivo_csv(caminho):
+    """Lê um arquivo CSV e retorna um DataFrame."""
+    return pd.read_csv(caminho)
+
 class PDFGenerator(FPDF):
     """Classe para gerenciar a geração de PDF com título, subtítulo, corpo de texto, rodapé e tabelas."""
 
@@ -81,6 +85,7 @@ def EasyPDF():
     # Entrada de tabela em CSV
     st.subheader("Tabela")
     texto_csv ="Coluna1,Coluna2,Coluna3,Coluna4\nValor1,Valor2,✔️,❌\nValor3,Valor4,❌,✔️"
+    #texto_csv = ler_arquivo_csv("rotina.csv")
     tabela = st.text_area("Insira os dados da tabela em formato CSV", value = texto_csv, height=200)
     
     # Processar CSV e substituir vírgulas dentro das células por "+"
