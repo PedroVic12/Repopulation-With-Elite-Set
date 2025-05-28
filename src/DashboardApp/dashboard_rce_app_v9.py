@@ -101,7 +101,7 @@ def DrawerSideBar():
         key="main_nav_radio"
     )
 
-    st.query_params(page=selected_page)
+    st.experimental_get_query_params(page=selected_page)
 
     st.sidebar.markdown("---")
     st.sidebar.info("Select a page above to view its content.")
@@ -140,7 +140,7 @@ if __name__ == "__main__":
     app = App()  # Initialize app config and styling
 
     # Obter parâmetros de URL
-    query_params = st.query_params()
+    query_params = st.experimental_get_query_params()
     selected_page = query_params.get("page", ["framework_rce"])[0]
 
     # Renderizar a página selecionada
