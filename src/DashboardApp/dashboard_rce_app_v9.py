@@ -101,7 +101,7 @@ def DrawerSideBar():
         key="main_nav_radio"
     )
 
-    st.experimental_get_query_params(page=selected_page)
+    #st.experimental_get_query_params(page=selected_page)
 
     st.sidebar.markdown("---")
     st.sidebar.info("Select a page above to view its content.")
