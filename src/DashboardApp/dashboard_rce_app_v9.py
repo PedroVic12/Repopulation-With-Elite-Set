@@ -139,13 +139,20 @@ class App:
 if __name__ == "__main__":
     app = App()  # Initialize app config and styling
 
-    # Obter parâmetros de URL
-    query_params = st.experimental_get_query_params()
-    selected_page = query_params.get("page", ["framework_rce"])[0]
+    try:
+    
+        # Obter parâmetros de URL
+        query_params = st.experimental_get_query_params()
+        selected_page = query_params.get("page", ["framework_rce"])[0]
+    
+        # Renderizar a página selecionada
+        pagina_selecionada = DrawerSideBar()
+        app.run(pagina_selecionada)
+    except Exception as e:
+        print(e)
 
-    # Renderizar a página selecionada
-    pagina_selecionada = DrawerSideBar()
-    app.run(pagina_selecionada)
-
-# Exibir editor de opções na página principal
-    OptionsEditor()
+    finally:
+    
+        # Exibir editor de opções na página principal
+        OptionsEditor()
+        print("Inicio do app")
