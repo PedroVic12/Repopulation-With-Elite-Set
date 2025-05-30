@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Jogo Matemático Interativo</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        /* Custom focus outline for better visibility if needed, Tailwind's focus rings are generally good */
+        /* input:focus, select:focus, button:focus {
+            outline: 2px solid #2563eb;
+            outline-offset: 2px;
+        } */
+        .hidden {
+            display: none !important;
+        }
+    </style>
+</head>
+<body class="bg-slate-100 flex flex-col items-center justify-center min-h-screen p-4 selection:bg-blue-500 selection:text-white">
+
+  <div id="levelSelection" class="bg-white p-6 sm:p-8 rounded-xl shadow-2xl w-full max-w-md text-center transition-all duration-300 ease-in-out">
+    <h1 class="text-3xl sm:text-4xl font-bold text-slate-800 mb-6 sm:mb-8">Jogo Matemático</h1>
+    <label for="level" class="block text-slate-600 mb-2 text-left font-medium">Escolha o nível:</label>
+    <select id="level" class="w-full p-3 border border-slate-300 rounded-lg mb-6 sm:mb-8 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 shadow-sm appearance-none bg-white">
+      <option value="easy">Fácil (Soma/Subtração, 1-20)</option>
+      <option value="medium">Médio (Multiplicação 1-12, Divisão exata)</option>
+      <option value="hard">Difícil (Soma/Sub/Mult, números maiores)</option>
+    </select>
+    <button onclick="startGame()" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-4 rounded-lg shadow-md hover:shadow-lg transition-all duration-150 ease-in-out transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2">Começar Jogo</button>
+  </div>
+
+  <div id="gameArea" class="bg-white p-6 sm:p-8 rounded-xl shadow-2xl w-full max-w-md text-center hidden transition-all duration-300 ease-in-out">
+    <div class="flex justify-between items-center mb-4 sm:mb-6 text-sm sm:text-base">
+      <span class="text-slate-500">Nível: <span id="currentLevelDisplay" class="font-semibold text-slate-700"></span></span>
+      <span class="text-slate-500">Pontuação: <span id="scoreDisplay" class="font-semibold text-slate-700">0</span></span>
+    </div>
+    <div id="gameQuestionWrapper" class="bg-slate-50 p-4 sm:p-6 rounded-lg mb-4 sm:mb-6 min-h-[100px] sm:min-h-[120px] flex items-center justify-center">
+        <p id="gameQuestion" class="text-3xl sm:text-4xl font-bold text-slate-700"></p>
+    </div>
+    <input type="number" id="userAnswer" class="w-full p-3 border border-slate-300 rounded-lg mb-4 text-center text-xl sm:text-2xl focus:ring-2 focus:ring-green-500 focus:border-green-500 shadow-sm" placeholder="Sua resposta">
+    <button id="submitBtn" onclick="submitAnswer()" class="w-full bg-green-500 hover:bg-green-600 text-white font-semibold py-3 px-4 rounded-lg shadow-md hover:shadow-lg transition-all duration-150 ease-in-out mb-4 transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2">Responder</button>
+    <button id="continueBtn" onclick="continueGame()" class="w-full bg-orange-500 hover:bg-orange-600 text-white font-semibold py-3 px-4 rounded-lg shadow-md hover:shadow-lg transition-all duration-150 ease-in-out mb-4 hidden transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:ring-offset-2">Continuar Jogo</button>
+    <div id="feedback" class="mt-4 sm:mt-6 text-base sm:text-lg min-h-[24px] sm:min-h-[28px] font-medium"></div>
+    <button onclick="showLevelSelection()" class="mt-4 sm:mt-6 text-sm text-blue-600 hover:text-blue-800 hover:underline transition-colors duration-150">Mudar Nível / Recomeçar</button>
+  </div>
+
+<script>
+    // --- Global game state variables ---
+    let correctAnswerValue; // Renamed to avoid conflict with potential DOM element ID
+    let score = 0;
+    let currentLevel;
+    // let questionDetails; // To store { num1, num2, operator } for potential re-use or display
+
+    // --- DOM Elements (cache them for performance) ---
+    const levelSelectionDiv = document.getElementById('levelSelection');
+    const gameAreaDiv = document.getElementById('gameArea');
+    const levelSelect = document.getElementById('level');
+    const gameQuestionP = document.getElementById('gameQuestion');
+    const userAnswerInput = document.getElementById('userAnswer');
+    const feedbackDiv = document.getElementById('feedback');
+    const scoreDisplaySpan = document.getElementById('scoreDisplay');
+    const currentLevelDisplaySpan = document.getElementById('currentLevelDisplay');
+    const submitBtn = document.getElementById('submitBtn');
+    const continueBtn = document.getElementById('continueBtn');
+
+    // --- Helper Functions ---
+    function generateNumber(min, max) {
+        return Math.floor(Math.random() * (max - min + 1)) + min;
+    }
+
+    // --- Game Logic Functions ---
+    function generateQuestion(level) {
+        let num1, num2, operator, questionText, answer;
+
+        switch (level) {
+            case 'easy': // Addition and Subtraction with numbers up to 20
+                num1 = generateNumber(1, 20);
+                num2 = generateNumber(1, 20);
+                if (Math.random() < 0.5) { // Addition
+                    operator = '+';
+                    answer = num1 + num2;
+                } else { // Subtraction (ensure num1 is greater or equal for positive result)
+                    if (num1 < num2) {
+                        [num1, num2] = [num2, num1]; // Swap to ensure num1 is greater
+                    }
+                    operator = '-';
+                    answer = num1 - num2;
+                }
+                questionText = `${num1} ${operator} ${num2} = ?`;
+                break;
+            case 'medium': // Multiplication (1-12) and Exact Division
+                if (Math.random() < 0.6) { // Multiplication
+                    num1 = generateNumber(1, 12);
+                    num2 = generateNumber(1, 12);
+                    operator = '×';
+                    answer = num1 * num2;
+                    questionText = `${num1} ${operator} ${num2} = ?`;
+                } else { // Exact Division
+                    answer = generateNumber(2, 12); // This will be the quotient
+                    num2 = generateNumber(2, 10);   // This will be the divisor
+                    num1 = answer * num2;         // This will be the dividend
+                    operator = '÷';
+                    questionText = `${num1} ${operator} ${num2} = ?`;
+                }
+                break;
+            case 'hard': // Mix of operations: Sum/Sub (10-50), Multiplication (2-15)
+                const operationType = Math.random();
+                if (operationType < 0.33) { // Addition
+                    num1 = generateNumber(10, 50);
+                    num2 = generateNumber(10, 50);
+                    operator = '+';
+                    answer = num1 + num2;
+                } else if (operationType < 0.66) { // Subtraction
+                    num1 = generateNumber(20, 60); // Larger numbers for subtraction
+                    num2 = generateNumber(10, num1 -1); // Ensure num2 < num1 for non-zero positive result
+                    operator = '-';
+                    answer = num1 - num2;
+                } else { // Multiplication
+                    num1 = generateNumber(2, 15);
+                    num2 = generateNumber(2, 15);
+                    operator = '×';
+                    answer = num1 * num2;
+                }
+                questionText = `${num1} ${operator} ${num2} = ?`;
+                break;
+            default:
+                // Fallback to easy if level is somehow undefined
+                return generateQuestion('easy');
+        }
+        // questionDetails = { num1, num2, operator, level }; // Store details if needed later
+        return { questionText, answer };
+    }
+
+    function displayQuestion() {
+        const questionData = generateQuestion(currentLevel);
+        gameQuestionP.textContent = questionData.questionText;
+        correctAnswerValue = questionData.answer;
+
+        userAnswerInput.value = '';
+        userAnswerInput.disabled = false;
+        userAnswerInput.focus(); // Set focus to the input field
+        
+        feedbackDiv.textContent = '';
+        feedbackDiv.className = 'mt-4 sm:mt-6 text-base sm:text-lg min-h-[24px] sm:min-h-[28px] font-medium'; // Reset class
+
+        submitBtn.disabled = false;
+        submitBtn.classList.remove('hidden');
+        continueBtn.classList.add('hidden');
+        continueBtn.disabled = true; // Ensure continue is disabled until an answer is submitted
+    }
+
+    // --- Event Handler Functions ---
+    function startGame() {
+        currentLevel = levelSelect.value;
+        score = 0; // Reset score when starting a new game
+
+        levelSelectionDiv.classList.add('hidden');
+        gameAreaDiv.classList.remove('hidden');
+
+        // Display level name more nicely
+        const levelText = levelSelect.options[levelSelect.selectedIndex].text.split(' (')[0];
+        currentLevelDisplaySpan.textContent = levelText;
+        scoreDisplaySpan.textContent = score;
+
+        displayQuestion();
+    }
+
+    function submitAnswer() {
+        // Trim whitespace from user input
+        const userAnswerStr = userAnswerInput.value.trim();
+        
+        if (userAnswerStr === '') {
+            feedbackDiv.textContent = 'Por favor, insira uma resposta.';
+            feedbackDiv.className = 'mt-4 sm:mt-6 text-base sm:text-lg min-h-[24px] sm:min-h-[28px] font-medium text-yellow-600';
+            userAnswerInput.focus();
+            return;
+        }
+
+        const userAnswer = parseInt(userAnswerStr, 10);
+
+        if (isNaN(userAnswer)) {
+            feedbackDiv.textContent = 'Por favor, insira um número válido.';
+            feedbackDiv.className = 'mt-4 sm:mt-6 text-base sm:text-lg min-h-[24px] sm:min-h-[28px] font-medium text-red-600';
+            userAnswerInput.focus();
+            return;
+        }
+
+        userAnswerInput.disabled = true;
+        submitBtn.disabled = true;
+        submitBtn.classList.add('hidden');
+        
+        continueBtn.classList.remove('hidden');
+        continueBtn.disabled = false;
+        continueBtn.focus(); // Move focus to continue button
+
+        if (userAnswer === correctAnswerValue) {
+            score++;
+            feedbackDiv.textContent = 'Resposta correta! 🎉';
+            feedbackDiv.className = 'mt-4 sm:mt-6 text-base sm:text-lg min-h-[24px] sm:min-h-[28px] font-medium text-green-600';
+            scoreDisplaySpan.textContent = score;
+        } else {
+            feedbackDiv.textContent = `Errado. A resposta era ${correctAnswerValue}. 😥`;
+            feedbackDiv.className = 'mt-4 sm:mt-6 text-base sm:text-lg min-h-[24px] sm:min-h-[28px] font-medium text-red-600';
+        }
+    }
+
+    function continueGame() {
+        displayQuestion();
+    }
+
+    function showLevelSelection() {
+        levelSelectionDiv.classList.remove('hidden');
+        gameAreaDiv.classList.add('hidden');
+        
+        // Optional: Clear feedback and input when going back
+        feedbackDiv.textContent = '';
+        feedbackDiv.className = 'mt-4 sm:mt-6 text-base sm:text-lg min-h-[24px] sm:min-h-[28px] font-medium';
+        userAnswerInput.value = '';
+    }
+
+    // --- Event Listeners ---
+    // Event listener for Enter key in the input field
+    userAnswerInput.addEventListener('keypress', function(event) {
+        if (event.key === 'Enter') {
+            event.preventDefault(); // Prevent default form submission behavior
+            if (!submitBtn.disabled && !submitBtn.classList.contains('hidden')) {
+                submitAnswer();
+            }
+        }
+    });
+
+    // Event listener for Enter key on the continue button (when it's focused)
+    continueBtn.addEventListener('keypress', function(event) {
+        if (event.key === 'Enter') {
+            if (!continueBtn.disabled && !continueBtn.classList.contains('hidden')) {
+                continueGame();
+            }
+        }
+    });
+    
+    // Initial setup - ensure game area is hidden and level selection is visible
+    document.addEventListener('DOMContentLoaded', () => {
+        // Default states are set by adding/removing 'hidden' class directly in HTML.
+        // If JavaScript is disabled, the game area will remain hidden.
+        // If JavaScript is enabled, this ensures the correct initial view if classes were manipulated.
+        if (gameAreaDiv.classList.contains('hidden')) {
+            levelSelectionDiv.classList.remove('hidden');
+        } else {
+            levelSelectionDiv.classList.add('hidden');
+        }
+    });
+
+</script>
+</body>
+</html>
