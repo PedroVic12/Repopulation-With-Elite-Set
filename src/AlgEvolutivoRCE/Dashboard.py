@@ -1,7 +1,7 @@
 
 # gera o arquivo para rodar dentro do colab
 
-#%%writefile app.py
+##%%writefile app.py
 
 import pathlib
 import streamlit as st
@@ -21,7 +21,8 @@ import matplotlib.pyplot as plt
 import json
 
 def load_params(file_path):
-    with open(file_path, "r") as file:
+    """Carrega os parâmetros de um arquivo JSON."""
+    with open(file_path, 'r') as file:
         params = json.load(file)
     return params
 
