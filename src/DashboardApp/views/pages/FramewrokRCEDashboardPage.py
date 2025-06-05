@@ -1,7 +1,7 @@
 
 
 # --- Componentes da Interface de Usuário ---
-from ..components.dash_rce_components import ConsolidatedResultsComponent, CardSolutions, StatisticsTableComponent, GraficoRCEComponent 
+from ..components.dash_rce_components import ConsolidatedResultsComponent, CardSolutions, StatisticsTableComponent, GraficoRCEComponent, TabExamplePage
 
 
 #backend
@@ -121,6 +121,8 @@ class FrameworkRCEDashboard:
                                 with st.container():
                                     StatisticsTableComponent.render(dados)
                                     st.write("Graficos e Tabelas")
+                                    TabExamplePage()
+                                    
                                     
                                     
                             except Exception as e:

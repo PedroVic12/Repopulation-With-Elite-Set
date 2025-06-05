@@ -4,6 +4,7 @@ import pathlib
 import streamlit as st
 import os
 import pandas as pd
+import numpy as np
 
 
 
@@ -242,8 +243,31 @@ class GraficoRCEComponent:
         else:
             st.warning(f"Arquivo HTML não encontrado para a execução {exec_num}.")
 
-        # Adiciona o botão de download
-            
+
+
+# Adiciona o botão de download
+def TabExamplePage():
+    st.write("Tabs allow organizing content within a single page.")
+
+    tab1, tab2, tab3 = st.tabs(["📈 Grafico Barras, Linhas e Trafos", "Potencia e Energia armazenada", "Analise de dados"])
+
+    with tab1:
+        st.subheader("A Cool Chart")
+        st.line_chart(pd.DataFrame(np.random.randn(20, 3), columns=['a', 'b', 'c']))
+        st.write("This tab shows a line chart with random data.")
+
+    with tab2:
+        st.subheader("Some Data")
+        df = pd.DataFrame({
+            'col1': [1, 2, 3, 4],
+            'col2': [10, 20, 15, 25],
+            'col3': ['A', 'B', 'A', 'C']
+        })
+        st.dataframe(df, use_container_width=True)
+        st.write("This tab displays a sample DataFrame.")
+
+    with tab3:
+        st.write("Texto explicativo")
         
 class StatisticsTableComponent:
     """Componente para exibir a tabela de estatísticas por geração."""
