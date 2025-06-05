@@ -1,18 +1,21 @@
+
 import numpy as np
 import math
 from deap import base, creator, tools
 import random
-import matplotlib.pyplot as plt
-from scipy.optimize import minimize
 import json
 import pandas as pd
 
-def load_params(file_path):
-    with open(file_path, "r") as file:
-        params = json.load(file)
-    return params
 
-#params = load_params(     r"parameters.json" )
+#! WARN (12/05/2025) - Usado fora da classes para NAO ter logs no output
+
+# Criando os individuos e uma função e minimização
+creator.create("FitnessMin", base.Fitness, weights=(-1.0,))
+#creator.create("Individual", list, fitness=creator.FitnessMin, rce=str, index=int)
+
+
+#! O ideal seria importar o arquivo de configuração do projeto de forma global para o App em Streamlit também, mas como o arquivo de configuração está em outro diretório,
+#from ..config import FOLDER_NAME, configuracoes_execucoes
 
 array_decisions =  [14,15,14,18,15]
 
@@ -34,11 +37,23 @@ params = {
   }
 
 
+configuracoes_execucoes = {
+        "key": True,
+        "value": 5,
+        "parametros_opcionais": [
+             {"MUTACAO": [90,80,70, 60]},
+             {"CROSSOVER": [90,80,70, 60]},
+             {'NUM_GENERATIONS': [25, 50, 100, 500]},
+             {'POP_SIZE': [10, 30, 50, 100]},
+
+        ]
+}
 
 
 
+ 
 class Setup:
-    def __init__(self, params,fitness_function ):
+    def __init__(self, params, fitness_function, tamanho_hash = 0 ):
 
         #! Parametros JSON
         self.params = params
@@ -62,6 +77,8 @@ class Setup:
         #! Daodos de etrada do usuario nova
         self.limite = params["LIMITE_VAR"]
         self.decision_variables = params["ARRAY_VAR"]
+        self.config = configuracoes_execucoes
+
 
         # Criterios Rainer DEAP
         self.NUM_VAR_DIF = params["NUM_VAR_DIFERENTES"]
@@ -78,13 +95,9 @@ class Setup:
         # dict para acumular
         self.dataset = {}
 
-        # Criando os individuos e uma função e minimização
-        creator.create("FitnessMin", base.Fitness, weights=(-1.0,))
-        #creator.create("Individual", list, fitness=creator.FitnessMin, rce=str, index=int                 )
+
 
         #----------------------------------------------------------------------------------------
-        #! DEBUG HERE -> Verficiar as varaiveis de entrada com o type int ou float
-        # --------------------------------------------------------------------------------------
         # Correção 03/04/25 - Usando as variaveis de decisao no JSON
 
         def checkBounds(min, max):
@@ -143,13 +156,7 @@ class Setup:
         else:
             raise ValueError("No arquivo JSON as variáveis de decisão não pode ser vazia.")
 
-        # Define os tipos de variáveis de decisão (METOOD ANTIGO)
-        #self.toolbox.register("attr_float", random.uniform, self.limite[0], self.limite[1])  # x: float entre -5.12 e 5.12
-        #self.toolbox.register("attr_float", random.uniform, 0.0, 31.0)
-        #self.toolbox.register("attr_int", random.randint, int(self.limite[0]), int(self.limite[1]))      # entre 0 ate 31 na funcao objeitvo
-
         #! registrando os individuos
-        #self.toolbox.register("individual", creator.Individual, self.decision_variables, self.toolbox.attribute)
         self.toolbox.register("individual", tools.initRepeat, creator.Individual, self.toolbox.attribute, n=self.SIZE_INDIVIDUAL)
 
         #! criando e regsitrando a população de individuos (ja no type do deap)
@@ -160,24 +167,19 @@ class Setup:
 
         #! paramentos evolutivos registrados
         self.toolbox.register("mate", tools.cxTwoPoint)
-        self.toolbox.register("mutate", tools.mutGaussian, mu=0, sigma=1, indpb=0.1)
         self.toolbox.register("select", tools.selTournament, tournsize=3)
 
         # decorator
         self.toolbox.decorate("mate", checkBounds(self.limite[0], self.limite[1]))
         self.toolbox.decorate("mutate", checkBounds(self.limite[0], self.limite[1]))
 
-
-
         # Store the original fitness function
         self.funcao_objetivo = fitness_function
-
         # Use the original function if provided, otherwise use rastrigin
         self.__fitness_function = fitness_function if fitness_function is not None else self.rastrigin
 
         #! Register the fitness function using a lambda function, directly referencing the stored function
         self.toolbox.register("evaluate", self.funcao_objetivo if self.funcao_objetivo else self.rastrigin)
-        #self.toolbox.register("evaluate", fitness_func)
 
         # Teste para validar dados de entrada
         self.checkDecisionVariablesAndFitnessFunction(
@@ -185,19 +187,21 @@ class Setup:
             self.POPULATION[0],
         )
 
+        #! Inicializa a HashTable na instancia do Objeto Setup!
+        if tamanho_hash > 0:
+            self.tabela_hash = [-1] * tamanho_hash
+        else:
+            self.tabela_hash = None
 
 
     def avaliarFitnessIndividuos(self, pop):
         fitnesses = []  # To store fitness values for each individual
         for ind in pop:
-            fitness = self.toolbox.evaluate(list(ind)) # Assuming this calls funcao_objetivo_IEEE14
-            ind.fitness.values = [fitness]
+            fitness = self.toolbox.evaluate(list(ind), self) # Assuming this calls funcao_objetivo_IEEE14
+            ind.fitness.values = (fitness,)
             fitnesses.append(fitness)  # Add fitness value to the list
         return fitnesses
-
         #print("\nFitness individuos validados!!! ")
-
-
 
 
     def checkDecisionVariablesAndFitnessFunction(
@@ -206,9 +210,9 @@ class Setup:
             self.__fitness_function = fitness_function
 
             # Criando o esqueleto de uma funcao objetivo com uma variavel de decisao
-            def fitness_func(individual):
+            def fitness_func(individual,self):
                 return (
-                    self.funcao_objetivo(individual)
+                    self.funcao_objetivo(individual,self)
                     if self.funcao_objetivo
                     else self.rastrigin(individual)
                 )
@@ -216,8 +220,6 @@ class Setup:
             #! Registrar a função de fitness no toolbox
             print("\n[DEBUG] Dados do problema = ", self.decision_variables, self.__fitness_function)
             self.toolbox.register("evaluate", fitness_func)
-
-            #self.toolbox.register("evaluate", self.__fitness_function)
 
 
 
@@ -259,4 +261,5 @@ class Setup:
         var = np.array(x)
 
         return np.sum(100 * (var[1:] - var[:-1] ** 2) ** 2 + (1 - var[:-1]) ** 2)
+
 

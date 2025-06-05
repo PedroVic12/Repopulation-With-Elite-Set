@@ -1,21 +1,20 @@
-import pathlib
 import numpy as np
-import math
 from deap import base, creator, tools
 import random
-import matplotlib.pyplot as plt
-import time
-import json
 import pandas as pd
-from scipy.optimize import minimize
 
-
+from AlgEvolutivoRCE.Dashboard import DashboardApp
 
 
 class AlgoritimoEvolutivoRCE:
+
     def __init__(self, setup, DEBUG = True):
         self.setup = setup
+        self.dashboard = DashboardApp(
+            options= self.setup.config
+        )
         self.DEBUG = DEBUG
+        
         self.stats = tools.Statistics(key=lambda ind: ind.fitness.values)
         self.stats.register("avg", np.mean)
         self.stats.register("std", np.std)
@@ -74,7 +73,7 @@ class AlgoritimoEvolutivoRCE:
                 break
         return is_clone
 
-    
+
 
     def criterio1(self, new_pop, porcentagem, k=30):
         """Seleciona os candidatos ao conjunto elite com base nas diferenças percentuais de aptidão."""
@@ -227,7 +226,7 @@ class AlgoritimoEvolutivoRCE:
         )  # retorna uma pop com lista de individuos de var de decisão
 
         # Avaliar o fitness da população atual
-        self.setup.avaliarFitnessIndividuos(current_population)
+        #?self.setup.avaliarFitnessIndividuos(current_population)
         self.calculateFitnessGeneration(current_population)
 
         #! b - Coloca o elite hof da pop anterior  no topo (0)
@@ -245,7 +244,7 @@ class AlgoritimoEvolutivoRCE:
             current_population,
         )
 
-        # cOLOCANDO ATRIBUTOS
+        # COLOCANDO ATRIBUTOS HOF na tabela
         for i, ind in enumerate(ind_diferentes_var, start=0):
             new_pop[0].rce = "HOF"
             if i > 0:
@@ -256,11 +255,8 @@ class AlgoritimoEvolutivoRCE:
         self.calculateFitnessGeneration(new_pop)
         conjunto_elite = self.generateInfoIndividual(new_pop, generation)
 
-        #! debug
         if self.DEBUG:
             self.cout(f"CRITERIO 3 - População aleatória modificada [HOF,RCE,Aleatorio] ")
-
-
         return new_pop
 
     def elitismoSimples(self, pop):
@@ -300,8 +296,6 @@ class AlgoritimoEvolutivoRCE:
                 self.pop_RCE.append(current_individual)
                 self.CONJUNTO_ELITE_RCE.add(tuple(current_individual))
 
-
-
         if self.DEBUG:
             if not self.pop_RCE:
                 print("Nenhum indivíduo atende aos critérios. :( ")
@@ -315,18 +309,15 @@ class AlgoritimoEvolutivoRCE:
         # Calculando o fitness para geração
         for ind in new_pop:
             if not ind.fitness.valid:
-                fitness_value = self.setup.toolbox.evaluate(ind)
+                fitness_value = self.setup.toolbox.evaluate(ind,self.setup)
                 ind.fitness.values = (fitness_value,)
 
-    def _avaliarFitnessIndividuos(self, pop):
-        """Avaliar o fitness dos indivíduos da população atual."""
-        fitnesses = map(self.setup.toolbox.evaluate, pop)
-        for ind, fit in zip(pop, fitnesses):
-            if ind.fitness.values:
-                ind.fitness.values = [fit]
-
-
-
+    # def _avaliarFitnessIndividuos(self, pop):
+    #     """Avaliar o fitness dos indivíduos da população atual."""
+    #     fitnesses = map(self.setup.toolbox.evaluate, pop)
+    #     for ind, fit in zip(pop, fitnesses):
+    #         if ind.fitness.values:
+    #             ind.fitness.values = [fit]
 
 
     #! Main LOOP
@@ -364,15 +355,16 @@ class AlgoritimoEvolutivoRCE:
             #! Evaluate each individual separately
             for ind in invalid_ind:
                 # call the 'funcao_objetivo_IEEE14' using the current individual attributes
-                fitness = self.setup.toolbox.evaluate(ind)
+                fitness = self.setup.toolbox.evaluate(ind, self.setup)
 
                 # Assign the fitness value to the individual
-                ind.fitness.values = [fitness]
+                ind.fitness.values = (fitness,)
 
-            # faz um map dos valores de fitness de cada individuo
-            fitnesses = map(self.setup.toolbox.evaluate, invalid_ind)
-            for ind, fit in zip(invalid_ind, list(fitnesses)):
-                ind.fitness.values = [fit]
+            # # faz um map dos valores de fitness de cada individuo
+            # fitnesses = map(self.setup.toolbox.evaluate, invalid_ind)
+            # for ind, fit in zip(invalid_ind, list(fitnesses)):
+            #     ind.fitness.values = [fit]
+
 
             #! Aplicar RCE
             if RCE and ((current_generation + 1) % self.setup.num_repopulation == 0):
@@ -382,25 +374,29 @@ class AlgoritimoEvolutivoRCE:
                     )
                 #!copia pop aleatória modificada retornada para pop atual
                 new_population = self.aplicar_RCE(
-                    current_generation + 1, population[num_pop]
+                    current_generation + 1, offspring
                 )
+
+                # Retorna minha nova população com RCE
                 population[num_pop][:] = new_population
+
+                # Gera o Excel com a pop com RCE em Excel
+                conjunto_elite = self.generateInfoIndividual(population[num_pop][:], current_generation + 1)
+                self.show_ind_df(conjunto_elite, "Individuos da nova população aleatória com RCE (Conjunto Elite)")
+
             else:
                 population[num_pop][:] = offspring
-            
-        
 
             # Registrar estatísticas no logbook
             self.elitismoSimples(population[num_pop])
             self.registrarDados(current_generation)
+
             record = self.stats.compile(population[num_pop])
             self.logbook.record(gen=current_generation, **record)
+            
+            if self.DEBUG:
+                print(f"ALGORITIMO EVOLUTIVO COM AG COM DEAP CONCLUIDO COM SUCESSO! Geração atual = {current_generation}")
 
-
-        # Gera o Excel com a pop com RCE em Excel
-        conjunto_elite = self.generateInfoIndividual(population[num_pop][:], current_generation + 1)
-        self.show_ind_df(conjunto_elite, "Individuos da nova população aleatória")
-        
         # Retornar população final, logbook e elite
         return population[num_pop], self.logbook, self.hof[0]
 
@@ -453,30 +449,12 @@ class AlgoritimoEvolutivoRCE:
 
     def show_ind_df(self, array, text, save = True):
         df = pd.DataFrame(array)
-        print(text)
         if save:
-
-            # Pega a pasta atual
-            def get_folder_path():
-                BASE_DIR = pathlib.Path(__file__).resolve().parent.parent.parent  
-
-                # Define o caminho relativo para a pasta "output" dentro do projeto
-                FOLDER_NAME = BASE_DIR / "src" /"output"
-                # Cria a pasta "output" se ela não existir
-                FOLDER_NAME.mkdir(parents=True, exist_ok=True)
-                #print("FOLDER_NAME =", FOLDER_NAME)
-                
-                return FOLDER_NAME
-            FOLDER_NAME = get_folder_path()
-
-            print(".")
-            print(".")
-            print(".")
-            df.to_excel(f"{FOLDER_NAME}/pop_final.xlsx")
-            print("Salvando nova população...")
+            df.to_excel(f"pop_final.xlsx")
 
         if self.DEBUG:
-            print(df)
+            print(text)
+            print(df.head(10))
 
         # contar quantos SIM na coluna CLONE se a coluna RCE for SIM
         # display(df[df["RCE"] != ""].value_counts())
