@@ -11,6 +11,7 @@ import os
 # Frontend
 import streamlit as st
 import time
+import threading
 
 #from ....config import ConfigManager
 
@@ -166,12 +167,12 @@ class FrameworkRCEDashboard:
 
     def render_execution_options(self):
         """Renderiza as opções de execução de forma interativa, permitindo a variação de parâmetros."""
-        st.markdown("### ⚒️ Configuração da Bateria de Experimentos")
+        st.markdown("# ⚒️ Configuração do Framework")
         
         # Inicializa um dicionário para guardar as seleções do usuário
         config_params = {}
 
-        with st.expander("🔧 Definição dos Parâmetros e Variações", expanded=True):
+        with st.expander("🔧 Definição dos Parâmetros, Variações e Quantidade de execuções", expanded=True):
             col1, col2 = st.columns(2)
 
             with col1:
@@ -248,23 +249,33 @@ class FrameworkRCEDashboard:
 
     
     def run_script(self, script_path):
-        """Executa um script Python com barra de progresso única e tamanho variando."""
+        """Executa um script Python com barra de progresso única e GIF enquanto roda."""
         dialog_placeholder = st.empty()
+        progress_placeholder = st.empty()
 
         try:
             img_gif_loading = FOLDER_NAME.parent / "assets" / "humans_evolution.gif"
             files = self.utils.get_html_content_from_folder(FOLDER_NAME)
-
+            steps = len(files) * 10 if len(files) > 0 else 10
 
             if img_gif_loading.exists():
                 with dialog_placeholder.container():
                     st.image(str(img_gif_loading), width=800)
                     st.subheader("Executando o programa principal com Algoritmo Evolutivo RCE no mesmo terminal, por favor aguarde...")
 
-                    # Barra de progresso única com tamanho variando
-                    progress_placeholder = st.empty()
-                    steps = len(files) * 10 if len(files) > 0 else 10
+                    # Executa o script em thread separada para não travar a UI
+
+                    def run_command():
+                        command = f'python "{script_path}"'
+                        self._return_code = os.system(command)
+
+                    self._return_code = None
+                    thread = threading.Thread(target=run_command)
+                    thread.start()
+
                     for i in range(steps + 1):
+                        if not thread.is_alive():
+                            break
                         progress = i / steps
                         bar_html = f"""
                         <div style="background-color:#e0e0e0; border-radius:10px; width:100%; height:30px;">
@@ -275,17 +286,19 @@ class FrameworkRCEDashboard:
                         progress_placeholder.markdown(bar_html, unsafe_allow_html=True)
                         time.sleep(1)
 
-            
-            command = f'python "{script_path}"'
-            return_code = os.system(command)
-
+                    # Aguarda thread terminar se ainda não terminou
+                    thread.join()
+                    return_code = self._return_code
+            else:
+                # Caso não tenha GIF, só executa o script
+                command = f'python "{script_path}"'
+                return_code = os.system(command)
 
             dialog_placeholder.empty()
             progress_placeholder.empty()
 
             if return_code == 0:
                 st.success("Script executado com sucesso!")
-                self.atualizar_pagina()
 
         except Exception as e:
             dialog_placeholder.empty()

@@ -14,7 +14,7 @@ from DashboardApp.controllers.Utils import FOLDER_NAME
 
 configuracoes_execucoes = {
         "key": True,
-        "value": 5,
+        "value": 10,
         "parametros_opcionais": [
              {"MUTACAO": [90,80,70, 60]},
              {"CROSSOVER": [90,80,70, 60]},
@@ -99,7 +99,9 @@ def load_many_executions(dict_key_value, algoritmo):
     if dict_key_value["key"]:
 
         for i in range(dict_key_value["value"]):
-            print("\nExecução", i + 1)
+            print("\n==============================")
+            print("Execução", i + 1)
+            print("==============================")
 
             start_time = time.time()  # Inicia a contagem do tempo para cada execução
 
