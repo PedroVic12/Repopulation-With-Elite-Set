@@ -68,6 +68,10 @@ class ConsolidatedResultsComponent:
 
                 # Adiciona o botão de download
                 button_save_excel(consolidated_excel_path, "results_consolidados.xlsx")
+                
+                # Expandir para mostrar os parâmetros utilizados
+                with st.expander("Parâmetros Utilizados nesta Execução", expanded=False):
+                    st.json(data.get('params', {}))
 
 
     
