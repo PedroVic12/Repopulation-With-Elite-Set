@@ -73,6 +73,11 @@ class FrameworkRCEDashboard:
         UseState.initialize_state("saved_configurations", [])
 
 
+        self.init_state_class()
+        
+    def init_state_class():
+        pass
+
     def handle_tab_change(self, tab_index: int, execution_number: int):
         """Gerencia mudanças de aba e atualiza o estado."""
         UseState.set_state("active_tab", tab_index)
@@ -226,8 +231,7 @@ class FrameworkRCEDashboard:
         
         # Opções de execução para multiplos parametros de algoritmo Genético
         options_dashboard = self.render_execution_options()
-        
-        
+        dados = self.utils.load_execution_data(exec_num, debug=False)
         active_tab = UseState.get_state("active_tab")
 
 
@@ -248,10 +252,8 @@ class FrameworkRCEDashboard:
             self.run_script(script_path)
 
 
-
-        
+      
         self.header()
-
         
         # Renderiza os resultados consolidados
         ConsolidatedResultsComponent.render(active_tab)
@@ -269,9 +271,6 @@ class FrameworkRCEDashboard:
                     # Atualiza o estado da aba ativa
                     if UseState.get_state("active_tab") != i:
                         self.handle_tab_change(i, exec_num)
-
-
-                    dados = self.utils.load_execution_data(exec_num, debug=False)
 
                     # Carrega os dados e o gráfico da execução
                     if dados:
