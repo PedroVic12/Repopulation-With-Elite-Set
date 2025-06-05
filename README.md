@@ -81,7 +81,6 @@ if __name__ == "__main__":
     # Instanciando os Objetos
     setup = Setup(params, fitness_function= funcao_objetivo_IEEE14)
     alg = AlgoritimoEvolutivoRCE(setup,DEBUG= False)
-    dashboard = DashboardApp()
 
     # Loop Algoritmo Evolutivo podendo receber a função objetivo e as variaveis do problema
     pop_with_repopulation, logbook_with_repopulation, best_variables = alg.run(
@@ -91,7 +90,7 @@ if __name__ == "__main__":
     print("\n\nEvolução concluída  - 100%")
 
     # Resultados
-    x, y, z, fig = dashboard.visualize(
+    x, y, z, fig = alg.dashboard.visualize(
         logbook_with_repopulation, pop_with_repopulation,
     )
 
@@ -138,6 +137,13 @@ streamlit run dashboard_rce_app_v9.py
 
 
 Esta classe representa uma rede elétrica usando a biblioteca Pandapower. Ela fornece funcionalidades para carregar redes padrão, validar dados de agendamento e contingência, calcular violações de fitness, ajustar cargas, desligar/religar elementos da rede e executar o fluxo de carga.
+
+
+
+Exemplo de simulação da Rede Eletrica IEEE 14 barras
+
+
+
 
 ### Atributos
 
