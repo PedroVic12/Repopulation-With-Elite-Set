@@ -75,11 +75,6 @@ class FrameworkRCEDashboard:
         UseState.initialize_state("saved_configurations", [])
 
 
-        self.init_state_class()
-        
-    def init_state_class(self):
-        pass
-
     def handle_tab_change(self, tab_index: int, execution_number: int):
         """Gerencia mudanças de aba e atualiza o estado."""
         UseState.set_state("active_tab", tab_index)
@@ -284,7 +279,7 @@ class FrameworkRCEDashboard:
                         <p style="text-align:center;">{int(progress*100)}%</p>
                         """
                         progress_placeholder.markdown(bar_html, unsafe_allow_html=True)
-                        time.sleep(1)
+                        time.sleep(2)
 
                     # Aguarda thread terminar se ainda não terminou
                     thread.join()

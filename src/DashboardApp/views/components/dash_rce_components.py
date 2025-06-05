@@ -99,13 +99,18 @@ class ConsolidatedResultsComponent:
                 tempo_total = exec_time.sum()
                 
                 st.dataframe(df_consolidado)
+                
                 if time_exec_media <= 60:
                     st.write(f"Média do tempo de cada execução (em segundos) = ",round(time_exec_media,3))
-                    st.write("Tempo total de execução (em segundos) = ", round(tempo_total,2))
+                    
+                    if tempo_total <= 60:
+                        st.write("Tempo total de execução (em segundos) = ", round(tempo_total,2))
+                    else:
+                        st.write("Tempo total de execução (em minutos) = ", round(tempo_total/60,2))
+
                 else:
                     st.write(f"Média do tempo de cada execução (em segundos) = ",round(time_exec_media,3))
-                    st.write(f"Média do tempo de cada execução (em minutos) = ",round(time_exec_media,3)/60)
-                    st.write("Tempo total de execução (em minutos) = ", round(tempo_total,2)/60)
+                    st.write(f"Média do tempo de cada execução (em minutos) = ",round(time_exec_media/60,3))
 
                 # Adiciona o botão de download
                 button_save_excel(consolidated_excel_path, "results_consolidados.xlsx")
