@@ -50,7 +50,7 @@ class UseState:
     def set_state(key, value):
         """Define o valor de uma chave no session_state."""
         st.session_state[key] = value
-        #print("State atualizado:", key, "=", value)  
+        print("State atualizado:", key, "=", value)  
 
 
 # --- Classe Principal do Aplicativo ---
@@ -233,6 +233,8 @@ class FrameworkRCEDashboard:
         options_dashboard = self.render_execution_options()
         dados = self.utils.load_execution_data(exec_num, debug=False)
         active_tab = UseState.get_state("active_tab")
+        state = UseState.get_state("current_options")
+        print("State do aplicativo:", state)
 
 
 
