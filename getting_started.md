@@ -9,7 +9,7 @@ cd Repopulation-With-Elite-Set/src/DashboardApp
 
 pwd
 
-pip install -r requirements.txt
+pip install -r requirements.txt --break-system-packages
 ```
 
 Depois disso, todas as bibliotecas foram importadas e execute o comando
