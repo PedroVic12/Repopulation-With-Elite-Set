@@ -158,9 +158,7 @@ class CardSolutions:
                 unsafe_allow_html=True
             )
 
-        # Expandir para mostrar os parâmetros utilizados
-        with st.expander("Parâmetros Utilizados nesta Execução", expanded=False):
-            st.json(data.get('params', {}))
+        
 
         st.markdown("---")
 
