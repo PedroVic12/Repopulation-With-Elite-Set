@@ -141,7 +141,7 @@ Esta classe representa uma rede elétrica usando a biblioteca Pandapower. Ela fo
 
 
 Exemplo de simulação da Rede Eletrica IEEE 14 barras
-
+![image](https://github.com/PedroVic12/Repopulation-With-Elite-Set/blob/main/src/assets/newplot.png)
 
 
 
