@@ -115,6 +115,7 @@ def run_framework_many_executions():
     
     alg = AlgoritimoEvolutivoRCE(setup, DEBUG = True)
 
+    # Run the utility function to load many executions
     load_many_executions(options_main_file, alg)
 
 

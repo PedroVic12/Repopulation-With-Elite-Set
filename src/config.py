@@ -11,7 +11,7 @@ from IPython.display import display
 # 4 parametros variando [Mutação, Crossover, Var DIFF, DELTA e restante fixo 
 
 configuracoes_execucoes = {
-        "key": False,
+        "key": True,
         "value": 5,
         "parametros_opcionais": [
              {"MUTACAO": [90,80,70, 60]},

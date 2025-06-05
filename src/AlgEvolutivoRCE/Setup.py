@@ -7,10 +7,10 @@ import json
 import pandas as pd
 
 
-#! WARN (12/05/2025) - Usado fora da classes para NAO ter logs no output
+#! WARN (04/06/2025) - Usado fora da classes para NAO ter logs no output
 
 # Criando os individuos e uma função e minimização
-creator.create("FitnessMin", base.Fitness, weights=(-1.0,))
+#creator.create("FitnessMin", base.Fitness, weights=(-1.0,))
 #creator.create("Individual", list, fitness=creator.FitnessMin, rce=str, index=int)
 
 
@@ -86,6 +86,7 @@ class Setup:
         self.delta = params["DELTA_MIN"]
 
         #!Criando individuo pelo deap com seus atributos
+        creator.create("FitnessMin", base.Fitness, weights=(-1.0,))
         self.toolbox = base.Toolbox()
 
         #! Parâmetros do algoritmo de Rastrigin
