@@ -9,16 +9,16 @@ cd src
 
 echo Instalando as biblotecas python necessarias...
 
-@REM pip install -r requirements.txt --break-system-packages --no-cache-dir --disable-pip-version-check --quiet
+REM pip install -r requirements.txt --break-system-packages --no-cache-dir --disable-pip-version-check --quiet
 
 
-@echo Instalacao concluida.
+@echo Instalacão de bibliotecas necessarias concluida!
 
 call cls 
 
 echo Inicio do Programa...
 @REM echo Executando script em src/run_rce_framework.py...
-@REM call python run_rce_framework.py
+@REM call python run_framework.py
 
 
 @REM REM Verifica se a execução do script foi bem sucedida (opcional, mas recomendado)
