@@ -226,6 +226,10 @@ class FrameworkRCEDashboard:
         
         # Opções de execução para multiplos parametros de algoritmo Genético
         options_dashboard = self.render_execution_options()
+        
+        
+        active_tab = UseState.get_state("active_tab")
+
 
 
         st.info("⚠️ Configuração de parametros do Framework esta ainda em desenvolvimento, por favor, aguarde a versão 10.0 do Framework para uma melhor experiência de usuário.")
@@ -250,7 +254,7 @@ class FrameworkRCEDashboard:
 
         
         # Renderiza os resultados consolidados
-        ConsolidatedResultsComponent.render()
+        ConsolidatedResultsComponent.render(active_tab)
 
         #! Seleção de execução com tabs para cada execução
         with st.container():
@@ -281,6 +285,8 @@ class FrameworkRCEDashboard:
                                 
                             with st.container():
                                 StatisticsTableComponent.render(dados)
+                                
+                                
                         except Exception as e:
                             st.error(f"Erro ao carregar os dados da execução {exec_num}.",e)
 

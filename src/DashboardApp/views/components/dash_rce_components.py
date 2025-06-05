@@ -1,10 +1,15 @@
 # --- Componentes da Interface de Usuário ---
-
+import pickle
 import pathlib
 import streamlit as st
 import os
 import pandas as pd
 
+
+
+
+
+#from ...controllers.Utils import Utils
 #! TODO SABER PEGAR IMPORT TUDO DE CONTROLLER E UTILS
 
 # Ajuste conforme a estrutura do projeto
@@ -16,18 +21,51 @@ def get_folder_path():
 
 path_foler_output = get_folder_path()
 
-print("Estou aqui")
-print(path_foler_output)
 
 
-        
+def load_execution_data(exec_num, debug=False):
+        """Carrega os dados .pkl e a figura .json para a execução especificada,
+        buscando na pasta FOLDER_NAME."""
+        data = None
+
+        # Use pathlib to construct paths
+        data_file_selected = path_foler_output / f"dashboard_data_{exec_num}.pkl"
+
+        # verifica se a pasta esta vazia
+        if not os.listdir(path_foler_output):
+            print("[INFO]A pasta está vazia OK...")
+
+        else:
+            if debug:
+                print(f"[DEBUG] A pasta não está vazia, possui  arquivos em")
+                print(path_foler_output)
+                # self.apagar_arquivos()
+
+        # Carregar Dados
+        try:
+            with open(data_file_selected, "rb") as f:
+                data = pickle.load(f)
+            st.sidebar.success(
+                f"INFO:Dados da execução {exec_num} carregados de '{path_foler_output}'."
+            )
+
+        except FileNotFoundError:
+            st.error(
+                f"Erro Crítico: Arquivo de dados selecionado ({data_file_selected}) não encontrado."
+            )
+            st.stop()  # Para se o arquivo esperado não for encontrado
+        except Exception as e:
+            st.error(f"Erro ao carregar dados de {data_file_selected}: {e}")
+            st.stop()  # Para em caso de erro de carregamento
+
+        return data
 
 
 class ConsolidatedResultsComponent:
     """Componente para exibir os resultados consolidados."""    
 
     @staticmethod
-    def render():
+    def render(tab_ativa):
         """Verifica e exibe a seção de resultados consolidados."""
 
         # Nome base do arquivo
@@ -73,8 +111,10 @@ class ConsolidatedResultsComponent:
                 button_save_excel(consolidated_excel_path, "results_consolidados.xlsx")
                 
                 # Expandir para mostrar os parâmetros utilizados
+                dados = load_execution_data(tab_ativa, debug=False)
+
                 with st.expander("Parâmetros Utilizados nesta Execução", expanded=False):
-                    st.json(data.get('params', {}))
+                    st.json(dados.get('params', {}))
 
 
     
