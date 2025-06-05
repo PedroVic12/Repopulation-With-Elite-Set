@@ -52,7 +52,7 @@ class UseState:
     def set_state(key, value):
         """Define o valor de uma chave no session_state."""
         st.session_state[key] = value
-        print("State atualizado:", key, "=", value)  
+        #print("State atualizado:", key, "=", value)  
 
 
 # --- Classe Principal do Aplicativo ---
