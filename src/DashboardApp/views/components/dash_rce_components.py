@@ -16,6 +16,9 @@ def get_folder_path():
 
 path_foler_output = get_folder_path()
 
+print("Estou aqui")
+print(path_foler_output)
+
 
         
 
