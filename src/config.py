@@ -9,20 +9,9 @@ from IPython.display import display
 
 
 # 4 parametros variando [Mutação, Crossover, Var DIFF, DELTA e restante fixo 
-options_main_file = st.session_state.get("current_options", {
-    
-    "name": "default python script",
-    "key": True,
-    "value": 15,
-    "parametros_opcionais": [
-        {"MUTACAO": [90,80,70, 60] },
-        {"CROSSOVER": [5,10, 15, 70]},
-        {"NUM_GENERATIONS": [100, 200, 300, 400]}
-    ]
-})
 
 configuracoes_execucoes = {
-        "key": True,
+        "key": False,
         "value": 5,
         "parametros_opcionais": [
              {"MUTACAO": [90,80,70, 60]},
@@ -33,10 +22,15 @@ configuracoes_execucoes = {
         ]
 }
 
-
+options_main_file = configuracoes_execucoes
 
  
 def entrada_de_dados():
+    
+    #TODO
+    # A ideia é simular a leitura de um arquivo JSON ou Excel que contenha os dados de agendamentos e contingências.
+    
+    
     # Tabela agendamentos em xlsx hardcoded
     agendamento_df = pd.DataFrame([
             {"ramo": [1, 4], "inicio": "14:00", "duracao": 6 ,"prioridade": 4},

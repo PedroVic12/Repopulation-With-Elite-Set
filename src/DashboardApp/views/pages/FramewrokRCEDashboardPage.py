@@ -238,7 +238,7 @@ class FrameworkRCEDashboard:
                 return
                 
             # Use raw string and quotes for Windows path with spaces
-            script_path = FOLDER_NAME.parent / "run_rce_framework.py"
+            script_path = FOLDER_NAME.parent / "run_framework.py"
 
             # Run the script
             self.run_script(script_path)

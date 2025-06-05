@@ -167,5 +167,5 @@ if __name__ == "__main__":
     finally:
     
         # Exibir editor de opções na página principal
-        OptionsEditor()
+        #OptionsEditor()
         print("Inicio do app")
