@@ -57,97 +57,7 @@ class DashboardApp:
         self.df = None
         self.fit_array = []
         self.optirons = options
-
-    # codigo antigo
-
-    def generateSimpleDataset(self):
-        # Geração dos dados
-        data = pd.DataFrame(
-            {"x": np.linspace(-5, 5, 400), "y": np.linspace(-5, 5, 400)}
-        )
-        # Generate meshgrid data
-        x = np.linspace(-5.15, 5.15, 100)
-        y = np.linspace(-5.15, 5.15, 100)
-        X, Y = np.meshgrid(x, y)
-
-        # Calculate function values
-        # print(X.shape,Y.shape)
-        return X, Y
-
-
-    def default_rastrigin(self, x, y):
-        return 20 + x**2 + y**2 - 10 * (np.cos(2 * np.pi * x) + np.cos(2 * np.pi * y))
-
-    def plot_Rastrigin_2D(self, X, Y, Z_rastrigin, logbook, best_variables=[]):
-        fig = plt.figure(figsize=(18, 10))
-        ax1 = fig.add_subplot(231)
-        generation = logbook.select("gen")
-        statics = self.calculate_stats(logbook)
-        title = f"Estrategia RCE - Crossover: {params['CROSSOVER']*100}% e Mutação: {params['MUTACAO']*100}% " if len(generation) > 1 else "Sem Repopulação RCE"
-
-        line1 = ax1.plot(
-            generation, statics["min_fitness"], "*b-", label="Minimum Fitness"
-        )
-        line2 = ax1.plot(
-            generation, statics["avg_fitness"], "+r-", label="Average Fitness"
-        )
-        line3 = ax1.plot(
-            generation, statics["max_fitness"], "og-", label="Maximum Fitness"
-        )
-        #ax1.set_xlabel("Generations")
-        #ax1.set_ylabel("Func. Fitness")
-        ax1.set_title(title)
-        lns = line1 + line2 + line3
-        labs = [l.get_label() for l in lns]
-        ax1.legend(lns, labs, loc="upper right")
-
-        #! Graficos barras
-        ax3 = fig.add_subplot(232)
-
-        if len(generation) > 1:
-            best_solutions = [
-                min(statics["min_fitness"]) for i in range(len(generation))
-            ]
-            avg_fitness = statics["avg_fitness"]
-            generations = np.arange(1, len(generation) + 1)
-
-            ax3.plot(
-                generations,
-                avg_fitness,
-                marker="o",
-                color="r",
-                linestyle="--",
-                label="Média Fitness por Geração",
-            )
-            ax3.bar(
-                generations,
-                statics["min_fitness"],
-                color="green",
-                label="Melhor Fitness por Geração",
-            )
-            ax3.set_title("Best Fitness por Geração")
-            ax3.set_xlabel("Geração")
-            ax3.set_ylabel("Fitness")
-            ax3.legend()
-
-        #! Rastrigin 3D (rainer nao gosta)
-        #ax5 = fig.add_subplot(233, projection="3d")
-        #ax5.plot_surface(X, Y, Z_rastrigin, cmap="viridis", edgecolor="none")
-        #ax5.set_title("Rastrigin Function 3D")
-        #ax5.set_xlabel("X")
-        #ax5.set_ylabel("Y")
-        #ax5.set_zlabel("Z")
-
-        plt.tight_layout()
-        plt.show()
-
-    def show_rastrigin_benchmark(self, logbook, best=[]):
-        X, Y = self.generateSimpleDataset()
-
-        Z_3D_rastrigin = self.default_rastrigin(X, Y)
-
-        self.plot_Rastrigin_2D(X, Y, Z_3D_rastrigin, logbook, best)
-
+        
     def graficoRCE(self, gen, lista,  repopulation=False):
         title = f"Estrategia RCE - Crossover: {params['CROSSOVER']*100}% e Mutação: {params['MUTACAO']*100}% " if repopulation else "Sem Repopulação RCE"
 
@@ -231,7 +141,7 @@ class DashboardApp:
                 print(len(statics["min_fitness"])) # DEBGU = 90
 
             min_fitness_values = statics.get("min_fitness", [])
-            #print(len(min_fitness_values))
+
             if not min_fitness_values: raise ValueError("Min fitness list is empty")
             best_solution_fitness = min(min_fitness_values)
             best_solution_index = min_fitness_values.index(best_solution_fitness)
@@ -278,9 +188,7 @@ class DashboardApp:
 
                 # check se o diretorio output exists
                 output_path = f"{FOLDER_NAME}"
-
                 data_file = f"{output_path}/dashboard_data_{execution_num}.pkl"
-
                 fig_file = f"{output_path}/dashboard_fig_{execution_num}.json"
 
                 # --- Salvar dados e figura para o script Streamlit ---
@@ -307,11 +215,10 @@ class DashboardApp:
 
 
             # Salva a figura no arquivo .json numerado
-            fig_json = pio.to_json(grafico_RCE)
-            with open(fig_file, 'w') as f:
-                f.write(fig_json)
-
-                
+            #fig_json = pio.to_json(grafico_RCE)
+            #with open(fig_file, 'w') as f:
+            #    f.write(fig_json)
+   
             print(f"\n[INFO]: Dados e figura para execução {execution_num} salvos com sucesso.") # Added execution num here
             print(fig_filename)
 
