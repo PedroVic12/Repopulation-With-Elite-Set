@@ -40,8 +40,6 @@ REM '/k' mantém a janela aberta após a execução do comando (útil para ver l
 start cmd streamlit run dashboard_rce_app_v9.py
 popd
 
-echo A janela do Streamlit foi aberta separadamente.
-
 REM Remova o comando 'exit /b 0' se quiser que a janela só feche manualmente
 pause
 
