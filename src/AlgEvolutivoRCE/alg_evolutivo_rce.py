@@ -3,7 +3,7 @@ from deap import base, creator, tools
 import random
 import pandas as pd
 import pathlib
-from Dashboard import DashboardApp
+from .Dashboard import DashboardApp
 
 
 
