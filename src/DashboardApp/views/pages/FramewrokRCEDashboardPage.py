@@ -123,7 +123,7 @@ class FrameworkRCEDashboard:
                                     GraficoRCEComponent.render(exec_num)  # Passa o exec_num para carregar o gráfico correto
                                     
                                 with st.container():
-                                    #StatisticsTableComponent.render(dados)
+                                    StatisticsTableComponent.render(dados)
                                     st.write("Graficos e Tabelas")
                                     
                                     

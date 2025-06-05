@@ -14,7 +14,7 @@ from DashboardApp.controllers.Utils import FOLDER_NAME
 
 configuracoes_execucoes = {
         "key": True,
-        "value": 10,
+        "value": 5,
         "parametros_opcionais": [
              {"MUTACAO": [90,80,70, 60]},
              {"CROSSOVER": [90,80,70, 60]},
