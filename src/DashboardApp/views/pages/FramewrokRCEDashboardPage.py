@@ -174,37 +174,37 @@ class FrameworkRCEDashboard:
         UseState.set_state("current_options", current_config)
 
         # Show current configuration
-        col1, col2 = st.columns(2)
-        with col1:
-                st.markdown("### Configuração Atual:")
-                st.json(current_config, expanded=False)
+        # col1, col2 = st.columns(2)
+        # with col1:
+        #         st.markdown("### Configuração Atual:")
+        #         st.json(current_config, expanded=False)
 
-        with col2:
-                # Show saved configurations
-                st.markdown("### Configurações Salvas:")
-                saved_configs = UseState.get_state("saved_configurations", [])
+        # with col2:
+        #         # Show saved configurations
+        #         st.markdown("### Configurações Salvas:")
+        #         saved_configs = UseState.get_state("saved_configurations", [])
 
-                if saved_configs:
-                    for idx, config in enumerate(saved_configs):
-                        with st.expander(f"📋 Config {idx+1}: {config['name']} ({config['value']}x execuções)",
-                                        expanded=False):
-                            st.write(config)
-                            st.dataframe(config)
-                            col1, col2 = st.columns(2)
-                            with col1:
-                                if st.button("🔄 Play Configuração", key=f"load_{idx}"):
-                                    self.options = config.copy()
-                                    st.success(f"Configuração '{config['name']}' carregada!")
-                                    #self.run_script(FOLDER_NAME.parent / "run_rce_framework.py")
-                                    st.rerun()
-                            with col2:
-                                if st.button("🗑️ Deletar", key=f"delete_{idx}"):
-                                    saved_configs.pop(idx)
-                                    UseState.set_state("saved_configurations", saved_configs)
-                                    st.success(f"Configuração removida!")
-                                    st.rerun()
-                else:
-                    st.info("Nenhuma configuração salva ainda.")
+        #         if saved_configs:
+        #             for idx, config in enumerate(saved_configs):
+        #                 with st.expander(f"📋 Config {idx+1}: {config['name']} ({config['value']}x execuções)",
+        #                                 expanded=False):
+        #                     st.write(config)
+        #                     st.dataframe(config)
+        #                     col1, col2 = st.columns(2)
+        #                     with col1:
+        #                         if st.button("🔄 Play Configuração", key=f"load_{idx}"):
+        #                             self.options = config.copy()
+        #                             st.success(f"Configuração '{config['name']}' carregada!")
+        #                             #self.run_script(FOLDER_NAME.parent / "run_rce_framework.py")
+        #                             st.rerun()
+        #                     with col2:
+        #                         if st.button("🗑️ Deletar", key=f"delete_{idx}"):
+        #                             saved_configs.pop(idx)
+        #                             UseState.set_state("saved_configurations", saved_configs)
+        #                             st.success(f"Configuração removida!")
+        #                             st.rerun()
+        #         else:
+        #             st.info("Nenhuma configuração salva ainda.")
 
         return current_config
 
@@ -312,9 +312,12 @@ class FrameworkRCEDashboard:
                 
                 if img_gif_loading.exists():
                     with dialog_placeholder.container():
-                        st.image(str(img_gif_loading), width=1200)
-                        st.subheader("Executando o script principal no terminal... por favor aguarde...")
-
+                        st.image(str(img_gif_loading), width=800)
+                        st.subheader("Executando o programa principal com Algoritmo Evolutivo RCE no mesmo terminal, por favor aguarde...")
+                        st.progress(50, "Iniciando a execução do script...")
+                        
+                        
+                
                 # Executa o script usando aspas duplas para o caminho
                 command = f'python "{script_path}"'
                 return_code = os.system(command)
@@ -339,7 +342,7 @@ class FrameworkRCEDashboard:
         """Cabeçalho do aplicativo."""
         st.markdown("---")
         st.title("⚡ Framework Repopulation-With-Elite-Set RCE ⚡")
-        st.write("V 9.8.1 ")
+        st.write("V 10.1.5 - 2025/06/04")
         st.markdown("---")
 
         # Adiciona CSS personalizado para estilizar o botão

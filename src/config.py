@@ -108,8 +108,6 @@ def load_many_executions(dict_key_value, algoritmo):
             # Resultados
             x, y, z, grafico = algoritmo.dashboard.visualize(logbook_with_repopulation, pop_with_repopulation, execution_num=i + 1)
 
-            grafico.show()
-
             end_time = time.time()  # Finaliza a contagem do tempo para cada execução
             execution_time = end_time - start_time
             execution_times.append(execution_time)  # Armazena o tempo de execução
@@ -154,8 +152,7 @@ def load_many_executions(dict_key_value, algoritmo):
 
      # Display or use the results
     print("\nResultados Consolidados:")
-    display(results_consolidados_df)
     results_consolidados_df.sort_values(by="best_fitness", inplace=True)
-    results_consolidados_df.describe()
+    display(results_consolidados_df)
 
 

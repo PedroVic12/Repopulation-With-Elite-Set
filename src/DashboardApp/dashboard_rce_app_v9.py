@@ -14,21 +14,18 @@ from views.pages.EasyPDF_page import EasyPDF
 import sys
 from pathlib import Path
 
-# Adiciona o diretório raiz do projeto ao PYTHONPATH
-sys.path.append(str(Path(__file__).resolve().parent.parent.parent.parent))
 
-"""
-!TODO GUI para interação com o usuário
+#    !TODO GUI para interação com o usuário
 
-1 - 256 conjuntos de parametros (4⁴) 
-2 - 10 ou 20 numero de execucoes
-3 - 4 parametros variando [Mutação, Crossover, Var DIFF, DELTA e restante fixo 
-4 - 4 Caixas de texto fixas para esses parametros variando
-5 - Criar checkbox para o usuario desabilitar as demais caixas de texto, deixando um valor possivel para aquele parametro 
-6 - butao Radio para selecionar a tabela a configuração das 256 conjuntos
-7 - Progress bar para cada geração em tempo de execução 
+#    1 - 256 conjuntos de parametros (4⁴) 
+#    2 - 10 ou 20 numero de execucoes
+#    3 - 4 parametros variando [Mutação, Crossover, Var DIFF, DELTA e restante fixo 
+#    4 - 4 Caixas de texto fixas para esses parametros variando
+#    5 - Criar checkbox para o usuario desabilitar as demais caixas de texto, deixando um valor possivel para aquele parametro 
+#    6 - butao Radio para selecionar a tabela a configuração das 256 conjuntos
+#    7 - Progress bar para cada geração em tempo de execução 
 
-"""
+
 
 
 options_main_file = st.session_state.get("current_options", {
@@ -144,6 +141,8 @@ class App:
             page_function()
         else:
             st.error("Invalid page function provided.")
+
+
 
 
 

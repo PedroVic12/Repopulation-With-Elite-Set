@@ -82,6 +82,7 @@ class CardSolutions:
     def render(data, exec_num, debug=False):
         """Exibe o cabeçalho e o resumo da melhor solução."""
         st.subheader(f"Resultados da Execução: {exec_num}")
+        st.warning("Resultados da melhor geração da solução encontrada esta acumulando ao longo das execuções. Para ver os resultados de cada execução, acesse a a planilha em 'outpout/resultados_consolidados.xlsx'.")
 
         if debug:
             st.write(data)
@@ -96,7 +97,7 @@ class CardSolutions:
             best_vars_table = pd.DataFrame(
                 {"Valor": best_vars},
                 index=[f"VAR {i+1}" for i in range(len(best_vars))]
-            ).to_html(classes='dataframe', border=1, justify='center', index_names=True, index=True)
+            ).T.to_html(classes='dataframe', border=2, justify='center', index_names=True, index=True)
         else:
             best_vars_table = "<p>Nenhuma variável encontrada.</p>"
 
@@ -116,19 +117,15 @@ class CardSolutions:
                 <div style="
                     border: 2px solid #e6e6e6; 
                     border-radius: 15px; 
-                    padding:40px;
                     background-color: #c4c4c4;
-                    height: 400px;
                     display: flex;
                     flex-direction: column;
                     justify-content: center;
                     align-items: center;
                 ">
-                    <hr style="border: 2px solid blue; width: 80%;">
-                    <h2 style="color: #1f2db4; text-align: center;">Resumo da Melhor Solução</h2>
-                    <hr style="border: 2px solid blue; width: 80%;">
-                    <h2><strong>Melhor Geração:</strong> {best_gen_idx}</h2>
-                    <h2><strong>Melhor Fitness:</strong> {best_fitness_str}</h2>
+                    <h3 style="color: #1f2db4; text-align: center;">Resumo da Melhor Solução</h2>
+                    <h4><strong>Melhor Geração:</strong> {best_gen_idx}</h2>
+                    <h4><strong>Melhor Fitness:</strong> {best_fitness_str}</h2>
                 </div>
                 """,
                 unsafe_allow_html=True
@@ -141,18 +138,15 @@ class CardSolutions:
                 <div style="
                     border: 2px solid #e6e6e6; 
                     border-radius: 15px; 
-                    padding: 20px; 
+                    padding: 5px; 
                     background-color: #c4c4c4;
                     margin-bottom: 20px;
-                    height: 100%;
                     display: flex;
                     flex-direction: column;
                     justify-content: center;
                     align-items: center;
                 ">                    
-                    <hr style="border: 2px solid blue; width: 80%;">
-                    <h2 style="color: #1f2db4; text-align: center;">Melhores Variáveis de Decisão</h2>
-                    <hr style="border: 2px solid blue; width: 80%;">
+                    <h3 style="color: #1f2db4; text-align: center;">Melhores Variáveis de Decisão</h2>
                     {best_vars_table}
                 </div>
                 """,
