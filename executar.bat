@@ -37,7 +37,7 @@ pushd DashboardApp
 
 REM Usa 'start cmd /k' para abrir uma nova janela de console para o Streamlit
 REM '/k' mantém a janela aberta após a execução do comando (útil para ver logs)
-start cmd /k streamlit run dashboard_rce_app_v9.py
+start cmd streamlit run dashboard_rce_app_v9.py
 popd
 
 echo A janela do Streamlit foi aberta separadamente.
