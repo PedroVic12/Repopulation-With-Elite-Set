@@ -6,11 +6,13 @@
 ```bash
 git clone https://github.com/PedroVic12/Repopulation-With-Elite-Set
 cd Repopulation-With-Elite-Set/src/DashboardApp
+
 pwd
 
-```bash
 pip install -r requirements.txt
 ```
+
+Depois disso, todas as bibliotecas foram importadas e execute o comando
 
 ```py
 streamlit run dashboard_rce_app_v9.py
