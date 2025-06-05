@@ -142,19 +142,20 @@ class FrameworkRCEDashboard:
 
     def ConfigWebApp(self):
         #? Debugando para Streamlit online -> Opções de execução para multiplos parametros de algoritmo Genético
-        options_dashboard = self.render_execution_options()
+        #options_dashboard = self.render_execution_options()
+        #print("Configuraçãoes", options_dashboard)
+
         state = UseState.get_state("current_options")
         print("\n\nState do aplicativo:", state)
-        print("Configuraçãoes", options_dashboard)
 
         st.info("⚠️ Configuração de parametros do Framework esta ainda em desenvolvimento, por favor, aguarde a versão 10.0 do Framework para uma melhor experiência de usuário.")
             # Botão com ícone de play para executar um script Python
         if st.button("▶️ Executar Script", type="primary"):
                     
                 # Ensure we have current options in session state
-                if "current_options" not in st.session_state:
-                    st.error("Por favor, configure as opções .JSON e options_main_file primeiro!")
-                    return
+                #if "current_options" not in st.session_state:
+                #    st.error("Por favor, configure as opções .JSON e options_main_file primeiro!")
+                #    return
                     
                 # Use raw string and quotes for Windows path with spaces
                 script_path = FOLDER_NAME.parent / "run_framework.py"
@@ -164,134 +165,76 @@ class FrameworkRCEDashboard:
 
 
     def render_execution_options(self):
-        """Renderiza as opções de execução de forma interativa."""
+        """Renderiza as opções de execução de forma interativa, permitindo a variação de parâmetros."""
+        st.markdown("### ⚒️ Configuração da Bateria de Experimentos")
+        
+        # Inicializa um dicionário para guardar as seleções do usuário
+        config_params = {}
 
-        st.markdown("### ⚒ Configuração do Framework")
-        options = st.session_state.get("current_options", self.options)
-
-        with st.expander("🔧 Configuração do conjunto de Parâmetros", expanded=False):
-            config_name = st.text_input("Nome da Configuração", "Config 1")
-
+        with st.expander("🔧 Definição dos Parâmetros e Variações", expanded=True):
             col1, col2 = st.columns(2)
 
             with col1:
-                # Checkbox option
-                key_enabled = st.checkbox(
-                    "Habilitar Multiplas Execuções",
-                    value=self.options.get("key", True),
-                    help="Ativa/Desativa múltiplas execuções do algoritmo"
+                st.subheader("Configuração Geral")
+                config_params['name'] = st.text_input("Nome da Bateria de Testes", "Experimento 1")
+                config_params['repetitions'] = st.number_input(
+                    "Repetições por Configuração", 
+                    min_value=1, max_value=100, value=5, # Mudei o default para 5, faz mais sentido para estatística
+                    help="Quantas vezes cada combinação única de parâmetros será executada (para validade estatística)."
                 )
-
-                # Numeric input
-                value_input = st.number_input(
-                    "Quantidade de Execuções",
-                    min_value=1,
-                    max_value=100,
-                    value=self.options.get("value", 5),
-                    step=1,
-                    help="Número de vezes que este conjunto de parâmetros será executado"
-                )
-
-                # Initialize current_config with a default value
-                current_config = {
-                    "name": config_name,
-                    "key": key_enabled,
-                    "value": value_input,
-                    "parametros_opcionais": []  # Default to an empty list
-                }
-
-                if st.button("💾 Salvar Como Nova Configuração"):
-                    saved_configs = UseState.get_state("saved_configurations", [])
-                    saved_configs.append(current_config)
-                    UseState.set_state("saved_configurations", saved_configs)
-                    st.success(f"Configuração '{config_name}' salva! ({value_input}x execuções)")
 
             with col2:
-                st.subheader("Parâmetros Opcionais")
-
-                # Ensure options["parametros_opcionais"] exists
-                if "parametros_opcionais" in self.options and isinstance(self.options["parametros_opcionais"], list):
-                    # Display the mutation options
-                    if len(self.options["parametros_opcionais"]) > 0:
-                        mutation_options = self.options["parametros_opcionais"][0]["MUTACAO"]
-                        selected_mutation = st.selectbox(
-                            "Taxa de Mutação (%)",
-                            options=mutation_options,
-                            index=0,
-                            help="Selecione a taxa de mutação desejada"
-                        )
-
-                    # Crossover Rate
-                    if len(self.options["parametros_opcionais"]) > 1:
-                        crossover_options = self.options["parametros_opcionais"][1]["CROSSOVER"]
-                        selected_crossover = st.selectbox(
-                            "Taxa de Crossover (%)",
-                            options=crossover_options,
-                            index=0,
-                            help="Selecione a taxa de crossover desejada"
-                        )
-
-                    # Number of Generations
-                    if len(self.options["parametros_opcionais"]) > 2:
-                        generation_options = self.options["parametros_opcionais"][2]["NUM_GENERATIONS"]
-                        selected_generations = st.selectbox(
-                            "Número de Gerações",
-                            options=generation_options,
-                            index=0,
-                            help="Selecione o número de gerações"
-                        )
+                st.subheader("Parâmetros do Algoritmo")
+                # --- Parâmetro de Mutação ---
+                vary_mutation = st.checkbox("Variar Taxa de Mutação?", key="vary_mutation")
+                # Supondo que as opções venham de self.options
+                mutation_options = self.options.get("parametros_opcionais", [{}])[0].get("MUTACAO", [0.01, 0.02, 0.05, 0.1])
+                if vary_mutation:
+                    config_params['mutation_values'] = st.multiselect(
+                        "Selecione os valores de Mutação (%)", 
+                        options=mutation_options, 
+                        default=mutation_options[:2] # Pega os dois primeiros como default
+                    )
                 else:
-                    st.error("A estrutura de 'parametros_opcionais' está incorreta.")
+                    config_params['mutation_values'] = [st.selectbox(
+                        "Selecione o valor de Mutação (%)", 
+                        options=mutation_options
+                    )]
 
-        # Update options dictionary
-        current_config = {
-                "name": config_name,
-                "key": key_enabled,
-                "value": value_input,
-                "parametros_opcionais": [
-                    {"MUTACAO": selected_mutation},
-                    {"CROSSOVER": selected_crossover},
-                    {"NUM_GENERATIONS": selected_generations}
-                ]
-        }
+                # --- Parâmetro de Crossover ---
+                vary_crossover = st.checkbox("Variar Taxa de Crossover?", key="vary_crossover")
+                crossover_options = self.options.get("parametros_opcionais", [{}, {}])[1].get("CROSSOVER", [0.6, 0.7, 0.8, 0.9])
+                if vary_crossover:
+                    config_params['crossover_values'] = st.multiselect(
+                        "Selecione os valores de Crossover (%)", 
+                        options=crossover_options, 
+                        default=crossover_options[:2]
+                    )
+                else:
+                    config_params['crossover_values'] = [st.selectbox(
+                        "Selecione o valor de Crossover (%)", 
+                        options=crossover_options
+                    )]
 
-            # Store current configuration in session state
-        UseState.set_state("current_options", current_config)
-
-        # Show current configuration
-        # col1, col2 = st.columns(2)
-        # with col1:
-        #         st.markdown("### Configuração Atual:")
-        #         st.json(current_config, expanded=False)
-
-        # with col2:
-        #         # Show saved configurations
-        #         st.markdown("### Configurações Salvas:")
-        #         saved_configs = UseState.get_state("saved_configurations", [])
-
-        #         if saved_configs:
-        #             for idx, config in enumerate(saved_configs):
-        #                 with st.expander(f"📋 Config {idx+1}: {config['name']} ({config['value']}x execuções)",
-        #                                 expanded=False):
-        #                     st.write(config)
-        #                     st.dataframe(config)
-        #                     col1, col2 = st.columns(2)
-        #                     with col1:
-        #                         if st.button("🔄 Play Configuração", key=f"load_{idx}"):
-        #                             self.options = config.copy()
-        #                             st.success(f"Configuração '{config['name']}' carregada!")
-        #                             #self.run_script(FOLDER_NAME.parent / "run_rce_framework.py")
-        #                             st.rerun()
-        #                     with col2:
-        #                         if st.button("🗑️ Deletar", key=f"delete_{idx}"):
-        #                             saved_configs.pop(idx)
-        #                             UseState.set_state("saved_configurations", saved_configs)
-        #                             st.success(f"Configuração removida!")
-        #                             st.rerun()
-        #         else:
-        #             st.info("Nenhuma configuração salva ainda.")
-
-        return current_config
+                # --- Parâmetro de Gerações ---
+                # Adicionei a mesma lógica para o número de gerações
+                vary_generations = st.checkbox("Variar Número de Gerações?", key="vary_generations")
+                generation_options = self.options.get("parametros_opcionais", [{}, {}, {}])[2].get("NUM_GENERATIONS", [100, 200, 500])
+                if vary_generations:
+                    config_params['generation_values'] = st.multiselect(
+                        "Selecione os valores de Nº de Gerações", 
+                        options=generation_options,
+                        default=generation_options[:1]
+                    )
+                else:
+                    config_params['generation_values'] = [st.selectbox(
+                        "Selecione o valor de Nº de Gerações",
+                        options=generation_options
+                    )]
+        
+        # Armazena a configuração atual no estado da sessão para uso posterior
+        UseState.set_state("experiment_config", config_params)
+        return config_params
 
 
     def atualizar_pagina(self):
@@ -307,12 +250,12 @@ class FrameworkRCEDashboard:
     def run_script(self, script_path):
         """Executa um script Python com barra de progresso única e tamanho variando."""
         dialog_placeholder = st.empty()
-        files = self.utils.get_html_content_from_folder(FOLDER_NAME)
-        print("\n\nestou aqui")
-        print(len(files))
 
         try:
             img_gif_loading = FOLDER_NAME.parent / "assets" / "humans_evolution.gif"
+            files = self.utils.get_html_content_from_folder(FOLDER_NAME)
+
+
             if img_gif_loading.exists():
                 with dialog_placeholder.container():
                     st.image(str(img_gif_loading), width=800)
@@ -332,8 +275,10 @@ class FrameworkRCEDashboard:
                         progress_placeholder.markdown(bar_html, unsafe_allow_html=True)
                         time.sleep(1)
 
+            
             command = f'python "{script_path}"'
             return_code = os.system(command)
+
 
             dialog_placeholder.empty()
             progress_placeholder.empty()
