@@ -1,7 +1,7 @@
 # Tutorial de como usar o framework
 ---
 
-## Método 1:
+## Método 1 (Execute esse comando no seu terminal) :
 
 ```bash
 git clone https://github.com/PedroVic12/Repopulation-With-Elite-Set
@@ -17,9 +17,9 @@ streamlit run dashboard_rce_app_v9.py
 ```
 
 
-## Método 2:
+## Método 2 (Forma Manual):
 
-1) Entre no diretorio /src
+1) Entre no diretorio /src`
 
 2) Execute para instalar as bibliotecas necessaria
 
