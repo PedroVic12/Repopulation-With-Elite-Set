@@ -58,8 +58,13 @@ class ConsolidatedResultsComponent:
                 tempo_total = exec_time.sum()
                 
                 st.dataframe(df_consolidado)
-                st.write(f"Média do tempo de cada execução (em segundos) = ",round(time_exec_media,3))
-                st.write("Tempo total de execução (em segundos) = ", round(tempo_total,2))
+                if time_exec_media <= 60:
+                    st.write(f"Média do tempo de cada execução (em segundos) = ",round(time_exec_media,3))
+                    st.write("Tempo total de execução (em segundos) = ", round(tempo_total,2))
+                else:
+                    st.write(f"Média do tempo de cada execução (em segundos) = ",round(time_exec_media,3))
+                    st.write(f"Média do tempo de cada execução (em minutos) = ",round(time_exec_media,3)/60)
+                    st.write("Tempo total de execução (em minutos) = ", round(tempo_total,2)/60)
 
                 # Adiciona o botão de download
                 button_save_excel(consolidated_excel_path, "results_consolidados.xlsx")
@@ -117,7 +122,7 @@ class CardSolutions:
                 <div style="
                     border: 2px solid #e6e6e6; 
                     border-radius: 15px; 
-                    background-color: #c4c4c4;
+                    background-color: #9c9c9c;
                     display: flex;
                     flex-direction: column;
                     justify-content: center;
@@ -139,7 +144,7 @@ class CardSolutions:
                     border: 2px solid #e6e6e6; 
                     border-radius: 15px; 
                     padding: 5px; 
-                    background-color: #c4c4c4;
+                    background-color: #9c9c9c;
                     margin-bottom: 20px;
                     display: flex;
                     flex-direction: column;
@@ -166,12 +171,12 @@ class GraficoRCEComponent:
     @staticmethod
     def render(exec_num):
         """Exibe os gráficos de convergência na página principal."""
-        st.header(f"📉 Gráfico RCE - Generations x Fitness (Execução {exec_num})")
+        st.header(f"📉 Gráfico RCE: F(x,y) = Generations x Fitness (Execução {exec_num})")
         
         # Caminho do arquivo HTML
         html_file = path_foler_output / f"grafico_execucao_{exec_num}.html"
         
-        if html_file.exists():
+        if html_file.exists(): 
             try:
                 with open(html_file, 'r', encoding='utf-8') as f:
                     html_content = f.read()

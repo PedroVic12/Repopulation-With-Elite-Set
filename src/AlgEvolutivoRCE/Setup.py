@@ -3,7 +3,6 @@ import numpy as np
 import math
 from deap import base, creator, tools
 import random
-import json
 import pandas as pd
 
 

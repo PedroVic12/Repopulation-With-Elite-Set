@@ -94,8 +94,8 @@ class DashboardApp:
         line3 = ax1.plot(
             generation, statics["max_fitness"], "og-", label="Maximum Fitness"
         )
-        ax1.set_xlabel("Generations")
-        ax1.set_ylabel("Func. Fitness")
+        #ax1.set_xlabel("Generations")
+        #ax1.set_ylabel("Func. Fitness")
         ax1.set_title(title)
         lns = line1 + line2 + line3
         labs = [l.get_label() for l in lns]
@@ -199,8 +199,8 @@ class DashboardApp:
 
         figure.update_layout(
             title=title,
-            xaxis_title="Generation",
-            yaxis_title="Fitness",
+            #xaxis_title="Generation",
+            #yaxis_title="Fitness",
             legend_title="Algoritimo Evolutivo",
             template="seaborn", #      ['ggplot2', 'seaborn', 'simple_white', 'plotly', 'plotly_white', ...]
             overwrite= True

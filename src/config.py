@@ -8,6 +8,8 @@ import numpy as np
 from IPython.display import display
 
 
+from DashboardApp.controllers.Utils import FOLDER_NAME
+
 # 4 parametros variando [Mutação, Crossover, Var DIFF, DELTA e restante fixo 
 
 configuracoes_execucoes = {
@@ -29,7 +31,7 @@ def entrada_de_dados():
     
     #TODO
     # A ideia é simular a leitura de um arquivo JSON ou Excel que contenha os dados de agendamentos e contingências.
-    
+
     
     # Tabela agendamentos em xlsx hardcoded
     agendamento_df = pd.DataFrame([
@@ -148,7 +150,7 @@ def load_many_executions(dict_key_value, algoritmo):
     results_consolidados_df["execution_time"] = results_consolidados_df["execution_time"].apply(lambda x: f"{x:.2f} segundos")
 
     # exportar para excel
-    results_consolidados_df.to_excel("results_consolidados.xlsx", index=False)
+    results_consolidados_df.to_excel(f"{FOLDER_NAME}/results_consolidados.xlsx", index=False)
 
      # Display or use the results
     print("\nResultados Consolidados:")

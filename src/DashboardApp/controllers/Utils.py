@@ -24,7 +24,6 @@ def get_folder_path():
 
     return FOLDER_NAME
 
-
 FOLDER_NAME = get_folder_path()
 
 

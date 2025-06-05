@@ -2,9 +2,23 @@ import numpy as np
 from deap import base, creator, tools
 import random
 import pandas as pd
+import pathlib
+from Dashboard import DashboardApp
 
-from AlgEvolutivoRCE.Dashboard import DashboardApp
 
+
+def get_folder_path():
+    BASE_DIR = pathlib.Path(__file__).resolve().parent.parent
+
+    # Define o caminho relativo para a pasta "output" dentro do projeto
+    FOLDER_NAME = BASE_DIR / "output"
+
+    # Cria a pasta "output" se ela não existir
+    FOLDER_NAME.mkdir(parents=True, exist_ok=True)
+    #print("\nFOLDER_NAME =", FOLDER_NAME)
+    return FOLDER_NAME
+
+FOLDER_NAME = get_folder_path()
 
 class AlgoritimoEvolutivoRCE:
 
@@ -450,7 +464,7 @@ class AlgoritimoEvolutivoRCE:
     def show_ind_df(self, array, text, save = True):
         df = pd.DataFrame(array)
         if save:
-            df.to_excel(f"pop_final.xlsx")
+            df.to_excel(f"{FOLDER_NAME}/pop_final.xlsx")
 
         if self.DEBUG:
             print(text)

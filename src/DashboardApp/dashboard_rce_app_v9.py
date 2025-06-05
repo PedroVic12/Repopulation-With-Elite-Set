@@ -167,4 +167,4 @@ if __name__ == "__main__":
     
         # Exibir editor de opções na página principal
         #OptionsEditor()
-        print("Inicio do app")
+        print("Aplicativo Streamlit carregado!")
