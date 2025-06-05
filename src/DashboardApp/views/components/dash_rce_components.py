@@ -65,7 +65,7 @@ class ConsolidatedResultsComponent:
     """Componente para exibir os resultados consolidados."""    
 
     @staticmethod
-    def render(tab_ativa):
+    def render(dados):
         """Verifica e exibe a seção de resultados consolidados."""
 
         # Nome base do arquivo
@@ -111,8 +111,6 @@ class ConsolidatedResultsComponent:
                 button_save_excel(consolidated_excel_path, "results_consolidados.xlsx")
                 
                 # Expandir para mostrar os parâmetros utilizados
-                dados = load_execution_data(tab_ativa, debug=False)
-
                 with st.expander("Parâmetros Utilizados nesta Execução", expanded=False):
                     st.json(dados.get('params', {}))
 

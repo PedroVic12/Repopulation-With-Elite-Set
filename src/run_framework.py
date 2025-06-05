@@ -35,13 +35,13 @@ src/DashboardApp
 
 # Import functions benchmark
 #? Foi Criado um arquivo em `utils/functions_fitness/functions_benchmarking.py` para armazenar as funções de benchmark usadas no primeiro artigo e a função de avaliação da rede IEEE 14.
+# Voce foi olhar o arquivo config.py para gerenciar a quantidade de execuções do algoritimo.
 from utils.functions_fitness.functions_benchmarking import rosenbrock_benchmark,esfera_benchmark,rastrigin, evaluate, funcao_objetivo_IEEE14
 
 
 results_consolidados = []  # Initialize an empty list to store results
 execution_times = []  # Lista para armazenar os tempos de execução
 BASE_DIR = pathlib.Path(__file__).resolve().parent 
-#print(BASE_DIR)
 
 #! Lendo os parametros em JSON em /AlgEvolutivoRCE/params.json
 def load_params(file_path):

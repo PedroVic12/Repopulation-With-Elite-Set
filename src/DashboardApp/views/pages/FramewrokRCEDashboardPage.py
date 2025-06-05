@@ -229,7 +229,7 @@ class FrameworkRCEDashboard:
             unsafe_allow_html=True,
         )
         
-        # Opções de execução para multiplos parametros de algoritmo Genético
+        #? Debugando para Streamlit online -> Opções de execução para multiplos parametros de algoritmo Genético
         options_dashboard = self.render_execution_options()
         dados = self.utils.load_execution_data(exec_num, debug=False)
         active_tab = UseState.get_state("active_tab")
@@ -258,9 +258,9 @@ class FrameworkRCEDashboard:
         self.header()
         
         # Renderiza os resultados consolidados
-        ConsolidatedResultsComponent.render(active_tab)
+        ConsolidatedResultsComponent.render(dados)
 
-        #! Seleção de execução com tabs para cada execução
+        #! MEU TEMPLATE USANDO TABS com Seleção de execução com tabs para cada execução controlado pelo UseState
         with st.container():
             st.subheader("🔄 Seleção da Execução")
             
