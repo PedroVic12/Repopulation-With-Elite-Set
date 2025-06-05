@@ -144,7 +144,7 @@ Exemplo de simulação da Rede Eletrica IEEE 14 barras com PandaPower
 <table>
   <tr>
     <td>
-	![image](https://github.com/PedroVic12/Repopulation-With-Elite-Set/blob/main/src/assets/newplot.png)
+	<img src="https://github.com/PedroVic12/Repopulation-With-Elite-Set/blob/main/src/assets/newplot.png" />
     </td>
     <td>
 	  <img src="https://media.licdn.com/dms/image/v2/D4D22AQFMN4mytV8VlQ/feedshare-shrink_1280/B4DZWFGmGyG4Ao-/0/1741694854673?e=1750896000&v=beta&t=8oWhx1CObYXT0MlkDO0udm1iBEX804kwZLi7CSgYTYw" />
