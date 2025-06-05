@@ -29,7 +29,7 @@ def load_execution_data(exec_num, debug=False):
         data = None
 
         # Use pathlib to construct paths
-        data_file_selected = path_foler_output / f"dashboard_data_{exec_num}.pkl"
+        data_file_selected = rf"{path_foler_output}/dashboard_data_{exec_num}.pkl"
 
         # verifica se a pasta esta vazia
         if not os.listdir(path_foler_output):
@@ -297,7 +297,7 @@ class StatisticsTableComponent:
         # Renderizar Tabela de população final com formato Tabela x Grafico
         #! TODO alterar para gerar arquivo pop_final.xlsx sempre
         #print("\n\nDEBUG ARQUIVO POP FINAL",excel_file)
-        arquivo = f"{path_foler_output}/pop_final.xlsx"
+        arquivo = rf"{path_foler_output}/pop_final.xlsx"
         df_pop_final = pd.read_excel(arquivo)
 
         if df_pop_final is not None:

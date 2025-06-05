@@ -7,40 +7,34 @@ pushd .
 REM Navega para o diretório src e executa o primeiro script Python
 cd src
 
-echo Instalando as biblotecas python necessarias...
 
-REM pip install -r requirements.txt --break-system-packages --no-cache-dir --disable-pip-version-check --quiet
-
-
-@echo Instalacão de bibliotecas necessarias concluida!
-
-call cls 
 
 echo Inicio do Programa...
-@REM echo Executando script em src/run_rce_framework.py...
-@REM call python run_framework.py
-
-
-@REM REM Verifica se a execução do script foi bem sucedida (opcional, mas recomendado)
-@REM IF %ERRORLEVEL% NEQ 0 (
-@REM     echo Erro ao executar run_rce_framework.py. Saindo.
-@REM     popd
-@REM     pause
-@REM     exit /b %ERRORLEVEL%
-@REM )
-
+REM call python run_framework.py
 
 REM Navega para o diretório DashboardApp e inicia a aplicação Streamlit
 echo Iniciando aplicação Streamlit em DashboardApp/dashboard_rce_app_v9.py...
-pushd DashboardApp
+cd DashboardApp
 
+echo Instalando as bibliotecas python necessarias...
 
-REM Usa 'start cmd /k' para abrir uma nova janela de console para o Streamlit
-REM '/k' mantém a janela aberta após a execução do comando (útil para ver logs)
-start cmd streamlit run dashboard_rce_app_v9.py
+@REM pip install -r requirements.txt --break-system-packages --no-cache-dir --disable-pip-version-check --quiet
+
+timeout /t 1 >nul
+ping -n 2 127.0.0.1 >nul
+
+echo Instalacao de bibliotecas necessarias concluida!
+
+call cls
+
+REM Executa o Streamlit no mesmo terminal
+streamlit run dashboard_rce_app_v9.py
+
+REM Volta para o diretório anterior
+cd ..
+
+REM Volta para o diretório original
 popd
 
-REM Remova o comando 'exit /b 0' se quiser que a janela só feche manualmente
 pause
-
 exit /b 0

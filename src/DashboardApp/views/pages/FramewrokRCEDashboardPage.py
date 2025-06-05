@@ -10,6 +10,7 @@ import os
 
 # Frontend
 import streamlit as st
+import time
 
 #from ....config import ConfigManager
 
@@ -75,13 +76,92 @@ class FrameworkRCEDashboard:
 
         self.init_state_class()
         
-    def init_state_class():
+    def init_state_class(self):
         pass
 
     def handle_tab_change(self, tab_index: int, execution_number: int):
         """Gerencia mudanças de aba e atualiza o estado."""
         UseState.set_state("active_tab", tab_index)
         UseState.set_state("selected_execution", execution_number)
+
+    
+
+    def run(self):
+        try:
+            active_tab = UseState.get_state("active_tab")
+            dados = self.utils.load_execution_data(active_tab + 1, debug=False)
+        
+            self.ConfigWebApp()
+
+            self.header()
+            
+            # Renderiza os resultados consolidados
+            ConsolidatedResultsComponent.render(dados)
+
+            #! MEU TEMPLATE USANDO TABS com Seleção de execução com tabs para cada execução controlado pelo UseState
+            with st.container():
+                st.subheader("🔄 Seleção da Execução")
+                
+                # Cria abas
+                tabs = st.tabs([f"Execução {num}" for num in self.execution_numbers])
+
+                # Renderiza o conteúdo de cada aba
+                for i, (tab, exec_num) in enumerate(zip(tabs, self.execution_numbers)):
+                    with tab:
+                        # Atualiza o estado da aba ativa
+                        if UseState.get_state("active_tab") != i:
+                            self.handle_tab_change(i, exec_num)
+
+                        # Carrega os dados e o gráfico da execução
+                        if dados:
+                            try:
+                                with st.container():
+                                    CardSolutions.render(dados, exec_num)
+
+
+                                with st.container():
+                                    GraficoRCEComponent.render(exec_num)  # Passa o exec_num para carregar o gráfico correto
+                                    
+                                with st.container():
+                                    #StatisticsTableComponent.render(dados)
+                                    st.write("Graficos e Tabelas")
+                                    
+                                    
+                            except Exception as e:
+                                st.error(f"Erro ao carregar os dados da execução {exec_num}.",e)
+
+                        else:
+                            st.error("Não foi encontrado nenhum conjunto de dados")
+        
+
+            self.footer()
+
+        except Exception as error:
+            st.warning(f"Erro ao carregar pagina: {error}")
+
+
+    def ConfigWebApp(self):
+        #? Debugando para Streamlit online -> Opções de execução para multiplos parametros de algoritmo Genético
+        options_dashboard = self.render_execution_options()
+        state = UseState.get_state("current_options")
+        print("\n\nState do aplicativo:", state)
+        print("Configuraçãoes", options_dashboard)
+
+        st.info("⚠️ Configuração de parametros do Framework esta ainda em desenvolvimento, por favor, aguarde a versão 10.0 do Framework para uma melhor experiência de usuário.")
+            # Botão com ícone de play para executar um script Python
+        if st.button("▶️ Executar Script", type="primary"):
+                    
+                # Ensure we have current options in session state
+                if "current_options" not in st.session_state:
+                    st.error("Por favor, configure as opções .JSON e options_main_file primeiro!")
+                    return
+                    
+                # Use raw string and quotes for Windows path with spaces
+                script_path = FOLDER_NAME.parent / "run_framework.py"
+
+                # Run the script
+                self.run_script(script_path)
+
 
     def render_execution_options(self):
         """Renderiza as opções de execução de forma interativa."""
@@ -213,133 +293,58 @@ class FrameworkRCEDashboard:
 
         return current_config
 
-    def run(self):
-
-        # Adiciona CSS personalizado para estilizar as abas
-        st.markdown(
-            """
-            <style>
-            /* Estiliza as abas */
-            div.streamlit-tabs div[data-baseweb="tab"] {
-                font-size: 25px; /* Aumenta o tamanho da fonte */
-                padding: 10px 10px; /* Aumenta o espaçamento interno */
-            }
-            </style>
-            """,
-            unsafe_allow_html=True,
-        )
-        
-        #? Debugando para Streamlit online -> Opções de execução para multiplos parametros de algoritmo Genético
-        options_dashboard = self.render_execution_options()
-        dados = self.utils.load_execution_data(exec_num, debug=False)
-        active_tab = UseState.get_state("active_tab")
-        state = UseState.get_state("current_options")
-        print("State do aplicativo:", state)
-
-
-
-        st.info("⚠️ Configuração de parametros do Framework esta ainda em desenvolvimento, por favor, aguarde a versão 10.0 do Framework para uma melhor experiência de usuário.")
-        # Botão com ícone de play para executar um script Python
-        if st.button("▶️ Executar Script", type="primary"):
-                  
-            # Ensure we have current options in session state
-            if "current_options" not in st.session_state:
-                st.error("Por favor, configure as opções .JSON e options_main_file primeiro!")
-                return
-                
-            # Use raw string and quotes for Windows path with spaces
-            script_path = FOLDER_NAME.parent / "run_framework.py"
-
-            # Run the script
-            self.run_script(script_path)
-
-
-      
-        self.header()
-        
-        # Renderiza os resultados consolidados
-        ConsolidatedResultsComponent.render(dados)
-
-        #! MEU TEMPLATE USANDO TABS com Seleção de execução com tabs para cada execução controlado pelo UseState
-        with st.container():
-            st.subheader("🔄 Seleção da Execução")
-            
-            # Cria abas
-            tabs = st.tabs([f"Execução {num}" for num in self.execution_numbers])
-
-            # Renderiza o conteúdo de cada aba
-            for i, (tab, exec_num) in enumerate(zip(tabs, self.execution_numbers)):
-                with tab:
-                    # Atualiza o estado da aba ativa
-                    if UseState.get_state("active_tab") != i:
-                        self.handle_tab_change(i, exec_num)
-
-                    # Carrega os dados e o gráfico da execução
-                    if dados:
-                        try:
-                            with st.container():
-                                CardSolutions.render(dados, exec_num)
-
-
-                            with st.container():
-                                GraficoRCEComponent.render(exec_num)  # Passa o exec_num para carregar o gráfico correto
-                                
-                            with st.container():
-                                StatisticsTableComponent.render(dados)
-                                
-                                
-                        except Exception as e:
-                            st.error(f"Erro ao carregar os dados da execução {exec_num}.",e)
-
-                    else:
-                        st.error("Não foi encontrado nenhum conjunto de dados")
-      
-
-        self.footer()
 
     def atualizar_pagina(self):
         """Atualiza a página."""
         st.rerun()
         print("Atualizando a página...")
 
-    @st.dialog("Loading...")
-    def CircleLoading():
-        st.write(f"Why is your favorite function Benchmark?")
-        st.image("/home/pedrov12/Documentos/GitHub/Repopulation-With-Elite-Set/src/assets/uff_logo.jpg")
+    
+
+
 
     
     def run_script(self, script_path):
-        """Executa um script Python."""
-        # Cria um espaço temporário para o "diálogo"
+        """Executa um script Python com barra de progresso única e tamanho variando."""
         dialog_placeholder = st.empty()
+        files = self.utils.get_html_content_from_folder(FOLDER_NAME)
+        print("\n\nestou aqui")
+        print(len(files))
 
         try:
-                # Verifica se o GIF existe
-                img_gif_loading = FOLDER_NAME.parent / "assets" / "humans_evolution.gif"
-                
-                if img_gif_loading.exists():
-                    with dialog_placeholder.container():
-                        st.image(str(img_gif_loading), width=800)
-                        st.subheader("Executando o programa principal com Algoritmo Evolutivo RCE no mesmo terminal, por favor aguarde...")
-                        st.progress(50, "Iniciando a execução do script...")
-                        
-                        
-                
-                # Executa o script usando aspas duplas para o caminho
-                command = f'python "{script_path}"'
-                return_code = os.system(command)
+            img_gif_loading = FOLDER_NAME.parent / "assets" / "humans_evolution.gif"
+            if img_gif_loading.exists():
+                with dialog_placeholder.container():
+                    st.image(str(img_gif_loading), width=800)
+                    st.subheader("Executando o programa principal com Algoritmo Evolutivo RCE no mesmo terminal, por favor aguarde...")
 
-                # Remove o "diálogo" após a execução
-                dialog_placeholder.empty()
+                    # Barra de progresso única com tamanho variando
+                    progress_placeholder = st.empty()
+                    steps = len(files) * 10 if len(files) > 0 else 10
+                    for i in range(steps + 1):
+                        progress = i / steps
+                        bar_html = f"""
+                        <div style="background-color:#e0e0e0; border-radius:10px; width:100%; height:30px;">
+                            <div style="background-color:#008000; width:{progress*100}%; height:30px; border-radius:10px;"></div>
+                        </div>
+                        <p style="text-align:center;">{int(progress*100)}%</p>
+                        """
+                        progress_placeholder.markdown(bar_html, unsafe_allow_html=True)
+                        time.sleep(1)
 
-                if return_code == 0:
-                    st.success("Script executado com sucesso!")
-                    self.atualizar_pagina()
+            command = f'python "{script_path}"'
+            return_code = os.system(command)
 
+            dialog_placeholder.empty()
+            progress_placeholder.empty()
+
+            if return_code == 0:
+                st.success("Script executado com sucesso!")
+                self.atualizar_pagina()
 
         except Exception as e:
-                dialog_placeholder.empty()
-                st.error(f"Erro ao executar o script. Código de retorno: {return_code} e Erro: {e}")
+            dialog_placeholder.empty()
+            st.error(f"Erro ao executar o script. Código de retorno: {return_code} e Erro: {e}")
 
         if not self.execution_numbers:
             st.error("Nenhum arquivo de resultado encontrado.")
@@ -369,6 +374,20 @@ class FrameworkRCEDashboard:
             }
             div.stButton > button:hover {
                 background-color: #45a049; /* Verde mais escuro ao passar o mouse */
+            }
+            </style>
+            """,
+            unsafe_allow_html=True,
+        )
+
+        # Adiciona CSS personalizado para estilizar as abas
+        st.markdown(
+            """
+            <style>
+            /* Estiliza as abas */
+            div.streamlit-tabs div[data-baseweb="tab"] {
+                font-size: 25px; /* Aumenta o tamanho da fonte */
+                padding: 10px 10px; /* Aumenta o espaçamento interno */
             }
             </style>
             """,

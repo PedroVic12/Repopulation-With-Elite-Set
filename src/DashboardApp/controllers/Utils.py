@@ -46,6 +46,40 @@ class Utils:
 
             print(f"Erro ao remover arquivo {file_path}: {e}")
 
+    def get_html_content_from_folder(self, folder_path_str: str) -> dict:
+        """
+        Lê o conteúdo de todos os arquivos HTML em uma pasta especificada.
+
+        Args:
+            folder_path_str (str): O caminho para a pasta contendo os arquivos HTML.
+
+        Returns:
+            dict: Um dicionário onde as chaves são os nomes dos arquivos HTML
+                  e os valores são o conteúdo desses arquivos.
+                  Retorna um dicionário vazio se a pasta não existir ou não houver arquivos HTML.
+        """
+        folder_path = pathlib.Path(folder_path_str)
+        files = []
+
+        if not folder_path.is_dir():
+            print(f"Erro: O caminho '{folder_path_str}' não é um diretório válido ou não existe.")
+            return files
+
+        for html_file in folder_path.glob("*.html"):
+            try:
+                #with open(html_file, "r", encoding="utf-8") as f:
+                    #html_contents[html_file.name] = f.read()
+                #print(f"Lido com sucesso: {html_file.name}")
+                files.append(html_file.name)
+
+            except Exception as e:
+                print(f"Erro ao ler o arquivo {html_file.name}: {e}")
+        
+        if not files:
+            print(f"Nenhum arquivo HTML encontrado em '{folder_path_str}'.")
+
+        return files
+
     def load_files(self, exec_num):
         """Carrega os dados .pkl e a figura .json para a execução especificada."""
         data = None
@@ -187,3 +221,5 @@ class Controller:
 
         # Retorna o número da execução correspondente à aba ativa
         return execution_numbers[st.session_state["active_tab_index"]]
+
+
