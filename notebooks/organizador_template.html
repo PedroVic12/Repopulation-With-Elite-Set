@@ -1,0 +1,513 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Analisador Financeiro de Renda</title>
+
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        // Tailwind CSS configuration for Dracula theme colors
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        background: '#282a36', // Dracula background
+                        foreground: '#f8f8f2', // Dracula text/foreground
+                        primary: '#bd93f9', // Dracula purple for primary actions/accents
+                        secondary: '#6272a4', // Dracula comment color for subtle elements
+                        incomeGreen: '#50fa7b', // Dracula green for incomes
+                        expenseRed: '#ff5555', // Dracula red for expenses
+                        yellow: '#f1fa8c', // Dracula yellow for accents (not used directly in this version, but available)
+                    },
+                }
+            }
+        }
+    </script>
+    <!-- Font Awesome for Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    
+    <!-- React and ReactDOM UMD builds -->
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <!-- Babel for JSX transformation in browser -->
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+    <style>
+        /* Basic body styles */
+        body {
+            margin: 0;
+            font-family: 'Inter', sans-serif; /* Using Inter for consistency */
+            background-color: #282a36; /* Dracula background */
+            color: #f8f8f2; /* Dracula foreground */
+        }
+        /* Custom scrollbar for better aesthetics */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #44475a; /* Dracula current line */
+            border-radius: 10px;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #6272a4; /* Dracula comment color */
+            border-radius: 10px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #bd93f9; /* Dracula purple */
+        }
+    </style>
+</head>
+<body class="bg-background text-foreground">
+    <div id="root" class="flex justify-center p-5 min-h-screen"></div>
+
+    <script type="text/babel">
+        // Custom Snackbar/Alert Component
+        // This replaces Material-UI's Snackbar and Alert functionality
+        function CustomSnackbar({ message, type, open, onClose }) {
+            const bgColor = type === 'success' ? 'bg-incomeGreen' : 'bg-expenseRed';
+            const icon = type === 'success' ? 'fa-circle-check' : 'fa-circle-xmark';
+
+            if (!open) return null;
+
+            return (
+                <div className="fixed bottom-5 left-1/2 -translate-x-1/2 z-50">
+                    <div className={`${bgColor} text-white px-6 py-3 rounded-lg shadow-lg flex items-center space-x-3 transform transition-transform duration-300 ease-out scale-100`}>
+                        <i className={`fas ${icon}`}></i>
+                        <span>{message}</span>
+                        <button onClick={onClose} className="ml-auto focus:outline-none">
+                            <i className="fas fa-times"></i>
+                        </button>
+                    </div>
+                </div>
+            );
+        }
+
+        // App Header Component
+        function AppHeader({ onExportCsv }) {
+            return (
+                <header className="bg-secondary border-b border-gray-700 shadow-sm mb-4 rounded-t-lg">
+                    <div className="container mx-auto px-4 py-3 flex items-center">
+                        <i className="fas fa-chart-bar text-primary mr-2 text-xl"></i>
+                        <h1 className="text-lg font-semibold text-foreground flex-grow">
+                            Analisador Financeiro de Renda
+                        </h1>
+                        <button
+                            onClick={onExportCsv}
+                            title="Exportar para CSV"
+                            className="bg-primary text-white px-3 py-1 rounded-md text-sm hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-opacity-50 transition duration-200 ease-in-out flex items-center space-x-2"
+                        >
+                            <i className="fas fa-file-excel"></i>
+                            <span className="hidden sm:inline">Exportar CSV</span>
+                        </button>
+                        <i className="fas fa-money-bill-wave text-primary ml-2 text-xl"></i>
+                    </div>
+                </header>
+            );
+        }
+
+        // Category Summary Component (Renamed from IncomeSummary)
+        function CategorySummary({ totalValue, categoryType }) {
+            const [openSnackbar, setOpenSnackbar] = React.useState(false);
+            const displayColor = categoryType === 'income' ? 'text-incomeGreen' : 'text-expenseRed';
+
+            const handleCopy = () => {
+                const el = document.createElement('textarea');
+                el.value = totalValue.toFixed(2).replace('.', ',');
+                el.setAttribute('readonly', '');
+                el.style.position = 'absolute';
+                el.style.left = '-9999px';
+                document.body.appendChild(el);
+                el.select();
+                try {
+                    document.execCommand('copy');
+                    setOpenSnackbar(true);
+                } catch (err) {
+                    console.error('Failed to copy: ', err);
+                } finally {
+                    document.body.removeChild(el);
+                }
+            };
+
+            const handleCloseSnackbar = () => {
+                setOpenSnackbar(false);
+            };
+
+            return (
+                <div className="p-4 mb-6 bg-secondary text-foreground border border-gray-700 rounded-lg shadow-sm flex items-center justify-between">
+                    <p className={`text-xl font-bold ${displayColor}`}>
+                        Total {categoryType === 'income' ? 'Entradas' : 'Saídas'}: R$ {totalValue.toFixed(2).replace('.', ',')}
+                    </p>
+                    <button
+                        onClick={handleCopy}
+                        title="Copiar valor"
+                        className="p-2 rounded-full bg-primary text-white hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-opacity-50 transition duration-200 ease-in-out"
+                    >
+                        <i className="fas fa-copy text-sm"></i>
+                    </button>
+                    <CustomSnackbar
+                        message="Valor copiado!"
+                        type="success"
+                        open={openSnackbar}
+                        onClose={handleCloseSnackbar}
+                    />
+                </div>
+            );
+        }
+
+        // Profit Summary Component
+        function ProfitSummary({ totalIncome, totalExpense }) {
+            const netProfit = totalIncome - totalExpense;
+            const displayColor = netProfit >= 0 ? 'text-incomeGreen' : 'text-expenseRed';
+            const [openSnackbar, setOpenSnackbar] = React.useState(false);
+
+            const handleCopy = () => {
+                const el = document.createElement('textarea');
+                el.value = netProfit.toFixed(2).replace('.', ',');
+                el.setAttribute('readonly', '');
+                el.style.position = 'absolute';
+                el.style.left = '-9999px';
+                document.body.appendChild(el);
+                el.select();
+                try {
+                    document.execCommand('copy');
+                    setOpenSnackbar(true);
+                } catch (err) {
+                    console.error('Failed to copy: ', err);
+                } finally {
+                    document.body.removeChild(el);
+                }
+            };
+
+            const handleCloseSnackbar = () => {
+                setOpenSnackbar(false);
+            };
+
+            return (
+                <div className="p-4 mb-6 bg-secondary text-foreground border border-gray-700 rounded-lg shadow-sm flex items-center justify-between">
+                    <p className={`text-xl font-bold ${displayColor}`}>
+                        Lucro Líquido: R$ {netProfit.toFixed(2).replace('.', ',')}
+                    </p>
+                    <button
+                        onClick={handleCopy}
+                        title="Copiar lucro"
+                        className="p-2 rounded-full bg-primary text-white hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-opacity-50 transition duration-200 ease-in-out"
+                    >
+                        <i className="fas fa-copy text-sm"></i>
+                    </button>
+                    <CustomSnackbar
+                        message="Lucro copiado!"
+                        type="success"
+                        open={openSnackbar}
+                        onClose={handleCloseSnackbar}
+                    />
+                </div>
+            );
+        }
+
+        // Service Input Form Component
+        function ServiceForm({ onAddService, editingService, onUpdateService, onCancelEdit, activeTab }) {
+            const [serviceName, setServiceName] = React.useState('');
+            const [serviceValue, setServiceValue] = React.useState('');
+            const [openErrorSnackbar, setOpenErrorSnackbar] = React.useState(false);
+            const [errorMessage, setErrorMessage] = React.useState('');
+
+            React.useEffect(() => {
+                if (editingService) {
+                    setServiceName(editingService.name);
+                    setServiceValue(editingService.value.toString().replace('.', ',')); // Format for display
+                } else {
+                    setServiceName('');
+                    setServiceValue('');
+                }
+            }, [editingService]);
+
+            const handleSubmit = () => {
+                const value = parseFloat(serviceValue.replace(',', '.'));
+                if (serviceName.trim() === '') {
+                    setErrorMessage('Por favor, insira um nome para o serviço.');
+                    setOpenErrorSnackbar(true);
+                    return;
+                }
+                if (isNaN(value) || value <= 0) {
+                    setErrorMessage('Por favor, insira um valor válido e maior que zero.');
+                    setOpenErrorSnackbar(true);
+                    return;
+                }
+
+                if (editingService) {
+                    onUpdateService({ ...editingService, name: serviceName, value: value });
+                } else {
+                    onAddService({ name: serviceName, value: value, type: activeTab }); // Add type based on active tab
+                }
+                setServiceName('');
+                setServiceValue('');
+                setOpenErrorSnackbar(false); // Close error snackbar on successful submission
+            };
+
+            const handleValueChange = (e) => {
+                const value = e.target.value;
+                if (/^\d*([,\.]?\d*)$/.test(value)) {
+                    setServiceValue(value);
+                }
+            };
+
+            const handleCloseErrorSnackbar = () => {
+                setOpenErrorSnackbar(false);
+            };
+
+            return (
+                <div className="p-4 mb-6 bg-secondary text-foreground border border-gray-700 rounded-lg shadow-sm flex flex-col sm:flex-row gap-4 items-center">
+                    <input
+                        type="text"
+                        placeholder="Nome do Serviço"
+                        value={serviceName}
+                        onChange={(e) => setServiceName(e.target.value)}
+                        className="flex-1 p-2 border border-gray-600 bg-gray-800 text-foreground rounded-md focus:outline-none focus:ring-2 focus:ring-primary w-full sm:w-auto"
+                    />
+                    <div className="relative w-full sm:w-auto">
+                        <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">R$</span>
+                        <input
+                            type="text"
+                            placeholder="Valor"
+                            value={serviceValue}
+                            onChange={handleValueChange}
+                            inputMode="decimal"
+                            className="w-full pl-9 pr-2 py-2 border border-gray-600 bg-gray-800 text-foreground rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
+                        />
+                    </div>
+                    <button
+                        onClick={handleSubmit}
+                        className="min-w-[100px] bg-primary text-white px-4 py-2 rounded-md hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-opacity-50 transition duration-200 ease-in-out w-full sm:w-auto"
+                    >
+                        {editingService ? 'Atualizar' : 'Adicionar'}
+                    </button>
+                    {editingService && (
+                        <button
+                            onClick={onCancelEdit}
+                            className="min-w-[80px] border border-gray-600 text-foreground px-4 py-2 rounded-md hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-secondary focus:ring-opacity-50 transition duration-200 ease-in-out w-full sm:w-auto"
+                        >
+                            Cancelar
+                        </button>
+                    )}
+                    <CustomSnackbar
+                        message={errorMessage}
+                        type="error"
+                        open={openErrorSnackbar}
+                        onClose={handleCloseErrorSnackbar}
+                    />
+                </div>
+            );
+        }
+
+        // Service List Item Component
+        function ServiceItem({ service, totalCategoryValue, onDelete, onEdit }) {
+            const percentage = totalCategoryValue > 0 ? (service.value / totalCategoryValue * 100).toFixed(2) : 0;
+            const valueColor = service.type === 'income' ? 'text-incomeGreen' : 'text-expenseRed';
+
+            return (
+                <div className="py-3 px-4 border-b border-gray-700 last:border-b-0 flex flex-col sm:flex-row items-start sm:items-center justify-between">
+                    <div className="flex-1 mb-2 sm:mb-0 sm:w-auto w-full">
+                        <p className="font-bold text-foreground">{service.name}</p>
+                        <p className={`text-sm ${valueColor}`}>
+                            R$ {service.value.toFixed(2).replace('.', ',')}
+                        </p>
+                    </div>
+                    <div className="text-sm text-gray-400 sm:ml-4 flex items-center justify-between w-full sm:w-auto">
+                        <span className="mr-4">{percentage}%</span>
+                        <div className="flex space-x-2">
+                            <button
+                                onClick={() => onDelete(service.id)}
+                                className="p-2 rounded-full text-gray-400 hover:bg-gray-700 hover:text-expenseRed focus:outline-none focus:ring-2 focus:ring-expenseRed focus:ring-opacity-50 transition duration-200 ease-in-out"
+                                title="Deletar serviço"
+                            >
+                                <i className="fas fa-trash-alt text-sm"></i>
+                            </button>
+                            <button
+                                onClick={() => onEdit(service)}
+                                className="p-2 rounded-full text-gray-400 hover:bg-gray-700 hover:text-primary focus:outline-none focus:ring-2 focus:ring-primary focus:ring-opacity-50 transition duration-200 ease-in-out"
+                                title="Editar serviço"
+                            >
+                                <i className="fas fa-edit text-sm"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            );
+        }
+
+        // Service Distribution Chart Component
+        function ServiceDistributionChart({ services, totalCategoryValue, categoryType }) {
+            const sortedServices = [...services].sort((a, b) => b.value - a.value);
+            const barColor = categoryType === 'income' ? 'bg-incomeGreen' : 'bg-expenseRed';
+
+            return (
+                <div className="p-4 bg-secondary text-foreground border border-gray-700 rounded-lg shadow-sm h-full">
+                    <h2 className="text-xl font-semibold text-center mb-4 text-foreground">
+                        Distribuição de {categoryType === 'income' ? 'Entradas' : 'Saídas'}
+                    </h2>
+                    <div>
+                        {sortedServices.map(service => {
+                            const percentage = totalCategoryValue > 0 ? (service.value / totalCategoryValue * 100) : 0;
+                            return (
+                                <div key={service.id} className="flex items-center mb-3 h-8">
+                                    <p className="w-20 text-right pr-3 text-sm font-medium text-gray-400 flex-shrink-0 truncate">
+                                        {service.name}
+                                    </p>
+                                    <div className="flex-grow h-full flex items-center">
+                                        <div
+                                            className={`${barColor} h-full rounded-md relative flex items-center justify-end pr-2 text-white font-bold text-sm transition-all duration-300 ease-in-out`}
+                                            style={{ width: `${percentage}%` }}
+                                        >
+                                            {percentage > 5 && ( /* Only show value if bar is wide enough */
+                                                <span className="px-1">
+                                                    R$ {service.value.toFixed(2).replace('.', ',')}
+                                                </span>
+                                            )}
+                                        </div>
+                                    </div>
+                                </div>
+                            );
+                        })}
+                        {services.length === 0 && (
+                            <p className="text-center text-gray-500 mt-4 text-sm">
+                                Adicione {categoryType === 'income' ? 'entradas' : 'saídas'} para ver a distribuição.
+                            </p>
+                        )}
+                    </div>
+                </div>
+            );
+        }
+
+        // Main App Component
+        function App() {
+            const [services, setServices] = React.useState([
+                { id: 1, name: 'Salário', value: 3500.00, type: 'income' },
+                { id: 2, name: 'Freela', value: 1200.00, type: 'income' },
+                { id: 3, name: 'Aluguel', value: 1500.00, type: 'expense' },
+                { id: 4, name: 'Supermercado', value: 800.00, type: 'expense' },
+                { id: 5, name: 'Transporte', value: 200.00, type: 'expense' },
+            ]);
+            const [editingService, setEditingService] = React.useState(null);
+            const [activeTab, setActiveTab] = React.useState('income'); // 'income' or 'expense'
+
+            // Calculate total income and expense
+            const totalIncome = services.filter(s => s.type === 'income').reduce((sum, service) => sum + service.value, 0);
+            const totalExpense = services.filter(s => s.type === 'expense').reduce((sum, service) => sum + service.value, 0);
+
+            // Filter services based on active tab
+            const filteredServices = services.filter(service => service.type === activeTab);
+            const totalCategoryValue = filteredServices.reduce((sum, service) => sum + service.value, 0);
+
+            const handleAddService = (newService) => {
+                setServices([...services, { ...newService, id: Date.now() }]);
+            };
+
+            const handleDeleteService = (id) => {
+                setServices(services.filter(service => service.id !== id));
+                if (editingService && editingService.id === id) {
+                    setEditingService(null);
+                }
+            };
+
+            const handleEditService = (serviceToEdit) => {
+                setEditingService(serviceToEdit);
+            };
+
+            const handleUpdateService = (updatedService) => {
+                setServices(services.map(service =>
+                    service.id === updatedService.id ? updatedService : service
+                ));
+                setEditingService(null);
+            };
+
+            const handleCancelEdit = () => {
+                setEditingService(null);
+            };
+
+            const handleExportCsv = () => {
+                const headers = ['ID', 'Nome', 'Valor', 'Tipo'];
+                // Format data for CSV, using '.' as decimal separator for broader compatibility
+                const csvRows = services.map(service =>
+                    `${service.id},"${service.name.replace(/"/g, '""')}",${service.value.toFixed(2)},${service.type}`
+                );
+
+                const csvContent = [headers.join(','), ...csvRows].join('\n');
+                
+                const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+                const link = document.createElement('a');
+                link.href = URL.createObjectURL(blob);
+                link.setAttribute('download', 'renda_financeira.csv');
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+                URL.revokeObjectURL(link.href);
+            };
+
+            return (
+                <div className="app-container w-full max-w-4xl bg-secondary text-foreground rounded-lg shadow-lg overflow-hidden">
+                    <AppHeader onExportCsv={handleExportCsv} />
+                    <div className="p-5">
+                        {/* Tabs for Income and Expense */}
+                        <div className="flex border-b border-gray-700 mb-6">
+                            <button
+                                className={`flex-1 py-3 text-lg font-semibold rounded-t-lg transition-colors duration-200 ${activeTab === 'income' ? 'border-b-4 border-incomeGreen text-incomeGreen' : 'text-gray-400 hover:text-incomeGreen'}`}
+                                onClick={() => { setActiveTab('income'); setEditingService(null); }}
+                            >
+                                Entradas
+                            </button>
+                            <button
+                                className={`flex-1 py-3 text-lg font-semibold rounded-t-lg transition-colors duration-200 ${activeTab === 'expense' ? 'border-b-4 border-expenseRed text-expenseRed' : 'text-gray-400 hover:text-expenseRed'}`}
+                                onClick={() => { setActiveTab('expense'); setEditingService(null); }}
+                            >
+                                Saídas
+                            </button>
+                        </div>
+
+                        <CategorySummary totalValue={totalCategoryValue} categoryType={activeTab} />
+                        
+                        {/* New Profit Summary Component */}
+                        <ProfitSummary totalIncome={totalIncome} totalExpense={totalExpense} />
+
+                        <ServiceForm
+                            onAddService={handleAddService}
+                            editingService={editingService}
+                            onUpdateService={handleUpdateService}
+                            onCancelEdit={handleCancelEdit}
+                            activeTab={activeTab} // Pass active tab to form for new entries
+                        />
+
+                        {/* List and Chart side-by-side */}
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div className="col-span-1 p-0 bg-secondary text-foreground border border-gray-700 rounded-lg shadow-sm overflow-hidden">
+                                {filteredServices.length === 0 ? (
+                                    <div className="py-5 text-center text-gray-500">
+                                        Nenhum {activeTab === 'income' ? 'serviço de entrada' : 'serviço de saída'} adicionado ainda.
+                                    </div>
+                                ) : (
+                                    filteredServices.map(service => (
+                                        <ServiceItem
+                                            key={service.id}
+                                            service={service}
+                                            totalCategoryValue={totalCategoryValue}
+                                            onDelete={handleDeleteService}
+                                            onEdit={handleEditService}
+                                        />
+                                    ))
+                                )}
+                            </div>
+                            <div className="col-span-1 flex items-stretch"> {/* Ensures chart takes full height */}
+                                <ServiceDistributionChart services={filteredServices} totalCategoryValue={totalCategoryValue} categoryType={activeTab} />
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            );
+        }
+
+        // Render the App component into the root div
+        ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+    </script>
+</body>
+</html>
