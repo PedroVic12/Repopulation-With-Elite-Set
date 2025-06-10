@@ -8,38 +8,14 @@ from views.pages.StreamlitDashbord import StreamlitDashboard
 from views.pages.code_editor_page import CodeEditorPage
 from views.pages.EasyPDF_page import EasyPDF
 
-
+import sys
+import os
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+from config import options_main_file
 
 import sys
 from pathlib import Path
 
-
-#    !TODO GUI para interação com o usuário
-
-#    1 - 256 conjuntos de parametros (4⁴) 
-#    2 - 10 ou 20 numero de execucoes
-#    3 - 4 parametros variando [Mutação, Crossover, Var DIFF, DELTA e restante fixo 
-#    4 - 4 Caixas de texto fixas para esses parametros variando
-#    5 - Criar checkbox para o usuario desabilitar as demais caixas de texto, deixando um valor possivel para aquele parametro 
-#    6 - butao Radio para selecionar a tabela a configuração das 256 conjuntos
-#    7 - Progress bar para cada geração em tempo de execução 
-
-
-
-
-options_main_file = st.session_state.get("current_options", {
-    "name": "default python script",
-    "key": True,
-    "value": 3,
-    "parametros_opcionais": [
-        {"MUTACAO": [90,80,70, 60]},
-        {"CROSSOVER": [5,10, 15, 20]},
-        {"NUM_GENERATIONS": [100, 200, 300, 400]}
-    ]
-})
-
-
-#! from ..config import  options_main_file
 
 def OptionsEditor():
     """Interface para editar `options_main_file`."""
@@ -142,16 +118,11 @@ class App:
             st.error("Invalid page function provided.")
 
 
-
-
-
-
 # --- Main Execution ---
 if __name__ == "__main__":
     app = App()  # Initialize app config and styling
 
     try:
-    
         # Obter parâmetros de URL
         query_params = st.experimental_get_query_params()
         selected_page = query_params.get("page", ["framework_rce"])[0]
@@ -159,11 +130,10 @@ if __name__ == "__main__":
         # Renderizar a página selecionada
         pagina_selecionada = DrawerSideBar()
         app.run(pagina_selecionada)
+
     except Exception as e:
         print(e)
 
     finally:
-    
-        # Exibir editor de opções na página principal
-        #OptionsEditor()
+
         print("Aplicativo Streamlit carregado!")

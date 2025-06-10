@@ -8,7 +8,7 @@ import numpy as np
 from IPython.display import display
 
 
-from DashboardApp.controllers.Utils import FOLDER_NAME
+from DashboardApp.controllers.Utils import FOLDER_NAME, PARAMETROS_JSON
 
 # 4 parametros variando [Mutação, Crossover, Var DIFF, DELTA e restante fixo 
 
@@ -16,17 +16,18 @@ configuracoes_execucoes = {
         "key": True,
         "value": 10,
         "parametros_opcionais": [
-             {"MUTACAO": [90,80,70, 60]},
-             {"CROSSOVER": [90,80,70, 60]},
-             {'NUM_GENERATIONS': [25, 50, 100, 500]},
-             {'POP_SIZE': [10, 30, 50, 100]},
-
+            {"MUTACAO": [PARAMETROS_JSON['MUTACAO']]},
+            {"CROSSOVER": [PARAMETROS_JSON['CROSSOVER']]},
+            {'NUM_GENERATIONS': [PARAMETROS_JSON['NUM_GENERATIONS']]},
+            {'POP_SIZE': [PARAMETROS_JSON['POP_SIZE']]},
         ]
 }
 
 options_main_file = configuracoes_execucoes
 
- 
+print("CONFIGURAÇÔES", options_main_file)
+
+
 def entrada_de_dados():
     
     #TODO

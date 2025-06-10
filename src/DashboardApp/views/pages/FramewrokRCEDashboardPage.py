@@ -1,11 +1,14 @@
 
 
 # --- Componentes da Interface de Usuário ---
+from functools import reduce
+import json
+import operator
 from ..components.dash_rce_components import ConsolidatedResultsComponent, CardSolutions, StatisticsTableComponent, GraficoRCEComponent, TabExamplePage
 
 
 #backend
-from controllers.Utils import Controller,FOLDER_NAME, Utils
+from controllers.Utils import Controller,FOLDER_NAME, Utils, PARAMETROS_JSON
 import os
 
 # Frontend
@@ -13,7 +16,6 @@ import streamlit as st
 import time
 import threading
 
-#from ....config import ConfigManager
 
 
 # Configuração da barra lateral
@@ -62,17 +64,19 @@ class FrameworkRCEDashboard:
         self.utils = Utils()
         self.execution_numbers = self.controller.execution_numbers
         self.menu_lateral = DrawerSideBar()
-
-
-    
+  
         # Initialize options from parameter or use default
         self.options = options 
+        self.init_css()
 
 
         # Inicializa os estados necessários
         UseState.initialize_state("selected_execution", None)
         UseState.initialize_state("active_tab", 0)
-        UseState.initialize_state("saved_configurations", [])
+        UseState.initialize_state("saved_configurations", {})
+        if 'user_config' not in st.session_state:
+            # Usa uma cópia da configuração padrão para o estado da sessão
+            st.session_state.user_config = self.options
 
 
     def handle_tab_change(self, tab_index: int, execution_number: int):
@@ -80,15 +84,67 @@ class FrameworkRCEDashboard:
         UseState.set_state("active_tab", tab_index)
         UseState.set_state("selected_execution", execution_number)
 
+
+    def init_css(self):
+        st.markdown("""
+        <style>
+            .st-emotion-cache-j7qwjs.e1c29vlm3 {
+                display: none;
+            }
+            
+            .st-emotion-cache-vz9k5h.e1c29vlm19 {
+                display: none;
+            }
+            
+            .st-emotion-cache-1s1exd7.e1c29vlm19 {
+                display: none;
+            }
+            
+            .st-emotion-cache-14lrqrc.e1c29vlm19 {
+                display: none;
+            }
+            
+            .st-emotion-cache-1tuwfdi.e1c29vlm19 {
+                display: none;
+            }
+            
+            .st-emotion-cache-1gczx66.edtmxes2 {
+                display: none;
+            }
+            
+            .st-emotion-cache-1s1exd7.edtmxes19 {
+                display: none;
+            }
+            
+            .st-emotion-cache-1gczx66.edtmxes2 {
+                display: none;
+            }
+            .st-emotion-cache-1s1exd7.edtmxes19 {
+                display: none;
+            }
+
+            .st-emotion-cache-1s1exd7.edtmxes19 {
+                display: none;
+            }
+            
+            .st-emotion-cache-1gczx66.edtmxes2 {
+                display: none;
+            }
+        </style>
+    """, unsafe_allow_html=True)
+
     
 
     def run(self):
         try:
+            # Carrega os dados da execução ativa
             active_tab = UseState.get_state("active_tab")
             dados = self.utils.load_execution_data(active_tab + 1, debug=False)
         
+            # Configuração de parametros do Framework
             self.ConfigWebApp()
-
+       
+            # Cabeçalho
             self.header()
             
             # Renderiza os resultados consolidados
@@ -139,114 +195,151 @@ class FrameworkRCEDashboard:
 
 
     def ConfigWebApp(self):
-        #? Debugando para Streamlit online -> Opções de execução para multiplos parametros de algoritmo Genético
-        #options_dashboard = self.render_execution_options()
-        #print("Configuraçãoes", options_dashboard)
-
-        state = UseState.get_state("current_options")
-        print("\n\nState do aplicativo:", state)
-
-        st.info("⚠️ Configuração de parametros do Framework esta ainda em desenvolvimento, por favor, aguarde a versão 10.0 do Framework para uma melhor experiência de usuário.")
-            # Botão com ícone de play para executar um script Python
-        if st.button("▶️ Executar Script", type="primary"):
-                    
-                # Ensure we have current options in session state
-                #if "current_options" not in st.session_state:
-                #    st.error("Por favor, configure as opções .JSON e options_main_file primeiro!")
-                #    return
-                    
-                # Use raw string and quotes for Windows path with spaces
-                script_path = FOLDER_NAME.parent / "run_framework.py"
-
-                # Run the script
-                self.run_script(script_path)
-
-
-    def render_execution_options(self):
-        """Renderiza as opções de execução de forma interativa, permitindo a variação de parâmetros."""
-        st.markdown("# ⚒️ Configuração do Framework")
         
-        # Inicializa um dicionário para guardar as seleções do usuário
-        config_params = {}
+#    !TODO GUI para interação com o usuário
 
-        with st.expander("🔧 Definição dos Parâmetros, Variações e Quantidade de execuções", expanded=True):
+#    1 - 256 conjuntos de parametros (4⁴) 
+#    2 - 10 ou 20 numero de execucoes
+#    3 - 4 parametros variando [Mutação, Crossover, Var DIFF, DELTA e restante fixo 
+#    4 - 4 Caixas de texto fixas para esses parametros variando
+#    5 - Criar checkbox para o usuario desabilitar as demais caixas de texto, deixando um valor possivel para aquele parametro 
+#    6 - butao Radio para selecionar a tabela a configuração das 256 conjuntos
+#    7 - Progress bar para cada geração em tempo de execução 
+
+
+        st.title("🛠️ Configurador de Execuções do Framework")
+        
+        with st.expander("Abra para configurar os parâmetros de execução", expanded=True):
+            config = st.session_state.user_config
+
+            # --- Seção de Configurações Gerais ---
+            st.subheader("Configurações Gerais")
+            config['value'] = st.number_input(
+                "Número de Execuções por Configuração",
+                min_value=1,
+                value=config.get('value', 1),
+                help="Quantas vezes cada combinação única de parâmetros será executada."
+            )
+            st.markdown("---")
+
+            # --- Seção de Parâmetros Evolutivos ---
+            st.subheader("Parâmetros Evolutivos")
+
+            def render_parameter_widget(param_name, default_value_from_params):
+                # --- LÓGICA ROBUSTA PARA ENCONTRAR O PARÂMETRO E SEU ÍNDICE ---
+                param_dict = None
+                param_index = -1
+                for i, p_dict in enumerate(config.get('parametros_opcionais', [])):
+                    if param_name in p_dict:
+                        param_dict = p_dict
+                        param_index = i
+                        break
+                
+                # Se o parâmetro não for encontrado, exibe um erro e interrompe a renderização para este widget
+                if param_index == -1:
+                    st.error(f"Parâmetro de configuração '{param_name}' não encontrado no estado da sessão.")
+                    return
+                # --- FIM DA LÓGICA ROBUSTA ---
+
+                current_value = param_dict[param_name]
+                
+                if st.checkbox(f"Configurar {param_name}?", key=f"config_check_{param_index}"):
+                    mode = "Variável" if isinstance(current_value, list) and len(current_value) > 1 else "Fixo"
+                    choice = st.radio(
+                        "Modo:", ("Fixo", "Variável"), index=1 if mode == "Variável" else 0,
+                        key=f"radio_{param_index}", horizontal=True, label_visibility="collapsed"
+                    )
+
+                    if choice == "Variável":
+                        st.write(f"Valores para {param_name}:")
+                        cols = st.columns(4)
+                        new_values = []
+                        existing_values = current_value if mode == "Variável" else [""]*4
+                        
+                        for j, col in enumerate(cols):
+                            with col:
+                                val_str = str(existing_values[j]) if j < len(existing_values) else ""
+                                user_input = st.text_input(f"V {j+1}", val_str, key=f"input_{param_index}_{j}", label_visibility="collapsed")
+                                if user_input:
+                                    try:
+                                        if param_name in ["NUM_GENERATIONS", "POP_SIZE"]:
+                                            new_values.append(int(user_input))
+                                        else:
+                                            new_values.append(round(float(user_input), 1))
+                                    except ValueError:
+                                        st.error("Valor inválido", icon="⚠️")
+                        
+                        if not new_values:
+                            st.warning(f"Preencha ao menos um valor para '{param_name}'.")
+                        
+                        config['parametros_opcionais'][param_index] = {param_name: new_values or [default_value_from_params]}
+
+                    else: # Fixo
+                        default_value = current_value[0] if isinstance(current_value, list) else current_value
+                        if param_name in ["NUM_GENERATIONS", "POP_SIZE"]:
+                            new_val = st.number_input(f"Valor para {param_name}", value=int(default_value), step=1, key=f"s_{param_index}", format="%d")
+                        else:
+                            new_val = st.number_input(f"Valor para {param_name}", value=float(default_value), step=0.1, key=f"s_{param_index}", format="%.1f")
+                        config['parametros_opcionais'][param_index] = {param_name: [new_val]}
+                st.markdown("---")
+
             col1, col2 = st.columns(2)
-
             with col1:
-                st.subheader("Configuração Geral")
-                config_params['name'] = st.text_input("Nome da Bateria de Testes", "Experimento 1")
-                config_params['repetitions'] = st.number_input(
-                    "Repetições por Configuração", 
-                    min_value=1, max_value=100, value=5, # Mudei o default para 5, faz mais sentido para estatística
-                    help="Quantas vezes cada combinação única de parâmetros será executada (para validade estatística)."
-                )
-
+                render_parameter_widget("MUTACAO", PARAMETROS_JSON["MUTACAO"])
+                render_parameter_widget("CROSSOVER", PARAMETROS_JSON["CROSSOVER"])
             with col2:
-                st.subheader("Parâmetros do Algoritmo")
-                # --- Parâmetro de Mutação ---
-                vary_mutation = st.checkbox("Variar Taxa de Mutação?", key="vary_mutation")
-                # Supondo que as opções venham de self.options
-                mutation_options = self.options.get("parametros_opcionais", [{}])[0].get("MUTACAO", [0.01, 0.02, 0.05, 0.1])
-                if vary_mutation:
-                    config_params['mutation_values'] = st.multiselect(
-                        "Selecione os valores de Mutação (%)", 
-                        options=mutation_options, 
-                        default=mutation_options[:2] # Pega os dois primeiros como default
-                    )
-                else:
-                    config_params['mutation_values'] = [st.selectbox(
-                        "Selecione o valor de Mutação (%)", 
-                        options=mutation_options
-                    )]
+                render_parameter_widget("NUM_GENERATIONS", PARAMETROS_JSON["NUM_GENERATIONS"])
+                render_parameter_widget("POP_SIZE", PARAMETROS_JSON["POP_SIZE"])
 
-                # --- Parâmetro de Crossover ---
-                vary_crossover = st.checkbox("Variar Taxa de Crossover?", key="vary_crossover")
-                crossover_options = self.options.get("parametros_opcionais", [{}, {}])[1].get("CROSSOVER", [0.6, 0.7, 0.8, 0.9])
-                if vary_crossover:
-                    config_params['crossover_values'] = st.multiselect(
-                        "Selecione os valores de Crossover (%)", 
-                        options=crossover_options, 
-                        default=crossover_options[:2]
-                    )
-                else:
-                    config_params['crossover_values'] = [st.selectbox(
-                        "Selecione o valor de Crossover (%)", 
-                        options=crossover_options
-                    )]
+            # --- Seção de Resumo ---
+            st.subheader("Quantidade de Execuções Configuradas")
+            num_variations = [len(v) for p in config['parametros_opcionais'] for k,v in p.items() if isinstance(v, list) and len(v) > 1 and v]
+            total_combinations = reduce(operator.mul, num_variations, 1) if num_variations else 1
+            total_execucoes = total_combinations * config.get('value', 1)
 
-                # --- Parâmetro de Gerações ---
-                # Adicionei a mesma lógica para o número de gerações
-                vary_generations = st.checkbox("Variar Número de Gerações?", key="vary_generations")
-                generation_options = self.options.get("parametros_opcionais", [{}, {}, {}])[2].get("NUM_GENERATIONS", [100, 200, 500])
-                if vary_generations:
-                    config_params['generation_values'] = st.multiselect(
-                        "Selecione os valores de Nº de Gerações", 
-                        options=generation_options,
-                        default=generation_options[:1]
-                    )
-                else:
-                    config_params['generation_values'] = [st.selectbox(
-                        "Selecione o valor de Nº de Gerações",
-                        options=generation_options
-                    )]
-        
-        # Armazena a configuração atual no estado da sessão para uso posterior
-        UseState.set_state("experiment_config", config_params)
-        return config_params
+            metric_col1, metric_col2 = st.columns(2)
+            with metric_col1:
+                st.metric("Configurações Únicas", total_combinations, help="Número de combinações diferentes de parâmetros.")
+            with metric_col2:
+                st.metric("Total de Execuções", total_execucoes)
+
+            # --- Botão para Salvar ---
+            if st.button("Salvar e Executar", type="primary"):
+                try:
+                    final_config = {**PARAMETROS_JSON}
+                    user_config = st.session_state.user_config
+                    
+                    optional_params_dict = {k: v for d in user_config.get('parametros_opcionais', []) for k, v in d.items()}
+                    final_config.update(optional_params_dict)
+
+                    final_config['repeticoes_por_config'] = user_config.get('value')
+                    
+                    # Salva o arquivo JSON para ser usado pelo script
+                    #json_path = FOLDER_NAME.parent / "params.json"
+                    #with open(json_path, 'w') as f:
+                    #    json.dump(final_config, f, indent=4)
+                    
+                    #st.success(f"Configuração salva em **{json_path.name}**!")
+                    
+                    # Executa o script principal
+                    script_path = FOLDER_NAME.parent / "run_framework.py"
+                    print("Configurações o Usuario escolhida", final_config)
+                    self.run_script(script_path)
+
+                except Exception as e:
+                    st.error(f"Ocorreu um erro ao salvar ou executar: {e}")
 
 
     def atualizar_pagina(self):
         """Atualiza a página."""
-        st.rerun()
         print("Atualizando a página...")
-
-    
+        st.rerun()
 
 
 
     
     def run_script(self, script_path):
-        """Executa um script Python com barra de progresso única e GIF enquanto roda."""
+        """Executa um script Python com barra de progresso única e GIF enquanto roda. usando threading para não travar a UI e progress_placeholder para atualizar a barra de progresso"""
         dialog_placeholder = st.empty()
         progress_placeholder = st.empty()
 
@@ -281,7 +374,7 @@ class FrameworkRCEDashboard:
                         <p style="text-align:center;">{int(progress*100)}%</p>
                         """
                         progress_placeholder.markdown(bar_html, unsafe_allow_html=True)
-                        time.sleep(2)
+                        time.sleep(1.0)
 
                     # Aguarda thread terminar se ainda não terminou
                     thread.join()
@@ -305,6 +398,8 @@ class FrameworkRCEDashboard:
             st.error("Nenhum arquivo de resultado encontrado.")
             st.stop()
     
+
+
     def header(self):
         """Cabeçalho do aplicativo."""
         st.markdown("---")
@@ -349,11 +444,6 @@ class FrameworkRCEDashboard:
             unsafe_allow_html=True,
         )
 
-        
-        
-
-
-    
 
 
     def footer(self):

@@ -1,13 +1,24 @@
 # -*- coding: utf-8 -*-
+import json
 import streamlit as st
 import pickle
 import plotly.io as pio
 import plotly.graph_objects as go
 import pandas as pd
 import os
-import glob  # Importar glob para encontrar arquivos
-import json
 import pathlib
+
+def load_params_from_file(path):
+    with open(path, 'r') as file:
+        params = json.load(file)
+    return params
+
+path = pathlib.Path(__file__).resolve().parent.parent.parent /  "AlgEvolutivoRCE" / "params.json"
+PARAMETROS_JSON = load_params_from_file(path)
+print("PARAMETROS_JSON:", PARAMETROS_JSON)  
+
+
+
 
 
 def get_folder_path():
