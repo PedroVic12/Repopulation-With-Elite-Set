@@ -14,7 +14,7 @@ from DashboardApp.controllers.Utils import FOLDER_NAME, PARAMETROS_JSON
 
 configuracoes_execucoes = {
         "key": True,
-        "value": 10,
+        "value": 5,
         "parametros_opcionais": [
             {"MUTACAO": [PARAMETROS_JSON['MUTACAO']]},
             {"CROSSOVER": [PARAMETROS_JSON['CROSSOVER']]},
