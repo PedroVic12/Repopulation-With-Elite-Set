@@ -209,7 +209,7 @@ class FrameworkRCEDashboard:
 
         st.title("🛠️ Configurador de Execuções do Framework")
         
-        with st.expander("Abra para configurar os parâmetros de execução", expanded=True):
+        with st.expander("Abra para configurar os parâmetros de execução", expanded=False):
             config = st.session_state.user_config
 
             # --- Seção de Configurações Gerais ---
