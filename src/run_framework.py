@@ -70,7 +70,7 @@ def run_framework():
     setup = Setup(params, fitness_function = funcao_objetivo_IEEE14,
                   tamanho_hash=(dados["num_contingencias"] * dados["num_carregamentos"]*(2**dados["num_desligamentos"])))   
     
-    alg = AlgoritimoEvolutivoRCE(setup, DEBUG = True)
+    alg = AlgoritimoEvolutivoRCE(setup, DEBUG = False)
 
     # Loop Algoritmo Evolutivo podendo receber a função objetivo e as variaveis do problema
     pop_with_repopulation, logbook_with_repopulation, best_variables = alg.run(

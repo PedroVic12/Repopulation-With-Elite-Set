@@ -2,7 +2,6 @@
 from functools import reduce
 import json
 import operator
-import subprocess
 from ..components.dash_rce_components import ConsolidatedResultsComponent, CardSolutions, StatisticsTableComponent, GraficoRCEComponent, TabExamplePage
 
 # Backend
@@ -37,7 +36,7 @@ class FrameworkRCEDashboard:
         self.controller = Controller()
         self.utils = Utils()
         self.execution_numbers = self.controller.execution_numbers
-        self.menu_lateral = DrawerSideBar()
+        #self.menu_lateral = DrawerSideBar()
         self.options = options
         self.init_css()
 
@@ -255,3 +254,13 @@ class FrameworkRCEDashboard:
     def footer(self):
         st.markdown("<hr>", unsafe_allow_html=True)
         st.info("Desenvolvido por Pedro Victor Veras e Rainer Zanghi em um projeto PIBIC pela UFF - 2024/2025")
+
+
+def main():
+    app = FrameworkRCEDashboard()
+    app.run()
+
+
+if __name__ == "__main__":
+    main()
+

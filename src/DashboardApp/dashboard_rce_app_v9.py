@@ -91,6 +91,11 @@ def DrawerSideBar():
     st.sidebar.markdown("---")
     st.sidebar.info("Select a page above to view its content.")
 
+
+
+    #fncao que escreve txt
+    
+
     # Retorna a função da página selecionada
     return page_options[selected_page]
 

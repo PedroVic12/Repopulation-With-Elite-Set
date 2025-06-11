@@ -315,16 +315,18 @@ class FrameworkRCEDashboard:
                     final_config['repeticoes_por_config'] = user_config.get('value')
                     
                     # Salva o arquivo JSON para ser usado pelo script
-                    #json_path = FOLDER_NAME.parent / "params.json"
-                    #with open(json_path, 'w') as f:
-                    #    json.dump(final_config, f, indent=4)
+                    f = open("output.txt", "w")
+                    print(final_config['repeticoes_por_config'], file=f)
+                    f.close()
+
                     
-                    #st.success(f"Configuração salva em **{json_path.name}**!")
+                    st.success(f"Configuração salva em **output.txt**!")
                     
                     # Executa o script principal
                     script_path = FOLDER_NAME.parent / "run_framework.py"
                     print("Configurações o Usuario escolhida", final_config)
                     self.run_script(script_path)
+                    st.rerun()
 
                 except Exception as e:
                     st.error(f"Ocorreu um erro ao salvar ou executar: {e}")
