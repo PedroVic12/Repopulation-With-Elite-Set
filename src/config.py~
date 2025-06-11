@@ -96,10 +96,10 @@ execution_times = []  # Lista para armazenar os tempos de execução
 
 
 
-def load_many_executions(options, algoritmo):
-    if options["key"]:
+def load_many_executions(dict_key_value, algoritmo):
+    if dict_key_value["key"]:
 
-        for i in range(options["value"]):
+        for i in range(dict_key_value["value"]):
             print("\n==============================")
             print("Execução", i + 1)
             print("==============================")

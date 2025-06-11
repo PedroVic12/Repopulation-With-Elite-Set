@@ -10,12 +10,54 @@ from views.pages.EasyPDF_page import EasyPDF
 
 import sys
 import os
-
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 from config import options_main_file
 
 import sys
 from pathlib import Path
+
+
+def OptionsEditor():
+    """Interface para editar `options_main_file`."""
+    st.subheader("Editar Configurações")
+    options = st.session_state["current_options"]
+
+    # Formulário para editar opções
+    with st.form("options_editor"):
+        options["name"] = st.text_input("Nome do Script", options["name"])
+        options["key"] = st.checkbox("MUltiplas execuções Ativada", options["key"])
+        
+        if options["key"]:
+
+            # Slider para quantidade de execuções
+            options["value"] = st.slider("Quantidade de Execuções", 5, 30, options["value"])
+        else:
+            options["value"] = 1
+        # Exibir opções de parâmetros
+
+        # Editar parâmetros opcionais
+        st.write("Parâmetros Opcionais:")
+        for param in options["parametros_opcionais"]:
+            for key, values in param.items():
+                param[key] = st.multiselect(f"{key}:", values, default=values)
+
+                text_field = st.text_input(
+                    f"Editar {key} (separado por vírgulas):",
+                    value=", ".join(map(str, values)),
+                    key=f"{key}_input"
+                )
+                if text_field:
+                    param[key] = [int(x) for x in text_field.split(",")]
+        # Exibir opções editadas
+        st.write("Opções Editadas:")
+        st.json(options)
+        
+
+        # Botão para salvar alterações
+        if st.form_submit_button("Salvar Alterações"):
+            st.session_state["current_options"] = options
+            st.success("Configurações atualizadas com sucesso!")
+
 
 
 

@@ -111,8 +111,6 @@ def run_framework_many_executions():
     options = load_params(f"{BASE_DIR}/DashboardApp/output.json")
 
 
-    #TODO for loop para conjunto de configurações de parametros_opcionais
-    
 
     
     # Instanciando os Objetos

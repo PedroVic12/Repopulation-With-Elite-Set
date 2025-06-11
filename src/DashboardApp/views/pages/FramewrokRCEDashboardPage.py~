@@ -315,7 +315,7 @@ class FrameworkRCEDashboard:
                     final_config['repeticoes_por_config'] = user_config.get('value')
                     
                     # Salva o arquivo JSON para ser usado pelo script
-                    final_config.update(user_config)
+                    final_config.update(user_configW)
                     out_file = open("output.json", "w")
                     json.dump(final_config, out_file)
                     out_file.close()
