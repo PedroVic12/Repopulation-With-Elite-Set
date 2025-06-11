@@ -119,7 +119,7 @@ class ConsolidatedResultsComponent:
                 # Expandir para mostrar os parâmetros utilizados
                 with st.expander("Parâmetros Utilizados nesta Execução", expanded=False):
                     st.json(dados.get('params', {}))
-                    edited_df = st.data_editor(pd.DataFrame(dados.get('params', {}).drop["ARRAY_VAR","LIMITE_VAR"]), key="da_editor", use_container_width=True, num_rows="dynamic")
+                    edited_df = st.data_editor(pd.DataFrame(dados.get('params', {})), key="da_editor", use_container_width=True, num_rows="dynamic")
 
                     "This is the data (You can save it to session state or convert to json if needed)"
                     st.write(edited_df)
