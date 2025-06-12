@@ -96,9 +96,9 @@ def run_framework():
     hash_df1.to_excel("hash_table.xlsx", index=False)
 
     # # Resultados
-    #x, y, z, fig = alg.dashboard.visualize(
-    #     logbook_with_repopulation, pop_with_repopulation,
-    # )
+    x, y, z, fig = alg.dashboard.visualize(
+         logbook_with_repopulation, pop_with_repopulation,
+    )
 
 
 
