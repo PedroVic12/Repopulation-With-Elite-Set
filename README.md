@@ -16,6 +16,24 @@
 </table>
 
 
+EAs são problemas de algoritmos de otimização global inspirados na evolução natural/biológica por seleção natural, como reprodução/recombinação/cruzamento, mutação e seleção, semelhantes à sobrevivência do mais apto na vida real. Isso os torna muito intuitivos de entender. Eles se enquadram no termo mais amplo de Algoritmos Metaheurísticos ou simplesmente Metaheurísticas .
+
+Vamos implementar o Algoritmo Genético e esperamos que os seguintes passos básicos forneçam clareza suficiente para avançar:
+
+1) O GA começa inicialmente com soluções selecionadas aleatoriamente (ou indivíduos , todos eles combinados formam a população ) que são distribuídos aleatoriamente por toda a função, em vez de apenas um ponto de partida aleatório como em algoritmos de busca baseados em vizinhança (por exemplo: Hill Climbing) ou gradiente (por exemplo: Gradient Descent).
+
+2) Os valores de aptidão ou aptidão dos indivíduos ou soluções são então calculados
+3) Os melhores ou mais aptos indivíduos são então selecionados usando uma estratégia de seleção baseada no valor de aptidão (leia “Sobrevivência do mais apto” ).
+4)  Indivíduos selecionados da população produzem descendentes (ou filhos ) ao final de cada geração (ou iteração ), transmitindo assim seus genes aptos aos seus descendentes. O processo é conhecido como Reprodução, Cruzamento ou Recombinação .
+5)  Os descendentes são semelhantes aos pais e sofrem mutações aleatórias (com base na probabilidade), muito parecidas com o que vemos na vida real entre pais e filhos.
+
+6)  Os descendentes da geração anterior se tornam população (ou pais ) para a próxima geração .
+7)   O processo continua pelo número dado de gerações ou iterações .
+8)   O indivíduo mais apto é registrado no final de todas as gerações; o mais apto de todos é a solução ótima .
+    
+   
+    
+
 
 
 
