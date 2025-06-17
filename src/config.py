@@ -122,8 +122,6 @@ def load_many_executions(options, algoritmo):
 
 
 
-
-
     else: # Use st.pyplot with stash=False to prevent overwriting
         print("False! Rodando o framework uma unica vez!")
         start_time = time.time()  # Inicia a contagem do tempo para a execução única

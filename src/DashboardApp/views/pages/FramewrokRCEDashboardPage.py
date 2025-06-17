@@ -243,7 +243,7 @@ class FrameworkRCEDashboard:
 
                 current_value = param_dict[param_name]
                 
-                if st.checkbox(f"Configurar {param_name}?", key=f"config_check_{param_index}"):
+                if st.toggle(f"Configurar {param_name}?", key=f"config_check_{param_index}"):
                     mode = "Variável" if isinstance(current_value, list) and len(current_value) > 1 else "Fixo"
                     choice = st.radio(
                         "Modo:", ("Fixo", "Variável"), index=1 if mode == "Variável" else 0,
