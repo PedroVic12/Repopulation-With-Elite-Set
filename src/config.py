@@ -99,6 +99,7 @@ execution_times = []  # Lista para armazenar os tempos de execução
 
 def load_many_executions(options, algoritmo):
     if options["key"]:
+        print("\n\nConfiguração Atual = ", options)
 
         for i in range(options["value"]):
             print("\n==============================")

@@ -140,9 +140,7 @@ class FrameworkRCEDashboard:
             # Carrega os dados da execução ativa
             active_tab = UseState.get_state("active_tab")
             dados = self.utils.load_execution_data(active_tab + 1, debug=False)
-        
-
-            
+                    
             # Configuração de parametros do Framework
             self.ConfigWebApp()
        
@@ -312,12 +310,15 @@ class FrameworkRCEDashboard:
             # --- Botão para Salvar ---
             if st.button("Salvar e Executar", type="primary"):
                 try:
+                    self.utils.apagar_arquivos()
+
+                    # Pega o ponteiro dos parametros de AG
                     final_config = {**PARAMETROS_JSON}
                     user_config = st.session_state.user_config
                     
+                    # Pega os dados atualizados do usuario na tela
                     optional_params_dict = {k: v for d in user_config.get('parametros_opcionais', []) for k, v in d.items()}
                     final_config.update(optional_params_dict)
-
                     final_config['repeticoes_por_config'] = user_config.get('value')
                     
                     # Salva o arquivo JSON para ser usado pelo script
@@ -326,12 +327,13 @@ class FrameworkRCEDashboard:
                     json.dump(final_config, out_file)
                     out_file.close()
                     
-                    st.success(f"Configuração salva em **output.txt**!")
+                    st.success(f"Configuração salva em **output.json**!")
                     
                     # Executa o script principal
                     script_path = FOLDER_NAME.parent / "run_framework.py"
                     print("Configurações o Usuario escolhida", final_config)
                     self.run_script(script_path)
+                    st.rerun()
 
 
                 except Exception as e:

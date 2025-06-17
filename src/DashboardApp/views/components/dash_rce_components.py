@@ -116,21 +116,20 @@ class ConsolidatedResultsComponent:
                 # Adiciona o botão de download
                 button_save_excel(consolidated_excel_path, "results_consolidados.xlsx")
                 
+                json_table = pd.DataFrame(dados.get('params', {}))
+                st.write(json_table)
+                
                 # Expandir para mostrar os parâmetros utilizados
                 with st.expander("Parâmetros Utilizados nesta Execução", expanded=False):
                     st.json(dados.get('params', {}))
-                    edited_df = st.data_editor(pd.DataFrame(dados.get('params', {}).drop["ARRAY_VAR","LIMITE_VAR"]), key="da_editor", use_container_width=True, num_rows="dynamic")
-
-                    "This is the data (You can save it to session state or convert to json if needed)"
-                    st.write(edited_df)
-
-
-
-                        
+                    #edited_df = st.data_editor(pd.DataFrame(dados.get('params', {}).drop["ARRAY_VAR","LIMITE_VAR"]), key="da_editor", use_container_width=True, num_rows="dynamic")
+                   
+                    #edited_df = st.data_editor(json_table)
+                    #st.write(edited_df)                        
                 
 
             except Exception as e:
-                st.error(f"Erro ao ler o arquivo")
+                st.error(f"Erro ao ler: ", e)
         else:
             st.info(f"Arquivo de resultados consolidados ({consolidated_excel_path}) não encontrado.")
         st.markdown("---")
