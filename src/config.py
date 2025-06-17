@@ -71,7 +71,7 @@ def entrada_de_dados():
 
 
 
-def get_folder_path():
+def get_folder_path(debug = False):
     BASE_DIR = pathlib.Path(__file__).resolve().parent  
 
     # Define o caminho relativo para a pasta "output" dentro do projeto
@@ -79,15 +79,16 @@ def get_folder_path():
 
     # Cria a pasta "output" se ela não existir
     FOLDER_NAME.mkdir(parents=True, exist_ok=True)
-    print("\nFOLDER_NAME =", FOLDER_NAME)
-    print("FOLDER RAIZ do projeto =", FOLDER_NAME.parent)
-    print("\n")
+
+    if debug:
+        print("\nFOLDER_NAME =", FOLDER_NAME)
+        print("FOLDER RAIZ do projeto =", FOLDER_NAME.parent)
+        print("\n")
 
     return FOLDER_NAME
+
+
 FOLDER_NAME = get_folder_path()
-
-
-
 
 results_consolidados = []  # Initialize an empty list to store results
 execution_times = []  # Lista para armazenar os tempos de execução
@@ -102,7 +103,7 @@ def load_many_executions(options, algoritmo):
         for i in range(options["value"]):
             print("\n==============================")
             print("Execução", i + 1)
-            print("==============================")
+            print("================================")
 
             start_time = time.time()  # Inicia a contagem do tempo para cada execução
 

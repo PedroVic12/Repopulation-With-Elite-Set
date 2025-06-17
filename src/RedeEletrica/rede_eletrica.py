@@ -342,7 +342,7 @@ class RedeEletricaPandaPower:
         return matriz_cenarios
 
     #! Pandapower New metodos
-    def executar_fluxo_de_carga(self):
+    def executar_fluxo_de_carga(self, fast = True):
         """
         Executa o fluxo de carga na rede elétrica usando o algoritmo Newton-Raphson.
 
@@ -350,7 +350,7 @@ class RedeEletricaPandaPower:
             bool: True se o fluxo de carga convergiu, False caso contrário.
         """
         try:
-            pp.runpp(self.net, algorithm="nr")
+            pp.runpp(self.net, algorithm="nr", numba = fast)
             self.log("\nFluxo de potência executado com sucesso.",level = "success")
 
             return True

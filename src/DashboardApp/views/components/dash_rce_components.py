@@ -51,13 +51,13 @@ def load_execution_data(exec_num, debug=False):
             )
 
         except FileNotFoundError:
-            st.error(
+            st.info(
                 f"Erro Crítico: Arquivo de dados selecionado ({data_file_selected}) não encontrado."
             )
-            st.stop()  # Para se o arquivo esperado não for encontrado
+            #st.stop()  # Para se o arquivo esperado não for encontrado
         except Exception as e:
             st.error(f"Erro ao carregar dados de {data_file_selected}: {e}")
-            st.stop()  # Para em caso de erro de carregamento
+            #st.stop()  # Para em caso de erro de carregamento
 
         return data
 

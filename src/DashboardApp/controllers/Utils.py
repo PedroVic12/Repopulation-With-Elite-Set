@@ -15,7 +15,7 @@ def load_params_from_file(path):
 
 path = pathlib.Path(__file__).resolve().parent.parent.parent /  "AlgEvolutivoRCE" / "params.json"
 PARAMETROS_JSON = load_params_from_file(path)
-print("PARAMETROS_JSON DEFAULT:", PARAMETROS_JSON)  
+#print("PARAMETROS_JSON DEFAULT:", PARAMETROS_JSON)  
 
 
 
@@ -31,7 +31,7 @@ def get_folder_path():
     FOLDER_NAME.mkdir(parents=True, exist_ok=True)
     #print("\nFOLDER_NAME =", FOLDER_NAME)
     #print("FOLDER RAIZ do projeto =", FOLDER_NAME.parent)
-    print("\n")
+    #print("\n")
 
     return FOLDER_NAME
 

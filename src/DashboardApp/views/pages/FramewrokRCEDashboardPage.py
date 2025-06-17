@@ -141,14 +141,20 @@ class FrameworkRCEDashboard:
             active_tab = UseState.get_state("active_tab")
             dados = self.utils.load_execution_data(active_tab + 1, debug=False)
         
+
+            
             # Configuração de parametros do Framework
             self.ConfigWebApp()
        
             # Cabeçalho
             self.header()
-            
+
             # Renderiza os resultados consolidados
-            ConsolidatedResultsComponent.render(dados)
+            if dados:
+                ConsolidatedResultsComponent.render(dados)
+            else:
+                st.info("Nenhum dado encontrado ainda. Execute uma simulação para visualizar os resultados.")
+
 
             #! MEU TEMPLATE USANDO TABS com Seleção de execução com tabs para cada execução controlado pelo UseState
             with st.container():
