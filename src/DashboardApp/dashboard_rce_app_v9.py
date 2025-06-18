@@ -2,7 +2,6 @@
 import streamlit as st
 from views.pages.themes import Theme
 
-from views.pages.screens import  TabExamplePage
 from views.pages.AgendamentoRedePage import AgendamentoRedePage
 from views.pages.FramewrokRCEDashboardPage import FrameworkRCEDashboard
 from views.pages.EasyPDF_page import EasyPDF
@@ -28,7 +27,7 @@ def DrawerSideBar():
         "⚡ Framework RCE": FrameworkRCEDashboard(options_main_file).run,
         #"🤖 C3po Chatbot": C3poChatbotPage,
         #"📊 Benchmarking Analysis": BenchmarkingPage,
-        "📑 Tab Demonstration": TabExamplePage,
+        #"📑 Tab Demonstration": TabExamplePage,
         #"📊 Python Editor": CodeEditorPage,
         "Gerador de PDF": EasyPDF,
         "Tela de Agendamentos de Redes": AgendamentoRedePage,

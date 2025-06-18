@@ -407,20 +407,18 @@ class FrameworkRCEDashboard:
                         <p style="text-align:center;">100%</p>
                         """
                         progress_placeholder.markdown(bar_html, unsafe_allow_html=True)
-                        time.sleep(1.5)
+                        time.sleep(1.0)  # Espera um segundo para mostrar 100%
+                        st.success("Script executado com sucesso!")
 
                         thread.join()
                         return_code = self._return_code
-                else:
-                    # Caso não tenha GIF, só executa o script
-                    command = f'python "{script_path}"'
-                    return_code = os.system(command)
+
+
 
                 dialog_placeholder.empty()
                 progress_placeholder.empty()
 
                 if return_code == 0:
-                    st.success("Script executado com sucesso!")
                     st.rerun()
 
             except Exception as e:
