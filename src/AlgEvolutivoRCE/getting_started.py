@@ -13,7 +13,6 @@ if __name__ == "__main__":
     alg = AlgoritimoEvolutivoRCE(setup,DEBUG= False)
     dashboard = DashboardApp()
 
-
     # Variaveis de decisao e função objetivo
     #! Por padrao do JSON ta criando um individuo de tamanho 5
     X = [5.0, 4.0, 3.0, 2.0, 1.0]
@@ -45,30 +44,18 @@ if __name__ == "__main__":
         decision_variables=(X),
     )
 
+    x,y,z, fig = dashboard.visualize(
+        logbook_with_repopulation, pop_with_repopulation
+    )
+
+    # Print the best variables found
+    print(f"Best variables: {best_variables}")
+    # Print the best fitness value
+    print(f"Best fitness: {z}")
+    # Print the generations
+    print(f"Best generations: {x}")
+
+    fig.show()
+
+    
     print("\n\nEvolução concluída  - 100%")
-
-    #! Resultados  - Terminal normal
-    #generation, best_solution_variables, fitness_result = dashboard.visualize(
-    #    logbook_with_repopulation, pop_with_repopulation,
-    #)
-
-    #! Resultados - Dashboard
-        # Validar os resultados
-    if logbook_with_repopulation and pop_with_repopulation and best_variables:
-        best_fitness = min(logbook_with_repopulation.select("min"))
-        
-        #print("best_fitness", best_fitness)
-        #print("best_variables", best_variables)
-        #print("pop_with_repopulation", pop_with_repopulation)
-        #print("logbook_with_repopulation", logbook_with_repopulation)
-
-        dashboard.run(
-            logbook=logbook_with_repopulation,
-            pop=pop_with_repopulation,
-            
-        )
-
-        print("Dashboard gerado com sucesso.")
-    else:
-        print("Erro: Dados do algoritmo evolutivo estão incompletos.")
-

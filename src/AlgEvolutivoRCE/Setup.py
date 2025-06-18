@@ -4,6 +4,11 @@ import math
 from deap import base, creator, tools
 import random
 import pandas as pd
+import os
+import sys
+
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+from config import configuracoes_execucoes
 
 
 #! WARN (04/06/2025) - Usado fora da classes para NAO ter logs no output
@@ -36,17 +41,6 @@ params = {
   }
 
 
-configuracoes_execucoes = {
-        "key": True,
-        "value": 5,
-        "parametros_opcionais": [
-             {"MUTACAO": [90,80,70, 60]},
-             {"CROSSOVER": [90,80,70, 60]},
-             {'NUM_GENERATIONS': [25, 50, 100, 500]},
-             {'POP_SIZE': [10, 30, 50, 100]},
-
-        ]
-}
 
 
 
@@ -73,7 +67,7 @@ class Setup:
             self.POP_SIZE,
         )
 
-        #! Daodos de etrada do usuario nova
+        #! Dados de etrada do usuario nova
         self.limite = params["LIMITE_VAR"]
         self.decision_variables = params["ARRAY_VAR"]
         self.config = configuracoes_execucoes
@@ -192,6 +186,9 @@ class Setup:
             self.tabela_hash = [-1] * tamanho_hash
         else:
             self.tabela_hash = None
+        
+        self.objectiveruns = 0
+        self.hashtablereads = 0
 
 
     def avaliarFitnessIndividuos(self, pop):

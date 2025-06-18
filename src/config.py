@@ -94,7 +94,29 @@ results_consolidados = []  # Initialize an empty list to store results
 execution_times = []  # Lista para armazenar os tempos de execução
 
 
+def format_elapsed_time(elapsed_time):
+    """Formats the elapsed time into a human-readable string.
 
+    Args:
+        elapsed_time: A string representing the elapsed time in HH:MM:SS.ffffff format.
+
+    Returns:
+        A formatted string like "X h Y min Z s".
+    """
+    parts = str(elapsed_time).split(':')
+    hours = int(parts[0])
+    minutes = int(parts[1])
+    seconds = float(parts[2])
+
+    formatted_time = ""
+    if hours > 0:
+        formatted_time += f"{hours} h "
+    if minutes > 0:
+        formatted_time += f"{minutes} min "
+    # Round seconds to the nearest second
+    formatted_time += f"{int(round(seconds))} s"
+
+    return formatted_time.strip()
 
 
 def load_many_executions(options, algoritmo):

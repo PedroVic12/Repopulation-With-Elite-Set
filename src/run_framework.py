@@ -1,19 +1,19 @@
-
-import time
-import numpy as np
-import pandas as pd
-
+# -*- coding: utf-8 -*-
 # Import RCE Framework
 from AlgEvolutivoRCE.Setup import Setup
 from AlgEvolutivoRCE.alg_evolutivo_rce import AlgoritimoEvolutivoRCE
 
 # Utils 
-from config import FOLDER_NAME, options_main_file, entrada_de_dados,load_many_executions
+from config import FOLDER_NAME, options_main_file, entrada_de_dados,load_many_executions, format_elapsed_time
+
 import json
 import pathlib
+from datetime import datetime
+import os
+import pandas as pd
 
 
-#!DOCS PVRV - 04/06/25
+#!DOCS PVRV - 18/06/25
 """ 
 1) Para usar o frontend em Streamlit, execute o seguinte comando no terminal:
 
@@ -38,7 +38,6 @@ src/DashboardApp
 # Voce foi olhar o arquivo config.py para gerenciar a quantidade de execuções do algoritimo.
 from utils.functions_fitness.functions_benchmarking import rosenbrock_benchmark,esfera_benchmark,rastrigin, evaluate, funcao_objetivo_IEEE14
 
-
 results_consolidados = []  # Initialize an empty list to store results
 execution_times = []  # Lista para armazenar os tempos de execução
 BASE_DIR = pathlib.Path(__file__).resolve().parent 
@@ -58,47 +57,77 @@ params = load_params(f"{BASE_DIR}/AlgEvolutivoRCE/params.json")
 
 def run_framework():
     """Função principal para executar o framework de otimização."""
-    
-    
-    from datetime import datetime
     start = datetime.now()
-    
+
     #! Entrada de dados simulando que seja uma planillha em excel
     dados = entrada_de_dados()
 
     # Instanciando os Objetos
     setup = Setup(params, fitness_function = funcao_objetivo_IEEE14,
-                  tamanho_hash=(dados["num_contingencias"] * dados["num_carregamentos"]*(2**dados["num_desligamentos"])))   
-    
-    alg = AlgoritimoEvolutivoRCE(setup, DEBUG = False)
+                  tamanho_hash=(dados["num_contingencias"] * dados["num_carregamentos"]*(2**dados["num_desligamentos"])))
+
+    def consulta_hashtable():
+        #! TODO para melhor performace
+        try:
+            # Ler xlsx no início da run_framework e verificar logo depois de instanciar o setup se o xlsx existe e caso exista, coloca o conteúdo do xlsx no setup.tabela_hash.
+            if os.path.exists("hash_table.xlsx"):
+                print("\n\nFazendo consulta para setup.tabela_hash")
+
+                hash_excel = pd.read_excel("hash_table.xlsx")
+
+                if not hash_excel.empty and not hash_excel.isnull().values.any():
+                    print(hash_excel)
+
+                    setup.tabela_hash = hash_excel['Fitness'].to_dict()
+                    neg_one_count = list(setup.tabela_hash.values()).count(-1)
+
+                    if -1 in setup.tabela_hash.values():
+                        print("Cenários Default = ",len(setup.tabela_hash))
+                        print(neg_one_count)
+                    else:
+                        fitness_counts = hash_excel['Fitness'].value_counts()
+                        filtered_df = hash_excel[hash_excel['Fitness'] > 14]
+                        print(fitness_counts.head())
+                else:
+                    print("O arquivo hash_table.xlsx está vazio ou contém valores nulos.")
+
+
+        except Exception as e:
+            print(f"Erro ao ler o arquivo xlsx: {e}")
+    consulta_hashtable()
+
+
+    alg = AlgoritimoEvolutivoRCE(setup, DEBUG = True)
 
     # Loop Algoritmo Evolutivo podendo receber a função objetivo e as variaveis do problema
     pop_with_repopulation, logbook_with_repopulation, best_variables = alg.run(
         RCE=True,
     )
-    
-    end = datetime.now()
-    elapsed = end - start
-    print(f"\n\nElapsed Time in execution : {elapsed}")
-    print("\n\nEvolução concluída  - 100%")
-    
-    
-    # Consolidado output console e dashboard
-    f = open("output.txt", "w")
-    print(best_variables, file=f)
-    print(elapsed, file=f)
-    print(logbook_with_repopulation, file=f)
-    f.close()
 
-    # Passando os valores do array direto no dataframe com os index como chave (hash = chave, valor)
-    hash_df1 = pd.DataFrame(setup.tabela_hash, columns=['Fitness'])
-    hash_df1.sort_values(by='Fitness', ascending=False, inplace=True)
-    hash_df1.to_excel("hash_table.xlsx", index=False)
 
-    # # Resultados
-    x, y, z, fig = alg.dashboard.visualize(
-         logbook_with_repopulation, pop_with_repopulation,
-    )
+    def output(start):
+        print("\n\nEvolução concluída  - 100%")
+        print(f"Best variables", best_variables)
+
+        # Passando os valores do array direto no dataframe com os index como chave (hash = chave, valor)
+        hash_df1 = pd.DataFrame(setup.tabela_hash, columns=['Fitness'])
+        hash_df1.sort_values(by='Fitness', ascending=False, inplace=True)
+        hash_df1.to_excel("hash_table.xlsx", index=False)
+
+        # # Resultados
+        x, y, z, fig = alg.dashboard.visualize(
+            logbook_with_repopulation, pop_with_repopulation,
+        )
+
+        print(f"Objective function runs : {setup.objectiveruns}")
+        print(f"Hash table reads : {setup.hashtablereads}")
+
+        end = datetime.now()
+        elapsed = end - start
+        formatted_time = format_elapsed_time(elapsed)
+        print(f"Elapsed Time in execution : {formatted_time}")
+
+    output(start)
 
 
 
@@ -119,7 +148,7 @@ def run_framework_many_executions():
     setup = Setup(params, fitness_function = funcao_objetivo_IEEE14,
                   tamanho_hash=(entrada_de_dados()["num_contingencias"] * entrada_de_dados()["num_carregamentos"]*(2**entrada_de_dados()["num_desligamentos"])))   
     
-    alg = AlgoritimoEvolutivoRCE(setup, DEBUG = True)
+    alg = AlgoritimoEvolutivoRCE(setup, DEBUG = False)
 
     # Run the utility function to load many executions
     load_many_executions(options, alg)

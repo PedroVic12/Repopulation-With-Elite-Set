@@ -7,6 +7,16 @@ from rich.console import Console
 from rich.theme import Theme
 from rich.traceback import install
 
+import logging
+
+
+logging.basicConfig(
+    filename='logs.txt',
+    format='%(asctime)s - %(levelname)s - %(message)s',
+    filemode='w',
+    level=logging.DEBUG
+)
+
 install()
 
 class Logger:
@@ -18,14 +28,21 @@ class Logger:
             "info": "white"  # Added "info" level for default blue color
         }))
 
+        self.logger = logging.getLogger()
+
+
+
     def log(self, message, level="info"):  # Changed default level to "info"
         """Logs a message with the specified level and color."""
         if level == "success":
             self.console.print(f"[success]{message}[/]")
+            self.logger.info(message)
         elif level == "warning":
             self.console.print(f"[warning]{message}[/]")
+            self.logger.warning(message)
         elif level == "error":
             self.console.print(f"[error]{message}[/]")
+            self.logger.error(message)
         else:
             self.console.print(f"[info]{message}[/]") # Changed to "info" to use blue color
 
