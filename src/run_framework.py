@@ -70,13 +70,13 @@ def run_framework():
         #! TODO para melhor performace
         try:
             # Ler xlsx no início da run_framework e verificar logo depois de instanciar o setup se o xlsx existe e caso exista, coloca o conteúdo do xlsx no setup.tabela_hash.
-            if os.path.exists("hash_table.xlsx"):
+            if os.path.exists(f"hash_table.xlsx"):
                 print("\n\nFazendo consulta para setup.tabela_hash")
 
                 hash_excel = pd.read_excel("hash_table.xlsx")
 
                 if not hash_excel.empty and not hash_excel.isnull().values.any():
-                    print(hash_excel)
+                    print(hash_excel.head())
 
                     setup.tabela_hash = hash_excel['Fitness'].to_dict()
                     neg_one_count = list(setup.tabela_hash.values()).count(-1)
@@ -90,6 +90,8 @@ def run_framework():
                         print(fitness_counts.head())
                 else:
                     print("O arquivo hash_table.xlsx está vazio ou contém valores nulos.")
+            else:
+                print("Arquivo da hash table não encontrado!")
 
 
         except Exception as e:
@@ -138,20 +140,51 @@ def run_framework_many_executions():
     # Load parameters from the JSON file in any configuration of PC
     params = load_params(f"{BASE_DIR}/AlgEvolutivoRCE/params.json")
     options = load_params(f"{BASE_DIR}/DashboardApp/output.json")
-
-
-    #TODO for loop para conjunto de configurações de parametros_opcionais
-    
-
     
     # Instanciando os Objetos
     setup = Setup(params, fitness_function = funcao_objetivo_IEEE14,
                   tamanho_hash=(entrada_de_dados()["num_contingencias"] * entrada_de_dados()["num_carregamentos"]*(2**entrada_de_dados()["num_desligamentos"])))   
     
+    #TODO for loop para conjunto de configurações de parametros_opcionais
+
+    def consulta_hashtable():
+        #! TODO para melhor performace
+        try:
+            # Ler xlsx no início da run_framework e verificar logo depois de instanciar o setup se o xlsx existe e caso exista, coloca o conteúdo do xlsx no setup.tabela_hash.
+            if os.path.exists(f"hash_table.xlsx"):
+                print("\n\nFazendo consulta para setup.tabela_hash")
+
+                hash_excel = pd.read_excel("hash_table.xlsx")
+
+                if not hash_excel.empty and not hash_excel.isnull().values.any():
+                    print(hash_excel.head())
+
+                    setup.tabela_hash = hash_excel['Fitness'].to_dict()
+                    neg_one_count = list(setup.tabela_hash.values()).count(-1)
+
+                    if -1 in setup.tabela_hash.values():
+                        print("Cenários Default = ",len(setup.tabela_hash))
+                        print(neg_one_count)
+                    else:
+                        fitness_counts = hash_excel['Fitness'].value_counts()
+                        filtered_df = hash_excel[hash_excel['Fitness'] > 14]
+                        print(fitness_counts.head())
+                else:
+                    print("O arquivo hash_table.xlsx está vazio ou contém valores nulos.")
+            else:
+                print("Arquivo da hash table não encontrado!")
+
+
+        except Exception as e:
+            print(f"Erro ao ler o arquivo xlsx: {e}")
+    consulta_hashtable()
+
+    
+
     alg = AlgoritimoEvolutivoRCE(setup, DEBUG = False)
 
     # Run the utility function to load many executions
-    load_many_executions(options, alg)
+    load_many_executions(options, setup, alg)
 
 
 

@@ -6,7 +6,7 @@ import pandas as pd
 import time
 import numpy as np
 from IPython.display import display
-
+from datetime import datetime
 
 from DashboardApp.controllers.Utils import FOLDER_NAME, PARAMETROS_JSON
 
@@ -110,75 +110,76 @@ def format_elapsed_time(elapsed_time):
 
     formatted_time = ""
     if hours > 0:
-        formatted_time += f"{hours} h "
+        formatted_time += f"{hours} horas "
     if minutes > 0:
-        formatted_time += f"{minutes} min "
+        formatted_time += f"{minutes} minutos "
     # Round seconds to the nearest second
-    formatted_time += f"{int(round(seconds))} s"
+    formatted_time += f"{int(round(seconds))} segundos"
 
     return formatted_time.strip()
 
 
-def load_many_executions(options, algoritmo):
+def load_many_executions(options, setup, algoritmo):
     if options["key"]:
-        print("\n\nConfiguração Atual = ", options)
+        #print("\n\nConfiguração Atual = ", options)
 
         for i in range(options["value"]):
             print("\n==============================")
             print("Execução", i + 1)
             print("================================")
 
-            start_time = time.time()  # Inicia a contagem do tempo para cada execução
-
+            start = datetime.now()
+            
+            
             # Loop principal do Algoritmo Evolutivo
             pop_with_repopulation, logbook_with_repopulation, best_variables = algoritmo.run(RCE=True)
             print("\n\nEvolução concluída  - 100%")
+            print(f"Best variables", best_variables)
+            
+            
+            # # Resultados
+            x, y, z, fig = algoritmo.dashboard.visualize(
+                logbook_with_repopulation, pop_with_repopulation,
+                execution_num = i + 1
+            )
+            
 
-            # Resultados
-            x, y, z, grafico = algoritmo.dashboard.visualize(logbook_with_repopulation, pop_with_repopulation, execution_num=i + 1)
+            # Passando os valores do array direto no dataframe com os index como chave (hash = chave, valor)
+            hash_df1 = pd.DataFrame(setup.tabela_hash, columns=['Fitness'])
+            hash_df1.sort_values(by='Fitness', ascending=False, inplace=True)
+            hash_df1.to_excel("hash_table.xlsx", index=False)
 
-            end_time = time.time()  # Finaliza a contagem do tempo para cada execução
-            execution_time = end_time - start_time
-            execution_times.append(execution_time)  # Armazena o tempo de execução
+
+            print(f"\nObjective function runs : {setup.objectiveruns}")
+            print(f"Hash table reads : {setup.hashtablereads}")
+
+            end = datetime.now()
+            elapsed = end - start
+            formatted_time = format_elapsed_time(elapsed)
+
+            print(f"Elapsed Time in execution : {formatted_time}")
+
+            execution_times.append(elapsed)  # Armazena o tempo de execução
 
             # Append results to the list
-            results_consolidados.append({"execution": i + 1, "solution_variables": y, "best_fitness": z, "best_generations": x,"execution_time": execution_time})
+            results_consolidados.append({"execution": i + 1, "solution_variables": y, "best_fitness": z, "best_generations": x,"execution_time": elapsed})
 
 
-
-    else: # Use st.pyplot with stash=False to prevent overwriting
-        print("False! Rodando o framework uma unica vez!")
-        start_time = time.time()  # Inicia a contagem do tempo para a execução única
-
-        # Loop principal do Algoritmo Evolutivo
-        pop_with_repopulation, logbook_with_repopulation, best_variables = algoritmo.run(RCE=True)
-        print("\n\nEvolução concluída  - 100%")
-
-        # Resultados
-        x, y, z, fig = algoritmo.dashboard.visualize(logbook_with_repopulation, pop_with_repopulation)
-
-        end_time = time.time()  # Finaliza a contagem do tempo para a execução única
-        execution_time = end_time - start_time
-
-        # Append results to the list (for single execution)
-        results_consolidados.append({"execution": i + 1, "solution_variables": y, "best_fitness": z, "best_generations": x,"execution_time": execution_time})
-
-        print(f"Tempo de execução: {execution_time:.2f} segundos")
 
     # Calcula a média e o desvio padrão dos tempos de execução
     avg_execution_time = np.mean(execution_times)
-    std_execution_time = np.std(execution_times)
+    #std_execution_time = np.std(execution_times)
 
-    print(f"Tempo médio de execução: {avg_execution_time:.2f} segundos")
-    print(f"Desvio padrão do tempo de execução: {std_execution_time:.2f} segundos")
+    print(f"Tempo médio de execução: {avg_execution_time} segundos")
+    #sprint(f"Desvio padrão do tempo de execução: {std_execution_time} segundos")
 
 
     # Create the DataFrame
     results_consolidados_df = pd.DataFrame(results_consolidados)
 
-    results_consolidados_df["execution_time"] = results_consolidados_df["execution_time"].apply(lambda x: f"{x:.2f} segundos")
-
-    # exportar para excel
+    results_consolidados_df["execution_time"] = results_consolidados_df["execution_time"].apply(
+        lambda x: f"{x.total_seconds():.2f} segundos" if hasattr(x, "total_seconds") else f"{x:.2f} segundos"
+    )
     results_consolidados_df.to_excel(f"{FOLDER_NAME}/results_consolidados.xlsx", index=False)
 
      # Display or use the results

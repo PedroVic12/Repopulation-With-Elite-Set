@@ -135,11 +135,14 @@ def funcao_objetivo_IEEE14(individuo, setupobj, _debug = False):
                   #! 11) Store violation in the hash table
                   violacoes_hash_table[hash_key] = fitness
                   rede.log(f"Hash key = { hash_key}\n")
+                  setupobj.objectiveruns += 1
+                  
 
 
                 # Retorna o valores calculados de fluxo de potencia na variavel fitness
                 else:
                   fitness = setupobj.tabela_hash[hash_key]
+                  setupobj.hashtablereads += 1
 
                 violacoes_total.append(fitness)
 
