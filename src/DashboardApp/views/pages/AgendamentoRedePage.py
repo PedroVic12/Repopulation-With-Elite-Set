@@ -1,6 +1,10 @@
 import streamlit as st
 from streamlit_timeline import st_timeline
 import pandas as pd
+import pathlib
+
+output_xlsx_file = pathlib.Path(__file__).resolve().parent.parent.parent.parent /  "output" / "results_consolidados.xlsx" # Importando o caminho do diretório de configuração
+pop_final_xlsx_file = pathlib.Path(__file__).resolve().parent.parent.parent.parent /  "output" / "pop_final.xlsx" # Importando o caminho do diretório de configuração
 
 
 # Função para carregar os dados de agendamento e contingência
@@ -29,91 +33,10 @@ def carregar_dados_execucao():
         {"execution": 3, "solution_variables": [30, 17, 30, 30, 9], "best_fitness": 570.334047, "best_generations": 11, "execution_time": "5.64 segundos"},
         {"execution": 4, "solution_variables": [30, 25, 30, 30, 9], "best_fitness": 479.358067, "best_generations": 15, "execution_time": "6.23 segundos"},
         {"execution": 5, "solution_variables": [30, 25, 30, 30, 9], "best_fitness": 479.358067, "best_generations": 15, "execution_time": "5.60 segundos"},
-        {"execution": 6, "solution_variables": [30, 25, 30, 30, 9], "best_fitness": 479.358067, "best_generations": 15, "execution_time": "5.26 segundos"},
     ])
-
-# Função para exibir a página de agendamento de rede elétrica
-def AgendamentoRedePage():
-
-    st.title("Agendamento de Rede Elétrica")
-    st.write("Esta página exibe os agendamentos de rede elétrica e suas contingências, além de uma timeline interativa com as sugestões de agendamento.")
-
-    # Carregar dados
-    agendamento_df, contingencia_df = entrada_de_dados()
-    execution_df = carregar_dados_execucao()
-
-    # Exibir tabelas editáveis
-    st.subheader("Tabela de Agendamentos")
-    edited_agendamento_df = st.data_editor(agendamento_df, use_container_width=True, num_rows="dynamic")
-
-    st.subheader("Tabela de Contingências")
-    edited_contingencia_df = st.data_editor(contingencia_df, use_container_width=True, num_rows="dynamic")
-
-    # Converter dados de execução para o formato de timeline
-    timeline_items = []
-    for index, row in agendamento_df.iterrows():
-        start_time = row["inicio"]
-        start_hour, start_minute = map(int, start_time.split(":"))
-        end_hour = start_hour + row["duracao"]
-
-        mes = 6  # Mês fixo para o exemplo
-        dia = 18  # Dia fixo para o exemplo
-
-        timeline_items.append({
-            "id": f"agendamento-{index}",
-            "content": f"Ramo: {row['ramo']}<br>Prioridade: {row['prioridade']}",
-            "start": f"2025-0{mes}-{dia}T{start_hour:02d}:{start_minute:02d}:00",
-            "end": f"2025-0{mes}-{dia}T{end_hour:02d}:{start_minute:02d}:00"
-        })
-
-    # Exibir timeline
-    st.subheader("Timeline da Sugestão Agendamento de Rede Elétrica")
-    st.write("Clique em um item para ver os detalhes da execução selecionada.")
-    timeline = st_timeline(
-        timeline_items,
-        groups=[],
-        options={
-            "selectable": True,
-            "multiselect": True,
-            "zoomable": True,
-            "verticalScroll": True,
-            "stack": True,
-            "height": 500,
-            "margin": {"axis": 5},
-            "groupHeightMode": "auto",
-            "orientation": {"axis": "top", "item": "top"}
-        },
-    )
-
-    # Mostrar dados da execução selecionada
-    st.subheader("Dados da Execução Selecionada")
-    if timeline:
-        selected_id = timeline.get("id", "").split("-")[1]
-        selected_agendamento = agendamento_df.iloc[int(selected_id)]
-        st.json(selected_agendamento.to_dict())
-
-    # Tabs para cada execução
-    tabs = st.tabs([f"Execução {row['execution']}" for _, row in execution_df.iterrows()])
-    for i, tab in enumerate(tabs):
-        with tab:
-            exec_data = execution_df.iloc[i]
-            with st.container():
-                st.write(f"Execução {exec_data['execution']}")
-                
-                # Tabs dentro do container
-                inner_tabs = st.tabs(["Tabela", "Gráfico de Barras", "Gráfico de Linhas"])
-                with inner_tabs[0]:
-                    st.write("Tabela de Horários de Agendamento")
-                    st.dataframe(pd.DataFrame({"Horários de Agendamento": exec_data["solution_variables"]}))
-
-                with inner_tabs[1]:
-                    st.write("Gráfico de Barras")
-                    st.bar_chart(pd.DataFrame({"Horários de Agendamento": exec_data["solution_variables"]}))
-
-                with inner_tabs[2]:
-                    st.write("Gráfico de Linhas")
-                    st.line_chart(pd.DataFrame({"Horários de Agendamento": exec_data["solution_variables"]}))
-
+    
+    
+def time_line_from_solution_variables(agendamento_df,contingencia_df ,exec_data):
                 # Timeline para a execução selecionada
                 st.subheader(f"Timeline de Soluções para a Execução {exec_data['execution']}")
                 solution_variables = sorted(exec_data["solution_variables"])  # Ordenar os horários
@@ -220,3 +143,122 @@ def AgendamentoRedePage():
                         st.warning("Selecione um intervalo válido no timeline.")
 
 
+# Função para exibir a página de agendamento de rede elétrica
+def AgendamentoRedePage():
+
+    st.title("Agendamento de Rede Elétrica")
+    st.write("Esta página exibe os agendamentos de rede elétrica e suas contingências, além de uma timeline interativa com as sugestões de agendamento.")
+
+    # Carregar dados
+    agendamento_df, contingencia_df = entrada_de_dados()
+    
+    # Tente carregar do Excel, se falhar, use os dados mockados
+    try:
+        execution_df = pd.read_excel(output_xlsx_file)
+        # Converter a coluna 'solution_variables' de string para lista, se necessário
+        if 'solution_variables' in execution_df.columns and isinstance(execution_df['solution_variables'].iloc[0], str):
+            import ast
+            execution_df['solution_variables'] = execution_df['solution_variables'].apply(ast.literal_eval)
+    except Exception as e:
+        st.warning(f"Erro ao carregar do Excel: {e}. Usando dados hardcoded com 5 execucões.")
+        execution_df = carregar_dados_execucao()
+
+    # Exibir tabelas editáveis
+    st.subheader("Tabela de Agendamentos")
+    edited_agendamento_df = st.data_editor(
+        agendamento_df,
+        use_container_width=True,
+        num_rows="dynamic",
+        column_config={},
+    )
+
+    st.subheader("Tabela de Contingências")
+    edited_contingencia_df = st.data_editor(contingencia_df, use_container_width=True, num_rows="dynamic")
+
+    # Converter dados de execução para o formato de timeline
+    timeline_items = []
+    for index, row in agendamento_df.iterrows():
+        start_time = row["inicio"]
+        start_hour, start_minute = map(int, start_time.split(":"))
+        end_hour = start_hour + row["duracao"]
+
+        mes = 6  # Mês fixo para o exemplo
+        dia = 18  # Dia fixo para o exemplo
+
+        timeline_items.append({
+            "id": f"agendamento-{index}",
+            "content": f"Ramo: {row['ramo']}<br>Prioridade: {row['prioridade']}",
+            "start": f"2025-0{mes}-{dia}T{start_hour:02d}:{start_minute:02d}:00",
+            "end": f"2025-0{mes}-{dia}T{end_hour:02d}:{start_minute:02d}:00"
+        })
+
+    # Exibir timeline
+    st.subheader("Sugestão inicial para o Agendamento de Rede Elétrica")
+    st.write("Clique em um item para ver os detalhes da execução selecionada.")
+    timeline = st_timeline(
+        timeline_items,
+        groups=[],
+        options={
+            "selectable": True,
+            "multiselect": True,
+            "zoomable": True,
+            "verticalScroll": True,
+            "stack": True,
+            "height": 500,
+            "margin": {"axis": 5},
+            "groupHeightMode": "auto",
+            "orientation": {"axis": "top", "item": "top"}
+        },
+    )
+
+    # Mostrar dados da execução selecionada
+    if timeline:
+        selected_id = timeline.get("id", "").split("-")[1]
+        selected_agendamento = agendamento_df.iloc[int(selected_id)]
+        st.json(selected_agendamento.to_dict())
+
+    #! Tabs para cada execução
+    st.subheader("Resultado de todas as Execuções")
+    st.write(execution_df)
+    st.info("Para melhor visualização vou tentar ter um checkbox no data_editor de cada execução e selecionar dentro da tabela (retira o tabs de execução), mas por enquanto vou deixar como está.")
+    
+    
+    st.write("Clique em uma aba para ver os detalhes da execução selecionada.")
+    tabs = st.tabs([f"Execução {row['execution']}" for _, row in execution_df.iterrows()])
+    for i, tab in enumerate(tabs):
+        with tab:
+            exec_data = execution_df.iloc[i]
+            with st.container():
+                st.write(f"Execução {exec_data['execution']}")
+                st.subheader("Dados da Execução Selecionada")
+
+                
+                # Tabs dentro do container
+                inner_tabs = st.tabs(["Horários", "Gráfico de Barras", "Gráfico de Linhas", "População Final"])
+                with inner_tabs[0]:
+                    st.write("Tabela de Horários de Agendamento")
+                    sorted_vars = sorted(exec_data["solution_variables"])
+                    st.dataframe(
+                        pd.DataFrame([sorted_vars], columns=[f"Horário {i+1}" for i in range(len(sorted_vars))])
+                    )
+
+                with inner_tabs[1]:
+                    st.write("Gráfico de Barras")
+                    st.bar_chart(pd.DataFrame({"Horários de Agendamento": exec_data["solution_variables"]}))
+
+                with inner_tabs[2]:
+                    st.write("Gráfico de Linhas")
+                    st.line_chart(pd.DataFrame({"Horários de Agendamento": exec_data["solution_variables"]}))
+                    
+                with inner_tabs[3]:
+                    st.write("População Final")
+                    try:
+                        pop_final_df = pd.read_excel(pop_final_xlsx_file)
+                        st.dataframe(pop_final_df)
+                    except Exception as e:
+                        st.error(f"Erro ao carregar a população final: {e}")
+                        st.write("População final não disponível.")
+
+                #! Timeline para a execução selecionada
+                time_line_from_solution_variables(agendamento_df,contingencia_df ,exec_data)
+                
