@@ -384,7 +384,6 @@ class FrameworkRCEDashboard:
                         thread = threading.Thread(target=run_command)
                         thread.start()
 
-                        arquivos_anteriores = set()
                         while thread.is_alive():
                             arquivos_atual = set(self.utils.get_html_content_from_folder(FOLDER_NAME))
                             progresso = len(arquivos_atual)
@@ -398,7 +397,7 @@ class FrameworkRCEDashboard:
                             <p style="text-align:center;">{percent}%</p>
                             """
                             progress_placeholder.markdown(bar_html, unsafe_allow_html=True)
-                            arquivos_anteriores = arquivos_atual
+                            time.sleep(3.0)  # Atualiza a cada 2 segundos
 
                         # Garante 100% ao finalizar
                         bar_html = f"""
@@ -408,6 +407,8 @@ class FrameworkRCEDashboard:
                         <p style="text-align:center;">100%</p>
                         """
                         progress_placeholder.markdown(bar_html, unsafe_allow_html=True)
+                        time.sleep(1.5)
+
                         thread.join()
                         return_code = self._return_code
                 else:
@@ -419,7 +420,6 @@ class FrameworkRCEDashboard:
                 progress_placeholder.empty()
 
                 if return_code == 0:
-                    time.sleep(1.0)
                     st.success("Script executado com sucesso!")
                     st.rerun()
 

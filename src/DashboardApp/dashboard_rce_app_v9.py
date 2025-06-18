@@ -2,10 +2,9 @@
 import streamlit as st
 from views.pages.themes import Theme
 
-from views.pages.screens import  RCEFrameworkPage, AgendamentosRedesPage, BenchmarkingPage,  TabExamplePage
+from views.pages.screens import  TabExamplePage
+from views.pages.AgendamentoRedePage import AgendamentoRedePage
 from views.pages.FramewrokRCEDashboardPage import FrameworkRCEDashboard
-from views.pages.StreamlitDashbord import StreamlitDashboard
-from views.pages.code_editor_page import CodeEditorPage
 from views.pages.EasyPDF_page import EasyPDF
 
 import sys
@@ -15,7 +14,6 @@ sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 from config import options_main_file
 
 import sys
-from pathlib import Path
 
 
 
@@ -33,6 +31,7 @@ def DrawerSideBar():
         "📑 Tab Demonstration": TabExamplePage,
         #"📊 Python Editor": CodeEditorPage,
         "Gerador de PDF": EasyPDF,
+        "Tela de Agendamentos de Redes": AgendamentoRedePage,
     }
 
     # Navegação com rádio buttons

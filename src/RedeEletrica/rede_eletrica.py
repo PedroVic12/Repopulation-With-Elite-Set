@@ -14,7 +14,7 @@ logging.basicConfig(
     filename='logs.txt',
     format='%(asctime)s - %(levelname)s - %(message)s',
     filemode='w',
-    level=logging.DEBUG
+    level=logging.INFO  # Changed to INFO to include "info" level logs
 )
 
 install()
