@@ -82,8 +82,8 @@ if __name__ == "__main__":
 
     try:
         # Obter parâmetros de URL
-        query_params = st.experimental_get_query_params()
-        selected_page = query_params.get("page", ["framework_rce"])[0]
+        #query_params = st.experimental_get_query_params()
+        #selected_page = query_params.get("page", ["framework_rce"])[0]
     
         # Renderizar a página selecionada
         pagina_selecionada = DrawerSideBar()

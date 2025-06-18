@@ -220,5 +220,3 @@ def AgendamentoRedePage():
                         st.warning("Selecione um intervalo válido no timeline.")
 
 
-# Exibir a página
-AgendamentoRedePage()

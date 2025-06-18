@@ -5,7 +5,7 @@ import streamlit as st
 import os
 import pandas as pd
 import numpy as np
-
+import json
 
 
 
@@ -116,25 +116,44 @@ class ConsolidatedResultsComponent:
                 # Adiciona o botão de download
                 button_save_excel(consolidated_excel_path, "results_consolidados.xlsx")
 
-                json_table = dados.get("params", {})
-                st.write()
-
-                st.data_editor(
-                    pd.DataFrame(json_table, index=[0]),
-                    use_container_width=True,
-                    num_rows="dynamic"
-                )
-
 
 
                 # Expandir para mostrar os parâmetros utilizados
-                with st.expander("Parâmetros Utilizados nesta Execução", expanded=False):
-                    st.json(dados.get('params', {}))
-                    
-                    #json_table = pd.DataFrame(dados.get('params'), index=[0]).to_json(orient='records', indent=2)
-                    #st.write(json_table)
-                                        
-                    
+                with st.expander("Parâmetros AG Utilizados em params.json", expanded=False):
+                    json_table = dados.get("params", {})
+                    if json_table:
+                        # Remove as chaves indesejadas diretamente do dicionário
+                        for key in ["ARRAY_VAR", "LIMITE_VAR"]:
+                            json_table.pop(key, None)
+                        df_params = pd.DataFrame(list(json_table.items()), columns=["Parâmetro", "Valor"])
+                        edited_df = st.data_editor(
+                            df_params,
+                            use_container_width=True,
+                            num_rows="dynamic",
+                            column_config={
+                                "Parâmetro": st.column_config.Column(disabled=True),
+                                "Valor": st.column_config.Column(disabled=False)
+                            }
+                        )
+
+                        # Atualiza json_table com os valores editados
+                        if not edited_df.empty:
+                            for idx, row in edited_df.iterrows():
+                                param = row["Parâmetro"]
+                                value = row["Valor"]
+                                json_table[param] = value
+
+                        # exporta os dados atualizados para um arquivo json com um botão de download
+                        st.download_button(
+                            label="Exportar Parâmetros Atualizados para JSON",
+                            data=json.dumps(json_table, indent=4),
+                            file_name="params_atualizados.json",
+                            mime="application/json"
+                        )
+
+
+                    else:
+                        st.info("Nenhum parâmetro encontrado para exibir.")
 
             except Exception as e:
                 st.error(f"Erro ao ler: ", e)

@@ -234,3 +234,13 @@ class Controller:
         return execution_numbers[st.session_state["active_tab_index"]]
 
 
+
+
+def run_utils_test():
+    utils = Utils()
+
+    files = utils.get_html_content_from_folder(FOLDER_NAME)
+    print("Arquivos HTML encontrados na pasta:", files)
+    print("Caminho da pasta de saída:", FOLDER_NAME)
+
+#run_utils_test()

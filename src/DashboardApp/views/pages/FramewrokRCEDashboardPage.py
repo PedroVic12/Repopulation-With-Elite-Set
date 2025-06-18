@@ -246,8 +246,18 @@ class FrameworkRCEDashboard:
                 # --- FIM DA LÓGICA ROBUSTA ---
 
                 current_value = param_dict[param_name]
-                
-                if st.toggle(f"Configurar {param_name}?", key=f"config_check_{param_index}"):
+
+                # Altera os nomes dos parametros para português e adiciona toggle
+                toggle_label = {
+                    "NUM_GENERATIONS": "Configurar Número de Gerações?",
+                    "POP_SIZE": "Configurar Tamanho da População?",
+                    "MUTACAO": "Configurar Taxa de Mutação?",
+                    "CROSSOVER": "Configurar Taxa de Crossover?"
+                }.get(param_name, f"Configurar {param_name}?")
+
+                if st.toggle(toggle_label, key=f"config_check_{param_index}"):
+
+
                     mode = "Variável" if isinstance(current_value, list) and len(current_value) > 1 else "Fixo"
                     choice = st.radio(
                         "Modo:", ("Fixo", "Variável"), index=1 if mode == "Variável" else 0,
@@ -347,68 +357,79 @@ class FrameworkRCEDashboard:
 
 
 
-    
+
     def run_script(self, script_path):
-        """Executa um script Python com barra de progresso única e GIF enquanto roda. usando threading para não travar a UI e progress_placeholder para atualizar a barra de progresso"""
-        dialog_placeholder = st.empty()
-        progress_placeholder = st.empty()
+            """Executa um script Python com barra de progresso baseado no número total de execuções configuradas."""
+            dialog_placeholder = st.empty()
+            progress_placeholder = st.empty()
 
-        try:
-            img_gif_loading = FOLDER_NAME.parent / "assets" / "humans_evolution.gif"
-            files = self.utils.get_html_content_from_folder(FOLDER_NAME)
-            steps = len(files) * 10 if len(files) > 0 else 10
+            try:
+                img_gif_loading = FOLDER_NAME.parent / "assets" / "humans_evolution.gif"
 
-            if img_gif_loading.exists():
-                with dialog_placeholder.container():
-                    st.image(str(img_gif_loading), width=800)
-                    st.subheader("Executando o programa principal com Algoritmo Evolutivo RCE no mesmo terminal, por favor aguarde...")
+                # Obtém o total de steps a partir da configuração do usuário
+                config = st.session_state.user_config
+                total_steps = config.get('value', 1)
 
-                    # Executa o script em thread separada para não travar a UI
+                if img_gif_loading.exists():
+                    with dialog_placeholder.container():
+                        st.image(str(img_gif_loading), width=800)
+                        st.subheader("Executando o programa principal com Algoritmo Evolutivo RCE no mesmo terminal, por favor aguarde...")
 
-                    def run_command():
-                        command = f'python "{script_path}"'
-                        self._return_code = os.system(command)
+                        # Executa o script em thread separada para não travar a UI
+                        def run_command():
+                            command = f'python "{script_path}"'
+                            self._return_code = os.system(command)
 
-                    self._return_code = None
-                    thread = threading.Thread(target=run_command)
-                    thread.start()
+                        self._return_code = None
+                        thread = threading.Thread(target=run_command)
+                        thread.start()
 
-                    for i in range(steps + 1):
-                        if not thread.is_alive():
-                            break
-                        progress = i / steps
+                        arquivos_anteriores = set()
+                        while thread.is_alive():
+                            arquivos_atual = set(self.utils.get_html_content_from_folder(FOLDER_NAME))
+                            progresso = len(arquivos_atual)
+                            percent = int((progresso / total_steps) * 100) if total_steps > 0 else 0
+                            percent = min(percent, 100)  # Garante que não passe de 100%
+
+                            bar_html = f"""
+                            <div style="background-color:#e0e0e0; border-radius:10px; width:100%; height:30px;">
+                                <div style="background-color:#008000; width:{percent}%; height:30px; border-radius:10px;"></div>
+                            </div>
+                            <p style="text-align:center;">{percent}%</p>
+                            """
+                            progress_placeholder.markdown(bar_html, unsafe_allow_html=True)
+                            arquivos_anteriores = arquivos_atual
+
+                        # Garante 100% ao finalizar
                         bar_html = f"""
                         <div style="background-color:#e0e0e0; border-radius:10px; width:100%; height:30px;">
-                            <div style="background-color:#008000; width:{progress*100}%; height:30px; border-radius:10px;"></div>
+                            <div style="background-color:#008000; width:100%; height:30px; border-radius:10px;"></div>
                         </div>
-                        <p style="text-align:center;">{int(progress*100)}%</p>
+                        <p style="text-align:center;">100%</p>
                         """
                         progress_placeholder.markdown(bar_html, unsafe_allow_html=True)
-                        time.sleep(1.0)
+                        thread.join()
+                        return_code = self._return_code
+                else:
+                    # Caso não tenha GIF, só executa o script
+                    command = f'python "{script_path}"'
+                    return_code = os.system(command)
 
-                    # Aguarda thread terminar se ainda não terminou
-                    thread.join()
-                    return_code = self._return_code
-            else:
-                # Caso não tenha GIF, só executa o script
-                command = f'python "{script_path}"'
-                return_code = os.system(command)
+                dialog_placeholder.empty()
+                progress_placeholder.empty()
 
-            dialog_placeholder.empty()
-            progress_placeholder.empty()
+                if return_code == 0:
+                    time.sleep(1.0)
+                    st.success("Script executado com sucesso!")
+                    st.rerun()
 
-            if return_code == 0:
-                st.success("Script executado com sucesso!")
-                st.rerun()
+            except Exception as e:
+                dialog_placeholder.empty()
+                st.error(f"Erro ao executar o script. Código de retorno: {locals().get('return_code', 'N/A')} e Erro: {e}")
 
-        except Exception as e:
-            dialog_placeholder.empty()
-            st.error(f"Erro ao executar o script. Código de retorno: {return_code} e Erro: {e}")
-
-        if not self.execution_numbers:
-            st.error("Nenhum arquivo de resultado encontrado.")
-            st.stop()
-    
+            if not self.execution_numbers:
+                st.error("Nenhum arquivo de resultado encontrado.")
+                st.stop()
 
 
     def header(self):
