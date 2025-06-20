@@ -134,7 +134,7 @@ def load_many_executions(options, setup, algoritmo):
             # Loop principal do Algoritmo Evolutivo
             pop_with_repopulation, logbook_with_repopulation, best_variables = algoritmo.run(RCE=True)
             print("\n\nEvolução concluída  - 100%")
-            print(f"Best variables", best_variables)
+            #print(f"Best variables", best_variables)
             
             
             # # Resultados

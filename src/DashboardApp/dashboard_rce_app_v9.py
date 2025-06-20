@@ -24,7 +24,7 @@ def DrawerSideBar():
 
     # Opções de páginas 
     page_options = {
-        "⚡ Framework RCE": FrameworkRCEDashboard(options_main_file).run,
+        "⚡ Framework RCE ": FrameworkRCEDashboard(options_main_file).run,
         #"🤖 C3po Chatbot": C3poChatbotPage,
         #"📊 Benchmarking Analysis": BenchmarkingPage,
         #"📑 Tab Demonstration": TabExamplePage,

@@ -43,9 +43,9 @@ def time_line_from_solution_variables(agendamento_df,contingencia_df ,exec_data)
                 solution_timeline_items = []
 
                 # Calcular os intervalos entre os horários
-                for j in range(len(solution_variables) - 1):
+                for j in range(len(solution_variables)):
                     start_hour = solution_variables[j]
-                    duration = solution_variables[j + 1] - start_hour  # Intervalo entre os horários
+                    duration = agendamento_df.iloc[j]["duracao"]  # pega a duração do agendamento correspondente
                     end_hour = start_hour + duration
 
                     # Calcular o dia e horário
@@ -68,7 +68,8 @@ def time_line_from_solution_variables(agendamento_df,contingencia_df ,exec_data)
                         "end": end_time,
                         "title": f"Intervalo: {start_label} - {end_label} ({duration}h)"
                     })
-
+                    
+                    
                 # Adicionar o último horário como um evento único
                 last_hour = solution_variables[-1]
                 day_offset_last = last_hour // 24

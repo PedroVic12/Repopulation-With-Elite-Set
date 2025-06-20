@@ -169,7 +169,7 @@ class CardSolutions:
     def render(data, exec_num, debug=False):
         """Exibe o cabeçalho e o resumo da melhor solução."""
         st.subheader(f"Resultados da Execução: {exec_num}")
-        st.warning("Resultados da melhor geração da solução encontrada esta acumulando ao longo das execuções. Para ver os resultados de cada execução, acesse a a planilha em 'outpout/resultados_consolidados.xlsx'.")
+        #st.warning("Resultados da melhor geração da solução encontrada esta acumulando ao longo das execuções. Para ver os resultados de cada execução, acesse a a planilha em 'outpout/resultados_consolidados.xlsx'.")
 
         if debug:
             st.write(data)

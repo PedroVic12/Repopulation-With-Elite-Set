@@ -133,13 +133,63 @@ def run_framework():
 
 
 
+
+import itertools
+
+def run_framework_groups_executions():
+    
+    """Função para executar o framework com múltiplas execuções baseadas em grupos de parâmetros."""
+    """
+    Cálculo:
+    Total de combinações únicas:
+    4 (MUTACAO) × 1 (CROSSOVER) × 4 (NUM_GENERATIONS) × 1 (POP_SIZE) = 16 combinações
+
+    Total de execuções:
+    16 combinações × 3 repetições = 48 execuções
+    """
+    
+    # Carrega os parâmetros default do AG (params.json)
+    params = load_params(f"{BASE_DIR}/AlgEvolutivoRCE/params.json")
+    
+    # Carrega as opções configuradas pelo usuário (options.json)
+    config = load_params(f"{BASE_DIR}/DashboardApp/options.json")
+
+    # Extrai os parâmetros variáveis definidos pelo usuário
+    param_opcionais = config['parametros_opcionais']
+    param_names = [list(d.keys())[0] for d in param_opcionais]  # Ex: ['MUTACAO', 'CROSSOVER', ...]
+    param_values = [list(d.values())[0] for d in param_opcionais]  # Ex: [[0.9,0.8], [0.9], ...]
+
+    # Gera todas as combinações possíveis dos parâmetros variáveis
+    combinacoes = list(itertools.product(*param_values))
+    repeticoes = config.get('repeticoes_por_config', 1)  # Quantas vezes rodar cada combinação
+
+    for idx, valores in enumerate(combinacoes):
+        # Cria um dicionário de parâmetros para esta combinação
+        params_exec = params.copy()
+        for k, v in zip(param_names, valores):
+            params_exec[k] = v
+
+        for rep in range(repeticoes):
+            print(f"\nExecução combinação {idx+1}/{len(combinacoes)} - Repetição {rep+1}/{repeticoes}")
+            
+            # Carrega dados de entrada (pode ser agendamento, contingências, etc)
+            dados = entrada_de_dados()
+            # Instancia o setup e o algoritmo evolutivo para esta configuração
+            setup = Setup(params_exec, fitness_function=funcao_objetivo_IEEE14,
+                          tamanho_hash=(dados["num_contingencias"] * dados["num_carregamentos"] * (2 ** dados["num_desligamentos"])))
+            alg = AlgoritimoEvolutivoRCE(setup, DEBUG=False)
+            
+            # Executa o algoritmo e salva os resultados
+            load_many_executions(config, setup, alg)
+
+
 def run_framework_many_executions():
     
     """Função para executar o framework com múltiplas execuções."""
     
     # Load parameters from the JSON file in any configuration of PC
     params = load_params(f"{BASE_DIR}/AlgEvolutivoRCE/params.json")
-    options = load_params(f"{BASE_DIR}/DashboardApp/output.json")
+    options = load_params(f"{BASE_DIR}/DashboardApp/options.json")
     
     # Instanciando os Objetos
     setup = Setup(params, fitness_function = funcao_objetivo_IEEE14,
@@ -192,7 +242,8 @@ if __name__ == "__main__":
     # Check if the user wants to run multiple executions or a single execution
     if options_main_file["key"]:
         print("Running multiple executions...")
-        run_framework_many_executions()
+        #run_framework_many_executions()
+        run_framework_groups_executions()
     else:
         print("Running a single execution...")
         run_framework()

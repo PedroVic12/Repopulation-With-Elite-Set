@@ -51,7 +51,9 @@ class Utils:
             for file in os.listdir(data_file_selected):
                 file_path = os.path.join(data_file_selected, file)
                 os.remove(file_path)
-                print(f"Arquivo {file_path} removido com sucesso.")
+                #print(f"Arquivo {file_path} removido com sucesso.")
+                
+            print(f"Todos os arquivos na pasta {data_file_selected} foram removidos com sucesso.")
 
         except Exception as e:
 
@@ -146,12 +148,6 @@ class Utils:
         # verifica se a pasta esta vazia
         if not os.listdir(FOLDER_NAME):
             print("[INFO]A pasta está vazia OK...")
-
-        else:
-            if debug:
-                print(f"[DEBUG] A pasta não está vazia, possui  arquivos em")
-                print(FOLDER_NAME)
-                # self.apagar_arquivos()
 
         # Carregar Dados
         try:

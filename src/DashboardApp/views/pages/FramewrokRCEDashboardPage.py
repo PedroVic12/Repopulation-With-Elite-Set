@@ -168,29 +168,21 @@ class FrameworkRCEDashboard:
                         if UseState.get_state("active_tab") != i:
                             self.handle_tab_change(i, exec_num)
 
-                        # Carrega os dados e o gráfico da execução
-                        if dados:
+                        # Carrega os dados e o gráfico da execução CORRETOS para cada aba
+                        dados_exec = self.utils.load_execution_data(exec_num, debug=False)
+                        if dados_exec:
                             try:
                                 with st.container():
-                                    CardSolutions.render(dados, exec_num)
-
-
+                                    CardSolutions.render(dados_exec, exec_num, debug=False)
                                 with st.container():
-                                    GraficoRCEComponent.render(exec_num)  # Passa o exec_num para carregar o gráfico correto
-                                    
+                                    GraficoRCEComponent.render(exec_num)
                                 with st.container():
-                                    StatisticsTableComponent.render(dados)
+                                    StatisticsTableComponent.render(dados_exec)
                                     st.write("Graficos e Tabelas")
-                                    TabExamplePage()
-                                    
-                                    
-                                    
                             except Exception as e:
-                                st.error(f"Erro ao carregar os dados da execução {exec_num}.",e)
-
+                                st.error(f"Erro ao carregar os dados da execução {exec_num}. {e}")
                         else:
                             st.error("Não foi encontrado nenhum conjunto de dados")
-        
 
             self.footer()
 
@@ -333,11 +325,11 @@ class FrameworkRCEDashboard:
                     
                     # Salva o arquivo JSON para ser usado pelo script
                     final_config.update(user_config)
-                    out_file = open("output.json", "w")
+                    out_file = open("options.json", "w")
                     json.dump(final_config, out_file)
                     out_file.close()
                     
-                    st.success(f"Configuração salva em **output.json**!")
+                    st.success(f"Configuração salva em **options.json**!")
                     
                     # Executa o script principal
                     script_path = FOLDER_NAME.parent / "run_framework.py"

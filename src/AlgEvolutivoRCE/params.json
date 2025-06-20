@@ -2,9 +2,9 @@
     "ARRAY_VAR": [14,15,14,18,15],
     "LIMITE_VAR": [0, 31],
 
-    "NUM_GENERATIONS": 4,
+    "NUM_GENERATIONS": 5,
     "CROSSOVER": 0.90,
-    "MUTACAO": 0.10,
+    "MUTACAO": 0.50,
 
     "POP_SIZE": 5,
     "IND_SIZE": 5,
