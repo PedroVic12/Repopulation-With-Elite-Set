@@ -380,6 +380,31 @@ class FrameworkRCEDashboard:
                         else:
                             new_val = st.number_input(f"Valor para {param_name}", value=float(default_value), step=0.1, key=f"s_{param_index}", format="%.1f")
                         config['parametros_opcionais'][param_index] = {param_name: [new_val]}
+
+
+                    # else: # Fixo
+                    #                         default_value = current_value[0] if isinstance(current_value, list) else current_value
+                    #                         if param_name in ["NUM_GENERATIONS", "POP_SIZE"]:
+                    #                             new_val = st.number_input(
+                    #                                 f"Valor para {param_name}",
+                    #                                 value=int(default_value),
+                    #                                 step=1,
+                    #                                 key=f"s_{param_index}",
+                    #                                 format="%d"
+                    #                             )
+                    #                         else:
+                    #                             new_val = st.slider(
+                    #                                 f"Valor para {param_name}",
+                    #                                 min_value=0.0,
+                    #                                 max_value=1.0,
+                    #                                 value=float(default_value),
+                    #                                 step=0.01,
+                    #                                 key=f"s_{param_index}_slider"
+                    #                             )
+                    #                         config['parametros_opcionais'][param_index] = {param_name: [new_val]}    
+                
+                
+                        
                 st.markdown("---")
 
             col1, col2 = st.columns(2)
