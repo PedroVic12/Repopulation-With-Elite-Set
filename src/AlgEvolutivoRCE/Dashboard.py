@@ -24,7 +24,7 @@ def load_params(file_path):
 
 
 #params = load_params(r"C:\Users\Pedro Victor R V\Documents\GitHub\Repopulation-With-Elite-Set\src\AlgEvolutivoRCE\params.json")
-BASE_DIR = pathlib.Path(__file__).resolve().parent 
+BASE_DIR = pathlib.Path(__file__).resolve().parent.parent
 #print(BASE_DIR)
 params = load_params(f"{BASE_DIR}/params.json")
 

@@ -220,7 +220,7 @@ class FrameworkRCEDashboard:
                             value=", ".join(str(x) for x in array_var),
                             help="Esses são os horários de agendamento para Rede Elétrica (ex: 14h, 15h, 14h, 18h, 15h)"
                         )
-                        array_var_edit = [float(x.strip()) for x in array_str.split(",")][:5]
+                        array_var_edit = [int(x.strip()) for x in array_str.split(",")][:5]
                         if len(array_var_edit) < 5:
                             array_var_edit += [0] * (5 - len(array_var_edit))
 

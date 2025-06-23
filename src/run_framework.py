@@ -49,7 +49,7 @@ def load_params(file_path):
     return params
 
 # Load parameters from the JSON file in any configuration of PC
-params = load_params(f"{BASE_DIR}/AlgEvolutivoRCE/params.json")
+params = load_params(f"{BASE_DIR}/params.json")
 
 # windows
 #params = load_params(r"C:\Users\Pedro Victor R V\Documents\GitHub\Repopulation-With-Elite-Set\src\AlgEvolutivoRCE\params.json")

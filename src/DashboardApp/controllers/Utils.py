@@ -235,6 +235,7 @@ class Controller:
     def config_json_options(self):
         # ler a configuração do JSON
         del OPTIONS_JSON["value"]
+        
         #del OPTIONS_JSON["parametros_opcionais"]
         del OPTIONS_JSON["key"]
         return OPTIONS_JSON

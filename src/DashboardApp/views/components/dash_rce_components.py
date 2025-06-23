@@ -34,7 +34,8 @@ def load_execution_data(exec_num, debug=False):
 
         # verifica se a pasta esta vazia
         if not os.listdir(path_foler_output):
-            print("[INFO]A pasta está vazia OK...")
+            st.info("Ainda não houve nenhuma execução. Nenhum dado disponível.")
+            return None  # <-- Adicione isso!
 
         else:
             if debug:
@@ -54,6 +55,7 @@ def load_execution_data(exec_num, debug=False):
             st.info(
                 f"Erro Crítico: Arquivo de dados selecionado ({data_file_selected}) não encontrado."
             )
+            st.warning("Aguarde, a página será atualizada em breve.")
             time.sleep(2)  # Pausa para o usuário ler a mensagem
             st.rerun()
             #st.stop()  # Para se o arquivo esperado não for encontrado
@@ -105,15 +107,19 @@ class ConsolidatedResultsComponent:
                 
                 # Descobrir quantas linhas por configuração
                 rep = options_json['repeticoes_por_config']
+                num_rows = len(df_consolidado)
                 # Adicionar as colunas dos parâmetros
-                #for param in ['CROSSOVER', 'MUTACAO', 'POP_SIZE', 'IND_SIZE']:
-                #    values = options_json[param]
-                #    if isinstance(values, list) and len(values) > 1:
-                        # Repete cada valor 'rep' vezes
-                #        df_consolidado[param] = [v for v in values for _ in range(rep)]
-                #    else:
+                for param in ['CROSSOVER', 'MUTACAO', 'POP_SIZE', 'IND_SIZE']:
+                    values = options_json[param]
+                    if isinstance(values, list) and len(values) > 1:
+                        # Repete cada valor 'rep' vezes e ajusta para o tamanho do DataFrame
+                        repeated = [v for v in values for _ in range(rep)]
+                        if len(repeated) < num_rows:
+                            repeated = (repeated * ((num_rows // len(repeated)) + 1))[:num_rows]
+                        df_consolidado[param] = repeated
+                    else:
                         # Valor único para todas as linhas
-                #        df_consolidado[param] = values[0] if isinstance(values, list) else values
+                        df_consolidado[param] = [values[0] if isinstance(values, list) else values] * num_rows
 
                 if options_json:
                     st.write(f"**Parâmetros de Execução Options.json:** {options_json}")
@@ -139,7 +145,7 @@ class ConsolidatedResultsComponent:
 
 
             except Exception as e:
-                st.error(f"Erro ao ler: ", e)
+                st.error(f"Erro ao ler: {e}")
         else:
             st.info(f"Arquivo de resultados consolidados ({consolidated_excel_path}) não encontrado.")
         st.markdown("---")
