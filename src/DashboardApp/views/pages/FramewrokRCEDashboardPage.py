@@ -547,7 +547,7 @@ class FrameworkRCEDashboard:
         """Cabeçalho do aplicativo."""
         st.markdown("---")
         st.title("⚡ Framework Repopulation-With-Elite-Set RCE ⚡")
-        st.write("V 10.1.5 - 2025/06/04")
+        st.subheader("Version 11.1.5 - 24/06/2025")
         st.markdown("---")
 
         # Adiciona CSS personalizado para estilizar o botão
