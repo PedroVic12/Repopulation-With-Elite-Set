@@ -5,12 +5,12 @@ import streamlit as st
 import os
 import pandas as pd
 import numpy as np
-import json
+import sys
+import time
 
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
-
-
-#from ...controllers.Utils import Utils
+from controllers.Utils import Controller
 #! TODO SABER PEGAR IMPORT TUDO DE CONTROLLER E UTILS
 
 # Ajuste conforme a estrutura do projeto
@@ -54,6 +54,8 @@ def load_execution_data(exec_num, debug=False):
             st.info(
                 f"Erro Crítico: Arquivo de dados selecionado ({data_file_selected}) não encontrado."
             )
+            time.sleep(2)  # Pausa para o usuário ler a mensagem
+            st.rerun()
             #st.stop()  # Para se o arquivo esperado não for encontrado
         except Exception as e:
             st.error(f"Erro ao carregar dados de {data_file_selected}: {e}")
@@ -66,14 +68,14 @@ class ConsolidatedResultsComponent:
     """Componente para exibir os resultados consolidados."""    
 
     @staticmethod
-    def render(dados):
+    def render():
         """Verifica e exibe a seção de resultados consolidados."""
 
+        controller = Controller()
+
+
         # Nome base do arquivo
-        consolidated_excel_filename = rf"{path_foler_output}/results_consolidados.xlsx"
-        
-        # Caminho completo para o arquivo
-        consolidated_excel_path = consolidated_excel_filename
+        consolidated_excel_path = rf"{path_foler_output}/results_consolidados.xlsx"
 
         def button_save_excel(arquivo, nome_arquivo):
             # Abre o arquivo usando o caminho completo para o botão de download
@@ -98,6 +100,9 @@ class ConsolidatedResultsComponent:
                 exec_time = df_consolidado["execution_time"]
                 time_exec_media = exec_time.mean()
                 tempo_total = exec_time.sum()
+
+                options_json = controller.config_json_options()
+                st.write(f"**Parâmetros de Execução:** {options_json}")
                 
                 st.dataframe(df_consolidado)
                 
@@ -118,42 +123,6 @@ class ConsolidatedResultsComponent:
 
 
 
-                # Expandir para mostrar os parâmetros utilizados
-                with st.expander("Parâmetros AG Utilizados em params.json", expanded=False):
-                    json_table = dados.get("params", {})
-                    if json_table:
-                        # Remove as chaves indesejadas diretamente do dicionário
-                        for key in ["ARRAY_VAR", "LIMITE_VAR"]:
-                            json_table.pop(key, None)
-                        df_params = pd.DataFrame(list(json_table.items()), columns=["Parâmetro", "Valor"])
-                        edited_df = st.data_editor(
-                            df_params,
-                            use_container_width=True,
-                            num_rows="dynamic",
-                            column_config={
-                                "Parâmetro": st.column_config.Column(disabled=True),
-                                "Valor": st.column_config.Column(disabled=False)
-                            }
-                        )
-
-                        # Atualiza json_table com os valores editados
-                        if not edited_df.empty:
-                            for idx, row in edited_df.iterrows():
-                                param = row["Parâmetro"]
-                                value = row["Valor"]
-                                json_table[param] = value
-
-                        # exporta os dados atualizados para um arquivo json com um botão de download
-                        st.download_button(
-                            label="Exportar Parâmetros Atualizados para JSON",
-                            data=json.dumps(json_table, indent=4),
-                            file_name="params_atualizados.json",
-                            mime="application/json"
-                        )
-
-
-                    else:
-                        st.info("Nenhum parâmetro encontrado para exibir.")
 
             except Exception as e:
                 st.error(f"Erro ao ler: ", e)

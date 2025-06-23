@@ -13,9 +13,12 @@ def load_params_from_file(path):
         params = json.load(file)
     return params
 
-path = pathlib.Path(__file__).resolve().parent.parent.parent /  "AlgEvolutivoRCE" / "params.json"
-PARAMETROS_JSON = load_params_from_file(path)
+path_json = pathlib.Path(__file__).resolve().parent.parent.parent /  "AlgEvolutivoRCE" / "params.json"
+path_options = pathlib.Path(__file__).resolve().parent.parent.parent / "options.json"
+PARAMETROS_JSON = load_params_from_file(path_json)
+OPTIONS_JSON = load_params_from_file(path_options)
 #print("PARAMETROS_JSON DEFAULT:", PARAMETROS_JSON)  
+current_dir = pathlib.Path(__file__).parent
 
 
 
@@ -228,6 +231,13 @@ class Controller:
 
         # Retorna o número da execução correspondente à aba ativa
         return execution_numbers[st.session_state["active_tab_index"]]
+    
+    def config_json_options(self):
+        # ler a configuração do JSON
+        del OPTIONS_JSON["value"]
+        del OPTIONS_JSON["parametros_opcionais"]
+        del OPTIONS_JSON["key"]
+        return OPTIONS_JSON
 
 
 

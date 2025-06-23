@@ -13,8 +13,11 @@ import os
 
 # Frontend
 import streamlit as st
+import pandas as pd
+import json
 import time
 import threading
+import pathlib
 
 
 
@@ -141,15 +144,18 @@ class FrameworkRCEDashboard:
             active_tab = UseState.get_state("active_tab")
             dados = self.utils.load_execution_data(active_tab + 1, debug=False)
                     
-            # Configuração de parametros do Framework
-            self.ConfigWebApp()
-       
-            # Cabeçalho
-            self.header()
-
-            # Renderiza os resultados consolidados
             if dados:
-                ConsolidatedResultsComponent.render(dados)
+
+                # Configuração de parametros do Framework
+                self.ConfigWebApp()
+                self.Config_AG_Json(dados)
+
+        
+                # Cabeçalho
+                self.header()
+
+                # Renderiza os resultados consolidados
+                ConsolidatedResultsComponent.render()
             else:
                 st.info("Nenhum dado encontrado ainda. Execute uma simulação para visualizar os resultados.")
 
@@ -188,7 +194,94 @@ class FrameworkRCEDashboard:
 
         except Exception as error:
             st.warning(f"Erro ao carregar pagina: {error}")
+    
+    
 
+    def Config_AG_Json(self, dados):
+            # Expandir para mostrar os parâmetros utilizados
+            with st.expander("Parâmetros AG Utilizados em params.json", expanded=False):
+                json_data_params = dados.get("params", {})
+
+                if json_data_params:
+                    # Separa os campos especiais
+                    array_var = json_data_params.get("ARRAY_VAR", [14,15,14,18,15])
+                    limite_var = json_data_params.get("LIMITE_VAR", [0, 31])
+
+                    # Remove os campos especiais para edição no data_editor
+                    json_table = {k: v for k, v in json_data_params.items() if k not in ["ARRAY_VAR", "LIMITE_VAR"]}
+
+
+                    st.info("Usando Variáveis de Decisão do Problema e Limites de valores inteiros para o problema de agendamento de Redes Elétricas")
+
+                    # Edição simples do ARRAY_VAR
+                    try:
+                        array_str = st.text_input(
+                            "Variáveis de Decisão do Problema (digite 5 valores separados por vírgula)",
+                            value=", ".join(str(x) for x in array_var),
+                            help="Esses são os horários de agendamento para Rede Elétrica (ex: 14h, 15h, 14h, 18h, 15h)"
+                        )
+                        array_var_edit = [float(x.strip()) for x in array_str.split(",")][:5]
+                        if len(array_var_edit) < 5:
+                            array_var_edit += [0] * (5 - len(array_var_edit))
+
+                        # Slider para LIMITE_VAR
+                        else:
+                            limite_var_value = limite_var
+                            limite_var_value = st.slider(
+                                "Selecione os limites dos valores da variável de decisão",
+                                0, 50, (0, 31), step=1, key="limite_var_slider"
+                            )
+                            limite_var_edit = list(limite_var_value)
+
+                    except Exception:
+                        st.error("ARRAY_VAR inválido. Use 5 números separados por vírgula.")
+                        array_var_edit = array_var
+
+
+
+                    # Data editor para os demais parâmetros
+                    df_params = pd.DataFrame(list(json_table.items()), columns=["Parâmetro", "Valor"])
+                    edited_df = st.data_editor(
+                        df_params,
+                        use_container_width=True,
+                        num_rows="dynamic",
+                        column_config={
+                            "Parâmetro": st.column_config.Column(disabled=True),
+                            "Valor": st.column_config.Column(disabled=False)
+                        }
+                    )
+
+                    # Atualiza json_table com os valores editados
+                    if not edited_df.empty:
+                        for _, row in edited_df.iterrows():
+                            param = row["Parâmetro"]
+                            value = row["Valor"]
+                            json_table[param] = value
+
+                    st.markdown("---")
+
+                    # Monta o dicionário final para exportação
+                    json_atualizados = dict(json_table)
+                    json_atualizados["ARRAY_VAR"] = array_var_edit
+                    json_atualizados["LIMITE_VAR"] = limite_var_edit
+
+                    # Salva o arquivo atualizado em dois diretórios anteriores
+                    current_dir = pathlib.Path(__file__).parent
+                    target_path = current_dir.parent.parent.parent / "params.json"
+                    try:
+                        with open(target_path, "w", encoding="utf-8") as f:
+                            json.dump(json_atualizados, f, indent=4, ensure_ascii=False)
+                        st.success(f"Arquivo salvo em: {target_path}")
+                    except Exception as e:
+                        st.error(f"Erro ao salvar arquivo: {e}")
+
+                    # Exporta os dados atualizados para um arquivo json com um botão de download
+                    st.download_button(
+                        label="Salvar os Parâmetros AG Atualizados",
+                        data=json.dumps(json_atualizados, indent=4),
+                        file_name="params_atualizados.json",
+                        mime="application/json"
+                    )
 
     def ConfigWebApp(self):
         
@@ -325,7 +418,7 @@ class FrameworkRCEDashboard:
                     
                     # Salva o arquivo JSON para ser usado pelo script
                     final_config.update(user_config)
-                    out_file = open("options.json", "w")
+                    out_file = open("../options.json", "w")
                     json.dump(final_config, out_file)
                     out_file.close()
                     

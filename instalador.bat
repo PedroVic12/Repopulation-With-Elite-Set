@@ -5,10 +5,9 @@ REM Salva o diretório atual
 pushd .
 
 REM Navega para o diretório src e executa o primeiro script Python
-echo Executando script em src/run_rce_framework.py...
-cd src
+cd src/DashboardApp
 
-echo Instalando...
+echo Instalando usando pip do Python...
 
 call pip install -r requirements.txt --break-system-packages 
 
