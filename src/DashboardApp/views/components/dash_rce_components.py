@@ -145,7 +145,7 @@ class ConsolidatedResultsComponent:
 
 
             except Exception as e:
-                st.error(f"Erro ao ler: {e}")
+                st.error(f"Erro ao ler os resultados consolidados: {e}")
         else:
             st.info(f"Arquivo de resultados consolidados ({consolidated_excel_path}) não encontrado.")
         st.markdown("---")
