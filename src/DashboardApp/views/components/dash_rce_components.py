@@ -102,7 +102,21 @@ class ConsolidatedResultsComponent:
                 tempo_total = exec_time.sum()
 
                 options_json = controller.config_json_options()
-                st.write(f"**Parâmetros de Execução:** {options_json}")
+                
+                # Descobrir quantas linhas por configuração
+                rep = options_json['repeticoes_por_config']
+                # Adicionar as colunas dos parâmetros
+                #for param in ['CROSSOVER', 'MUTACAO', 'POP_SIZE', 'IND_SIZE']:
+                #    values = options_json[param]
+                #    if isinstance(values, list) and len(values) > 1:
+                        # Repete cada valor 'rep' vezes
+                #        df_consolidado[param] = [v for v in values for _ in range(rep)]
+                #    else:
+                        # Valor único para todas as linhas
+                #        df_consolidado[param] = values[0] if isinstance(values, list) else values
+
+                if options_json:
+                    st.write(f"**Parâmetros de Execução Options.json:** {options_json}")
                 
                 st.dataframe(df_consolidado)
                 

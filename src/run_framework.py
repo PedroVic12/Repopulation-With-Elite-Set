@@ -149,10 +149,10 @@ def run_framework_groups_executions():
     """
     
     # Carrega os parâmetros default do AG (params.json)
-    params = load_params(f"{BASE_DIR}/AlgEvolutivoRCE/params.json")
+    params = load_params(f"{BASE_DIR}/params.json")
     
     # Carrega as opções configuradas pelo usuário (options.json)
-    config = load_params(f"{BASE_DIR}/DashboardApp/options.json")
+    config = load_params(f"{BASE_DIR}/options.json")
 
     # Extrai os parâmetros variáveis definidos pelo usuário
     param_opcionais = config['parametros_opcionais']

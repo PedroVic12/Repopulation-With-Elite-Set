@@ -13,7 +13,7 @@ def load_params_from_file(path):
         params = json.load(file)
     return params
 
-path_json = pathlib.Path(__file__).resolve().parent.parent.parent /  "AlgEvolutivoRCE" / "params.json"
+path_json = pathlib.Path(__file__).resolve().parent.parent.parent / "params.json"
 path_options = pathlib.Path(__file__).resolve().parent.parent.parent / "options.json"
 PARAMETROS_JSON = load_params_from_file(path_json)
 OPTIONS_JSON = load_params_from_file(path_options)
@@ -235,7 +235,7 @@ class Controller:
     def config_json_options(self):
         # ler a configuração do JSON
         del OPTIONS_JSON["value"]
-        del OPTIONS_JSON["parametros_opcionais"]
+        #del OPTIONS_JSON["parametros_opcionais"]
         del OPTIONS_JSON["key"]
         return OPTIONS_JSON
 
