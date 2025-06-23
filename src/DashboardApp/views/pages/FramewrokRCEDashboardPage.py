@@ -221,6 +221,7 @@ class FrameworkRCEDashboard:
                             help="Esses são os horários de agendamento para Rede Elétrica (ex: 14h, 15h, 14h, 18h, 15h)"
                         )
                         array_var_edit = [int(x.strip()) for x in array_str.split(",")][:5]
+
                         if len(array_var_edit) < 5:
                             array_var_edit += [0] * (5 - len(array_var_edit))
 
@@ -264,6 +265,8 @@ class FrameworkRCEDashboard:
                     json_atualizados = dict(json_table)
                     json_atualizados["ARRAY_VAR"] = array_var_edit
                     json_atualizados["LIMITE_VAR"] = limite_var_edit
+
+
 
                     # Salva o arquivo atualizado em dois diretórios anteriores
                     current_dir = pathlib.Path(__file__).parent
