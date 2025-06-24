@@ -108,6 +108,9 @@ def plot_results(net):
     fig.update_layout(title="Potências Ativas nas Cargas", xaxis_title="Cargas", yaxis_title="Potência Ativa (MW)")
     fig.show()
 
+    
+    #fig.to_html("./network_results.html")
+
 
 
 def main_simulate():

@@ -65,5 +65,5 @@ for key, df in dfs.items():
     
 
 print("DataFrames lidos:")
-print(dfs["DBAR"])
-print(dfs["DLIN"])
+#print(dfs["DBAR"])
+#print(dfs["DLIN"])
