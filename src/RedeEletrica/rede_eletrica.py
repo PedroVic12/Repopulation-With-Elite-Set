@@ -1,14 +1,22 @@
-import numpy as np
 import pandapower as pp
 import pandapower.networks as pw
 import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
+from IPython.display import display
 
 from rich.console import Console
 from rich.theme import Theme
 from rich.traceback import install
-
 import logging
 
+
+logging.basicConfig(
+    filename='logs.txt',
+    format='%(asctime)s - %(levelname)s - %(message)s',
+    filemode='w',
+    level=logging.DEBUG
+)
 
 install()
 
@@ -21,21 +29,12 @@ class Logger:
             "info": "white"  # Added "info" level for default blue color
         }))
 
-        # Configuração do Logging
-        logging.basicConfig(
-            filename='logs.txt',
-            filemode='w',  # Sobrescreve o log a cada execução. Se quiser acumular, troca para 'a'
-            level=logging.INFO,  
-            format='%(asctime)s - %(levelname)s - %(message)s',
-            datefmt='%Y-%m-%d %H:%M:%S'
-        )
-
         self.logger = logging.getLogger()
 
 
 
-    def log(self, message, level="info"):
-        """Logs message to both console (rich) and file (logging)."""
+    def log(self, message, level="info"):  # Changed default level to "info"
+        """Logs a message with the specified level and color."""
         if level == "success":
             self.console.print(f"[success]{message}[/]")
             self.logger.info(message)
@@ -46,8 +45,9 @@ class Logger:
             self.console.print(f"[error]{message}[/]")
             self.logger.error(message)
         else:
-            self.console.print(f"[info]{message}[/]")
-            self.logger.info(message)  # Corrigido aqui: grava tudo também no log
+            self.console.print(f"[info]{message}[/]") # Changed to "info" to use blue color
+
+
 
 
 class RedeEletricaPandaPower:
@@ -69,19 +69,30 @@ class RedeEletricaPandaPower:
         self.agendamento = pd.DataFrame()
         self.contingencia= pd.DataFrame()
 
-    def carregar_redes_padrao(self, network_name="14"):
-        """Carrega redes padrão do pandapower."""
-        if network_name == "14":
-            network = pw.case14()
-        elif network_name == "30":
-            network = pw.case30()
-        elif network_name == "57":
-            network = pw.case57()
-        elif network_name == "118":
-            network = pw.case118()
-        else:
-            print("Rede não encontrada, forneça o número como string")
-            network = None
+    def carregar_redes_padrao(self,network_name = "14"):
+
+        
+        #!todo -> Switch para as redes disponiveis na lib
+        match network_name:
+            case "14":
+                network = pw.case14()
+            case "30":
+                #RZ não confundir com case30
+                network = pw.case_ieee30()
+            case "57":
+                # This function provides the ieee case57 network with the data origin PYPOWER
+                network = pw.case57()
+
+            case "118":
+                network = pw.case118()
+
+            case "nova":
+                network = pw.create_empty_network()
+
+
+            case _:
+                print("Rede não encontrada, forneça o numero como string")
+                network = None
 
         return network
 
@@ -147,16 +158,132 @@ class RedeEletricaPandaPower:
         return (k * (n_carregamentos) * (n_contingencias) ) + ((carregamento-1) * (n_contingencias))  + (contingencia-1)
 
 
-
-
-
-
     #==============================================================================================================================================================
 
     #! UTILS
     def log(self, mensagem,level="info"):
         if self.debug:
             self.console.log(mensagem,level)
+
+    def plot_rede_eletrica_status(self,  trafo_status, line_status):
+        """Plota o status (ligado/desligado) dos transformadores e linhas em um gráfico de barras.
+
+        Args:
+            x: Dados para o eixo x.
+            y: Dados para o eixo y.
+            net: Objeto pandapower contendo os resultados da simulação.
+            trafo_status: Array contendo o status (True/False) dos transformadores.
+            line_status: Array contendo o status (True/False) dos linhas.
+        """
+
+        # Combinar os status de transformadores e linhas
+        all_status = np.concatenate([trafo_status, line_status])
+
+        # Criar um array de rótulos para o eixo x (nomes dos ramos)
+        num_trafos = len(trafo_status)
+        num_lines = len(line_status)
+        x_labels = np.arange(1, num_trafos + num_lines + 1)
+
+        # Criar o gráfico de barras
+        fig, ax = plt.subplots(figsize=(10, 6))  # Ajustar o tamanho conforme necessário
+
+        # Definir cores para ligado (verde) e desligado (vermelho)
+        colors = ['g' if s else 'r' for s in all_status]
+
+        # Criar as barras com as cores definidas
+        bars = ax.bar(x_labels, np.ones_like(all_status), color=colors)
+
+        # Configurar o gráfico
+        ax.set_xlabel("Ramo")
+        ax.set_ylabel("Status")
+        ax.set_title("Status dos Transformadores e Linhas (Ligado/Desligado)")
+        ax.set_xticks(x_labels)  # Definir os ticks do eixo x
+        ax.set_yticks([1])  # Mostrar apenas o tick '1' no eixo y
+        ax.set_yticklabels([''])  # Remover o rótulo '1' do eixo y
+
+        # Ajustar a legenda para mostrar 'Transformador' e 'Linha'
+        legend_labels = ['Ligado', 'Desligado']
+        legend_handles = [bars[0], bars[-1] if not all_status[0] else bars[all_status.index(False)]]
+
+        ax.legend(legend_handles, legend_labels, loc='best')  # Adicionar legenda
+
+        plt.show()  # Mostrar o gráfico
+
+    def plot_trafo_status_only(self,net):
+        """Plota o status (ligado/desligado) dos transformadores e linhas em um gráfico de barras.
+
+        Args:
+            net: Objeto pandapower contendo os resultados da simulação.
+        """
+
+        # Extrair o status (in_service) dos transformadores e linhas
+        trafo_status = net.trafo["in_service"].values
+        line_status = net.line["in_service"].values
+
+        # Combinar os status de transformadores e linhas
+        all_status = np.concatenate([trafo_status, line_status])
+
+        # Criar um array de rótulos para o eixo x (nomes dos ramos)
+        num_trafos = len(trafo_status)
+        num_lines = len(line_status)
+        x_labels = np.arange(1, num_trafos + num_lines + 1)
+
+        # Criar o gráfico de barras
+        fig, ax = plt.subplots(figsize=(10, 6))  # Ajustar o tamanho conforme necessário
+
+        # Definir cores para ligado (verde) e desligado (vermelho)
+        colors = ['g' if s else 'r' for s in all_status]
+
+        # Criar as barras com as cores definidas
+        bars = ax.bar(x_labels, np.ones_like(all_status), color=colors)
+
+        # Configurar o gráfico
+        ax.set_xlabel("Ramo")
+        ax.set_ylabel("Status")
+        ax.set_title("Status de todas as Linhas (Ligado/Desligado)")
+        ax.set_xticks(x_labels)  # Definir os ticks do eixo x
+        ax.set_yticks([1])  # Mostrar apenas o tick '1' no eixo y
+        ax.set_yticklabels([''])  # Remover o rótulo '1' do eixo y
+
+        # Ajustar a legenda para mostrar 'Transformador' e 'Linha'
+        legend_labels = ['Ligado', 'Desligado']
+        legend_handles = [bars[0], bars[-1] if not all_status[0] else bars[all_status.index(False)]]
+
+        ax.legend(legend_handles, legend_labels, loc='best')  # Adicionar legenda
+
+        plt.show()  # Mostrar o gráfico
+
+    def plot_trafo_status(self, net):
+        """Plota o status (ligado/desligado) dos transformadores em um gráfico de barras.
+
+        Args:
+            net: Objeto pandapower contendo os resultados da simulação.
+        """
+
+        # Extrair os dados de loading_percent e status (in_service)
+        loading_percent = net.res_trafo["loading_percent"].values
+        status = net.trafo["in_service"].values
+
+        # Criar um array de rótulos para o eixo x (nomes dos ramos)
+        x_labels = np.arange(1, len(loading_percent) + 1)
+
+        # Criar o gráfico de barras
+        fig, ax = plt.subplots(figsize=(10, 6))  # Ajustar o tamanho conforme necessário
+        bars = ax.bar(x_labels, loading_percent, color='b')  # Barras azuis para loading_percent
+
+        # Ajustar as cores das barras para vermelho se o transformador estiver desligado
+        for i, bar in enumerate(bars):
+            if not status[i]:  # Se status for False (desligado)
+                bar.set_color('r')
+
+        # Configurar o gráfico
+        ax.set_xlabel("Ramo")
+        ax.set_ylabel("Loading Percent")
+        ax.set_title("Status dos Transformadores")
+        ax.set_xticks(x_labels)  # Definir os ticks do eixo x
+        ax.legend([bars[0], bars[-1]], ['Ligado', 'Desligado'], loc='best')  # Adicionar legenda
+
+        plt.show()  # Mostrar o gráfico
 
 
     def show_status(self):
@@ -168,17 +295,45 @@ class RedeEletricaPandaPower:
 
             print("\nStatus Linhas")
             display(self.net.line[["from_bus","to_bus","in_service"]])
+            #display(self.net.res_line[["loading_percent"]])
 
-            print("\nStatus Transformadores")
-            display(self.net.trafo[["hv_bus","lv_bus","in_service"]])
+            # Plot do loading percente das linhas
+            #self.plot_trafo_status_only(self.net)
+
+            #! PLOT DO STATUS DAS LINHAS E TRANSFORMADORES
+            try:
+
+                # Pega os dados estado e lgiados de linhas e trafos
+                trafo_status = self.net.trafo["in_service"].values
+                line_status = self.net.line["in_service"].values
+
+
+                # plot que mostra as linhas ligadas
+                self.plot_rede_eletrica_status( trafo_status, line_status)
+
+
+                print("\nStatus Transformadores")
+                display(self.net.trafo[["hv_bus","lv_bus","in_service"]])
+                #display(self.net.res_trafo[["loading_percent"]])
+
+                self.plot_trafo_status(self.net)
+            except Exception as erro:
+                print("Erro ao plotar", erro)
+
 
             ## Barramentos
             #print("\nTensões nos Barramentos (pu):")
             #display(self.net.res_bus[['vm_pu']])
 
+
             ## linhas
             #print("\nPorcentagem de Carga nas Linhas (%):")
             #display(self.net.res_line[['loading_percent']])
+
+
+
+            #! PLOT DOS VALORES DE POTENCIA APARENTE POS FLUXO DE POTENCIA
+            #self.plot_power_data()
 
             #print("\nPotência Aparente nas Linhas (MVA):")
             #display(self.net.res_line[['p_from_mw', 'q_from_mvar']])
@@ -193,6 +348,49 @@ class RedeEletricaPandaPower:
             #display(self.net.res_trafo[['loading_percent']])
 
             #print("="*80)
+
+
+    def plot_power_data(self, index = None):
+        """Plota os dados de potência dos barramentos, linhas e transformadores em um gráfico de linhas.
+
+        Args:
+            index: Um array contendo os valores do índice da série temporal (tempo ou número da iteração).
+        """
+
+        index = np.arange(len(self.net.res_line['p_from_mw']))
+
+
+        # Extrair os dados de cada elemento da rede com nomes mais descritivos
+        line_p_from_mw_data = self.net.res_line['p_from_mw'].values
+
+        index = line_p_from_mw_data
+
+
+        line_q_from_mvar_data = self.net.res_line['q_from_mvar'].values
+        trafo_p_hv_mw_data = self.net.res_trafo['p_hv_mw'].values
+        trafo_q_hv_mvar_data = self.net.res_trafo['q_hv_mvar'].values
+        #trafo_s_aparente_hv_mva_data = self.net.res_trafo['s_aparente_hv_mva'].values
+        #time_series = self.net['time'].values  # Or self.net['iteration'].values
+        #print(time_series)
+
+        # Criar o gráfico de linhas
+        fig, ax = plt.subplots(figsize=(10, 6))
+
+        # Plotar cada grandeza com uma cor diferente e rótulos descritivos
+        ax.plot(index, line_p_from_mw_data, label='Potência Ativa Linhas (MW)', color='blue')
+        ax.plot(index, line_q_from_mvar_data, label='Potência Reativa Linhas (MVar)', color='red')
+        ax.plot(index, trafo_p_hv_mw_data, label='Potência Ativa Trafos (MW)', color='green')
+        ax.plot(index, trafo_q_hv_mvar_data, label='Potência Reativa Trafos (MVar)', color='orange')
+        #ax.plot(index, trafo_s_aparente_hv_mva_data, label='Potência Aparente Trafos (MVA)', color='purple')
+
+
+        # Configurar o gráfico
+        ax.set_xlabel("Tempo/Iteração")
+        ax.set_ylabel("Valores")
+        ax.set_title("Dados de Potência")
+        ax.legend()
+        plt.grid(True)
+        plt.show()
 
 
 
@@ -231,27 +429,27 @@ class RedeEletricaPandaPower:
         # Verificar carregamento das linhas
         for idx, row in self.net.res_line.iterrows():
 
-            carregamento = row["loading_percent"] * 100
+            carregamento = row["loading_percent"] #* 100
             limite_max = self.net.line.at[idx, "max_loading_percent"]
 
             if carregamento > limite_max:
                 self.log("\n\nUltrapassou limite maximo nas linhas",level = "warning")
                 self.log(f"{carregamento:.2f} > {limite_max} %",level = "warning")
                 #RZ - as violações também devem considerar 100% = 1, deve-se dividir
-                violacoes["loading_linhas"] += (carregamento - limite_max) / 100
+                violacoes["loading_linhas"] += (carregamento - limite_max) #/ 100
 
         # Verificar carregamento dos transformadores
         for idx, row in self.net.res_trafo.iterrows():
-            carregamento = row["loading_percent"] * 100
+            carregamento = row["loading_percent"] #* 100
             limite_max = self.net.trafo.at[idx, "max_loading_percent"]
 
             if carregamento > limite_max:
                 self.log("\n\nUltrapassou limite maximo nos transformadores",level = "warning")
                 self.log(f"{carregamento:.2f} > {limite_max} %",level = "warning")
                 #RZ - as violações também devem considerar 100% = 1, deve-se dividir
-                violacoes["loading_trafos"] += (carregamento - limite_max) / 100
+                violacoes["loading_trafos"] += (carregamento - limite_max) #/ 100
 
-        #! TODO -> PASSAR OS PESOS NA ISNTANCIA DO OBJETO COM VALOR DEFAULT
+        #! TODO -> PASSAR OS PESOS NA INSTANCIA DO OBJETO COM VALOR DEFAULT
         """
         Pesos das violações : (Pdem=99,Pv = 100, Pn = 100 e Pe = 150)
         onde PV é a violação de tensão max e min,
@@ -370,11 +568,10 @@ class RedeEletricaPandaPower:
         """
         try:
             pp.runpp(self.net, algorithm="nr", numba = fast)
-            self.log("\nFluxo de potência executado com sucesso.",level = "success")
-
+            self.log("\nFluxo de potência executado com sucesso!",level = "success")
             return True
         except pp.LoadflowNotConverged:
-            self.console.log("\nErro: Fluxo de potência não convergiu.", level = "error")
+            self.console.log("\nErro: Fluxo de potência não convergiu...", level = "error")
             Pdem = 99
 
             self.calcular_violacoes_fitness()
@@ -431,7 +628,6 @@ class RedeEletricaPandaPower:
                 ramo = self.agendamento.iloc[i]["ramo"]
 
                 #ramo = agendamento_df.iloc[i]["ramo"]  # Obtém o ramo da tabela
-
                 #self.log("Ramo selecionado",ramo)
 
                 for k in range(len(self.net.line)):
@@ -454,7 +650,6 @@ class RedeEletricaPandaPower:
     def desligar_contingencia(self, ramo):
         linhas_desligar = []
         trafos_desligar = []
-
 
         self.log("Ramo selecionado",ramo)
 
@@ -579,3 +774,84 @@ class RedeEletricaPandaPower:
         self.log("\n\n\nDados da rede eletrica em formato de tabela excel disponivel!")
 
         return dataframe
+
+
+    #!####################
+    # Funções de simulações para pandapower simples
+    def create_network(self):
+        return pp.create_empty_network()
+
+    def add_barras(self,net, barras):
+        for barra in barras:
+            pp.create_bus(net, name=barra["nome"], vn_kv=barra["tensao"], index=barra["id"])
+
+    def add_ext_grid(self, net, bus, vm_pu, name):
+        pp.create_ext_grid(net, bus=bus, vm_pu=vm_pu, name=name)
+
+    def add_linhas(self, net, linhas):
+        for linha in linhas:
+            pp.create_line_from_parameters(
+                net,
+                from_bus=linha["de"],
+                to_bus=linha["para"],
+                length_km=linha["comprimento_km"],
+                r_ohm_per_km=linha["r_ohm_per_km"],
+                x_ohm_per_km=linha["x_ohm_per_km"],
+                c_nf_per_km=linha["c_nf_per_km"],
+                max_i_ka=linha["max_i_ka"],
+                name=f"Linha {linha['de']} -> {linha['para']}",
+            )
+
+    def add_cargas(self, net, cargas):
+        for carga in cargas:
+            pp.create_load(net, bus=carga["bus"], p_mw=carga["p_mw"], q_mvar=carga["q_mvar"], name=carga["nome"])
+
+    def add_geradores(self, net, geradores):
+        for gerador in geradores:
+            pp.create_sgen(net, bus=gerador["bus"], p_mw=gerador["p_mw"], vm_pu=gerador["vm_pu"], name=gerador["nome"])
+
+
+
+    def simulate_network_functional(self):
+        net = self.create_network()
+
+        barras = [
+            {"id": 0, "nome": "Barra 1", "tensao": 20.0},
+            {"id": 1, "nome": "Barra 2", "tensao": 20.0},
+            {"id": 2, "nome": "Barra 3", "tensao": 20.0},
+            {"id": 3, "nome": "Barra 4", "tensao": 20.0},
+        ]
+        self.add_barras(net, barras)
+
+        self.add_ext_grid(net, bus=0, vm_pu=1.0, name="Slack")
+
+        linhas = [
+            {"de": 0, "para": 1, "r_ohm_per_km": 0.01, "x_ohm_per_km": 0.03, "c_nf_per_km": 10, "max_i_ka": 0.2, "comprimento_km": 1.0},
+            {"de": 1, "para": 2, "r_ohm_per_km": 0.02, "x_ohm_per_km": 0.04, "c_nf_per_km": 15, "max_i_ka": 0.2, "comprimento_km": 1.5},
+            {"de": 2, "para": 3, "r_ohm_per_km": 0.015, "x_ohm_per_km": 0.035, "c_nf_per_km": 12, "max_i_ka": 0.2, "comprimento_km": 1.2},
+        ]
+        self.add_linhas(net, linhas)
+
+        cargas = [
+            {"bus": 1, "p_mw": 0.02, "q_mvar": 0.01, "nome": "Carga 1"},
+            {"bus": 2, "p_mw": 0.03, "q_mvar": 0.015, "nome": "Carga 2"},
+        ]
+        self.add_cargas(net, cargas)
+
+        geradores = [
+            {"bus": 3, "p_mw": 0.05, "vm_pu": 1.02, "nome": "Gerador PV"},
+        ]
+        self.add_geradores(net, geradores)
+
+        net = self.executar_fluxo_de_carga(net)
+
+        print("Resultados das Barras:")
+        print(net.res_bus)
+
+        print("\nResultados das Linhas:")
+        print(net.res_line)
+
+        print("\nResultados das Cargas:")
+        print(net.res_load)
+
+        return net
