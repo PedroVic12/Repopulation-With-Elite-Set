@@ -224,42 +224,51 @@ def AgendamentoRedePage():
     st.info("Para melhor visualização vou tentar ter um checkbox no data_editor de cada execução e selecionar dentro da tabela (retira o tabs de execução), mas por enquanto vou deixar como está.")
     
     
-    st.write("Clique em uma aba para ver os detalhes da execução selecionada.")
-    tabs = st.tabs([f"Execução {row['execution']}" for _, row in execution_df.iterrows()])
-    for i, tab in enumerate(tabs):
-        with tab:
-            exec_data = execution_df.iloc[i]
-            with st.container():
-                st.write(f"Execução {exec_data['execution']}")
-                st.subheader("Dados da Execução Selecionada")
+    
+    def tabs_results_redeEletrica():
+        st.write("Clique em uma aba para ver os detalhes da execução selecionada.")
+        tabs = st.tabs([f"Execução {row['execution']}" for _, row in execution_df.iterrows()])
+        for i, tab in enumerate(tabs):
+            with tab:
+                exec_data = execution_df.iloc[i]
+                with st.container():
+                    st.write(f"Execução {exec_data['execution']}")
+                    st.subheader("Dados da Execução Selecionada")
 
-                
-                # Tabs dentro do container
-                inner_tabs = st.tabs(["Horários", "Gráfico de Barras", "Gráfico de Linhas", "População Final"])
-                with inner_tabs[0]:
-                    st.write("Tabela de Horários de Agendamento")
-                    sorted_vars = sorted(exec_data["solution_variables"])
-                    st.dataframe(
-                        pd.DataFrame([sorted_vars], columns=[f"Horário {i+1}" for i in range(len(sorted_vars))])
-                    )
-
-                with inner_tabs[1]:
-                    st.write("Gráfico de Barras")
-                    st.bar_chart(pd.DataFrame({"Horários de Agendamento": exec_data["solution_variables"]}))
-
-                with inner_tabs[2]:
-                    st.write("Gráfico de Linhas")
-                    st.line_chart(pd.DataFrame({"Horários de Agendamento": exec_data["solution_variables"]}))
                     
-                with inner_tabs[3]:
-                    st.write("População Final")
-                    try:
-                        pop_final_df = pd.read_excel(pop_final_xlsx_file)
-                        st.dataframe(pop_final_df)
-                    except Exception as e:
-                        st.error(f"Erro ao carregar a população final: {e}")
-                        st.write("População final não disponível.")
+                    # Tabs dentro do container
+                    inner_tabs = st.tabs(["Horários", "Gráfico de Barras", "Gráfico de Linhas", "População Final"])
+                    with inner_tabs[0]:
+                        st.write("Tabela de Horários de Agendamento")
+                        sorted_vars = sorted(exec_data["solution_variables"])
+                        st.dataframe(
+                            pd.DataFrame([sorted_vars], columns=[f"Horário {i+1}" for i in range(len(sorted_vars))])
+                        )
 
-                #! Timeline para a execução selecionada
-                time_line_from_solution_variables(agendamento_df,contingencia_df ,exec_data)
-                
+                    with inner_tabs[1]:
+                        st.write("Gráfico de Barras")
+                        st.bar_chart(pd.DataFrame({"Horários de Agendamento": exec_data["solution_variables"]}))
+
+                    with inner_tabs[2]:
+                        st.write("Gráfico de Linhas")
+                        st.line_chart(pd.DataFrame({"Horários de Agendamento": exec_data["solution_variables"]}))
+                        
+                    with inner_tabs[3]:
+                        st.write("População Final")
+                        try:
+                            pop_final_df = pd.read_excel(pop_final_xlsx_file)
+                            st.dataframe(pop_final_df)
+                        except Exception as e:
+                            st.error(f"Erro ao carregar a população final: {e}")
+                            st.write("População final não disponível.")
+                            
+                            
+        
+
+    st.write("Tabela de Horários de Agendamento")
+    sorted_vars = sorted(execution_df["solution_variables"])
+    st.dataframe(
+                        pd.DataFrame([sorted_vars], columns=[f"Horário {i+1}" for i in range(len(sorted_vars))])
+    )                #! Timeline para a execução selecionada
+    time_line_from_solution_variables(agendamento_df,contingencia_df ,1)
+            

@@ -446,6 +446,11 @@ class FrameworkRCEDashboard:
                     
                     # Salva o arquivo JSON para ser usado pelo script
                     final_config.update(user_config)
+                    
+                    # tratamento de dados final para valores inteiros e float
+                    final_config['NUM_GENERATIONS'] = int(final_config['NUM_GENERATIONS'])
+                    final_config['POP_SIZE'] = int(final_config['POP_SIZE'])
+                    
                     out_file = open("../options.json", "w")
                     json.dump(final_config, out_file)
                     out_file.close()
