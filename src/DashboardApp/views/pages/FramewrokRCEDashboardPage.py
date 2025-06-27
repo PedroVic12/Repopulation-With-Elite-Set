@@ -144,21 +144,24 @@ class FrameworkRCEDashboard:
             active_tab = UseState.get_state("active_tab")
             dados = self.utils.load_execution_data(active_tab + 1, debug=False)
                     
+            # Sempre renderiza a configuração do app e do AG
+            self.ConfigWebApp()
+            self.Config_AG_Json(dados if dados else {})
+
+            # Cabeçalho
+            self.header()
+
             if dados:
-
-                # Configuração de parametros do Framework
-                self.ConfigWebApp()
-                self.Config_AG_Json(dados)
-
-        
-                # Cabeçalho
-                self.header()
-
                 # Renderiza os resultados consolidados
                 ConsolidatedResultsComponent.render()
             else:
+                # Renderiza componente default para "sem execução"
                 st.info("Nenhum dado encontrado ainda. Execute uma simulação para visualizar os resultados.")
-
+                st.markdown("---")
+                st.subheader("Componentes disponíveis:")
+                st.markdown("- **ConsolidatedResultsComponent**: Exibe resultados consolidados quando disponíveis.")
+                st.markdown("- **GraficoRCEComponent**: Exibe gráficos de convergência após execuções.")
+                # Você pode adicionar mais componentes ou instruções aqui se quiser
 
             #! MEU TEMPLATE USANDO TABS com Seleção de execução com tabs para cada execução controlado pelo UseState
             with st.container():
@@ -465,7 +468,7 @@ class FrameworkRCEDashboard:
 
 
                 except Exception as e:
-                    st.error(f"Ocorreu um erro ao salvar ou executar: {e}")
+                    st.error(f"Ocorreu um erro ao salvar os options.json ou executar o script run_framework.py : {e}")
 
 
     def atualizar_pagina(self):

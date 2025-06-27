@@ -25,45 +25,53 @@ path_foler_output = get_folder_path()
 
 
 def load_execution_data(exec_num, debug=False):
-        """Carrega os dados .pkl e a figura .json para a execução especificada,
-        buscando na pasta FOLDER_NAME."""
-        data = None
+    """Carrega os dados .pkl e a figura .json para a execução especificada,
+    buscando na pasta FOLDER_NAME."""
+    data = None
 
-        # Use pathlib to construct paths
-        data_file_selected = rf"{path_foler_output}/dashboard_data_{exec_num}.pkl"
+    # Use pathlib to construct paths
+    data_file_selected = rf"{path_foler_output}/dashboard_data_{exec_num}.pkl"
 
-        # verifica se a pasta esta vazia
-        if not os.listdir(path_foler_output):
-            st.info("Ainda não houve nenhuma execução. Nenhum dado disponível.")
-            return None  # <-- Adicione isso!
+    # verifica se a pasta esta vazia
+    if not os.listdir(path_foler_output):
+        st.error("Erro Crítico: Nenhum dado disponível. O framework ainda não foi executado.")
+        st.info("A página será atualizada em breve. Execute o framework para gerar dados.")
+        time.sleep(2)
+        st.rerun()
+        return None
 
-        else:
-            if debug:
-                print(f"[DEBUG] A pasta não está vazia, possui  arquivos em")
-                print(path_foler_output)
-                # self.apagar_arquivos()
+    else:
+        if debug:
+            print(f"[DEBUG] A pasta não está vazia, possui arquivos em")
+            print(path_foler_output)
 
-        # Carregar Dados
-        try:
-            with open(data_file_selected, "rb") as f:
-                data = pickle.load(f)
-            st.sidebar.success(
-                f"INFO:Dados da execução {exec_num} carregados de '{path_foler_output}'."
-            )
+    # Carregar Dados
+    try:
+        with open(data_file_selected, "rb") as f:
+            data = pickle.load(f)
+        st.sidebar.success(
+            f"INFO:Dados da execução {exec_num} carregados de '{path_foler_output}'."
+        )
 
-        except FileNotFoundError:
-            st.info(
-                f"Erro Crítico: Arquivo de dados selecionado ({data_file_selected}) não encontrado."
-            )
-            st.warning("Aguarde, a página será atualizada em breve.")
-            time.sleep(2)  # Pausa para o usuário ler a mensagem
-            st.rerun()
-            #st.stop()  # Para se o arquivo esperado não for encontrado
-        except Exception as e:
-            st.error(f"Erro ao carregar dados de {data_file_selected}: {e}")
-            #st.stop()  # Para em caso de erro de carregamento
+    except FileNotFoundError:
+        st.warning("Aguarde, a página será atualizada em breve.")
+        st.info(
+            f"Erro Crítico: Arquivo de dados selecionado ({data_file_selected}) não encontrado."
+        )
+        time.sleep(2)  # Pausa para o usuário ler a mensagem
+        st.rerun()
+    except Exception as e:
+        st.error(f"Erro ao carregar dados de {data_file_selected}: {e}")
 
-        return data
+    return data
+
+def initial_screen():
+    st.title("Bem-vindo ao Dashboard RCE")
+    st.info("O framework ainda não foi executado. Execute o framework para visualizar os resultados.")
+    st.markdown("---")
+    st.subheader("Componentes disponíveis:")
+    st.markdown("- **ConsolidatedResultsComponent**: Exibe resultados consolidados quando disponíveis.")
+    st.markdown("- **GraficoRCEComponent**: Exibe gráficos de convergência após execuções.")
 
 
 class ConsolidatedResultsComponent:
@@ -309,9 +317,10 @@ class StatisticsTableComponent:
     def render(data):
         """Exibe a tabela de estatísticas por geração, se disponível."""
 
-        st.markdown("---")
 
         def get_logbook_deap_info():
+            st.markdown("---")
+
             if 'logbook_data' in data and isinstance(data['logbook_data'], dict):
                 st.subheader("Estatísticas por Geração")
                 try:
