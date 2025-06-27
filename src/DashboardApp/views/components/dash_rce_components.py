@@ -187,59 +187,69 @@ class CardSolutions:
         else:
             best_vars_table = "<p>Nenhuma variável encontrada.</p>"
 
-        # Criar layout com duas colunas
-        col1, col2 = st.columns(2)
+      
 
-        # Card 1: Resumo da Melhor Solução
-        with col1:
-            # Safely format best_fitness
-            import math
-            if isinstance(best_fitness, (int, float)) and not math.isnan(best_fitness):
-                best_fitness_str = f"{best_fitness:.6f}"
-            else:
-                best_fitness_str = str(best_fitness)
-            st.markdown(
-                f"""
-                <div style="
-                    border: 2px solid #e6e6e6; 
-                    border-radius: 15px; 
-                    background-color: #9c9c9c;
-                    display: flex;
-                    flex-direction: column;
-                    justify-content: center;
-                    align-items: center;
-                ">
-                    <h3 style="color: #1f2db4; text-align: center;">Resumo da Melhor Solução</h2>
-                    <h4><strong>Melhor Geração:</strong> {best_gen_idx}</h2>
-                    <h4><strong>Melhor Fitness:</strong> {best_fitness_str}</h2>
-                </div>
-                """,
-                unsafe_allow_html=True
-            )
+        # Safely format best_fitness
+        import math
+        if isinstance(best_fitness, (int, float)) and not math.isnan(best_fitness):
+            best_fitness_str = f"{best_fitness:.2f}"
+        else:
+            best_fitness_str = str(best_fitness)
+            
+            
+                            # Monta uma tabela HTML com as informações em uma única linha
+        card_html_table = f"""
+            <div style="
+            border: 2px solid #e6e6e6; 
+            border-radius: 15px; 
+            background-color: #9c9c9c;
+            padding: 16px;
+            margin-bottom: 10px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            ">
+            <h3 style="color: #1f2db4; text-align: center;">Resumo da Melhor Solução</h3>
+            <table style="width: 100%; border-collapse: collapse; background: #f7f7f7;">
+                <tr>
+                <th style="padding: 8px; border: 1px solid #ccc;">Melhor Geração</th>
+                <th style="padding: 8px; border: 1px solid #ccc;">Melhor Fitness</th>
+                <th style="padding: 8px; border: 1px solid #ccc;">Variáveis de Decisão</th>
+                </tr>
+                <tr>
+                <td style="padding: 8px; border: 1px solid #ccc; text-align: center;">{best_gen_idx}</td>
+                <td style="padding: 8px; border: 1px solid #ccc; text-align: center;">{best_fitness_str}</td>
+                <td style="padding: 8px; border: 1px solid #ccc;">{best_vars_table}</td>
+                </tr>
+            </table>
+            </div>
+            """
+    
+            
+            
+            
+        st.markdown(
+            f"""
+            <div style="
+                border: 2px solid #e6e6e6; 
+                border-radius: 15px; 
+                background-color: #9c9c9c;
+                display: flex;
+                flex-direction: column;
+                justify-content: center;
+                align-items: center;
+            ">
+                <h3 style="color: #1f2db4; text-align: center;">Resumo da Melhor Solução</h2>
+                <h4><strong>Melhor Geração:</strong> {best_gen_idx}</h2>
+                <h4><strong>Melhor Fitness:</strong> {best_fitness_str}</h2>
+                <h3 style="color: #1f2db4; text-align: center;">Melhores Variáveis de Decisão</h2>
+                {best_vars_table}
+            </div>
+            """,
+            unsafe_allow_html=True
+        )
 
-        # Card 2: Melhores Variáveis de Decisão
-        with col2:
-            st.markdown(
-                f"""
-                <div style="
-                    border: 2px solid #e6e6e6; 
-                    border-radius: 15px; 
-                    padding: 5px; 
-                    background-color: #9c9c9c;
-                    margin-bottom: 20px;
-                    display: flex;
-                    flex-direction: column;
-                    justify-content: center;
-                    align-items: center;
-                ">                    
-                    <h3 style="color: #1f2db4; text-align: center;">Melhores Variáveis de Decisão</h2>
-                    {best_vars_table}
-                </div>
-                """,
-                unsafe_allow_html=True
-            )
 
-        
 
         st.markdown("---")
 
