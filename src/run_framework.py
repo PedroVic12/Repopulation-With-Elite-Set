@@ -207,7 +207,9 @@ def run_framework_many_executions():
     
     # Convert values to int, except for specified float keys
     params = convert_values_to_int(params)
-    options = convert_values_to_int(options)
+    #options = convert_values_to_int(options)
+    
+    print(f"\n\nIniciando execução com os parâmetros: {options}")
     
     # Instanciando os Objetos
     setup = Setup(params, fitness_function = funcao_objetivo_IEEE14,

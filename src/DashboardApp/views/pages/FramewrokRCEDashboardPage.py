@@ -212,6 +212,7 @@ class FrameworkRCEDashboard:
 
                     # Remove os campos especiais para edição no data_editor
                     json_table = {k: v for k, v in json_data_params.items() if k not in ["ARRAY_VAR", "LIMITE_VAR"]}
+                    print("json_table", json_table)
 
 
                     st.info("Usando Variáveis de Decisão do Problema e Limites de valores inteiros para o problema de agendamento de Redes Elétricas")
@@ -285,7 +286,7 @@ class FrameworkRCEDashboard:
                     st.download_button(
                         label="Salvar os Parâmetros AG Atualizados",
                         data=json.dumps(json_atualizados, indent=4),
-                        file_name="params_atualizados.json",
+                        file_name="params.json",
                         mime="application/json"
                     )
 
