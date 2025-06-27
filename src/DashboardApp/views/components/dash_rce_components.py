@@ -108,6 +108,8 @@ class ConsolidatedResultsComponent:
                 # Descobrir quantas linhas por configuração
                 rep = options_json['repeticoes_por_config']
                 num_rows = len(df_consolidado)
+                
+                
                 # Adicionar as colunas dos parâmetros
                 for param in ['CROSSOVER', 'MUTACAO', 'POP_SIZE', 'IND_SIZE']:
                     values = options_json[param]
@@ -341,7 +343,7 @@ class StatisticsTableComponent:
             else:
                 st.info("Dados do logbook não encontrados ou em formato inválido no arquivo .pkl.")
 
-        get_logbook_deap_info()
+        #get_logbook_deap_info()
 
         # Renderizar Tabela de população final com formato Tabela x Grafico
         #! TODO alterar para gerar arquivo pop_final.xlsx sempre
