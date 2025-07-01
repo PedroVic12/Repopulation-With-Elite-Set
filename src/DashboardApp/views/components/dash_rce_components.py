@@ -25,45 +25,53 @@ path_foler_output = get_folder_path()
 
 
 def load_execution_data(exec_num, debug=False):
-        """Carrega os dados .pkl e a figura .json para a execução especificada,
-        buscando na pasta FOLDER_NAME."""
-        data = None
+    """Carrega os dados .pkl e a figura .json para a execução especificada,
+    buscando na pasta FOLDER_NAME."""
+    data = None
 
-        # Use pathlib to construct paths
-        data_file_selected = rf"{path_foler_output}/dashboard_data_{exec_num}.pkl"
+    # Use pathlib to construct paths
+    data_file_selected = rf"{path_foler_output}/dashboard_data_{exec_num}.pkl"
 
-        # verifica se a pasta esta vazia
-        if not os.listdir(path_foler_output):
-            st.info("Ainda não houve nenhuma execução. Nenhum dado disponível.")
-            return None  # <-- Adicione isso!
+    # verifica se a pasta esta vazia
+    if not os.listdir(path_foler_output):
+        st.error("Erro Crítico: Nenhum dado disponível. O framework ainda não foi executado.")
+        st.info("A página será atualizada em breve. Execute o framework para gerar dados.")
+        time.sleep(2)
+        st.rerun()
+        return None
 
-        else:
-            if debug:
-                print(f"[DEBUG] A pasta não está vazia, possui  arquivos em")
-                print(path_foler_output)
-                # self.apagar_arquivos()
+    else:
+        if debug:
+            print(f"[DEBUG] A pasta não está vazia, possui arquivos em")
+            print(path_foler_output)
 
-        # Carregar Dados
-        try:
-            with open(data_file_selected, "rb") as f:
-                data = pickle.load(f)
-            st.sidebar.success(
-                f"INFO:Dados da execução {exec_num} carregados de '{path_foler_output}'."
-            )
+    # Carregar Dados
+    try:
+        with open(data_file_selected, "rb") as f:
+            data = pickle.load(f)
+        st.sidebar.success(
+            f"INFO:Dados da execução {exec_num} carregados de '{path_foler_output}'."
+        )
 
-        except FileNotFoundError:
-            st.info(
-                f"Erro Crítico: Arquivo de dados selecionado ({data_file_selected}) não encontrado."
-            )
-            st.warning("Aguarde, a página será atualizada em breve.")
-            time.sleep(2)  # Pausa para o usuário ler a mensagem
-            st.rerun()
-            #st.stop()  # Para se o arquivo esperado não for encontrado
-        except Exception as e:
-            st.error(f"Erro ao carregar dados de {data_file_selected}: {e}")
-            #st.stop()  # Para em caso de erro de carregamento
+    except FileNotFoundError:
+        st.warning("Aguarde, a página será atualizada em breve.")
+        st.info(
+            f"Erro Crítico: Arquivo de dados selecionado ({data_file_selected}) não encontrado."
+        )
+        time.sleep(2)  # Pausa para o usuário ler a mensagem
+        st.rerun()
+    except Exception as e:
+        st.error(f"Erro ao carregar dados de {data_file_selected}: {e}")
 
-        return data
+    return data
+
+def initial_screen():
+    st.title("Bem-vindo ao Dashboard RCE")
+    st.info("O framework ainda não foi executado. Execute o framework para visualizar os resultados.")
+    st.markdown("---")
+    st.subheader("Componentes disponíveis:")
+    st.markdown("- **ConsolidatedResultsComponent**: Exibe resultados consolidados quando disponíveis.")
+    st.markdown("- **GraficoRCEComponent**: Exibe gráficos de convergência após execuções.")
 
 
 class ConsolidatedResultsComponent:
@@ -108,6 +116,8 @@ class ConsolidatedResultsComponent:
                 # Descobrir quantas linhas por configuração
                 rep = options_json['repeticoes_por_config']
                 num_rows = len(df_consolidado)
+                
+                
                 # Adicionar as colunas dos parâmetros
                 for param in ['CROSSOVER', 'MUTACAO', 'POP_SIZE', 'IND_SIZE']:
                     values = options_json[param]
@@ -177,59 +187,69 @@ class CardSolutions:
         else:
             best_vars_table = "<p>Nenhuma variável encontrada.</p>"
 
-        # Criar layout com duas colunas
-        col1, col2 = st.columns(2)
+      
 
-        # Card 1: Resumo da Melhor Solução
-        with col1:
-            # Safely format best_fitness
-            import math
-            if isinstance(best_fitness, (int, float)) and not math.isnan(best_fitness):
-                best_fitness_str = f"{best_fitness:.6f}"
-            else:
-                best_fitness_str = str(best_fitness)
-            st.markdown(
-                f"""
-                <div style="
-                    border: 2px solid #e6e6e6; 
-                    border-radius: 15px; 
-                    background-color: #9c9c9c;
-                    display: flex;
-                    flex-direction: column;
-                    justify-content: center;
-                    align-items: center;
-                ">
-                    <h3 style="color: #1f2db4; text-align: center;">Resumo da Melhor Solução</h2>
-                    <h4><strong>Melhor Geração:</strong> {best_gen_idx}</h2>
-                    <h4><strong>Melhor Fitness:</strong> {best_fitness_str}</h2>
-                </div>
-                """,
-                unsafe_allow_html=True
-            )
+        # Safely format best_fitness
+        import math
+        if isinstance(best_fitness, (int, float)) and not math.isnan(best_fitness):
+            best_fitness_str = f"{best_fitness:.2f}"
+        else:
+            best_fitness_str = str(best_fitness)
+            
+            
+                            # Monta uma tabela HTML com as informações em uma única linha
+        card_html_table = f"""
+            <div style="
+            border: 2px solid #e6e6e6; 
+            border-radius: 15px; 
+            background-color: #9c9c9c;
+            padding: 16px;
+            margin-bottom: 10px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            ">
+            <h3 style="color: #1f2db4; text-align: center;">Resumo da Melhor Solução</h3>
+            <table style="width: 100%; border-collapse: collapse; background: #f7f7f7;">
+                <tr>
+                <th style="padding: 8px; border: 1px solid #ccc;">Melhor Geração</th>
+                <th style="padding: 8px; border: 1px solid #ccc;">Melhor Fitness</th>
+                <th style="padding: 8px; border: 1px solid #ccc;">Variáveis de Decisão</th>
+                </tr>
+                <tr>
+                <td style="padding: 8px; border: 1px solid #ccc; text-align: center;">{best_gen_idx}</td>
+                <td style="padding: 8px; border: 1px solid #ccc; text-align: center;">{best_fitness_str}</td>
+                <td style="padding: 8px; border: 1px solid #ccc;">{best_vars_table}</td>
+                </tr>
+            </table>
+            </div>
+            """
+    
+            
+            
+            
+        st.markdown(
+            f"""
+            <div style="
+                border: 2px solid #e6e6e6; 
+                border-radius: 15px; 
+                background-color: #9c9c9c;
+                display: flex;
+                flex-direction: column;
+                justify-content: center;
+                align-items: center;
+            ">
+                <h3 style="color: #1f2db4; text-align: center;">Resumo da Melhor Solução</h2>
+                <h4><strong>Melhor Geração:</strong> {best_gen_idx}</h2>
+                <h4><strong>Melhor Fitness:</strong> {best_fitness_str}</h2>
+                <h3 style="color: #1f2db4; text-align: center;">Melhores Variáveis de Decisão</h2>
+                {best_vars_table}
+            </div>
+            """,
+            unsafe_allow_html=True
+        )
 
-        # Card 2: Melhores Variáveis de Decisão
-        with col2:
-            st.markdown(
-                f"""
-                <div style="
-                    border: 2px solid #e6e6e6; 
-                    border-radius: 15px; 
-                    padding: 5px; 
-                    background-color: #9c9c9c;
-                    margin-bottom: 20px;
-                    display: flex;
-                    flex-direction: column;
-                    justify-content: center;
-                    align-items: center;
-                ">                    
-                    <h3 style="color: #1f2db4; text-align: center;">Melhores Variáveis de Decisão</h2>
-                    {best_vars_table}
-                </div>
-                """,
-                unsafe_allow_html=True
-            )
 
-        
 
         st.markdown("---")
 
@@ -307,9 +327,10 @@ class StatisticsTableComponent:
     def render(data):
         """Exibe a tabela de estatísticas por geração, se disponível."""
 
-        st.markdown("---")
 
         def get_logbook_deap_info():
+            st.markdown("---")
+
             if 'logbook_data' in data and isinstance(data['logbook_data'], dict):
                 st.subheader("Estatísticas por Geração")
                 try:
@@ -341,7 +362,7 @@ class StatisticsTableComponent:
             else:
                 st.info("Dados do logbook não encontrados ou em formato inválido no arquivo .pkl.")
 
-        get_logbook_deap_info()
+        #get_logbook_deap_info()
 
         # Renderizar Tabela de população final com formato Tabela x Grafico
         #! TODO alterar para gerar arquivo pop_final.xlsx sempre

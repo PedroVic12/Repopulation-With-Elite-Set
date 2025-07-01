@@ -1,10 +1,18 @@
 # -*- coding: utf-8 -*-
 # Import RCE Framework
-from AlgEvolutivoRCE.Setup import Setup
-from AlgEvolutivoRCE.alg_evolutivo_rce import AlgoritimoEvolutivoRCE
+
+import sys
+import os
+# Add the parent directory to the system path to import modules from the src folder
+# This is necessary to run the script from the test folder
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+
+# Import the necessary modules from the src folder
+from src.AlgEvolutivoRCE.Setup import Setup
+from src.AlgEvolutivoRCE.alg_evolutivo_rce import AlgoritimoEvolutivoRCE
 
 # Utils 
-from config import FOLDER_NAME, options_main_file, entrada_de_dados,load_many_executions, format_elapsed_time
+from src.config import FOLDER_NAME, options_main_file, entrada_de_dados,load_many_executions, format_elapsed_time
 
 import json
 import pathlib
@@ -36,7 +44,7 @@ src/DashboardApp
 # Import functions benchmark
 #? Foi Criado um arquivo em `utils/functions_fitness/functions_benchmarking.py` para armazenar as funções de benchmark usadas no primeiro artigo e a função de avaliação da rede IEEE 14.
 # Voce foi olhar o arquivo config.py para gerenciar a quantidade de execuções do algoritimo.
-from utils.functions_fitness.functions_benchmarking import rosenbrock_benchmark,esfera_benchmark,rastrigin, evaluate, funcao_objetivo_IEEE14
+from src.utils.functions_fitness.functions_benchmarking import rosenbrock_benchmark,esfera_benchmark,rastrigin, evaluate, funcao_objetivo_IEEE14
 
 results_consolidados = []  # Initialize an empty list to store results
 execution_times = []  # Lista para armazenar os tempos de execução
@@ -132,8 +140,8 @@ def run_framework():
     output(start)
 
 
-############################# MUltiplas execuções com grupos de parâmetros #############################
 
+# função que converte todas as value de cada key do json em int menos em duas colunas passando o nome
 def convert_values_to_int(params):
     """Converte os valores de um dicionário para int, exceto para as chaves especificadas."""
     float_keys = {"MUTACAO", "CROSSOVER", "PORCENTAGEM"}
@@ -148,17 +156,22 @@ def convert_values_to_int(params):
     return params
 
 
+
 import itertools
 
-def run_framework_groups_executions():
+def test_run_framework_groups_executions():
     """Função para executar o framework com múltiplas execuções baseadas em grupos de parâmetros."""
 
     # Carrega os parâmetros default do AG (params.json)
     params = load_params(f"{BASE_DIR}/params.json")
     
     
+    
     # Carrega as opções configuradas pelo usuário (options.json)
     config = load_params(f"{BASE_DIR}/options.json")
+    
+    convert_values_to_int(params)
+    convert_values_to_int(config)
 
     # Extrai os parâmetros variáveis definidos pelo usuário
     param_opcionais = config['parametros_opcionais']
@@ -174,19 +187,16 @@ def run_framework_groups_executions():
 
     for idx, valores in enumerate(combinacoes):
         params_exec = params.copy()
-        for k, v in zip(param_names, valores):
-            if k.upper() in float_params:
-                params_exec[k] = float(v)
+
+        # Atualiza os parâmetros variáveis para esta combinação
+        for name, value in zip(param_names, valores):
+            if name.upper() in float_params:
+                params_exec[name] = float(value)
             else:
-                params_exec[k] = int(v)
-                
-                
-                
+                params_exec[name] = int(value)
+
         # Adiciona os parâmetros fixos do AG
         for rep in range(repeticoes):
-            
-            
-            
             # Exibe a combinação atual e a repetição
             print(f"\n\nIniciando execução com a combinação: {dict(zip(param_names, valores))}")
             print(f"\nExecução combinação {idx+1}/{len(combinacoes)} - Repetição {rep+1}/{repeticoes}")
@@ -197,7 +207,7 @@ def run_framework_groups_executions():
             load_many_executions(config, setup, alg)
 
 
-def run_framework_many_executions():
+def test_run_framework_many_executions():
     
     """Função para executar o framework com múltiplas execuções."""
     
@@ -205,11 +215,11 @@ def run_framework_many_executions():
     params = load_params(f"{BASE_DIR}/params.json")
     options = load_params(f"{BASE_DIR}/options.json")
     
-    # Convert values to int, except for specified float keys
-    params = convert_values_to_int(params)
-    #options = convert_values_to_int(options)
+    convert_values_to_int(params)
+    convert_values_to_int(options)
     
-    print(f"\n\nIniciando execução com os parâmetros: {options}")
+    print(f"Parâmetros do Algoritmo Evolutivo: {params}")   
+
     
     # Instanciando os Objetos
     setup = Setup(params, fitness_function = funcao_objetivo_IEEE14,
@@ -262,8 +272,8 @@ if __name__ == "__main__":
     # Check if the user wants to run multiple executions or a single execution
     if options_main_file["key"]:
         print("Running multiple executions...")
-        run_framework_many_executions()
-        #run_framework_groups_executions()
+        test_run_framework_many_executions()
+        #test_run_framework_groups_executions()
     else:
         print("Running a single execution...")
         run_framework()

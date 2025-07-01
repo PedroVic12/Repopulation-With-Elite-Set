@@ -144,21 +144,24 @@ class FrameworkRCEDashboard:
             active_tab = UseState.get_state("active_tab")
             dados = self.utils.load_execution_data(active_tab + 1, debug=False)
                     
+            # Sempre renderiza a configuração do app e do AG
+            self.ConfigWebApp()
+            self.Config_AG_Json(dados if dados else {})
+
+            # Cabeçalho
+            self.header()
+
             if dados:
-
-                # Configuração de parametros do Framework
-                self.ConfigWebApp()
-                self.Config_AG_Json(dados)
-
-        
-                # Cabeçalho
-                self.header()
-
                 # Renderiza os resultados consolidados
                 ConsolidatedResultsComponent.render()
             else:
+                # Renderiza componente default para "sem execução"
                 st.info("Nenhum dado encontrado ainda. Execute uma simulação para visualizar os resultados.")
-
+                st.markdown("---")
+                st.subheader("Componentes disponíveis:")
+                st.markdown("- **ConsolidatedResultsComponent**: Exibe resultados consolidados quando disponíveis.")
+                st.markdown("- **GraficoRCEComponent**: Exibe gráficos de convergência após execuções.")
+                # Você pode adicionar mais componentes ou instruções aqui se quiser
 
             #! MEU TEMPLATE USANDO TABS com Seleção de execução com tabs para cada execução controlado pelo UseState
             with st.container():
@@ -209,6 +212,7 @@ class FrameworkRCEDashboard:
 
                     # Remove os campos especiais para edição no data_editor
                     json_table = {k: v for k, v in json_data_params.items() if k not in ["ARRAY_VAR", "LIMITE_VAR"]}
+                    print("json_table", json_table)
 
 
                     st.info("Usando Variáveis de Decisão do Problema e Limites de valores inteiros para o problema de agendamento de Redes Elétricas")
@@ -282,7 +286,7 @@ class FrameworkRCEDashboard:
                     st.download_button(
                         label="Salvar os Parâmetros AG Atualizados",
                         data=json.dumps(json_atualizados, indent=4),
-                        file_name="params_atualizados.json",
+                        file_name="params.json",
                         mime="application/json"
                     )
 
@@ -446,6 +450,11 @@ class FrameworkRCEDashboard:
                     
                     # Salva o arquivo JSON para ser usado pelo script
                     final_config.update(user_config)
+                    
+                    # tratamento de dados final para valores inteiros e float
+                    final_config['NUM_GENERATIONS'] = int(final_config['NUM_GENERATIONS'])
+                    final_config['POP_SIZE'] = int(final_config['POP_SIZE'])
+                    
                     out_file = open("../options.json", "w")
                     json.dump(final_config, out_file)
                     out_file.close()
@@ -460,7 +469,7 @@ class FrameworkRCEDashboard:
 
 
                 except Exception as e:
-                    st.error(f"Ocorreu um erro ao salvar ou executar: {e}")
+                    st.error(f"Ocorreu um erro ao salvar os options.json ou executar o script run_framework.py : {e}")
 
 
     def atualizar_pagina(self):

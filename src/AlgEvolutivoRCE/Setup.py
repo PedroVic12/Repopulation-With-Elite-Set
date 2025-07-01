@@ -55,7 +55,7 @@ class Setup:
         self.NGEN = params["NUM_GENERATIONS"]
 
         # População de individuos com RCE
-        self.POP_SIZE = params["POP_SIZE"]
+        self.POP_SIZE = int(params["POP_SIZE"])
         self.SIZE_INDIVIDUAL = params["IND_SIZE"]
         self.TAXA_GENERATION = params["RCE_REPOPULATION_GENERATIONS"]
 
