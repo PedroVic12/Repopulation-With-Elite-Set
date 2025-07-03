@@ -13,7 +13,7 @@ echo Inicio do Programa...
 REM call python run_framework.py
 
 REM Navega para o diretório DashboardApp e inicia a aplicação Streamlit
-echo Iniciando aplicação Streamlit em DashboardApp/dashboard_rce_app_v9.py...
+echo Iniciando aplicação Streamlit em DashboardApp/dashboard_rce_app.py...
 cd DashboardApp
 
 @echo Instalando as bibliotecas python necessarias...
@@ -28,7 +28,7 @@ echo Instalacao de bibliotecas necessarias concluida!
 call cls
 
 REM Executa o Streamlit no mesmo terminal
-streamlit run dashboard_rce_app_v9.py
+streamlit run dashboard_rce_app_v11.py
 
 REM Volta para o diretório anterior
 cd ..

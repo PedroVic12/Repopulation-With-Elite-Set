@@ -9,12 +9,40 @@ def simulate_NEW_network():
     # Criando a rede elétrica vazia
     net = pp.create_empty_network()
 
-    # Dados fictícios para as barras
+    
+    # Dados fictícios para as barras (12 barras: 6 à esquerda, 6 à direita)
     barras = [
-        {"id": 0, "nome": "Barra 1", "tensao": 20.0},
-        {"id": 1, "nome": "Barra 2", "tensao": 20.0},
-        {"id": 2, "nome": "Barra 3", "tensao": 20.0},
-        {"id": 3, "nome": "Barra 4", "tensao": 20.0},
+        {"id": 0, "nome": "Barra 1E", "tensao": 20.0},
+        {"id": 1, "nome": "Barra 2E", "tensao": 20.0},
+        {"id": 2, "nome": "Barra 3E", "tensao": 20.0},
+        {"id": 3, "nome": "Barra 4E", "tensao": 20.0},
+        {"id": 4, "nome": "Barra 5E", "tensao": 20.0},
+        {"id": 5, "nome": "Barra 6E", "tensao": 20.0},
+        {"id": 6, "nome": "Barra 1D", "tensao": 20.0},
+        {"id": 7, "nome": "Barra 2D", "tensao": 20.0},
+        {"id": 8, "nome": "Barra 3D", "tensao": 20.0},
+        {"id": 9, "nome": "Barra 4D", "tensao": 20.0},
+        {"id": 10, "nome": "Barra 5D", "tensao": 20.0},
+        {"id": 11, "nome": "Barra 6D", "tensao": 20.0},
+    ]
+
+    # Linhas conectando as barras em dois ramos (esquerdo e direito) e uma ligação central
+    linhas = [
+        # Lado Esquerdo (E)
+        {"de": 0, "para": 1, "r_ohm_per_km": 0.01, "x_ohm_per_km": 0.03, "c_nf_per_km": 10, "max_i_ka": 0.2, "comprimento_km": 1.0},
+        {"de": 1, "para": 2, "r_ohm_per_km": 0.01, "x_ohm_per_km": 0.03, "c_nf_per_km": 10, "max_i_ka": 0.2, "comprimento_km": 1.0},
+        {"de": 2, "para": 3, "r_ohm_per_km": 0.01, "x_ohm_per_km": 0.03, "c_nf_per_km": 10, "max_i_ka": 0.2, "comprimento_km": 1.0},
+        {"de": 3, "para": 4, "r_ohm_per_km": 0.01, "x_ohm_per_km": 0.03, "c_nf_per_km": 10, "max_i_ka": 0.2, "comprimento_km": 1.0},
+        {"de": 4, "para": 5, "r_ohm_per_km": 0.01, "x_ohm_per_km": 0.03, "c_nf_per_km": 10, "max_i_ka": 0.2, "comprimento_km": 1.0},
+        # Lado Direito (D)
+        {"de": 6, "para": 7, "r_ohm_per_km": 0.01, "x_ohm_per_km": 0.03, "c_nf_per_km": 10, "max_i_ka": 0.2, "comprimento_km": 1.0},
+        {"de": 7, "para": 8, "r_ohm_per_km": 0.01, "x_ohm_per_km": 0.03, "c_nf_per_km": 10, "max_i_ka": 0.2, "comprimento_km": 1.0},
+        {"de": 8, "para": 9, "r_ohm_per_km": 0.01, "x_ohm_per_km": 0.03, "c_nf_per_km": 10, "max_i_ka": 0.2, "comprimento_km": 1.0},
+        {"de": 9, "para": 10, "r_ohm_per_km": 0.01, "x_ohm_per_km": 0.03, "c_nf_per_km": 10, "max_i_ka": 0.2, "comprimento_km": 1.0},
+        {"de": 10, "para": 11, "r_ohm_per_km": 0.01, "x_ohm_per_km": 0.03, "c_nf_per_km": 10, "max_i_ka": 0.2, "comprimento_km": 1.0},
+        # Ligação central entre os dois lados
+        {"de": 2, "para": 8, "r_ohm_per_km": 0.02, "x_ohm_per_km": 0.04, "c_nf_per_km": 15, "max_i_ka": 0.2, "comprimento_km": 1.5},
+        {"de": 5, "para": 11, "r_ohm_per_km": 0.02, "x_ohm_per_km": 0.04, "c_nf_per_km": 15, "max_i_ka": 0.2, "comprimento_km": 1.5},
     ]
 
     # Criando as barras
