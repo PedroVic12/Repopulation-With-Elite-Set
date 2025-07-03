@@ -1,269 +1,282 @@
+# backend.py
 import os
-import requests
+import sys
 import logging
 import json
 import pandas as pd
+import requests
+from datetime import datetime
 
-from flask import Flask, request, jsonify
+from flask import Flask, request
 from flask_sqlalchemy import SQLAlchemy
-from flask_restful import Resource, Api, reqparse
+from flask_restful import Resource, Api
 
 from prefect import task, flow
 
-# --- 1. CONFIGURAÇÃO INICIAL ---
+# --- 1. CONFIGURAÇÃO UNIFICADA ---
 logging.basicConfig(filename='output.txt', level=logging.INFO, 
                     format='%(asctime)s - %(levelname)s - %(message)s')
 
 app = Flask(__name__)
-api = Api(app)
-
-# Configura o banco de dados SQLite
 basedir = os.path.abspath(os.path.dirname(__file__))
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///' + os.path.join(basedir, 'estoque.db')
+app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///' + os.path.join(basedir, 'estoque_iot.db')
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 db = SQLAlchemy(app)
-logging.info("Backend iniciado e banco de dados configurado.")
+api = Api(app)
+logging.info("Backend IOT Store iniciado e componentes configurados.")
 
-# Função para registrar rotas usando flask_restful
-def setup_routes(app, api):
-    # Modelo
-    class Ferramenta(db.Model):
-        id = db.Column(db.Integer, primary_key=True)
-        nome = db.Column(db.String(100), unique=True, nullable=False)
-        preco = db.Column(db.Float, nullable=False)
-        estoque = db.Column(db.Integer, nullable=False)
+# --- 2. MODELOS DE DADOS (A camada 'M' do MVC) ---
 
-        def to_dict(self):
-            return {
-                'id': self.id,
-                'nome': self.nome,
-                'preco': self.preco,
-                'estoque': self.estoque
-            }
-
-    # Parser para requisições
-    ferramenta_parser = reqparse.RequestParser()
-    ferramenta_parser.add_argument('nome', type=str, required=True, help='Nome da ferramenta é obrigatório')
-    ferramenta_parser.add_argument('preco', type=float, required=True, help='Preço é obrigatório')
-    ferramenta_parser.add_argument('estoque', type=int, required=True, help='Estoque é obrigatório')
-
-    # Resource para lista de ferramentas
-    class FerramentaListResource(Resource):
-        def get(self):
-            ferramentas = Ferramenta.query.all()
-            return [f.to_dict() for f in ferramentas], 200
-
-        def post(self):
-            args = ferramenta_parser.parse_args()
-            if Ferramenta.query.filter_by(nome=args['nome']).first():
-                return {'message': 'Ferramenta já existe!'}, 400
-            nova_ferramenta = Ferramenta(nome=args['nome'], preco=args['preco'], estoque=args['estoque'])
-            db.session.add(nova_ferramenta)
-            db.session.commit()
-            return nova_ferramenta.to_dict(), 201
-
-    # Resource para ferramenta individual
-    class FerramentaResource(Resource):
-        def get(self, id):
-            ferramenta = Ferramenta.query.get_or_404(id)
-            return ferramenta.to_dict(), 200
-
-        def put(self, id):
-            ferramenta = Ferramenta.query.get_or_404(id)
-            data = request.get_json()
-            ferramenta.nome = data.get('nome', ferramenta.nome)
-            ferramenta.preco = data.get('preco', ferramenta.preco)
-            ferramenta.estoque = data.get('estoque', ferramenta.estoque)
-            db.session.commit()
-            return ferramenta.to_dict(), 200
-
-        def delete(self, id):
-            ferramenta = Ferramenta.query.get_or_404(id)
-            db.session.delete(ferramenta)
-            db.session.commit()
-            return {'message': 'Ferramenta deletada com sucesso!'}, 200
-
-    api.add_resource(FerramentaListResource, '/ferramentas')
-    api.add_resource(FerramentaResource, '/ferramentas/<int:id>')
-
-    # Expor o modelo para uso externo
-    app.Ferramenta = Ferramenta
-
-# Função de teste usando requests
-def test_requests():
-    url = "http://127.0.0.1:5000/ferramentas"
-    # Teste POST
-    r = requests.post(url, json={"nome": "Martelo", "preco": 10.5, "estoque": 20})
-    print("POST:", r.status_code, r.json())
-    # Teste GET
-    r = requests.get(url)
-    print("GET:", r.status_code, r.json())
-    # Teste PUT
-    if r.json():
-        id_ = r.json()[0]['id']
-        r2 = requests.put(f"{url}/{id_}", json={"estoque": 99})
-        print("PUT:", r2.status_code, r2.json())
-        # Teste DELETE
-        r3 = requests.delete(f"{url}/{id_}")
-        print("DELETE:", r3.status_code, r3.json())
-
-# Chama a função para registrar as rotas
-setup_routes(app, api)
-
-# --- 2. MODELO (A camada 'M' do MVC) ---
-# Define a estrutura da tabela de ferramentas no banco de dados
-class Ferramenta(db.Model):
+class Produto(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     nome = db.Column(db.String(100), unique=True, nullable=False)
     preco = db.Column(db.Float, nullable=False)
-    estoque = db.Column(db.Integer, nullable=False)
+    movimentacoes = db.relationship('Movimentacao', backref='produto', lazy=True, cascade="all, delete-orphan")
 
-    def to_dict(self):
-        """Converte o objeto Ferramenta para um dicionário, útil para a resposta JSON."""
+class Movimentacao(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    quantidade = db.Column(db.Integer, nullable=False)
+    tipo = db.Column(db.String(10), nullable=False)
+    timestamp = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
+    produto_id = db.Column(db.Integer, db.ForeignKey('produto.id'), nullable=False)
+
+# --- 3. A CLASSE CONTROLADORA COM CRUD COMPLETO QUE VOCÊ PEDIU ---
+class ControllerCrud:
+    def _calcular_estoque(self, produto_id):
+        estoque = db.session.query(db.func.sum(Movimentacao.quantidade)).filter_by(produto_id=produto_id).scalar()
+        return estoque or 0
+
+    # GET (para a lista de produtos)
+    def get_all(self):
+        produtos = Produto.query.all()
+        resultado = []
+        for p in produtos:
+            resultado.append({
+                'id': p.id, 'nome': p.nome, 'preco': p.preco,
+                'estoque_atual': self._calcular_estoque(p.id)
+            })
+        logging.info("Listagem de todos os produtos solicitada.")
+        return resultado, 200
+
+    # GET (para um produto específico)
+    def get_one(self, id):
+        produto = Produto.query.get_or_404(id)
+        historico = Movimentacao.query.filter_by(produto_id=id).order_by(Movimentacao.timestamp.desc()).all()
         return {
-            'id': self.id,
-            'nome': self.nome,
-            'preco': self.preco,
-            'estoque': self.estoque
-        }
+            'id': produto.id, 'nome': produto.nome, 'preco': produto.preco,
+            'estoque_atual': self._calcular_estoque(id),
+            'historico': [{'tipo': m.tipo, 'quantidade': m.quantidade, 'data': m.timestamp.isoformat()} for m in historico]
+        }, 200
 
-# --- 3. CONTROLADOR (A camada 'C' do MVC com as rotas da API) ---
-# A 'View' aqui é a resposta JSON que cada rota retorna.
-
-# Rota para CRIAR uma nova ferramenta (POST) e LER todas (GET)
-@app.route('/ferramentas', methods=['POST', 'GET'])
-def handle_ferramentas():
-    if request.method == 'POST':
-        # CREATE
+    # POST (para criar um novo produto)
+    def post(self):
         data = request.get_json()
-        if not data or not 'nome' in data or not 'preco' in data or not 'estoque' in data:
-            logging.warning("Tentativa de criação de ferramenta com dados inválidos.")
-            return jsonify({'message': 'Dados incompletos!'}), 400
+        if not data or 'nome' not in data or 'preco' not in data:
+            return {'message': 'Os campos "nome" e "preco" são obrigatórios.'}, 400
         
-        nova_ferramenta = Ferramenta(nome=data['nome'], preco=data['preco'], estoque=data['estoque'])
-        db.session.add(nova_ferramenta)
+        if Produto.query.filter_by(nome=data['nome']).first():
+            return {'message': f"O produto '{data['nome']}' já existe."}, 409
+
+        novo_produto = Produto(nome=data['nome'], preco=data['preco'])
+        db.session.add(novo_produto)
         db.session.commit()
-        logging.info(f"Ferramenta criada: {nova_ferramenta.nome}")
-        return jsonify(nova_ferramenta.to_dict()), 201
+        logging.info(f"Produto criado: {novo_produto.nome}")
+        return {'id': novo_produto.id, 'nome': novo_produto.nome, 'preco': novo_produto.preco}, 201
     
-    elif request.method == 'GET':
-        # READ ALL
-        ferramentas = Ferramenta.query.all()
-        logging.info("Listagem de todas as ferramentas solicitada.")
-        return jsonify([f.to_dict() for f in ferramentas])
-
-# Rota para LER, ATUALIZAR e DELETAR uma ferramenta específica pelo ID
-@app.route('/ferramentas/<int:id>', methods=['GET', 'PUT', 'DELETE'])
-def handle_ferramenta(id):
-    ferramenta = Ferramenta.query.get_or_404(id)
-
-    if request.method == 'GET':
-        # READ ONE
-        logging.info(f"Detalhes da ferramenta {id} solicitados.")
-        return jsonify(ferramenta.to_dict())
-
-    elif request.method == 'PUT':
-        # UPDATE
+    # PUT (para atualizar um produto - não implementado para a lista, apenas para item único)
+    def put(self, id):
+        produto = Produto.query.get_or_404(id)
         data = request.get_json()
-        ferramenta.nome = data.get('nome', ferramenta.nome)
-        ferramenta.preco = data.get('preco', ferramenta.preco)
-        ferramenta.estoque = data.get('estoque', ferramenta.estoque)
+        
+        produto.nome = data.get('nome', produto.nome)
+        produto.preco = data.get('preco', produto.preco)
+        
         db.session.commit()
-        logging.info(f"Ferramenta {id} atualizada: {ferramenta.nome}")
-        return jsonify(ferramenta.to_dict())
+        logging.info(f"Produto ID {id} atualizado para: {produto.nome}")
+        return self.get_one(id)[0], 200 # Retorna o produto atualizado
 
-    elif request.method == 'DELETE':
-        # DELETE
-        db.session.delete(ferramenta)
+    # DELETE (para deletar um produto)
+    def delete(self, id):
+        produto = Produto.query.get_or_404(id)
+        nome_deletado = produto.nome
+        db.session.delete(produto)
         db.session.commit()
-        logging.info(f"Ferramenta {id} deletada: {ferramenta.nome}")
-        return jsonify({'message': 'Ferramenta deletada com sucesso!'})
+        logging.info(f"Produto {id} ({nome_deletado}) e seu histórico foram deletados.")
+        return {'message': 'Produto e todo seu histórico foram deletados com sucesso!'}, 200
 
-# --- 4. PIPELINE DE DADOS COM PREFECT ---
-# Este pipeline usa a API que acabamos de criar para popular o banco.
+    # Lógica de negócio específica para movimentações
+    def registrar_movimentacao(self, produto_id):
+        produto = Produto.query.get_or_404(produto_id)
+        data = request.get_json()
+        if not data or 'tipo' not in data or 'quantidade' not in data:
+            return {'message': "Os campos 'tipo' e 'quantidade' são obrigatórios."}, 400
 
-API_URL = "http://127.0.0.1:5000/ferramentas"
+        tipo = data['tipo'].upper()
+        quantidade = data['quantidade']
+
+        if tipo not in ['ENTRADA', 'SAIDA']:
+            return {'message': "Tipo inválido. Use 'ENTRADA' ou 'SAIDA'."}, 400
+        
+        if tipo == 'SAIDA':
+            estoque_atual = self._calcular_estoque(produto_id)
+            if estoque_atual < quantidade:
+                return {'message': f"Estoque insuficiente. Disponível: {estoque_atual}"}, 400
+            quantidade = -abs(quantidade)
+
+        mov = Movimentacao(produto_id=produto.id, tipo=tipo, quantidade=abs(quantidade) if tipo == 'ENTRADA' else quantidade)
+        db.session.add(mov)
+        db.session.commit()
+        logging.info(f"Movimentação para {produto.nome}: {tipo} de {abs(data['quantidade'])}.")
+        return {'message': 'Movimentação registrada!', 'novo_estoque': self._calcular_estoque(produto_id)}, 201
+
+# --- 4. API RESOURCES (Camada de Visão da API) ---
+# Classes simples que delegam a lógica para o ControllerCrud.
+
+controller = ControllerCrud()
+
+class ProdutoListResource(Resource):
+    def get(self):
+        return controller.get_all()
+    def post(self):
+        return controller.post()
+
+class ProdutoResource(Resource):
+    def get(self, id):
+        return controller.get_one(id)
+    def put(self, id):
+        return controller.put(id)
+    def delete(self, id):
+        return controller.delete(id)
+
+class MovimentacaoResource(Resource):
+    def post(self, id):
+        return controller.registrar_movimentacao(id)
+
+api.add_resource(ProdutoListResource, '/produtos')
+api.add_resource(ProdutoResource, '/produtos/<int:id>')
+api.add_resource(MovimentacaoResource, '/produtos/<int:id>/movimentacao')
+
+
+# --- 5. PIPELINE DE DADOS COM PREFECT ---
+API_URL = "http://127.0.0.1:5000"
 
 @task(log_prints=True)
-def carregar_dados(ferramentas: list):
-    """Task para enviar uma lista de ferramentas para a API via POST."""
-    for ferramenta in ferramentas:
+def carregar_produtos_iniciais(produtos: list):
+    for prod in produtos:
         try:
-            # Verifica se a ferramenta já existe pelo nome
-            response_get = requests.get(f"{API_URL}?nome={ferramenta['nome']}")
-            if response_get.status_code == 200 and any(f['nome'] == ferramenta['nome'] for f in response_get.json()):
-                 print(f"Ferramenta '{ferramenta['nome']}' já existe. Pulando.")
-                 continue
+            # 1. Cria o produto
+            response_post = requests.post(f"{API_URL}/produtos", json={'nome': prod['nome'], 'preco': prod['preco']})
+            if response_post.status_code not in [201, 409]:
+                print(f"ERRO ao criar produto '{prod['nome']}': {response_post.text}")
+                continue
+            
+            # Pega o ID do produto recém-criado ou já existente
+            all_products_resp = requests.get(f"{API_URL}/produtos")
+            all_products = all_products_resp.json()
+            produto_id = next((p['id'] for p in all_products if p['nome'] == prod['nome']), None)
 
-            response = requests.post(API_URL, json=ferramenta)
-            if response.status_code == 201:
-                print(f"Sucesso: Ferramenta '{ferramenta['nome']}' adicionada.")
+            if not produto_id:
+                print(f"ERRO: Não foi possível encontrar o ID do produto '{prod['nome']}'.")
+                continue
+
+            # 2. Registra a entrada inicial de estoque
+            response_mov = requests.post(f"{API_URL}/produtos/{produto_id}/movimentacao", 
+                                         json={'tipo': 'ENTRADA', 'quantidade': prod['estoque_inicial']})
+            if response_mov.status_code == 201:
+                print(f"SUCESSO: Estoque inicial de {prod['estoque_inicial']} para '{prod['nome']}' registrado.")
             else:
-                print(f"Erro ao adicionar '{ferramenta['nome']}': {response.status_code} - {response.text}")
-        except requests.exceptions.RequestException as e:
-            print(f"Erro de conexão ao adicionar '{ferramenta['nome']}': {e}")
+                print(f"ERRO ao registrar estoque para '{prod['nome']}': {response_mov.text}")
+        except requests.RequestException as e:
+            print(f"ERRO de conexão: {e}")
 
 @task(log_prints=True)
 def processar_csv(caminho_arquivo: str):
-    print(f"Processando arquivo CSV: {caminho_arquivo}")
     df = pd.read_csv(caminho_arquivo)
+    df.rename(columns={'estoque': 'estoque_inicial'}, inplace=True)
     return df.to_dict(orient='records')
 
-@task(log_prints=True)
-def processar_json(caminho_arquivo: str):
-    print(f"Processando arquivo JSON: {caminho_arquivo}")
-    with open(caminho_arquivo, 'r') as f:
-        data = json.load(f)
-    return data
+@flow(name="Pipeline de Carga Inicial de Estoque", log_prints=True)
+def pipeline_carga_inicial():
+    print("--- Iniciando Pipeline de Carga Inicial ---")
+    dados_csv = processar_csv("output/ferramentas.csv")
+    carregar_produtos_iniciais(dados_csv)
+    print("--- Pipeline Concluído ---")
 
-@task(log_prints=True)
-def processar_xlsx(caminho_arquivo: str):
-    print(f"Processando arquivo XLSX: {caminho_arquivo}")
-    df = pd.read_excel(caminho_arquivo)
-    return df.to_dict(orient='records')
-
-@task(log_prints=True)
-def processar_txt(caminho_arquivo: str):
-    print(f"Processando arquivo TXT: {caminho_arquivo}")
-    ferramentas = []
-    with open(caminho_arquivo, 'r') as f:
-        for linha in f:
-            nome, preco, estoque = linha.strip().split(';')
-            ferramentas.append({'nome': nome, 'preco': float(preco), 'estoque': int(estoque)})
-    return ferramentas
-
-@flow(name="Pipeline de Ingestão de Estoque", log_prints=True)
-def pipeline_ingestao_estoque():
-    """Flow principal que orquestra o processamento de todos os arquivos."""
-    print("--- Iniciando Pipeline de Ingestão de Dados ---")
-    base_path = "dados_entrada"
+# --- 6. FUNÇÃO DE TESTE RÁPIDO COM HTTP REQUESTS ---
+def testar_fluxo_completo():
+    print("\n--- INICIANDO TESTE DE FLUXO COMPLETO ---")
+    BASE_URL = "http://127.0.0.1:5000"
     
-    dados_csv = processar_csv(os.path.join(base_path, "ferramentas.csv"))
-    carregar_dados(dados_csv)
+    with app.app_context():
+        db.drop_all()
+        db.create_all()
 
-    dados_json = processar_json(os.path.join(base_path, "ferramentas.json"))
-    carregar_dados(dados_json)
+    # 1. POST: Criar um novo produto
+    print("\n1. POST /produtos (Criando 'Resistor 10k Ohm')...")
+    produto_payload = {'nome': 'Resistor 10k Ohm', 'preco': 0.50}
+    response = requests.post(f"{BASE_URL}/produtos", json=produto_payload)
+    assert response.status_code == 201
+    produto_id = response.json()['id']
+    print(f"   -> SUCESSO! Produto criado com ID: {produto_id}")
 
-    dados_xlsx = processar_xlsx(os.path.join(base_path, "ferramentas.xlsx"))
-    carregar_dados(dados_xlsx)
+    # 2. POST: Registrar ENTRADA de estoque
+    print(f"\n2. POST /produtos/{produto_id}/movimentacao (ENTRADA de 200 unidades)...")
+    mov_payload = {'tipo': 'ENTRADA', 'quantidade': 200}
+    response = requests.post(f"{BASE_URL}/produtos/{produto_id}/movimentacao", json=mov_payload)
+    assert response.status_code == 201
+    print(f"   -> SUCESSO! Novo estoque: {response.json()['novo_estoque']}")
+
+    # 3. POST: Registrar SAIDA de estoque (venda)
+    print(f"\n3. POST /produtos/{produto_id}/movimentacao (SAIDA de 25 unidades)...")
+    mov_payload = {'tipo': 'SAIDA', 'quantidade': 25}
+    response = requests.post(f"{BASE_URL}/produtos/{produto_id}/movimentacao", json=mov_payload)
+    assert response.status_code == 201
+    print(f"   -> SUCESSO! Novo estoque: {response.json()['novo_estoque']}")
+
+    # 4. PUT: Atualizar o preço do produto
+    print(f"\n4. PUT /produtos/{produto_id} (Atualizando preço para 0.75)...")
+    update_payload = {'preco': 0.75}
+    response = requests.put(f"{BASE_URL}/produtos/{produto_id}", json=update_payload)
+    assert response.status_code == 200
+    assert response.json()['preco'] == 0.75
+    print(f"   -> SUCESSO! Preço atualizado.")
+
+    # 5. GET: Verificar o estado final do produto
+    print(f"\n5. GET /produtos/{produto_id} (Verificando estado final)...")
+    response = requests.get(f"{BASE_URL}/produtos/{produto_id}")
+    assert response.status_code == 200
+    data = response.json()
+    print(f"   -> Detalhes: {json.dumps(data, indent=2)}")
+    assert data['estoque_atual'] == 175
+
+    # 6. DELETE: Deletar o produto
+    print(f"\n6. DELETE /produtos/{produto_id} (Deletando o produto)...")
+    response = requests.delete(f"{BASE_URL}/produtos/{produto_id}")
+    assert response.status_code == 200
+    print("   -> SUCESSO! Produto deletado.")
     
-    dados_txt = processar_txt(os.path.join(base_path, "ferramentas.txt"))
-    carregar_dados(dados_txt)
+    # 7. GET: Confirmar que o produto foi deletado
+    print(f"\n7. GET /produtos/{produto_id} (Confirmando a deleção)...")
+    response = requests.get(f"{BASE_URL}/produtos/{produto_id}")
+    assert response.status_code == 404
+    print("   -> SUCESSO! Produto não encontrado (404), como esperado.")
     
-    print("--- Pipeline de Ingestão Concluído ---")
+    print("\n--- TESTE DE FLUXO COMPLETO CONCLUÍDO COM SUCESSO! ---\n")
 
-# --- 5. EXECUÇÃO ---
+# --- 7. BLOCO DE EXECUÇÃO PRINCIPAL ---
 if __name__ == '__main__':
-    # Para rodar o pipeline, use: python backend.py --run-flow
-    import sys
-    if len(sys.argv) > 1 and sys.argv[1] == '--run-flow':
-        # Antes de rodar o flow, garantimos que a API está de pé
-        print("A API Flask precisa estar rodando em outro terminal para o pipeline funcionar.")
-        print("Este comando apenas executa o pipeline de ingestão.")
-        pipeline_ingestao_estoque()
+    with app.app_context():
+        db.create_all()
+
+    if len(sys.argv) > 1:
+        if sys.argv[1] == '--run-flow':
+            print("Executando o pipeline de carga inicial do Prefect...")
+            print("AVISO: A API Flask deve estar rodando para que o pipeline funcione.")
+            pipeline_carga_inicial()
+        elif sys.argv[1] == '--test-flow':
+            print("AVISO: A API Flask deve estar rodando para que o teste funcione.")
+            testar_fluxo_completo()
     else:
-        # Comando padrão: rodar a API Flask
-        with app.app_context():
-            db.create_all() # Cria a tabela no banco de dados se não existir
-        app.run(debug=True, port=5000)
+        print("Iniciando o servidor da API Flask em http://127.0.0.1:5000")
+        app.run(host='0.0.0.0', port=5000, debug=True)
