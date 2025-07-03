@@ -9,11 +9,11 @@ def simulate_NEW_network():
     # Criando a rede elétrica vazia
     net = pp.create_empty_network()
 
-    
+
     # Dados fictícios para as barras (12 barras: 6 à esquerda, 6 à direita)
     barras = [
-        {"id": 0, "nome": "Barra 1E", "tensao": 20.0},
-        {"id": 1, "nome": "Barra 2E", "tensao": 20.0},
+        {"id": 0, "nome": "Barra 1E", "tensao": 1.05},  # Barra de referência (Slack)
+        {"id": 1, "nome": "Barra 2E", "tensao": 1.02},
         {"id": 2, "nome": "Barra 3E", "tensao": 20.0},
         {"id": 3, "nome": "Barra 4E", "tensao": 20.0},
         {"id": 4, "nome": "Barra 5E", "tensao": 20.0},
@@ -52,12 +52,6 @@ def simulate_NEW_network():
     # Criando a barra de referência (Slack)
     pp.create_ext_grid(net, bus=0, vm_pu=1.0, name="Slack")
 
-    # Dados fictícios para as linhas
-    linhas = [
-        {"de": 0, "para": 1, "r_ohm_per_km": 0.01, "x_ohm_per_km": 0.03, "c_nf_per_km": 10, "max_i_ka": 0.2, "comprimento_km": 1.0},
-        {"de": 1, "para": 2, "r_ohm_per_km": 0.02, "x_ohm_per_km": 0.04, "c_nf_per_km": 15, "max_i_ka": 0.2, "comprimento_km": 1.5},
-        {"de": 2, "para": 3, "r_ohm_per_km": 0.015, "x_ohm_per_km": 0.035, "c_nf_per_km": 12, "max_i_ka": 0.2, "comprimento_km": 1.2},
-    ]
 
     # Criando as linhas
     for linha in linhas:
