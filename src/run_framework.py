@@ -150,23 +150,23 @@ def convert_values_to_int(params):
 
 import itertools
 
+
 def run_framework_groups_executions():
     """Função para executar o framework com múltiplas execuções baseadas em grupos de parâmetros."""
 
     # Carrega os parâmetros default do AG (params.json)
     params = load_params(f"{BASE_DIR}/params.json")
-    
-    
+
     # Carrega as opções configuradas pelo usuário (options.json)
     config = load_params(f"{BASE_DIR}/options.json")
 
-    # Extrai os parâmetros variáveis definidos pelo usuário
-    param_opcionais = config['parametros_opcionais']
-    param_names = [list(d.keys())[0] for d in param_opcionais]
-    param_values = [list(d.values())[0] for d in param_opcionais]
+    # Defina os nomes dos parâmetros variáveis
+    param_names = ["MUTACAO", "CROSSOVER", "NUM_GENERATIONS", "POP_SIZE"]
+    param_values = [config[name] for name in param_names]
 
-    # Parâmetros que devem ser float
+    # Parâmetros que devem ser float/int
     float_params = {"MUTACAO", "CROSSOVER", "PORCENTAGEM"}
+    int_params = {"NUM_GENERATIONS", "POP_SIZE"}
 
     # Gera todas as combinações possíveis dos parâmetros variáveis
     combinacoes = list(itertools.product(*param_values))
@@ -174,28 +174,63 @@ def run_framework_groups_executions():
 
     for idx, valores in enumerate(combinacoes):
         params_exec = params.copy()
-        for k, v in zip(param_names, valores):
-            if k.upper() in float_params:
-                params_exec[k] = float(v)
+
+        # Atualiza os parâmetros variáveis para o valor da combinação atual (como valor único, não lista)
+        for name, val in zip(param_names, valores):
+            if name in float_params:
+                params_exec[name] = float(val)
+            elif name in int_params:
+                params_exec[name] = int(val)
             else:
-                params_exec[k] = int(v)
-                
-                
-                
-        # Adiciona os parâmetros fixos do AG
+                params_exec[name] = val
+
         for rep in range(repeticoes):
-            
-            
-            
-            # Exibe a combinação atual e a repetição
             print(f"\n\nIniciando execução com a combinação: {dict(zip(param_names, valores))}")
-            print(f"\nExecução combinação {idx+1}/{len(combinacoes)} - Repetição {rep+1}/{repeticoes}")
+            print(f"Execução combinação {idx+1}/{len(combinacoes)} - Repetição {rep+1}/{repeticoes}")
+
             dados = entrada_de_dados()
+
             setup = Setup(params_exec, fitness_function=funcao_objetivo_IEEE14,
                           tamanho_hash=(dados["num_contingencias"] * dados["num_carregamentos"] * (2 ** dados["num_desligamentos"])))
-            alg = AlgoritimoEvolutivoRCE(setup, DEBUG=False)
-            load_many_executions(config, setup, alg)
+            
+            def consulta_hashtable():
+                #! TODO para melhor performace
+                try:
+                    # Ler xlsx no início da run_framework e verificar logo depois de instanciar o setup se o xlsx existe e caso exista, coloca o conteúdo do xlsx no setup.tabela_hash.
+                    if os.path.exists(f"hash_table.xlsx"):
+                        print("\n\nFazendo consulta para setup.tabela_hash")
 
+                        hash_excel = pd.read_excel("hash_table.xlsx")
+
+                        if not hash_excel.empty and not hash_excel.isnull().values.any():
+                            print(hash_excel.head())
+
+                            setup.tabela_hash = hash_excel['Fitness'].to_dict()
+                            neg_one_count = list(setup.tabela_hash.values()).count(-1)
+
+                            if -1 in setup.tabela_hash.values():
+                                print("Cenários Default = ",len(setup.tabela_hash))
+                                print(neg_one_count)
+                            else:
+                                fitness_counts = hash_excel['Fitness'].value_counts()
+                                filtered_df = hash_excel[hash_excel['Fitness'] > 14]
+                                print(fitness_counts.head())
+                        else:
+                            print("O arquivo hash_table.xlsx está vazio ou contém valores nulos.")
+                    else:
+                        print("Arquivo da hash table não encontrado!")
+
+
+                except Exception as e:
+                    print(f"Erro ao ler o arquivo xlsx: {e}")
+                    
+            consulta_hashtable()
+
+            alg = AlgoritimoEvolutivoRCE(setup, DEBUG=False)
+
+            load_many_executions(config, setup, alg)
+            
+            
 
 def run_framework_many_executions():
     
@@ -262,8 +297,8 @@ if __name__ == "__main__":
     # Check if the user wants to run multiple executions or a single execution
     if options_main_file["key"]:
         print("Running multiple executions...")
-        run_framework_many_executions()
-        #run_framework_groups_executions()
+        #run_framework_many_executions()
+        run_framework_groups_executions()
     else:
         print("Running a single execution...")
         run_framework()

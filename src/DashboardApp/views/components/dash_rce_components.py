@@ -10,7 +10,7 @@ import time
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
-from controllers.Utils import Controller
+from controllers.Utils import Controller, OPTIONS_JSON
 #! TODO SABER PEGAR IMPORT TUDO DE CONTROLLER E UTILS
 
 # Ajuste conforme a estrutura do projeto
@@ -24,54 +24,7 @@ path_foler_output = get_folder_path()
 
 
 
-def load_execution_data(exec_num, debug=False):
-    """Carrega os dados .pkl e a figura .json para a execução especificada,
-    buscando na pasta FOLDER_NAME."""
-    data = None
 
-    # Use pathlib to construct paths
-    data_file_selected = rf"{path_foler_output}/dashboard_data_{exec_num}.pkl"
-
-    # verifica se a pasta esta vazia
-    if not os.listdir(path_foler_output):
-        st.error("Erro Crítico: Nenhum dado disponível. O framework ainda não foi executado.")
-        st.info("A página será atualizada em breve. Execute o framework para gerar dados.")
-        time.sleep(2)
-        st.rerun()
-        return None
-
-    else:
-        if debug:
-            print(f"[DEBUG] A pasta não está vazia, possui arquivos em")
-            print(path_foler_output)
-
-    # Carregar Dados
-    try:
-        with open(data_file_selected, "rb") as f:
-            data = pickle.load(f)
-        st.sidebar.success(
-            f"INFO:Dados da execução {exec_num} carregados de '{path_foler_output}'."
-        )
-
-    except FileNotFoundError:
-        st.warning("Aguarde, a página será atualizada em breve.")
-        st.info(
-            f"Erro Crítico: Arquivo de dados selecionado ({data_file_selected}) não encontrado."
-        )
-        time.sleep(2)  # Pausa para o usuário ler a mensagem
-        st.rerun()
-    except Exception as e:
-        st.error(f"Erro ao carregar dados de {data_file_selected}: {e}")
-
-    return data
-
-def initial_screen():
-    st.title("Bem-vindo ao Dashboard RCE")
-    st.info("O framework ainda não foi executado. Execute o framework para visualizar os resultados.")
-    st.markdown("---")
-    st.subheader("Componentes disponíveis:")
-    st.markdown("- **ConsolidatedResultsComponent**: Exibe resultados consolidados quando disponíveis.")
-    st.markdown("- **GraficoRCEComponent**: Exibe gráficos de convergência após execuções.")
 
 
 class ConsolidatedResultsComponent:
@@ -80,9 +33,6 @@ class ConsolidatedResultsComponent:
     @staticmethod
     def render():
         """Verifica e exibe a seção de resultados consolidados."""
-
-        controller = Controller()
-
 
         # Nome base do arquivo
         consolidated_excel_path = rf"{path_foler_output}/results_consolidados.xlsx"
@@ -111,16 +61,16 @@ class ConsolidatedResultsComponent:
                 time_exec_media = exec_time.mean()
                 tempo_total = exec_time.sum()
 
-                options_json = controller.config_json_options()
+                 
                 
                 # Descobrir quantas linhas por configuração
-                rep = options_json['repeticoes_por_config']
+                rep = OPTIONS_JSON['repeticoes_por_config']
                 num_rows = len(df_consolidado)
                 
                 
                 # Adicionar as colunas dos parâmetros
                 for param in ['CROSSOVER', 'MUTACAO', 'POP_SIZE', 'IND_SIZE']:
-                    values = options_json[param]
+                    values = OPTIONS_JSON[param]
                     if isinstance(values, list) and len(values) > 1:
                         # Repete cada valor 'rep' vezes e ajusta para o tamanho do DataFrame
                         repeated = [v for v in values for _ in range(rep)]
@@ -131,8 +81,8 @@ class ConsolidatedResultsComponent:
                         # Valor único para todas as linhas
                         df_consolidado[param] = [values[0] if isinstance(values, list) else values] * num_rows
 
-                if options_json:
-                    st.write(f"**Parâmetros de Execução Options.json:** {options_json}")
+                if OPTIONS_JSON:
+                    st.write(f"**Parâmetros de Execução Options.json:** {OPTIONS_JSON}")
                 
                 st.dataframe(df_consolidado)
                 

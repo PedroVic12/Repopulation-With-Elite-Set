@@ -4,7 +4,7 @@
 from functools import reduce
 import json
 import operator
-from ..components.dash_rce_components import ConsolidatedResultsComponent, CardSolutions, StatisticsTableComponent, GraficoRCEComponent, TabExamplePage
+from ..components.dash_rce_components import ConsolidatedResultsComponent, CardSolutions, StatisticsTableComponent, GraficoRCEComponent
 
 
 #backend
@@ -157,10 +157,6 @@ class FrameworkRCEDashboard:
             else:
                 # Renderiza componente default para "sem execução"
                 st.info("Nenhum dado encontrado ainda. Execute uma simulação para visualizar os resultados.")
-                st.markdown("---")
-                st.subheader("Componentes disponíveis:")
-                st.markdown("- **ConsolidatedResultsComponent**: Exibe resultados consolidados quando disponíveis.")
-                st.markdown("- **GraficoRCEComponent**: Exibe gráficos de convergência após execuções.")
                 # Você pode adicionar mais componentes ou instruções aqui se quiser
 
             #! MEU TEMPLATE USANDO TABS com Seleção de execução com tabs para cada execução controlado pelo UseState
@@ -206,13 +202,14 @@ class FrameworkRCEDashboard:
                 json_data_params = dados.get("params", {})
 
                 if json_data_params:
+                    
                     # Separa os campos especiais
                     array_var = json_data_params.get("ARRAY_VAR", [14,15,14,18,15])
                     limite_var = json_data_params.get("LIMITE_VAR", [0, 31])
 
                     # Remove os campos especiais para edição no data_editor
                     json_table = {k: v for k, v in json_data_params.items() if k not in ["ARRAY_VAR", "LIMITE_VAR"]}
-                    print("json_table", json_table)
+                    #print("json_table", json_table)
 
 
                     st.info("Usando Variáveis de Decisão do Problema e Limites de valores inteiros para o problema de agendamento de Redes Elétricas")
@@ -267,12 +264,33 @@ class FrameworkRCEDashboard:
 
                     # Monta o dicionário final para exportação
                     json_atualizados = dict(json_table)
-                    json_atualizados["ARRAY_VAR"] = array_var_edit
-                    json_atualizados["LIMITE_VAR"] = limite_var_edit
+                    json_atualizados["ARRAY_VAR"] = [int(x) for x in array_var_edit]
+                    json_atualizados["LIMITE_VAR"] = [int(x) for x in limite_var_edit]
 
-
-
-                    # Salva o arquivo atualizado em dois diretórios anteriores
+                    # --- TRATAMENTO DE TIPOS ---
+                    float_keys = {"MUTACAO", "CROSSOVER", "PORCENTAGEM"}
+                    for k, v in json_atualizados.items():
+                        if k in float_keys:
+                            try:
+                                json_atualizados[k] = float(v)
+                            except Exception:
+                                st.error(f"Valor inválido para {k}. Deve ser um número flutuante.")
+                        elif k in {"ARRAY_VAR", "LIMITE_VAR"}:
+                            # Garante que sejam listas de inteiros
+                            if isinstance(v, list):
+                                try:
+                                    json_atualizados[k] = [int(x) for x in v]
+                                except Exception:
+                                    st.error(f"Valor inválido em {k}. Todos os valores devem ser inteiros.")
+                            else:
+                                st.error(f"{k} deve ser uma lista de inteiros.")
+                        else:
+                            try:
+                                json_atualizados[k] = int(v)
+                            except Exception:
+                                st.error(f"Valor inválido para {k}. Deve ser um número inteiro.")  # Salva o arquivo atualizado em dois diretórios anteriores
+                    
+                    
                     current_dir = pathlib.Path(__file__).parent
                     target_path = current_dir.parent.parent.parent / "params.json"
                     try:
@@ -389,28 +407,6 @@ class FrameworkRCEDashboard:
                         config['parametros_opcionais'][param_index] = {param_name: [new_val]}
 
 
-                    # else: # Fixo
-                    #                         default_value = current_value[0] if isinstance(current_value, list) else current_value
-                    #                         if param_name in ["NUM_GENERATIONS", "POP_SIZE"]:
-                    #                             new_val = st.number_input(
-                    #                                 f"Valor para {param_name}",
-                    #                                 value=int(default_value),
-                    #                                 step=1,
-                    #                                 key=f"s_{param_index}",
-                    #                                 format="%d"
-                    #                             )
-                    #                         else:
-                    #                             new_val = st.slider(
-                    #                                 f"Valor para {param_name}",
-                    #                                 min_value=0.0,
-                    #                                 max_value=1.0,
-                    #                                 value=float(default_value),
-                    #                                 step=0.01,
-                    #                                 key=f"s_{param_index}_slider"
-                    #                             )
-                    #                         config['parametros_opcionais'][param_index] = {param_name: [new_val]}    
-                
-                
                         
                 st.markdown("---")
 
@@ -434,51 +430,54 @@ class FrameworkRCEDashboard:
             with metric_col2:
                 st.metric("Total de Execuções", total_execucoes)
 
-            # --- Botão para Salvar ---
+                        # --- Botão para Salvar ---
             if st.button("Salvar e Executar", type="primary"):
                 try:
                     self.utils.apagar_arquivos()
 
-                    # Pega o ponteiro dos parametros de AG
                     final_config = {**PARAMETROS_JSON}
                     user_config = st.session_state.user_config
-                    
+
                     # Pega os dados atualizados do usuario na tela
                     optional_params_dict = {k: v for d in user_config.get('parametros_opcionais', []) for k, v in d.items()}
                     final_config.update(optional_params_dict)
                     final_config['repeticoes_por_config'] = user_config.get('value')
-                    
-                    # Salva o arquivo JSON para ser usado pelo script
                     final_config.update(user_config)
+
+                    # --- TRATAMENTO DE TIPOS ---
+                    for k in ["NUM_GENERATIONS", "POP_SIZE"]:
+                        if isinstance(final_config[k], list):
+                            final_config[k] = [int(x) for x in final_config[k]]
+                        else:
+                            final_config[k] = int(final_config[k])
+                    for k in ["MUTACAO", "CROSSOVER"]:
+                        if isinstance(final_config[k], list):
+                            final_config[k] = [float(x) for x in final_config[k]]
+                        else:
+                            final_config[k] = float(final_config[k])
+                            
+                    # remove os campos desnecessários
+                    del final_config['parametros_opcionais']
+                    del final_config['value']
                     
-                    # tratamento de dados final para valores inteiros e float
-                    final_config['NUM_GENERATIONS'] = int(final_config['NUM_GENERATIONS'])
-                    final_config['POP_SIZE'] = int(final_config['POP_SIZE'])
-                    
-                    out_file = open("../options.json", "w")
-                    json.dump(final_config, out_file)
-                    out_file.close()
-                    
+
+                    with open("../options.json", "w", encoding="utf-8") as f:
+                            json.dump(final_config, f, indent=4, ensure_ascii=False)
                     st.success(f"Configuração salva em **options.json**!")
-                    
+
                     # Executa o script principal
                     script_path = FOLDER_NAME.parent / "run_framework.py"
                     print("Configurações o Usuario escolhida", final_config)
                     self.run_script(script_path)
                     st.rerun()
 
-
                 except Exception as e:
                     st.error(f"Ocorreu um erro ao salvar os options.json ou executar o script run_framework.py : {e}")
-
 
     def atualizar_pagina(self):
         """Atualiza a página."""
         print("Atualizando a página...")
         st.rerun()
-
-
-
 
     def run_script(self, script_path):
             """Executa um script Python com barra de progresso baseado no número total de execuções configuradas."""

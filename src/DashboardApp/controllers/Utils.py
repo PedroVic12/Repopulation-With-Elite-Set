@@ -7,6 +7,7 @@ import plotly.graph_objects as go
 import pandas as pd
 import os
 import pathlib
+import time 
 
 def load_params_from_file(path):
     with open(path, 'r') as file:
@@ -146,11 +147,27 @@ class Utils:
         data = None
 
         # Use pathlib to construct paths
-        data_file_selected = FOLDER_NAME / f"dashboard_data_{exec_num}.pkl"
+        data_file_selected = rf"{FOLDER_NAME}/dashboard_data_{exec_num}.pkl"
+        
+        def initial_screen():
+            st.title("Bem-vindo ao Dashboard RCE")
+            st.info("O framework ainda não foi executado. Execute o framework para visualizar os resultados.")
+            st.markdown("---")
+
 
         # verifica se a pasta esta vazia
         if not os.listdir(FOLDER_NAME):
-            print("[INFO]A pasta está vazia OK...")
+            #st.error("Erro Crítico: Nenhum dado disponível. O framework ainda não foi executado.")
+            #time.sleep(2)
+            #st.rerun()
+            initial_screen()
+
+            return None
+
+        else:
+            if debug:
+                print(f"[DEBUG] A pasta não está vazia, possui arquivos em")
+                print(FOLDER_NAME)
 
         # Carregar Dados
         try:
@@ -161,15 +178,19 @@ class Utils:
             )
 
         except FileNotFoundError:
-            st.error(
-                f"Erro Crítico: Arquivo de dados selecionado ({data_file_selected}) não encontrado."
+            st.warning("Aguarde, a página será atualizada em breve.")
+            st.info(
+                f"Erro Crítico: O Arquivo de dados selecionado ({data_file_selected}) não encontrado!!!"
             )
-            st.stop()  # Para se o arquivo esperado não for encontrado
+            #time.sleep(2)  # Pausa para o usuário ler a mensagem
+            #st.rerun()
+            initial_screen()
         except Exception as e:
             st.error(f"Erro ao carregar dados de {data_file_selected}: {e}")
-            st.stop()  # Para em caso de erro de carregamento
 
         return data
+
+
 
 
 class Controller:
@@ -232,13 +253,6 @@ class Controller:
         # Retorna o número da execução correspondente à aba ativa
         return execution_numbers[st.session_state["active_tab_index"]]
     
-    def config_json_options(self):
-        # ler a configuração do JSON
-        del OPTIONS_JSON["value"]
-        
-        #del OPTIONS_JSON["parametros_opcionais"]
-        del OPTIONS_JSON["key"]
-        return OPTIONS_JSON
 
 
 

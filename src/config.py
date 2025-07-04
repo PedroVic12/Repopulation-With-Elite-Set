@@ -123,7 +123,7 @@ def load_many_executions(options, setup, algoritmo):
     if options["key"]:
         #print("\n\nConfiguração Atual = ", options)
 
-        for i in range(options["value"]):
+        for i in range(options["repeticoes_por_config"]):
             print("\n==============================")
             print("Execução", i + 1)
             print("================================")
