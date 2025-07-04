@@ -138,6 +138,7 @@ def load_many_executions(options, setup, algoritmo):
             
             
             # # Resultados
+            #TODO -> Mudar no metood visualize os nomes dos arquivos de cada execução. dasboard_config1_data1.pkl
             x, y, z, fig = algoritmo.dashboard.visualize(
                 logbook_with_repopulation, pop_with_repopulation,
                 execution_num = i + 1

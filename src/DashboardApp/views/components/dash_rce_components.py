@@ -81,8 +81,8 @@ class ConsolidatedResultsComponent:
                         # Valor único para todas as linhas
                         df_consolidado[param] = [values[0] if isinstance(values, list) else values] * num_rows
 
-                if OPTIONS_JSON:
-                    st.write(f"**Parâmetros de Execução Options.json:** {OPTIONS_JSON}")
+                #if OPTIONS_JSON:
+                #    st.write(f"**Parâmetros de Execução Options.json:** {OPTIONS_JSON}")
                 
                 st.dataframe(df_consolidado)
                 

@@ -2,6 +2,7 @@
 # Import RCE Framework
 from AlgEvolutivoRCE.Setup import Setup
 from AlgEvolutivoRCE.alg_evolutivo_rce import AlgoritimoEvolutivoRCE
+import streamlit as st
 
 # Utils 
 from config import FOLDER_NAME, options_main_file, entrada_de_dados,load_many_executions, format_elapsed_time
@@ -175,7 +176,6 @@ def run_framework_groups_executions():
     for idx, valores in enumerate(combinacoes):
         params_exec = params.copy()
 
-        # Atualiza os parâmetros variáveis para o valor da combinação atual (como valor único, não lista)
         for name, val in zip(param_names, valores):
             if name in float_params:
                 params_exec[name] = float(val)
@@ -185,8 +185,9 @@ def run_framework_groups_executions():
                 params_exec[name] = val
 
         for rep in range(repeticoes):
+            # Atualiza mensagem na tela do Streamlit
             print(f"\n\nIniciando execução com a combinação: {dict(zip(param_names, valores))}")
-            print(f"Execução combinação {idx+1}/{len(combinacoes)} - Repetição {rep+1}/{repeticoes}")
+            print(f"Combinação de Configuração {idx+1}/{len(combinacoes)} - Execução {rep+1}/{repeticoes}")
 
             dados = entrada_de_dados()
 

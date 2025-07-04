@@ -146,7 +146,7 @@ class FrameworkRCEDashboard:
                     
             # Sempre renderiza a configuração do app e do AG
             self.ConfigWebApp()
-            self.Config_AG_Json(dados if dados else {})
+            self.Config_AG_Json()
 
             # Cabeçalho
             self.header()
@@ -196,11 +196,12 @@ class FrameworkRCEDashboard:
     
     
 
-    def Config_AG_Json(self, dados):
+    def Config_AG_Json(self):
             # Expandir para mostrar os parâmetros utilizados
             with st.expander("Parâmetros AG Utilizados em params.json", expanded=False):
-                json_data_params = dados.get("params", {})
-
+                #json_data_params = dados.get("params", {})
+                json_data_params = PARAMETROS_JSON
+                
                 if json_data_params:
                     
                     # Separa os campos especiais
@@ -430,7 +431,7 @@ class FrameworkRCEDashboard:
             with metric_col2:
                 st.metric("Total de Execuções", total_execucoes)
 
-                        # --- Botão para Salvar ---
+            # --- Botão para Salvar ---
             if st.button("Salvar e Executar", type="primary"):
                 try:
                     self.utils.apagar_arquivos()
