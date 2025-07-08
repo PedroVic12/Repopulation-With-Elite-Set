@@ -3,8 +3,8 @@ import streamlit as st
 from views.pages.themes import Theme
 
 from views.pages.AgendamentoRedePage import AgendamentoRedePage
-from views.pages.FramewrokRCEDashboardPage import FrameworkRCEDashboard
 from views.pages.EasyPDF_page import EasyPDF
+from views.Screens.RCE_Framework_Page import FrameworkRCEDashboard
 
 import sys
 import os
