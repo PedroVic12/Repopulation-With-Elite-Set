@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simulador 3D de Motor de Indução com Three.js</title>
+    <!-- Tailwind CSS para a interface -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Three.js para a renderização 3D -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <!-- OrbitControls para controle da câmera -->
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap');
+        body {
+            font-family: 'Inter', sans-serif;
+            overflow: hidden; /* Evita barras de rolagem indesejadas */
+        }
+        #simulation-canvas {
+            width: 100%;
+            height: 100%;
+            display: block;
+        }
+        input[type="range"] {
+            -webkit-appearance: none; appearance: none; width: 100%; height: 8px;
+            background: #4a5568; border-radius: 5px; outline: none; opacity: 0.7;
+            transition: opacity .2s;
+        }
+        input[type="range"]:hover { opacity: 1; }
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none; appearance: none; width: 20px; height: 20px;
+            background: #4299e1; border-radius: 50%; cursor: pointer;
+            border: 2px solid #1a202c;
+        }
+        input[type="range"]::-moz-range-thumb {
+            width: 20px; height: 20px; background: #4299e1; border-radius: 50%;
+            cursor: pointer; border: 2px solid #1a202c;
+        }
+    </style>
+</head>
+<body class="bg-gray-900 text-gray-200">
+
+    <div class="absolute top-0 left-0 p-4 md:p-6 z-10 w-full max-w-sm">
+        <div class="bg-gray-800 bg-opacity-80 backdrop-blur-sm p-6 rounded-lg border border-gray-700 shadow-2xl">
+            <header class="text-center mb-4">
+                <h1 class="text-xl md:text-2xl font-bold text-white">Simulador 3D</h1>
+                <p class="text-blue-400 text-sm">Motor de Indução</p>
+            </header>
+            
+            <!-- Painel de Controles -->
+            <div id="controls">
+                <div class="mb-3">
+                    <label for="voltage" class="block mb-1 text-sm font-medium">Tensão (V): <span id="voltage-value">120</span> V</label>
+                    <input type="range" id="voltage" min="10" max="240" value="120" class="w-full">
+                </div>
+                <div class="mb-3">
+                    <label for="frequency" class="block mb-1 text-sm font-medium">Frequência (Hz): <span id="frequency-value">60</span> Hz</label>
+                    <input type="range" id="frequency" min="1" max="120" value="60" class="w-full">
+                </div>
+                <div class="mb-3">
+                    <label for="poles" class="block mb-1 text-sm font-medium">Pares de Pólos: <span id="poles-value">2</span></label>
+                    <input type="range" id="poles" min="1" max="6" step="1" value="2" class="w-full">
+                </div>
+                <div class="mb-3">
+                    <label for="slip" class="block mb-1 text-sm font-medium">Escorregamento (%): <span id="slip-value">5.0</span>%</label>
+                    <input type="range" id="slip" min="0.1" max="20" step="0.1" value="5" class="w-full">
+                </div>
+                <div class="mt-6">
+                    <button id="toggle-button" class="w-full py-2 rounded-lg font-bold text-lg transition-all duration-300 bg-red-600 hover:bg-red-700">
+                        Parar
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <canvas id="simulation-canvas"></canvas>
+
+    <script>
+        // =========== CONFIGURAÇÃO INICIAL ===========
+        let scene, camera, renderer, controls;
+        let rotor, statorPoles = [];
+        let isRunning = true;
+
+        // Parâmetros da simulação com valores padrão
+        let simParams = {
+            voltage: 120,
+            frequency: 60,
+            poles: 2,
+            slip: 5,
+            rotorAngle: 0,
+            statorFieldAngle: 0,
+        };
+
+        // =========== FUNÇÃO PRINCIPAL DE INICIALIZAÇÃO ===========
+        function init() {
+            // --- Cena e Câmera ---
+            scene = new THREE.Scene();
+            scene.background = new THREE.Color(0x111827); // bg-gray-900
+
+            camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+            camera.position.set(0, 5, 12);
+
+            // --- Renderizador ---
+            const canvas = document.getElementById('simulation-canvas');
+            renderer = new THREE.WebGLRenderer({ canvas: canvas, antialias: true });
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            renderer.setPixelRatio(window.devicePixelRatio);
+
+            // --- Controles da Câmera ---
+            controls = new THREE.OrbitControls(camera, renderer.domElement);
+            controls.enableDamping = true;
+            controls.dampingFactor = 0.05;
+            controls.minDistance = 5;
+            controls.maxDistance = 50;
+            controls.target.set(0, 0, 0);
+
+            // --- Iluminação ---
+            const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
+            scene.add(ambientLight);
+            const directionalLight = new THREE.DirectionalLight(0xffffff, 0.8);
+            directionalLight.position.set(10, 20, 15);
+            scene.add(directionalLight);
+
+            // --- Criar o Motor ---
+            createMotor();
+
+            // --- Listeners de Eventos ---
+            setupEventListeners();
+
+            // --- Iniciar Animação ---
+            animate();
+        }
+
+        // =========== CRIAÇÃO DOS OBJETOS 3D DO MOTOR ===========
+        function createMotor() {
+            // --- Rotor ---
+            const rotorGroup = new THREE.Group();
+            const rotorGeo = new THREE.CylinderGeometry(3, 3, 1.5, 32);
+            const rotorMat = new THREE.MeshStandardMaterial({ color: 0xa0aec0, metalness: 0.6, roughness: 0.4 });
+            const rotorMesh = new THREE.Mesh(rotorGeo, rotorMat);
+            
+            // Adicionar uma marca para ver a rotação
+            const markGeo = new THREE.BoxGeometry(0.2, 1.7, 0.2);
+            const markMat = new THREE.MeshStandardMaterial({ color: 0x2d3748 });
+            const markMesh = new THREE.Mesh(markGeo, markMat);
+            markMesh.position.z = 2.8;
+            
+            rotorGroup.add(rotorMesh);
+            rotorGroup.add(markMesh);
+            rotorGroup.rotation.x = Math.PI / 2;
+            rotor = rotorGroup;
+            scene.add(rotor);
+
+            // --- Estator ---
+            recreateStatorPoles();
+        }
+
+        function recreateStatorPoles() {
+            // Limpa pólos antigos
+            statorPoles.forEach(p => scene.remove(p));
+            statorPoles = [];
+
+            const numTotalPoles = simParams.poles * 2;
+            const statorRadius = 5;
+            const poleGeo = new THREE.CylinderGeometry(0.5, 0.5, 2, 16);
+
+            for (let i = 0; i < numTotalPoles; i++) {
+                const angle = (i / numTotalPoles) * Math.PI * 2;
+                const poleMat = new THREE.MeshStandardMaterial({ color: 0x4299e1, emissive: 0x000000, metalness: 0.3, roughness: 0.5 });
+                const pole = new THREE.Mesh(poleGeo, poleMat);
+                
+                pole.position.x = statorRadius * Math.cos(angle);
+                pole.position.z = statorRadius * Math.sin(angle);
+                pole.rotation.x = Math.PI / 2;
+                
+                statorPoles.push(pole);
+                scene.add(pole);
+            }
+        }
+
+        // =========== LOOP DE ANIMAÇÃO ===========
+        function animate() {
+            requestAnimationFrame(animate);
+
+            if (isRunning) {
+                // 1. Calcular velocidades (igual à lógica anterior)
+                const syncSpeedRpm = (120 * simParams.frequency) / (simParams.poles * 2);
+                const syncSpeedRadPerSec = syncSpeedRpm * (2 * Math.PI) / 60;
+                
+                const rotorSpeedRpm = syncSpeedRpm * (1 - simParams.slip / 100);
+                const rotorSpeedRadPerSec = rotorSpeedRpm * (2 * Math.PI) / 60;
+
+                // 2. Atualizar ângulos
+                const voltageFactor = simParams.voltage / 120;
+                const timeDelta = 1 / 60; // Assumindo 60fps
+                
+                simParams.statorFieldAngle += syncSpeedRadPerSec * voltageFactor * timeDelta;
+                simParams.rotorAngle += rotorSpeedRadPerSec * voltageFactor * timeDelta;
+
+                // 3. Aplicar rotação ao rotor
+                rotor.rotation.z = -simParams.rotorAngle;
+
+                // 4. Animar o campo magnético do estator (alterando a emissão de luz)
+                statorPoles.forEach((pole, i) => {
+                    const poleAngle = (i / statorPoles.length) * Math.PI * 2;
+                    let angleDiff = Math.abs(simParams.statorFieldAngle % (Math.PI * 2) - poleAngle);
+                    if (angleDiff > Math.PI) angleDiff = (Math.PI * 2) - angleDiff;
+                    
+                    const intensity = Math.max(0, 1 - (angleDiff / Math.PI));
+                    pole.material.emissive.setHex(0x4299e1);
+                    pole.material.emissiveIntensity = intensity * 2;
+                });
+            }
+
+            controls.update();
+            renderer.render(scene, camera);
+        }
+
+        // =========== EVENT LISTENERS PARA CONTROLES ===========
+        function setupEventListeners() {
+            const voltageSlider = document.getElementById('voltage');
+            const frequencySlider = document.getElementById('frequency');
+            const polesSlider = document.getElementById('poles');
+            const slipSlider = document.getElementById('slip');
+            const toggleButton = document.getElementById('toggle-button');
+
+            voltageSlider.addEventListener('input', (e) => {
+                simParams.voltage = Number(e.target.value);
+                document.getElementById('voltage-value').textContent = simParams.voltage;
+            });
+
+            frequencySlider.addEventListener('input', (e) => {
+                simParams.frequency = Number(e.target.value);
+                document.getElementById('frequency-value').textContent = simParams.frequency;
+            });
+
+            polesSlider.addEventListener('input', (e) => {
+                simParams.poles = Number(e.target.value);
+                document.getElementById('poles-value').textContent = simParams.poles;
+                recreateStatorPoles(); // Recria os pólos quando o número muda
+            });
+
+            slipSlider.addEventListener('input', (e) => {
+                simParams.slip = Number(e.target.value);
+                document.getElementById('slip-value').textContent = parseFloat(simParams.slip).toFixed(1);
+            });
+
+            toggleButton.addEventListener('click', () => {
+                isRunning = !isRunning;
+                toggleButton.textContent = isRunning ? 'Parar' : 'Iniciar';
+                toggleButton.classList.toggle('bg-red-600', isRunning);
+                toggleButton.classList.toggle('hover:bg-red-700', isRunning);
+                toggleButton.classList.toggle('bg-green-600', !isRunning);
+                toggleButton.classList.toggle('hover:bg-green-700', !isRunning);
+            });
+            
+            // --- Responsividade ---
+            window.addEventListener('resize', () => {
+                camera.aspect = window.innerWidth / window.innerHeight;
+                camera.updateProjectionMatrix();
+                renderer.setSize(window.innerWidth, window.innerHeight);
+            });
+        }
+
+        // --- Iniciar tudo ---
+        init();
+
+    </script>
+</body>
+</html>
