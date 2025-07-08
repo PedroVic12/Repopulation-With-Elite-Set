@@ -159,7 +159,7 @@ class FrameworkRCEDashboard:
                 st.info("Nenhum dado encontrado ainda. Execute uma simulação para visualizar os resultados.")
                 # Você pode adicionar mais componentes ou instruções aqui se quiser
 
-            #! MEU TEMPLATE USANDO TABS com Seleção de execução com tabs para cada execução controlado pelo UseState
+            #! TEMPLATE USANDO TABS com Seleção de execução com tabs para cada execução controlado pelo UseState
             with st.container():
                 st.subheader("🔄 Seleção da Execução")
                 

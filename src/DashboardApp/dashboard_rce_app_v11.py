@@ -57,7 +57,7 @@ def DrawerSideBar():
 class App:
     def __init__(self):
         st.set_page_config(
-            page_title="UFF RCE Web App 2025",
+            page_title="UFF RCE WebAPP",
             page_icon="⚡",
             layout="wide",
             initial_sidebar_state="collapsed"
