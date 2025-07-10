@@ -52,7 +52,9 @@ def init_dag():
             bash_command = "echo 'operação invalida!'"
             )
         
+        captura_dados >> isValidate >> [valido, nao_valido]
         
+init_dag()
         
         
         
