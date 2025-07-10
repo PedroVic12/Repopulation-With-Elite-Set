@@ -2,7 +2,6 @@
 # Import RCE Framework
 from AlgEvolutivoRCE.Setup import Setup
 from AlgEvolutivoRCE.alg_evolutivo_rce import AlgoritimoEvolutivoRCE
-import streamlit as st
 
 # Utils 
 from config import FOLDER_NAME, options_main_file, entrada_de_dados,load_many_executions, format_elapsed_time
@@ -22,7 +21,7 @@ import pandas as pd
 src/DashboardApp
 ```
 ```bash
-# streamlit run dashboard_rce_app_v9.py
+# streamlit run dashboard_rce_app_v11.py
 ```
 
 2) Para executar o Algoritmo Evolutivo com Reposição de Conjunto de Elite (RCE), execute esse mesmo script no terminal run_rce_framework.py, sugiro rodar o pip install -r requirements.txt antes de executar o script.: 
@@ -154,46 +153,47 @@ import itertools
 
 def run_framework_groups_executions():
     """Função para executar o framework com múltiplas execuções baseadas em grupos de parâmetros."""
-
+    
+    # Parâmetros que devem ser float/int
+    float_params = {"MUTACAO", "CROSSOVER", "PORCENTAGEM"}
+    int_params = {"NUM_GENERATIONS", "POP_SIZE"}
+    
     # Carrega os parâmetros default do AG (params.json)
     params = load_params(f"{BASE_DIR}/params.json")
-
-    # Carrega as opções configuradas pelo usuário (options.json)
     config = load_params(f"{BASE_DIR}/options.json")
+    
+    # Convert values to int, except for specified float keys
+    params = convert_values_to_int(params)
+    #options = convert_values_to_int(options)
 
     # Defina os nomes dos parâmetros variáveis
     param_names = ["MUTACAO", "CROSSOVER", "NUM_GENERATIONS", "POP_SIZE"]
     param_values = [config[name] for name in param_names]
 
-    # Parâmetros que devem ser float/int
-    float_params = {"MUTACAO", "CROSSOVER", "PORCENTAGEM"}
-    int_params = {"NUM_GENERATIONS", "POP_SIZE"}
-
     # Gera todas as combinações possíveis dos parâmetros variáveis
     combinacoes = list(itertools.product(*param_values))
     repeticoes = config.get('repeticoes_por_config', 1)
+    
+    print(f"Combinação = {combinacoes} | Repetição = {repeticoes}")
 
     for idx, valores in enumerate(combinacoes):
         params_exec = params.copy()
-
-        for name, val in zip(param_names, valores):
-            if name in float_params:
-                params_exec[name] = float(val)
-            elif name in int_params:
-                params_exec[name] = int(val)
-            else:
-                params_exec[name] = val
+        
 
         for rep in range(repeticoes):
+            
+            print(f"Execução da configuração: {idx} = {rep}")
+            
             # Atualiza mensagem na tela do Streamlit
             print(f"\n\nIniciando execução com a combinação: {dict(zip(param_names, valores))}")
             print(f"Combinação de Configuração {idx+1}/{len(combinacoes)} - Execução {rep+1}/{repeticoes}")
 
             dados = entrada_de_dados()
-
+            print(f"\n\nIniciando execução com os parâmetros: {config}")
             setup = Setup(params_exec, fitness_function=funcao_objetivo_IEEE14,
                           tamanho_hash=(dados["num_contingencias"] * dados["num_carregamentos"] * (2 ** dados["num_desligamentos"])))
             
+            #TODO for loop para conjunto de configurações de parametros_opcionais
             def consulta_hashtable():
                 #! TODO para melhor performace
                 try:
@@ -224,17 +224,18 @@ def run_framework_groups_executions():
 
                 except Exception as e:
                     print(f"Erro ao ler o arquivo xlsx: {e}")
-                    
             consulta_hashtable()
 
-            alg = AlgoritimoEvolutivoRCE(setup, DEBUG=False)
+            
+            # Usando o algoritimo Genetico do DEAP
+            alg = AlgoritimoEvolutivoRCE(setup, DEBUG = False)
 
+            # Run the utility function to load many executions
             load_many_executions(config, setup, alg)
-            
-            
+
+                    
 
 def run_framework_many_executions():
-    
     """Função para executar o framework com múltiplas execuções."""
     
     # Load parameters from the JSON file in any configuration of PC
@@ -245,14 +246,13 @@ def run_framework_many_executions():
     params = convert_values_to_int(params)
     #options = convert_values_to_int(options)
     
-    print(f"\n\nIniciando execução com os parâmetros: {options}")
+    print(f"\n\nIniciando execução do USER com os parâmetros: {options}")
     
-    # Instanciando os Objetos
+    # Instanciando o Setup para configuração
     setup = Setup(params, fitness_function = funcao_objetivo_IEEE14,
                   tamanho_hash=(entrada_de_dados()["num_contingencias"] * entrada_de_dados()["num_carregamentos"]*(2**entrada_de_dados()["num_desligamentos"])))   
     
     #TODO for loop para conjunto de configurações de parametros_opcionais
-
     def consulta_hashtable():
         #! TODO para melhor performace
         try:
@@ -286,7 +286,7 @@ def run_framework_many_executions():
     consulta_hashtable()
 
     
-
+    # Usando o algoritimo Genetico do DEAP
     alg = AlgoritimoEvolutivoRCE(setup, DEBUG = False)
 
     # Run the utility function to load many executions

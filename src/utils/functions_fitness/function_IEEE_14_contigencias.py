@@ -1,6 +1,6 @@
 
-import math
-import numpy as np
+# File: Repopulation-With-Elite-Set/src/utils/functions_fitness/function_IEEE_14_contigencias.py
+
 from RedeEletrica.rede_eletrica import RedeEletricaPandaPower
 import pandas as pd
 
@@ -28,11 +28,6 @@ def funcao_objetivo_IEEE14(individuo, setupobj, _debug = False):
     #=====================================================
 
     # Tabela agendamentos em xlsx hardcoded
-    #! TODO -> Colocar dados de agendamento e contigencia fora da funcao objetivo
-    #! TODO -> Criação de uma nova função para a hashtable baseado do tipo de Rede fora da função objetivo no Setup
-    #! TODO -> Usar consulta na hashtbale na base de dados do Setup dentro da funcao objetivo
-    #! TODO -> Configuração de Hash Table e Tabela de agendamentos fora da funcção objetivo mas recebe os parametros do Setup para dentro da funcao objetivo com consulta de hash
-
     agendamento_df = pd.DataFrame([
         {"ramo": [1, 4], "inicio": "14:00", "duracao": 6 ,"prioridade": 4},
         {"ramo": [1, 3], "inicio": "15:00", "duracao": 5, "prioridade": 1},
@@ -70,13 +65,9 @@ def funcao_objetivo_IEEE14(individuo, setupobj, _debug = False):
     num_contingencias = len(contingencias) # 3
     num_desligamentos = len(agendamento_df) # 5
 
-    # FAZENDO UM BANCO EM MEMORIA DE EXECUÇÃO
     #bd_aptidao_cenario = [-1.0]*(num_contingencias* num_carregamentos*(2**num_desligamentos) )
 
     #=====================================================
-
-
-
     # 2)  Avaliar cenários e criar matriz de cenários
     matriz_cenarios = rede.avalia_cenarios(
             horas = duracao_total_agendamento,
@@ -121,7 +112,7 @@ def funcao_objetivo_IEEE14(individuo, setupobj, _debug = False):
                   rede.desligar_contingencia(ramo_contingencia)
 
                   # 9) Executar fluxo de potência para o cenário com contingência
-                  if rede.executar_fluxo_de_carga():
+                  if rede.executar_fluxo_de_potencia():
 
                       # 10) Calcular violações com pesos e armazenar os resultados
                       fitness, violacoes_df = rede.calcular_violacoes_fitness()
@@ -137,8 +128,6 @@ def funcao_objetivo_IEEE14(individuo, setupobj, _debug = False):
                   rede.log(f"Hash key = { hash_key}\n")
                   setupobj.objectiveruns += 1
                   
-
-
                 # Retorna o valores calculados de fluxo de potencia na variavel fitness
                 else:
                   fitness = setupobj.tabela_hash[hash_key]
@@ -156,4 +145,6 @@ def funcao_objetivo_IEEE14(individuo, setupobj, _debug = False):
 
     except Exception as e:
         print(f"\nErro: {e}")
+
+
 

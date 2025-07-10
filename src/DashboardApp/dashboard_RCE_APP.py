@@ -5,6 +5,7 @@ from views.pages.themes import Theme
 from views.pages.AgendamentoRedePage import AgendamentoRedePage
 from views.pages.EasyPDF_page import EasyPDF
 from views.Screens.RCE_Framework_Page import FrameworkRCEDashboard
+from views.Screens.simulacao_redes_IEEE_page import SimulacaoAnaliseContigenciasPage
 
 import sys
 import os
@@ -19,16 +20,16 @@ import sys
 def DrawerSideBar():
     """Menu lateral único para navegação."""
     st.sidebar.title("🧭 Menu Dashboard")
+    
+    # logo da UFF
     st.sidebar.image("https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRHVsZ1z9B-HIP8Ddsks0mP3aETeG1CkYixtA&s", width=800)
     st.sidebar.markdown("---")  # Separador visual
 
     # Opções de páginas 
     page_options = {
         "⚡ Framework RCE ": FrameworkRCEDashboard(options_main_file).run,
-        #"🤖 C3po Chatbot": C3poChatbotPage,
-        #"📊 Benchmarking Analysis": BenchmarkingPage,
-        #"📑 Tab Demonstration": TabExamplePage,
-        #"📊 Python Editor": CodeEditorPage,
+
+        "Dashboard Simulação de Contigencias": SimulacaoAnaliseContigenciasPage,
         "Gerador de PDF": EasyPDF,
         "Tela de Agendamentos de Redes": AgendamentoRedePage,
     }

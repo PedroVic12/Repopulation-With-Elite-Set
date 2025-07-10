@@ -54,6 +54,7 @@ class RedeEletricaPandaPower:
     def __init__(self, network_name = None, debug=False):
         self.net = self.loading_networks_cases(network_name)
         self.debug = debug
+        self.name_network = ""
         self.console = Logger()
 
         #metoodos
@@ -70,32 +71,51 @@ class RedeEletricaPandaPower:
         self.contingencia= pd.DataFrame()
 
     def loading_networks_cases(self,network_name = "14"):
-
-        
         #!todo -> Switch para as redes disponiveis na lib
         match network_name:
             case "14":
                 network = pw.case14()
+                self.name_network = "Case 14"
+                
+                #if self.debug:
+                #    print("Carregando a simulação da Rede IEEE 14...")
+
             case "30":
                 #RZ não confundir com case30
                 network = pw.case_ieee30()
+                self.name_network = "Case 30"
+
             case "57":
-                # This function provides the ieee case57 network with the data origin PYPOWER
                 network = pw.case57()
+                
+                self.name_network = "Case 57"
+
 
             case "118":
                 network = pw.case118()
+                self.name_network ="Case 118"
+                
+
 
             case "nova":
                 network = pw.create_empty_network()
+                nome_rede = input("Digite o nome da sua rede que voce quer simular")
+                if nome_rede != "":
+                    self.name_network = "Nova Rede (desconheçida)"
+                else:
+                    self.name_network = nome_rede
 
 
             case _:
-                print("Rede não encontrada, forneça o numero como string")
-                network = None
+                print("Rede não encontrada, forneça o numero como string como: IEEE 14 = '14'")
+                print(f"Rede '{network_name}' não reconhecida. Usando 'case14'.")
+                network = pw.case14()
+                #network = None
 
         return network
 
+    #! uso de trafos, linhas e barramentos
+    #===================================================================================
     def criar_mapeamento_ramos(self):
         """Mapeia pares de barramentos para índices de linhas e trafos"""
         self.mapeamento_ramos = {
@@ -115,7 +135,18 @@ class RedeEletricaPandaPower:
 
         return self.mapeamento_ramos
 
-
+    def resetar_rede(self):
+        """Restaura a rede para o estado operacional religando todos os elementos."""
+        self.net.line['in_service'] = True
+        if not self.net.trafo.empty:
+            self.net.trafo['in_service'] = True
+            
+    def aplicar_contingencia(self, tipo_elemento, elemento_id):
+        """Aplica uma contingência desligando um elemento da rede."""
+        if tipo_elemento == 'Linha' and elemento_id in self.net.line.index:
+            self.net.line.loc[elemento_id, 'in_service'] = False
+        elif tipo_elemento == 'Transformador' and elemento_id in self.net.trafo.index:
+            self.net.trafo.loc[elemento_id, 'in_service'] = False
 
     def validar_dados(self, df_agendamento, df_contingencia):
         """Valida consistência dos dados antes de processar"""
@@ -394,7 +425,8 @@ class RedeEletricaPandaPower:
 
 
 
-    #! Otimização
+    #! Otimização com Pandapower Métodos para Analise de contigencia com Casos IEEE
+
     def calcular_violacoes_fitness(self):
         """
         Calcula as violações nos barramentos, linhas e transformadores.
@@ -558,10 +590,10 @@ class RedeEletricaPandaPower:
 
         return matriz_cenarios
 
-    #! Pandapower New metodos
-    def executar_fluxo_de_carga(self, fast = True):
+    def executar_fluxo_de_potencia(self, fast = True):
         """
         Executa o fluxo de carga na rede elétrica usando o algoritmo Newton-Raphson.
+        fast = True faz o numba-python rodar em paralelo o algoritmo
 
         Retorna:
             bool: True se o fluxo de carga convergiu, False caso contrário.
@@ -711,8 +743,6 @@ class RedeEletricaPandaPower:
                     print(f"Transformador {t} não encontrado na rede.")
 
 
-    #! Old Pandapower
-
     #! Funções matematicas
     def calcular_potencia_aparente_trafos(self):
         """Calcula a potência aparente nos transformadores."""
@@ -843,7 +873,7 @@ class RedeEletricaPandaPower:
         ]
         self.add_geradores(net, geradores)
 
-        net = self.executar_fluxo_de_carga(net)
+        net = self.executar_fluxo_de_potencia(net)
 
         print("Resultados das Barras:")
         print(net.res_bus)
@@ -857,145 +887,16 @@ class RedeEletricaPandaPower:
         return net
     
     
-def analise_contigencia_IEEE14(_debug):
     
-    #! 1) Criar a rede elétrica IEEE 14 barras, Inicializar a classe com a rede e carrega a tabela de agendamento
-    rede = RedeEletricaPandaPower("14", debug=_debug)
-    
-    
-    #! Colocando pesos como input do usuario e os dados de entrada do agendamento
-    rede.pesos["tensao"] = {"min": 100, "max": 100}
-    rede.pesos["loading_linhas"] = 100
-    rede.pesos["loading_trafos"] = 100
-    
-    
-    #=====================================================
-    agendamento_df = pd.DataFrame([
-        {"ramo": [1, 4], "inicio": "14", "duracao": 6 ,"prioridade": 4},
-        {"ramo": [1, 3], "inicio": "15", "duracao": 5, "prioridade": 1},
-        {"ramo": [3, 6], "inicio": "14", "duracao": 6, "prioridade": 1},
-        {"ramo": [11, 12], "inicio": "18", "duracao": 6, "prioridade": 1},
-        {"ramo": [9, 10], "inicio": "15", "duracao": 4, "prioridade": 1}
-    ])
-    
-    contingencia_df = pd.DataFrame([
-            {"contingencia":1,  "from":2 , "to": 3},
-            {"contingencia":2,  "from":5 , "to": 12},
-            {"contingencia":3,  "from":12 , "to": 13},
-    ])
-    
-
-    # passando a variavel de decisão na função objetivo
-    agendamento_df["inicio"] = individuo
-    
-    #! Calculo  de otimização para achar o fitness de cada cenario
-    violacoes_total = []
-    violacoes_hash_table = {}
-    
-    # Generate hash key (teste 01)
-    contingencias = contingencia_df['contingencia'].to_list()
-    num_carregamentos = 3
-    num_contingencias = len(contingencias) # 3
-    num_desligamentos = len(agendamento_df) # 5
-    
-    
-    # 2)  Avaliar cenários e criar matriz de cenários
-    matriz_cenarios = rede.avalia_cenarios(
-            horas = duracao_total_agendamento,
-            hora_inicio=agendamento_df['inicio'],
-            duracao=agendamento_df['duracao'],
-            ls=0, le=8,
-            ms=8, me=18,
-            hs=18, he=24
-        )
-
-    try:
-        # 3) Processar cada cenário da matriz de cenários
-        for cenario in matriz_cenarios:
-            perfil = cenario[0]
-            estado_ramos = cenario[1:]
-
-            # 4) Ajustar carregamento para o perfil do cenário
-            rede.ajustar_cargas(perfil)
-
-            # Loop through contingencies before calculating violations for the scenario
-            for contingencia_atual in range(num_contingencias):
-                contingencia_atual += 1
-                hash_key = rede.hashtableindex(perfil, num_carregamentos, contingencia_atual, num_contingencias, estado_ramos)
-
-
-                #! RZ_01jun2025 - verifica se o cenário já foi calculado na tabela hash
-                if setupobj.tabela_hash[hash_key] < 0.0:
-
-                  #! Simulação e modelagem usando pandapower com metodos da RedeEleticaPandawer em subtorinas
-
-                  #5)  Ligar todos os ramos antes de aplicar mudanças
-                  rede.religar_todos_os_ramos_agendamento()
-
-                  # 6) Fazendo os deligamentos com base na tabela em .xlsx e nos cenários calculados
-                  rede.desligar_elementos_agendamento(estado_ramos)
-
-                  # 7) Identifica ramos afetados pela contingência
-                  ramo_contingencia = list(contingencia_df.loc[contingencia_df['contingencia'] == contingencia_atual, ['from', 'to']].values[0])
-                  rede.log(f"\n{contingencia_atual}) Ramo da contingencia = { ramo_contingencia}\n")
-
-                  # 8) Desliga os ramos afetados
-                  rede.desligar_contingencia(ramo_contingencia)
-
-                  # 9) Executar fluxo de potência para o cenário com contingência
-                  if rede.executar_fluxo_de_carga():
-
-                      # 10) Calcular violações com pesos e armazenar os resultados
-                      fitness, violacoes_df = rede.calcular_violacoes_fitness()
-
-                  else:
-                      fitness = rede.pesos["demanda"] # penalidade com valor default de 99
-
-                  # uso da hash key como fitness dentro da tabela hash  
-                  setupobj.tabela_hash[hash_key] = fitness
-
-                  #! 11) Store violation in the hash table
-                  violacoes_hash_table[hash_key] = fitness
-                  rede.log(f"Hash key = { hash_key}\n")
-                  setupobj.objectiveruns += 1
-                  
-
-
-                # Retorna o valores calculados de fluxo de potencia na variavel fitness
-                else:
-                  fitness = setupobj.tabela_hash[hash_key]
-                  setupobj.hashtablereads += 1
-
-                violacoes_total.append(fitness)
-
-            #! Ver apenas o true in service de barras e transformadores
-            rede.show_status()
-
-        # 12) Calcular fitness final com somatorio das vioações com pesos de todos os cenarios
-        fitness_final = sum(violacoes_total)
-        rede.log(f"\nFitness do agendamento = {fitness_final:.2f}\n")
-        return fitness_final
-    
-    
-    except Exception as e:
-        print(f"\nErro: {e}")
-    
-    
-def main():
+def main_rede_eletrica(simulate = False):
     print("iniciando a simulação de Rede Eleticas...")
-    
     network = RedeEletricaPandaPower("14")
-    
     #network.simulate_network_functional()
     
-    print("Simulação da Rede IEEE 14")
     
-    analise_contigencia_IEEE14(_debug= True)
-
-    
-    #net.executar_fluxo_de_carga()
-    
-    #net.imprimir_resultados()
+    if simulate:
+        print("Simulação da Rede IEEE 14")    
+        #net.imprimir_resultados()
     
 #main()
 

@@ -1,9 +1,6 @@
-import json
 from pathlib import Path
 import pathlib
-import streamlit as st
 import pandas as pd
-import time
 import numpy as np
 from IPython.display import display
 from datetime import datetime
@@ -14,7 +11,7 @@ from DashboardApp.controllers.Utils import FOLDER_NAME, PARAMETROS_JSON
 
 configuracoes_execucoes = {
         "key": True,
-        "value": 5,
+        "value": 7,
         "parametros_opcionais": [
             {"MUTACAO": [PARAMETROS_JSON['MUTACAO']]},
             {"CROSSOVER": [PARAMETROS_JSON['CROSSOVER']]},
@@ -28,6 +25,7 @@ options_main_file = configuracoes_execucoes
 #print("CONFIGURAÇÔES", options_main_file)
 
 
+# Função para simular a entrada de dados, como se fosse a leitura de um arquivo JSON ou Excel
 def entrada_de_dados():
     
     #TODO
@@ -66,11 +64,7 @@ def entrada_de_dados():
     
 
 
-
-
-
-
-
+# Função para obter o caminho da pasta "output" dentro do projeto
 def get_folder_path(debug = False):
     BASE_DIR = pathlib.Path(__file__).resolve().parent  
 
@@ -88,8 +82,7 @@ def get_folder_path(debug = False):
     return FOLDER_NAME
 
 
-FOLDER_NAME = get_folder_path()
-
+FOLDER_NAME = get_folder_path() # nome da pasta output resolvendo problemas de caminho
 results_consolidados = []  # Initialize an empty list to store results
 execution_times = []  # Lista para armazenar os tempos de execução
 
@@ -119,12 +112,15 @@ def format_elapsed_time(elapsed_time):
     return formatted_time.strip()
 
 
-def load_many_executions(options, setup, algoritmo):
+def load_many_executions(options, setupobj, algoritmo):
     if options["key"]:
         #print("\n\nConfiguração Atual = ", options)
+        
+        print("Setup Atual:")
+        print(setupobj)
 
         for i in range(options["repeticoes_por_config"]):
-            print("\n==============================")
+            print("\n================================")
             print("Execução", i + 1)
             print("================================")
 
@@ -134,7 +130,7 @@ def load_many_executions(options, setup, algoritmo):
             # Loop principal do Algoritmo Evolutivo
             pop_with_repopulation, logbook_with_repopulation, best_variables = algoritmo.run(RCE=True)
             print("\n\nEvolução concluída  - 100%")
-            #print(f"Best variables", best_variables)
+            print(f"Best variables", best_variables)
             
             
             # # Resultados
@@ -146,13 +142,13 @@ def load_many_executions(options, setup, algoritmo):
             
 
             # Passando os valores do array direto no dataframe com os index como chave (hash = chave, valor)
-            hash_df1 = pd.DataFrame(setup.tabela_hash, columns=['Fitness'])
+            hash_df1 = pd.DataFrame(setupobj.tabela_hash, columns=['Fitness'])
             hash_df1.sort_values(by='Fitness', ascending=False, inplace=True)
             hash_df1.to_excel("hash_table.xlsx", index=False)
 
 
-            print(f"\nObjective function runs : {setup.objectiveruns}")
-            print(f"Hash table reads : {setup.hashtablereads}")
+            print(f"\nObjective function runs : {setupobj.objectiveruns}")
+            print(f"Hash table reads : {setupobj.hashtablereads}")
 
             end = datetime.now()
             elapsed = end - start
@@ -169,22 +165,18 @@ def load_many_executions(options, setup, algoritmo):
 
     # Calcula a média e o desvio padrão dos tempos de execução
     avg_execution_time = np.mean(execution_times)
-    #std_execution_time = np.std(execution_times)
-
     print(f"Tempo médio de execução: {avg_execution_time} segundos")
-    #sprint(f"Desvio padrão do tempo de execução: {std_execution_time} segundos")
 
 
-    # Create the DataFrame
+    # Create the DataFrame dos resultados
     results_consolidados_df = pd.DataFrame(results_consolidados)
-
     results_consolidados_df["execution_time"] = results_consolidados_df["execution_time"].apply(
         lambda x: f"{x.total_seconds():.2f} segundos" if hasattr(x, "total_seconds") else f"{x:.2f} segundos"
     )
     results_consolidados_df.to_excel(f"{FOLDER_NAME}/results_consolidados.xlsx", index=False)
 
-     # Display or use the results
-    print("\nResultados Consolidados:")
+    # Display or use the results
+    print("\nResultados Consolidados salvo:")
     results_consolidados_df.sort_values(by="best_fitness", inplace=True)
     display(results_consolidados_df)
 
