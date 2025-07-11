@@ -191,7 +191,7 @@ class Setup:
         if tamanho_hash > 0:
             self.tabela_hash = [-1] * tamanho_hash
         else:
-            self.tabela_hash = -1
+            self.tabela_hash = None
             
             
         self.objectiveruns = 0

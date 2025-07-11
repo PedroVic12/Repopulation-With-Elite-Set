@@ -64,15 +64,16 @@ def funcao_objetivo_IEEE14(individuo, setupobj, _debug = False):
     # passando a variavel de decisão na função objetivo
     agendamento_df["inicio"] = individuo
 
-    #! Calculo  de otimização para achar o fitness de cada cenario
     violacoes_total = []
     violacoes_hash_table = {}
 
     # Generate hash key values
+    #! Variáveis de Calculo  de otimização para achar o fitness de cada cenario
     contingencias = contingencia_df['contingencia'].to_list()
     num_carregamentos = 3
     num_contingencias = len(contingencias) # 3
     num_desligamentos = len(agendamento_df) # 5
+    
     #bd_aptidao_cenario = [-1.0]*(num_contingencias* num_carregamentos*(2**num_desligamentos) )
 
     #=====================================================
@@ -101,11 +102,14 @@ def funcao_objetivo_IEEE14(individuo, setupobj, _debug = False):
                 
                 # Uso da hash key para ja utilizar cenarios calculados
                 hash_key = rede.hashtableindex(perfil, num_carregamentos, contingencia_atual, num_contingencias, estado_ramos)
-                print("minha tabela hash:")
-                print(setupobj.tabela_hash)
+                
+                if _debug:
+                    print("minha tabela hash:", len(setupobj.tabela_hash))
+                #setupobj.tamanho_hash = hash_key
                 
                 #! RZ_01jun2025 - verifica se o cenário já foi calculado na tabela hash
                 if setupobj.tabela_hash[hash_key] < 0.0:
+                    #!DEBUG = Cenario 288 calculado, ai calcula o cenario 235 e da erro (porque ainda nao existe!)
                     
                     #! Simulação e modelagem usando pandapower com metodos da RedeEleticaPandawer em subtorinas
                     #5)  Ligar todos os ramos antes de aplicar mudanças
@@ -133,7 +137,6 @@ def funcao_objetivo_IEEE14(individuo, setupobj, _debug = False):
 
                     # 11) Store violation in the hash table
                     #!debug = Ele esta salvando primeiro cenario, o hashtable existe mas o proximo cenario ainda nao foi calculado... 
-                    setupobj.tabela_hash = {}
                     setupobj.tabela_hash[hash_key] = fitness
                     rede.log(f"Hash key = { hash_key}\n")
                     
@@ -148,7 +151,8 @@ def funcao_objetivo_IEEE14(individuo, setupobj, _debug = False):
                 #! 12) Retorna o valores calculados de fluxo de potencia na variavel fitness
                 else:
                   fitness = setupobj.tabela_hash[hash_key]
-                  print(fitness)
+                  if _debug:
+                      print("Fitness do cenario = ", fitness)
                   setupobj.hashtablereads += 1
 
                 violacoes_total.append(fitness)
@@ -208,5 +212,5 @@ def simulate_IEEE_14_cenario():
     
     fitness
     
-simulate_IEEE_14_cenario()    
+#simulate_IEEE_14_cenario()    
     
