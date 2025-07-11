@@ -40,10 +40,10 @@ class Logger:
             self.logger.info(message)
         elif level == "warning":
             self.console.print(f"[warning]{message}[/]")
-            self.logger.warning(message)
+            #self.logger.warning(message)
         elif level == "error":
             self.console.print(f"[error]{message}[/]")
-            self.logger.error(message)
+            #self.logger.error(message)
         else:
             self.console.print(f"[info]{message}[/]") # Changed to "info" to use blue color
 
@@ -182,7 +182,6 @@ class RedeEletricaPandaPower:
         #converte o vetor binário em inteiro de forma eficiente
         #https://stackoverflow.com/questions/24560596/fastest-way-to-convert-a-binary-listor-array-into-an-integer-in-python
         digits = ['0', '1']
-
 
         k = int("".join([ digits[y] for y in desligamentos ]), 2)
 
@@ -613,7 +612,7 @@ class RedeEletricaPandaPower:
 
     def ajustar_cargas(self, perfil):
         """Ajusta as cargas conforme o perfil (1 = leve, 2 = médio, 3 = pesado)."""
-        tipo = ""
+        tipo = " "
 
         if perfil == 1:
             fator = 0.941  # Carga leve

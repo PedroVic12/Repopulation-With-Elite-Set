@@ -46,6 +46,12 @@ params = {
 
  
 class Setup:
+    """_summary_: 
+    
+        
+
+        _returns_:
+    """
     def __init__(self, params, fitness_function, tamanho_hash = 0 ):
 
         #! Parametros JSON
@@ -185,8 +191,9 @@ class Setup:
         if tamanho_hash > 0:
             self.tabela_hash = [-1] * tamanho_hash
         else:
-            self.tabela_hash = None
-        
+            self.tabela_hash = -1
+            
+            
         self.objectiveruns = 0
         self.hashtablereads = 0
 

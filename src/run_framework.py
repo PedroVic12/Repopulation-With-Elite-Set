@@ -36,11 +36,8 @@ src/DashboardApp
 # Import functions benchmark
 #? Foi Criado um arquivo em `utils/functions_fitness/functions_benchmarking.py` para armazenar as funções de benchmark usadas no primeiro artigo e a função de avaliação da rede IEEE 14.
 # Voce foi olhar o arquivo config.py para gerenciar a quantidade de execuções do algoritimo.
-from utils.functions_fitness.functions_benchmarking import rosenbrock_benchmark,esfera_benchmark,rastrigin, evaluate, funcao_objetivo_IEEE14
-
-results_consolidados = []  # Initialize an empty list to store results
-execution_times = []  # Lista para armazenar os tempos de execução
-BASE_DIR = pathlib.Path(__file__).resolve().parent 
+from utils.functions_fitness.functions_benchmarking import rosenbrock_benchmark,esfera_benchmark,rastrigin, evaluate
+from utils.functions_fitness.function_IEEE_14_contigencias import funcao_objetivo_IEEE14
 
 #! Lendo os parametros em JSON em /AlgEvolutivoRCE/params.json
 def load_params(file_path):
@@ -48,9 +45,14 @@ def load_params(file_path):
         params = json.load(file)
     return params
 
-# Load parameters from the JSON file in any configuration of PC
-params = load_params(f"{BASE_DIR}/params.json")
 
+
+# Load parameters from the JSON file in any configuration of PC
+results_consolidados = []  # Initialize an empty list to store results
+execution_times = []  # Lista para armazenar os tempos de execução
+BASE_DIR = pathlib.Path(__file__).resolve().parent 
+
+params = load_params(f"{BASE_DIR}/params.json")
 # windows
 #params = load_params(r"C:\Users\Pedro Victor R V\Documents\GitHub\Repopulation-With-Elite-Set\src\AlgEvolutivoRCE\params.json")
 
@@ -139,7 +141,7 @@ def convert_values_to_int(params):
     float_keys = {"MUTACAO", "CROSSOVER", "PORCENTAGEM"}
     for key, value in params.items():
         if key.upper() in float_keys:
-            print(key,value)
+            #print(key,value)
             params[key] = float(value)
         elif isinstance(value, list):
             print(f"Valor da chave {key} é uma lista, não será convertido para int.")
@@ -243,8 +245,8 @@ def run_framework_many_executions():
     options = load_params(f"{BASE_DIR}/options.json")
     
     # Convert values to int, except for specified float keys
+    #options = convert_values_to_int(options)s
     params = convert_values_to_int(params)
-    #options = convert_values_to_int(options)
     
     print(f"\n\nIniciando execução do USER com os parâmetros: {options}")
     

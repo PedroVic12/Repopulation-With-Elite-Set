@@ -22,9 +22,6 @@ configuracoes_execucoes = {
 
 options_main_file = configuracoes_execucoes
 
-#print("CONFIGURAÇÔES", options_main_file)
-
-
 # Função para simular a entrada de dados, como se fosse a leitura de um arquivo JSON ou Excel
 def entrada_de_dados():
     
@@ -114,16 +111,10 @@ def format_elapsed_time(elapsed_time):
 
 def load_many_executions(options, setupobj, algoritmo):
     if options["key"]:
-        #print("\n\nConfiguração Atual = ", options)
-        
-        print("Setup Atual:")
-        print(setupobj)
-
         for i in range(options["repeticoes_por_config"]):
             print("\n================================")
-            print("Execução", i + 1)
+            print("\t\tExecução:", i + 1)
             print("================================")
-
             start = datetime.now()
             
             
