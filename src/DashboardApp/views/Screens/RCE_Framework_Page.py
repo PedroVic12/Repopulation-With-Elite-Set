@@ -34,7 +34,7 @@ class DrawerSideBar:
         self.st.sidebar.title("Seleção da Execução com Algoritmo Evolutivo")
         if st.button("Atualizar Estado"):
             st.session_state["selected_execution"] = None
-            st.experimental_rerun()
+            st.rerun()
         self.st.sidebar.markdown("---")  # Separador visual
 
 
@@ -142,10 +142,14 @@ class FrameworkRCEDashboard:
         try:
             # Carrega os dados da execução ativa
             active_tab = UseState.get_state("active_tab")
-            dados = self.utils.load_execution_data(active_tab + 1, debug=False)
+            if active_tab is not None:
+                dados = self.utils.load_execution_data(active_tab + 1, debug=False)
+            else:
+                dados = None
                     
-            # Sempre renderiza a configuração do app e do AG
+            # Sempre renderiza a configuração do app e do AG 
             self.ConfigWebApp()
+            # Optiins e params em json separados mas talves ter as configuracoes em array de dicts
             self.Config_AG_Json()
 
             # Cabeçalho
@@ -198,8 +202,7 @@ class FrameworkRCEDashboard:
 
     def Config_AG_Json(self):
             # Expandir para mostrar os parâmetros utilizados
-            with st.expander("Parâmetros AG Utilizados em params.json", expanded=False):
-                #json_data_params = dados.get("params", {})
+            with st.expander("Parâmetros AG - RCE Utilizados em params.json", expanded=False):
                 json_data_params = PARAMETROS_JSON
                 
                 if json_data_params:
@@ -213,7 +216,7 @@ class FrameworkRCEDashboard:
                     #print("json_table", json_table)
 
 
-                    st.info("Usando Variáveis de Decisão do Problema e Limites de valores inteiros para o problema de agendamento de Redes Elétricas")
+                    #st.info("Usando Variáveis de Decisão do Problema e Limites de valores inteiros para o problema de agendamento de Redes Elétricas")
 
                     # Edição simples do ARRAY_VAR
                     try:
@@ -243,16 +246,42 @@ class FrameworkRCEDashboard:
 
 
                     # Data editor para os demais parâmetros
-                    df_params = pd.DataFrame(list(json_table.items()), columns=["Parâmetro", "Valor"])
-                    edited_df = st.data_editor(
-                        df_params,
-                        use_container_width=True,
-                        num_rows="dynamic",
-                        column_config={
-                            "Parâmetro": st.column_config.Column(disabled=True),
-                            "Valor": st.column_config.Column(disabled=False)
-                        }
-                    )
+                    def excel_table(array, colunas_excluir=None, css_inicial=False):
+                        """
+                        Exibe um DataFrame no estilo Excel, removendo colunas indesejadas e aplicando CSS opcional.
+                        :param array: lista de tuplas ou dicionário de parâmetros
+                        :param colunas_excluir: lista de nomes de colunas a serem excluídas
+                        :param css_inicial: bool, se True aplica CSS customizado
+                        :return: DataFrame editado pelo usuário
+                        """
+                        df = pd.DataFrame(list(array.items()))
+                        df.columns = ["Parâmetro", "Valor"]
+                        if colunas_excluir:
+                            df = df[~df["Parâmetro"].isin(colunas_excluir)]
+                        if css_inicial:
+                            st.markdown(
+                                """
+                                <style>
+                                .stDataFrame {background-color: #f7f7f7;}
+                                </style>
+                                """,
+                                unsafe_allow_html=True
+                            )
+                        edited_df = st.data_editor(
+                            df,
+                            use_container_width=True,
+                            num_rows="dynamic",
+                            column_config={
+                                "Parâmetro": st.column_config.Column(disabled=True),
+                                "Valor": st.column_config.Column(disabled=False)
+                            },
+                            key="params_editor"
+                        )
+                        return edited_df
+
+                    # Exemplo de uso:
+                    colunas_nao_usar = ["CROSSOVER", "MUTACAO", "NUM_GENERATIONS", "POP_SIZE"]  # Exemplo, substitua pelos nomes das colunas que deseja excluir
+                    edited_df = excel_table(json_table, colunas_excluir=colunas_nao_usar, css_inicial=True)
 
                     # Atualiza json_table com os valores editados
                     if not edited_df.empty:
@@ -261,53 +290,50 @@ class FrameworkRCEDashboard:
                             value = row["Valor"]
                             json_table[param] = value
 
-                    st.markdown("---")
+                        # Monta o dicionário final para exportação
+                        json_atualizados = dict(json_table)
+                        json_atualizados["ARRAY_VAR"] = [int(x) for x in array_var_edit]
+                        json_atualizados["LIMITE_VAR"] = [int(x) for x in limite_var_edit]
 
-                    # Monta o dicionário final para exportação
-                    json_atualizados = dict(json_table)
-                    json_atualizados["ARRAY_VAR"] = [int(x) for x in array_var_edit]
-                    json_atualizados["LIMITE_VAR"] = [int(x) for x in limite_var_edit]
-
-                    # --- TRATAMENTO DE TIPOS ---
-                    float_keys = {"MUTACAO", "CROSSOVER", "PORCENTAGEM"}
-                    for k, v in json_atualizados.items():
-                        if k in float_keys:
-                            try:
-                                json_atualizados[k] = float(v)
-                            except Exception:
-                                st.error(f"Valor inválido para {k}. Deve ser um número flutuante.")
-                        elif k in {"ARRAY_VAR", "LIMITE_VAR"}:
-                            # Garante que sejam listas de inteiros
-                            if isinstance(v, list):
+                        # --- TRATAMENTO DE TIPOS de dados para salvar no json---
+                        float_keys = {"MUTACAO", "CROSSOVER", "PORCENTAGEM"}
+                        for k, v in json_atualizados.items():
+                            if k in float_keys:
                                 try:
-                                    json_atualizados[k] = [int(x) for x in v]
+                                    json_atualizados[k] = float(v)
                                 except Exception:
-                                    st.error(f"Valor inválido em {k}. Todos os valores devem ser inteiros.")
+                                    st.error(f"Valor inválido para {k}. Deve ser um número flutuante.")
+                            elif k in {"ARRAY_VAR", "LIMITE_VAR"}:
+                                if isinstance(v, list):
+                                    try:
+                                        json_atualizados[k] = [int(x) for x in v]
+                                    except Exception:
+                                        st.error(f"Valor inválido em {k}. Todos os valores devem ser inteiros.")
+                                else:
+                                    st.error(f"{k} deve ser uma lista de inteiros.")
                             else:
-                                st.error(f"{k} deve ser uma lista de inteiros.")
-                        else:
-                            try:
-                                json_atualizados[k] = int(v)
-                            except Exception:
-                                st.error(f"Valor inválido para {k}. Deve ser um número inteiro.")  # Salva o arquivo atualizado em dois diretórios anteriores
-                    
-                    
-                    current_dir = pathlib.Path(__file__).parent
-                    target_path = current_dir.parent.parent.parent / "params.json"
-                    try:
-                        with open(target_path, "w", encoding="utf-8") as f:
-                            json.dump(json_atualizados, f, indent=4, ensure_ascii=False)
-                        st.success(f"Arquivo salvo em: {target_path}")
-                    except Exception as e:
-                        st.error(f"Erro ao salvar arquivo: {e}")
+                                try:
+                                    json_atualizados[k] = int(v)
+                                except Exception:
+                                    st.error(f"Valor inválido para {k}. Deve ser um número inteiro.")
+
+                        # Salva o arquivo atualizado automaticamente
+                        current_dir = pathlib.Path(__file__).parent
+                        target_path = current_dir.parent.parent.parent / "params.json"
+                        try:
+                            with open(target_path, "w", encoding="utf-8") as f:
+                                json.dump(json_atualizados, f, indent=4, ensure_ascii=False)
+                            st.success(f"Arquivo salvo automaticamente em: {target_path}")
+                        except Exception as e:
+                            st.error(f"Erro ao salvar arquivo: {e}")
 
                     # Exporta os dados atualizados para um arquivo json com um botão de download
-                    st.download_button(
-                        label="Salvar os Parâmetros AG Atualizados",
-                        data=json.dumps(json_atualizados, indent=4),
-                        file_name="params.json",
-                        mime="application/json"
-                    )
+                    # st.download_button(
+                    #     label="Salvar os Parâmetros AG Atualizados",
+                    #     data=json.dumps(json_atualizados, indent=4),
+                    #     file_name="params.json",
+                    #     mime="application/json"
+                    # )
 
     def ConfigWebApp(self):
         
@@ -324,7 +350,7 @@ class FrameworkRCEDashboard:
 
         st.title("🛠️ Configurador de Execuções do Framework")
         
-        with st.expander("Abra para configurar os parâmetros de execução", expanded=False):
+        with st.expander("Configuração de Execução em options.json", expanded=False):
             config = st.session_state.user_config
 
             # --- Seção de Configurações Gerais ---
@@ -338,7 +364,7 @@ class FrameworkRCEDashboard:
             st.markdown("---")
 
             # --- Seção de Parâmetros Evolutivos ---
-            st.subheader("Parâmetros Evolutivos")
+            st.subheader("Parâmetros AG (Algoritmo Genético)")
 
             def render_parameter_widget(param_name, default_value_from_params):
                 # --- LÓGICA ROBUSTA PARA ENCONTRAR O PARÂMETRO E SEU ÍNDICE ---
@@ -460,6 +486,7 @@ class FrameworkRCEDashboard:
                     # remove os campos desnecessários
                     del final_config['parametros_opcionais']
                     del final_config['value']
+                    # -------------------------
                     
 
                     with open("../options.json", "w", encoding="utf-8") as f:

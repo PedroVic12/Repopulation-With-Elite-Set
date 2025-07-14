@@ -6,6 +6,7 @@ from AlgEvolutivoRCE.alg_evolutivo_rce import AlgoritimoEvolutivoRCE
 # Utils 
 from config import FOLDER_NAME, options_main_file, entrada_de_dados,load_many_executions, format_elapsed_time
 
+import streamlit as st
 import json
 import pathlib
 from datetime import datetime
@@ -57,7 +58,7 @@ params = load_params(f"{BASE_DIR}/params.json")
 #params = load_params(r"C:\Users\Pedro Victor R V\Documents\GitHub\Repopulation-With-Elite-Set\src\AlgEvolutivoRCE\params.json")
 
 
-def run_framework():
+def run_framework_single_execution():
     """Função principal para executar o framework de otimização."""
     start = datetime.now()
 
@@ -136,6 +137,22 @@ def run_framework():
 
 ############################# MUltiplas execuções com grupos de parâmetros #############################
 
+
+import itertools
+
+def export_all_configs_to_json(parametros):
+    # parametros: dict com os 4 parâmetros, cada um sendo uma lista de valores possíveis
+    keys = list(parametros.keys())
+    values = [parametros[k] if isinstance(parametros[k], list) else [parametros[k]] for k in keys]
+    configs = {}
+    for idx, combination in enumerate(itertools.product(*values), 1):
+        config_dict = dict(zip(keys, combination))
+        configs[f"config {idx}"] = config_dict
+    # Salva no arquivo
+    with open("config.json", "w", encoding="utf-8") as f:
+        json.dump(configs, f, indent=4, ensure_ascii=False)
+    st.success(f"{len(configs)} configurações exportadas para config.json!")
+
 def convert_values_to_int(params):
     """Converte os valores de um dicionário para int, exceto para as chaves especificadas."""
     float_keys = {"MUTACAO", "CROSSOVER", "PORCENTAGEM"}
@@ -150,7 +167,7 @@ def convert_values_to_int(params):
     return params
 
 
-import itertools
+
 
 
 def run_framework_groups_executions():
@@ -297,6 +314,9 @@ def run_framework_many_executions():
 
 
 if __name__ == "__main__":
+    options = load_params(f"{BASE_DIR}/options.json")
+    export_all_configs_to_json(options)
+
     # Check if the user wants to run multiple executions or a single execution
     if options_main_file["key"]:
         print("Running multiple executions...")
@@ -304,7 +324,7 @@ if __name__ == "__main__":
         #run_framework_groups_executions()
     else:
         print("Running a single execution...")
-        run_framework()
+        run_framework_single_execution()
 
 
 

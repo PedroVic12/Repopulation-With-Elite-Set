@@ -57,7 +57,7 @@ class RedeEletricaPandaPower:
         self.name_network = ""
         self.console = Logger()
 
-        #metoodos
+        #metodos
         self.criar_mapeamento_ramos()
 
         # global

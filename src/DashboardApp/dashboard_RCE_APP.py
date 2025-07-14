@@ -29,9 +29,9 @@ def DrawerSideBar():
     page_options = {
         "⚡ Framework RCE ": FrameworkRCEDashboard(options_main_file).run,
 
-        "Dashboard Simulação de Contigencias": SimulacaoAnaliseContigenciasPage,
-        "Gerador de PDF": EasyPDF,
-        "Tela de Agendamentos de Redes": AgendamentoRedePage,
+        #"Dashboard Simulação de Contigencias": SimulacaoAnaliseContigenciasPage,
+        #"Gerador de PDF": EasyPDF,
+        #"Tela de Agendamentos de Redes": AgendamentoRedePage,
     }
 
     # Navegação com rádio buttons

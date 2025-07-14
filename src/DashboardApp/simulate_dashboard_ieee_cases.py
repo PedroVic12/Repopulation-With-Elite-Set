@@ -15,7 +15,7 @@ st.set_page_config(
 )
 
 # --- Classe de Lógica da Rede ---
-class RedeEletricaPandaPower:
+class RedeEletricaModel:
     """
     Encapsula a lógica de análise de redes elétricas com Pandapower.
     """
@@ -156,7 +156,7 @@ def SimulacaoAnaliseContigenciasPage():
 
         if 'rede_eletrica' not in st.session_state or st.session_state.rede_eletrica.network_name != nome_rede:
             with st.spinner(f"Carregando a rede {nome_rede}..."):
-                st.session_state.rede_eletrica = RedeEletricaPandaPower(nome_rede)
+                st.session_state.rede_eletrica = RedeEletrica(nome_rede)
 
         rede = st.session_state.rede_eletrica
         rede.resetar_rede()
@@ -240,6 +240,7 @@ def SimulacaoAnaliseContigenciasPage():
                 st.subheader("Visualização do Sistema")
                 
                 # --- Diagrama e Gráficos de Geração ---
+                # Simulação e descrição do sistema baseado no sistema que eu vi no ONS 
                 c1, c2 = st.columns(2)
                 with c1:
                     df_centralizada = repo.get_centralized_generation_data()
