@@ -26,4 +26,20 @@ Ambiente colaborativo, equipes, tirar duvidas todos os dias, regularidade, uso d
   - Excel, Copilot, Docs, Apresentações em Storytelling
   - Disparo de emais
   - Resumo AI
-    
+
+## Engenharia Elétrica
+---
+
+-  Sinais e Sistemas
+-  Circuitos 1 e 2 ordem
+-  Eletromagnetismo
+-  Sistemas Eletricos de Potenica
+
+## Programação
+---
+
+- RPA automação
+- Backend Developer
+- Pandapower Simulate scripts
+- editCEPEL .dat
+  
