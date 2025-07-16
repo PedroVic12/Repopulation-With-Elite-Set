@@ -21,12 +21,28 @@
 
 
 
+### 🚧 Em Progresso
+- [x] Conversão do `.pwf` para estrutura Pandapower
+- [x] Subir projeto para repositório GitHub com README
+- [x] Entender o fluxo de trabalho
+    - Arquivo .PWF = Diagrama 
+    - Arquivo .lst = arquivo texto
+    - Arquivo .dat = Deck para EDITCEPEL
+    - Arquivo .SAV = Diagrama de casos de cenarios salvos
+    
+
+
+
 ## 📊 Análise de Dados
+---
+
 - [ ] Rodar o fluxo de potencia e identificar linhas críticas
 - [ ] Gerar gráficos com Plotly (tensões, correntes, potências)
 - [ ] Verificar limites de tensão (0.95 a 1.05 pu) e carregamento de linhas (>100%)
 
 ## 📝 Documentação
+---
+
 - [ ] Criar o arquivo em .MD com instruções de uso do AnaRede, Simulação com o PandaPower e Testes de agendamentos na rede IEEE 14 com diferentes caso de uso, o memso documento vai servir para o BLOG
 - [x] Colocar como output os resultados do Pandapower em Excel (`barras`, `linhas`, `cargas`, `geradores`)
 - [ ] Anotar observações sobre diferenças entre AnaREDE e Pandapower e saber estruturar um fluxo de trabalho eficiente para o dia dia da ONS
