@@ -348,7 +348,7 @@ class FrameworkRCEDashboard:
 #    7 - Progress bar para cada geração em tempo de execução 
 
 
-        st.title("🛠️ Configurador de Execuções do Framework")
+        st.title("🛠️ Configurador do Framework")
         
         with st.expander("Configuração de Execução em options.json", expanded=False):
             config = st.session_state.user_config
@@ -583,7 +583,7 @@ class FrameworkRCEDashboard:
         """Cabeçalho do aplicativo."""
         st.markdown("---")
         st.title("⚡ Framework Repopulation-With-Elite-Set RCE ⚡")
-        st.subheader("Version 11.1.5 - 24/06/2025")
+        st.subheader("Version 14.3.2 - 17/07/2025")
         st.markdown("---")
 
         # Adiciona CSS personalizado para estilizar o botão

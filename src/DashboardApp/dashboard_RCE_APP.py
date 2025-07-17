@@ -85,7 +85,8 @@ if __name__ == "__main__":
         #selected_page = query_params.get("page", ["framework_rce"])[0]
     
         # Renderizar a página selecionada
-        pagina_selecionada = DrawerSideBar()
+        #pagina_selecionada = DrawerSideBar()
+        pagina_selecionada = FrameworkRCEDashboard(options_main_file).run
         app.run(pagina_selecionada)
 
     except Exception as e:

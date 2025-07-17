@@ -28,7 +28,7 @@ echo Instalacao de bibliotecas necessarias concluida!
 call cls
 
 REM Executa o Streamlit no mesmo terminal
-streamlit run dashboard_rce_app_v11.py
+streamlit run dashboard_RCE_APP.py
 
 REM Volta para o diretório anterior
 cd ..
