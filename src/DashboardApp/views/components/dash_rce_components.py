@@ -262,16 +262,6 @@ def TabExamplePage():
 class StatisticsTableComponent:
     """Componente para exibir a tabela de estatísticas por geração."""
 
-    def button_save_excel(arquivo, nome_arquivo):
-            # Abre o arquivo usando o caminho completo para o botão de download
-            with open(arquivo, "rb") as fp:
-                        st.download_button(
-                            label="Baixar Resultados Consolidados (Excel)",
-                            data=fp,
-                            # Usa o nome base do arquivo para o download
-                            file_name=nome_arquivo,
-                            mime="application/vnd.ms-excel"
-                        )
     
     @staticmethod
     def render(data):

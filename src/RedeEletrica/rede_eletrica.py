@@ -604,10 +604,7 @@ class RedeEletricaPandaPower:
         except pp.LoadflowNotConverged:
             self.console.log("\nErro: Fluxo de potência não convergiu...", level = "error")
             Pdem = 99
-
             self.calcular_violacoes_fitness()
-
-
             return False
 
     def ajustar_cargas(self, perfil):

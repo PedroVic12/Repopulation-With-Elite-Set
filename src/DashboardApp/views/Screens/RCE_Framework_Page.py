@@ -144,6 +144,8 @@ class FrameworkRCEDashboard:
             active_tab = UseState.get_state("active_tab")
             if active_tab is not None:
                 dados = self.utils.load_execution_data(active_tab + 1, debug=False)
+                saved_config = UseState.get_state("saved_configurations", {})
+
             else:
                 dados = None
                     
@@ -161,44 +163,53 @@ class FrameworkRCEDashboard:
             else:
                 # Renderiza componente default para "sem execução"
                 st.info("Nenhum dado encontrado ainda. Execute uma simulação para visualizar os resultados.")
-                # Você pode adicionar mais componentes ou instruções aqui se quiser
 
-            #! MEU TEMPLATE USANDO TABS com Seleção de execução com tabs para cada execução controlado pelo UseState
-            with st.container():
-                st.subheader("🔄 Seleção da Execução")
-                
-                # Cria abas
-                tabs = st.tabs([f"Execução {num}" for num in self.execution_numbers])
+            # Renderiza as abas de execução - Por um Container pelo TAB
+            exec_tabs_dict = self.get_exec_tabs_dict()
+            self.ContainerTabs(exec_tabs_dict)
+            
+        except Exception as e:
+            st.error(f"Ocorreu um erro ao carregar os dados da execução: {e}")
+            
+            # Agrupa os dados das execuções e os lambdas dos componentes em uma função separada
+    def get_exec_tabs_dict(self):
+        exec_tabs_dict = {}
+        for exec_num in self.execution_numbers:
+            dados_exec = self.utils.load_execution_data(exec_num, debug=False)
+            if dados_exec:
+                exec_tabs_dict[f"Execução {exec_num}"] = {
+                    "Soluções": lambda de=dados_exec, en=exec_num: CardSolutions.render(de, en, debug=False),
+                    "Gráfico": lambda en=exec_num: GraficoRCEComponent.render(en),
+                    "Estatísticas": lambda de=dados_exec: StatisticsTableComponent.render(de)
+                }
+            else:
+                exec_tabs_dict[f"Execução {exec_num}"] = {"Erro": "Não foi encontrado nenhum conjunto de dados"}
+        return exec_tabs_dict
 
-                # Renderiza o conteúdo de cada aba
-                for i, (tab, exec_num) in enumerate(zip(tabs, self.execution_numbers)):
-                    with tab:
-                        # Atualiza o estado da aba ativa
-                        if UseState.get_state("active_tab") != i:
-                            self.handle_tab_change(i, exec_num)
+    # Função separada para renderizar o container de tabs
+    def ContainerTabs(self,exec_tabs_dict):
+        with st.container():
+            st.subheader("🔄 Seleção da Execução (NEW)")
+            main_tabs = st.tabs(list(exec_tabs_dict.keys()))
+            for i, (main_tab, main_key) in enumerate(zip(main_tabs, exec_tabs_dict.keys())):
+                with main_tab:
+                    sub_dict = exec_tabs_dict[main_key]
+                    if isinstance(sub_dict, dict):
+                        sub_tabs = st.tabs(list(sub_dict.keys()))
+                        for j, (sub_tab, sub_key) in enumerate(zip(sub_tabs, sub_dict.keys())):
+                            with sub_tab:
+                                content = sub_dict[sub_key]
+                                if callable(content):
+                                    try:
+                                        content()
+                                    except Exception as e:
+                                        st.error(f"Erro ao renderizar '{sub_key}': {e}")
+                                else:
+                                    st.write(content)
+                    else:
+                        st.write(sub_dict)
+                        self.footer()
 
-                        # Carrega os dados e o gráfico da execução CORRETOS para cada aba
-                        dados_exec = self.utils.load_execution_data(exec_num, debug=False)
-                        if dados_exec:
-                            try:
-                                with st.container():
-                                    CardSolutions.render(dados_exec, exec_num, debug=False)
-                                with st.container():
-                                    GraficoRCEComponent.render(exec_num)
-                                with st.container():
-                                    StatisticsTableComponent.render(dados_exec)
-                                    st.write("Graficos e Tabelas")
-                            except Exception as e:
-                                st.error(f"Erro ao carregar os dados da execução {exec_num}. {e}")
-                        else:
-                            st.error("Não foi encontrado nenhum conjunto de dados")
-
-            self.footer()
-
-        except Exception as error:
-            st.warning(f"Erro ao carregar pagina: {error}")
-    
-    
 
     def Config_AG_Json(self):
             # Expandir para mostrar os parâmetros utilizados
@@ -375,14 +386,18 @@ class FrameworkRCEDashboard:
                         param_dict = p_dict
                         param_index = i
                         break
-                
-                # Se o parâmetro não for encontrado, exibe um erro e interrompe a renderização para este widget
-                if param_index == -1:
-                    st.error(f"Parâmetro de configuração '{param_name}' não encontrado no estado da sessão.")
+
+                # Corrigido: Verifica se param_dict é None antes de tentar acessar
+                if param_dict is None or param_index == -1:
+                    st.error(f"Parâmetro de configuração '{param_name}' não encontrado no estado da sessão ou não foi configurado.")
                     return
-                # --- FIM DA LÓGICA ROBUSTA ---
 
                 current_value = param_dict[param_name]
+
+
+                # --- FIM DA LÓGICA ROBUSTA ---
+
+
 
                 # Altera os nomes dos parametros para português e adiciona toggle
                 toggle_label = {
@@ -534,7 +549,7 @@ class FrameworkRCEDashboard:
                         thread.start()
 
                         while thread.is_alive():
-                            arquivos_atual = set(self.utils.get_html_content_from_folder(FOLDER_NAME))
+                            arquivos_atual = set(self.utils.get_html_content_from_folder(str(FOLDER_NAME)))
                             progresso = len(arquivos_atual)
                             percent = int((progresso / total_steps) * 100) if total_steps > 0 else 0
                             percent = min(percent, 100)  # Garante que não passe de 100%
