@@ -2,6 +2,7 @@ import streamlit as st
 from streamlit_timeline import st_timeline
 import pandas as pd
 import pathlib
+import numpy as np
 
 output_xlsx_file = pathlib.Path(__file__).resolve().parent.parent.parent.parent /  "output" / "results_consolidados.xlsx" # Importando o caminho do diretório de configuração
 pop_final_xlsx_file = pathlib.Path(__file__).resolve().parent.parent.parent.parent /  "output" / "pop_final.xlsx" # Importando o caminho do diretório de configuração
@@ -37,111 +38,111 @@ def carregar_dados_execucao():
     
     
 def time_line_from_solution_variables(agendamento_df,contingencia_df ,exec_data):
-                # Timeline para a execução selecionada
-                st.subheader(f"Timeline de Soluções para a Execução {exec_data['execution']}")
-                solution_variables = sorted(exec_data["solution_variables"])  # Ordenar os horários
-                solution_timeline_items = []
+    # Timeline para a execução selecionada
+    st.subheader(f"Timeline de Soluções para a Execução {exec_data['execution']}")
+    solution_variables = sorted(exec_data["solution_variables"])  # Ordenar os horários
+    solution_timeline_items = []
 
-                # Calcular os intervalos entre os horários
-                for j in range(len(solution_variables)):
-                    start_hour = solution_variables[j]
-                    duration = agendamento_df.iloc[j]["duracao"]  # pega a duração do agendamento correspondente
-                    end_hour = start_hour + duration
+    # Calcular os intervalos entre os horários
+    for j in range(len(solution_variables)):
+        start_hour = solution_variables[j]
+        duration = agendamento_df.iloc[j]["duracao"]  # pega a duração do agendamento correspondente
+        end_hour = start_hour + duration
 
-                    # Calcular o dia e horário
-                    day_offset_start = start_hour // 24
-                    hour_in_day_start = start_hour % 24
-                    day_offset_end = end_hour // 24
-                    hour_in_day_end = end_hour % 24
+        # Calcular o dia e horário
+        day_offset_start = start_hour // 24
+        hour_in_day_start = start_hour % 24
+        day_offset_end = end_hour // 24
+        hour_in_day_end = end_hour % 24
 
-                    # Ajustar exibição para o dia seguinte, se necessário
-                    start_label = f"{hour_in_day_start:02d}h"
-                    end_label = f"{hour_in_day_end:02d}h{'*' if day_offset_end > day_offset_start else ''}"
+        # Ajustar exibição para o dia seguinte, se necessário
+        start_label = f"{hour_in_day_start:02d}h"
+        end_label = f"{hour_in_day_end:02d}h{'*' if day_offset_end > day_offset_start else ''}"
 
-                    start_time = f"2025-06-{18 + day_offset_start}T{hour_in_day_start:02d}:00:00"
-                    end_time = f"2025-06-{18 + day_offset_end}T{hour_in_day_end:02d}:00:00"
+        start_time = f"2025-06-{18 + day_offset_start}T{hour_in_day_start:02d}:00:00"
+        end_time = f"2025-06-{18 + day_offset_end}T{hour_in_day_end:02d}:00:00"
 
-                    solution_timeline_items.append({
-                        "id": f"{exec_data['execution']}-{j}",
-                        "content": f"Horário: {start_label} - {end_label} ({duration}h)",
-                        "start": start_time,
-                        "end": end_time,
-                        "title": f"Intervalo: {start_label} - {end_label} ({duration}h)"
-                    })
-                    
-                    
-                # Adicionar o último horário como um evento único
-                last_hour = solution_variables[-1]
-                day_offset_last = last_hour // 24
-                hour_in_day_last = last_hour % 24
-                last_start_time = f"2025-06-{18 + day_offset_last}T{hour_in_day_last:02d}:00:00"
-                last_end_time = f"2025-06-{18 + day_offset_last}T{(hour_in_day_last + 1) % 24:02d}:00:00"
+        solution_timeline_items.append({
+            "id": f"{exec_data['execution']}-{j}",
+            "content": f"Horário: {start_label} - {end_label} ({duration}h)",
+            "start": start_time,
+            "end": end_time,
+            "title": f"Intervalo: {start_label} - {end_label} ({duration}h)"
+        })
+        
+        
+    # Adicionar o último horário como um evento único
+    last_hour = solution_variables[-1]
+    day_offset_last = last_hour // 24
+    hour_in_day_last = last_hour % 24
+    last_start_time = f"2025-06-{18 + day_offset_last}T{hour_in_day_last:02d}:00:00"
+    last_end_time = f"2025-06-{18 + day_offset_last}T{(hour_in_day_last + 1) % 24:02d}:00:00"
 
-                solution_timeline_items.append({
-                    "id": f"{exec_data['execution']}-last",
-                    "content": f"Horário: {hour_in_day_last:02d}h",
-                    "start": last_start_time,
-                    "end": last_end_time,
-                    "title": f"Horário: {hour_in_day_last:02d}h"
-                })
+    solution_timeline_items.append({
+        "id": f"{exec_data['execution']}-last",
+        "content": f"Horário: {hour_in_day_last:02d}h",
+        "start": last_start_time,
+        "end": last_end_time,
+        "title": f"Horário: {hour_in_day_last:02d}h"
+    })
 
-                timeline = st_timeline(
-                    solution_timeline_items,
-                    groups=[],
-                    options={
-                        "selectable": True,
-                        "multiselect": True,
-                        "zoomable": True,
-                        "verticalScroll": True,
-                        "stack": True,
-                        "height": 300,
-                        "margin": {"axis": 5},
-                        "groupHeightMode": "auto",
-                        "orientation": {"axis": "top", "item": "top"}
-                    },
-                    key=f"execution_timeline_{exec_data['execution']}"
-                )
+    timeline = st_timeline(
+        solution_timeline_items,
+        groups=[],
+        options={
+            "selectable": True,
+            "multiselect": True,
+            "zoomable": True,
+            "verticalScroll": True,
+            "stack": True,
+            "height": 300,
+            "margin": {"axis": 5},
+            "groupHeightMode": "auto",
+            "orientation": {"axis": "top", "item": "top"}
+        },
+        key=f"execution_timeline_{exec_data['execution']}"
+    )
 
-                # Mostrar detalhes da execução ao clicar no timeline
-                if timeline:
-                    selected_id = timeline.get("id", "").split("-")[1]  # Obter o ID do item selecionado no timeline
-                    selected_index = int(selected_id) if selected_id.isdigit() else None
+    # Mostrar detalhes da execução ao clicar no timeline
+    if timeline:
+        selected_id = timeline.get("id", "").split("-")[1]  # Obter o ID do item selecionado no timeline
+        selected_index = int(selected_id) if selected_id.isdigit() else None
 
-                    if selected_index is not None and selected_index < len(solution_variables) - 1:
-                        # Dados do intervalo selecionado
-                        start_hour = solution_variables[selected_index]
-                        end_hour = solution_variables[selected_index + 1]
-                        duration = end_hour - start_hour
+        if selected_index is not None and selected_index < len(solution_variables) - 1:
+            # Dados do intervalo selecionado
+            start_hour = solution_variables[selected_index]
+            end_hour = solution_variables[selected_index + 1]
+            duration = end_hour - start_hour
 
-                        # Calcular o dia e horário
-                        day_offset_start = start_hour // 24
-                        hour_in_day_start = start_hour % 24
-                        day_offset_end = end_hour // 24
-                        hour_in_day_end = end_hour % 24
+            # Calcular o dia e horário
+            day_offset_start = start_hour // 24
+            hour_in_day_start = start_hour % 24
+            day_offset_end = end_hour // 24
+            hour_in_day_end = end_hour % 24
 
-                        start_label = f"{hour_in_day_start:02d}h"
-                        end_label = f"{hour_in_day_end:02d}h{'*' if day_offset_end > day_offset_start else ''}"
+            start_label = f"{hour_in_day_start:02d}h"
+            end_label = f"{hour_in_day_end:02d}h{'*' if day_offset_end > day_offset_start else ''}"
 
-                        # Dados relacionados ao agendamento
-                        related_agendamentos = agendamento_df[
-                            (agendamento_df["inicio"].apply(lambda x: int(x.split(":")[0])) <= hour_in_day_start) &
-                            ((agendamento_df["inicio"].apply(lambda x: int(x.split(":")[0])) + agendamento_df["duracao"]) >= hour_in_day_end)
-                        ]
+            # Dados relacionados ao agendamento
+            related_agendamentos = agendamento_df[
+                (agendamento_df["inicio"].apply(lambda x: int(x.split(":")[0])) <= hour_in_day_start) &
+                ((agendamento_df["inicio"].apply(lambda x: int(x.split(":")[0])) + agendamento_df["duracao"]) >= hour_in_day_end)
+            ]
 
-                        # Dados relacionados às contingências
-                        related_contingencies = contingencia_df[
-                            (contingencia_df["from"] <= start_hour) & (contingencia_df["to"] >= end_hour)
-                        ]
+            # Dados relacionados às contingências
+            related_contingencies = contingencia_df[
+                (contingencia_df["from"] <= start_hour) & (contingencia_df["to"] >= end_hour)
+            ]
 
-                        # Exibir os detalhes
-                        st.subheader("Detalhes do Intervalo Selecionado")
-                        st.json({
-                            "Intervalo": f"{start_label} - {end_label} ({duration}h)",
-                            "Agendamentos Relacionados": related_agendamentos.to_dict(orient="records"),
-                            "Contingências Relacionadas": related_contingencies.to_dict(orient="records")
-                        })
-                    else:
-                        st.warning("Selecione um intervalo válido no timeline.")
+            # Exibir os detalhes
+            st.subheader("Detalhes do Intervalo Selecionado")
+            st.json({
+                "Intervalo": f"{start_label} - {end_label} ({duration}h)",
+                "Agendamentos Relacionados": related_agendamentos.to_dict(orient="records"),
+                "Contingências Relacionadas": related_contingencies.to_dict(orient="records")
+            })
+        else:
+            st.warning("Selecione um intervalo válido no timeline.")
 
 
 # Função para exibir a página de agendamento de rede elétrica
@@ -180,7 +181,16 @@ def AgendamentoRedePage():
     timeline_items = []
     for index, row in agendamento_df.iterrows():
         start_time = row["inicio"]
-        start_hour, start_minute = map(int, start_time.split(":"))
+        # Corrigir para garantir que start_time seja uma string antes de usar split
+        if isinstance(start_time, (list, tuple, pd.Series, np.ndarray)):
+            # Se for array, pega o primeiro elemento (ou ajusta conforme necessário)
+            start_time = start_time[0]
+        start_time = str(start_time)
+        try:
+            start_hour, start_minute = map(int, start_time.split(":"))
+        except Exception:
+            # Caso o formato não seja esperado, define valores padrão ou pula
+            start_hour, start_minute = 0, 0
         end_hour = start_hour + row["duracao"]
 
         mes = 6  # Mês fixo para o exemplo
@@ -193,35 +203,35 @@ def AgendamentoRedePage():
             "end": f"2025-0{mes}-{dia}T{end_hour:02d}:{start_minute:02d}:00"
         })
 
-    # Exibir timeline
-    st.subheader("Sugestão inicial para o Agendamento de Rede Elétrica")
-    st.write("Clique em um item para ver os detalhes da execução selecionada.")
-    timeline = st_timeline(
-        timeline_items,
-        groups=[],
-        options={
-            "selectable": True,
-            "multiselect": True,
-            "zoomable": True,
-            "verticalScroll": True,
-            "stack": True,
-            "height": 500,
-            "margin": {"axis": 5},
-            "groupHeightMode": "auto",
-            "orientation": {"axis": "top", "item": "top"}
-        },
-    )
+    #!  Exibir timeline inicial de Proposta de Agendamento
+    # st.subheader("Sugestão inicial para o Agendamento de Rede Elétrica")
+    # st.write("Clique em um item para ver os detalhes da execução selecionada.")
+    # timeline = st_timeline(
+    #     timeline_items,
+    #     groups=[],
+    #     options={
+    #         "selectable": True,
+    #         "multiselect": True,
+    #         "zoomable": True,
+    #         "verticalScroll": True,
+    #         "stack": True,
+    #         "height": 500,
+    #         "margin": {"axis": 5},
+    #         "groupHeightMode": "auto",
+    #         "orientation": {"axis": "top", "item": "top"}
+    #     },
+    # )
 
-    # Mostrar dados da execução selecionada
-    if timeline:
-        selected_id = timeline.get("id", "").split("-")[1]
-        selected_agendamento = agendamento_df.iloc[int(selected_id)]
-        st.json(selected_agendamento.to_dict())
+    # # Mostrar dados da execução selecionada
+    # if timeline:
+    #     selected_id = timeline.get("id", "").split("-")[1]
+    #     selected_agendamento = agendamento_df.iloc[int(selected_id)]
+    #     st.json(selected_agendamento.to_dict())
 
-    #! Tabs para cada execução
-    st.subheader("Resultado de todas as Execuções")
-    st.write(execution_df)
-    st.info("Para melhor visualização vou tentar ter um checkbox no data_editor de cada execução e selecionar dentro da tabela (retira o tabs de execução), mas por enquanto vou deixar como está.")
+    # #! Tabs para cada execução
+    # st.subheader("Resultado de todas as Execuções")
+    # st.write(execution_df)
+    # st.info("Para melhor visualização vou tentar ter um checkbox no data_editor de cada execução e selecionar dentro da tabela (retira o tabs de execução), mas por enquanto vou deixar como está.")
     
     
     
@@ -265,10 +275,15 @@ def AgendamentoRedePage():
                             
         
 
-    st.write("Tabela de Horários de Agendamento")
-    sorted_vars = sorted(execution_df["solution_variables"])
-    st.dataframe(
-                        pd.DataFrame([sorted_vars], columns=[f"Horário {i+1}" for i in range(len(sorted_vars))])
-    )                #! Timeline para a execução selecionada
-    time_line_from_solution_variables(agendamento_df,contingencia_df ,1)
-            
+    st.subheader("Tabela de Horários de Agendamento")
+
+    # Mostra toda a tabela de execuções primeiro
+    st.dataframe(execution_df)
+
+    # Cria abas para cada execução disponível em execution_df
+    abas = st.tabs([f"Execução {row['execution']}" for _, row in execution_df.iterrows()])
+    for i, aba in enumerate(abas):
+        with aba:
+            exec_data = execution_df.iloc[i]
+            st.write(exec_data)
+            time_line_from_solution_variables(agendamento_df, contingencia_df, exec_data)

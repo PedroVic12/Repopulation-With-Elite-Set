@@ -3,6 +3,7 @@ from pathlib import Path
 from datetime import datetime
 import pandas as pd
 import os
+import itertools
 
 # Importes do seu framework
 from AlgEvolutivoRCE.Setup import Setup
@@ -18,9 +19,8 @@ Mantém arrays importantes como listas e tratamento dos dados que estao variando
 Executa o AG para cada configuração e repetição instanciando Setup e AlgoritimoEvolutivoRCE
 Salva todo resultado de todas as execuções em Excel.
 """
-# Parâmetros que DEVEM continuar como array/lista
-ALWAYS_LIST = {"ARRAY_VAR", "LIMITE_VAR"}
 
+ALWAYS_LIST = {"ARRAY_VAR", "LIMITE_VAR"}
 def load_json(path):
     with open(path, encoding='utf-8') as f:
         return json.load(f)
@@ -32,8 +32,17 @@ def flatten_config(config):
         for k, v in config.items()
     }
 
+def get_param_variaveis(options):
+    return [k for k, v in options.items() if isinstance(v, list) and len(v) > 1]
+
+def gerar_combinacoes(options, variaveis):
+    valores = [options[var] for var in variaveis]
+    return [
+        {**options, **dict(zip(variaveis, comb))}
+        for comb in itertools.product(*valores)
+    ]
+
 def merge_dicts(base, override):
-    # base: params.json, override: config do config.json
     merged = base.copy()
     merged.update(override)
     return merged
@@ -43,17 +52,14 @@ def run_all_configs(configs_dict, params_base):
     for idx, (config_name, config) in enumerate(configs_dict.items(), 1):
         print(f"\n=== INICIANDO A EXECUÇÃO {config_name} ===")
         repeticoes = config.get("repeticoes_por_config", 1)
-        # Mescla params.json (fixos) com config do config.json (variáveis e fixos)
         merged_config = merge_dicts(params_base, config)
         config_ag = flatten_config(merged_config)
         for rep in range(repeticoes):
             print(f"Execução {rep+1}/{repeticoes} para {config_name}")
             start = datetime.now()
             dados = entrada_de_dados()
-
             print("Iniciando as instâncias dos meus objetos")
             print(config_ag)
-
             setup = Setup(config_ag, fitness_function=funcao_objetivo_IEEE14,
                           tamanho_hash=(dados["num_contingencias"] * dados["num_carregamentos"] * (2 ** dados["num_desligamentos"])))
             if os.path.exists("hash_table.xlsx"):
@@ -80,13 +86,20 @@ def run_all_configs(configs_dict, params_base):
 
 def main():
     base_dir = Path(__file__).parent
-    configs_dict = load_json(base_dir / "options.json")
+
+    options = load_json(base_dir / "options.json")
     params_base = load_json(base_dir / "params.json")
-    print("Configs:", configs_dict)
-    print("--------------------------------")
-    print("DEBUG HERE ACIMA\n\n")
-    print("Params:", params_base)
+
+    variaveis = get_param_variaveis(options)
+    configs_list = gerar_combinacoes(options, variaveis)
+
+    # Agora monta o dict indexado como config_1, config_2, ...
+    configs_dict = {f"config_{i+1}": flatten_config(merge_dicts(params_base, cfg)) for i, cfg in enumerate(configs_list)}
+    print(configs_dict)
+
+    print(f"Total de configs: {len(configs_dict)}\n\n\n")
     results = run_all_configs(configs_dict, params_base)
+    
     df = pd.DataFrame(results)
     df.to_excel(base_dir / "resultados_execucoes.xlsx", index=False)
     print(f"\nResultados salvos em {base_dir / 'resultados_execucoes.xlsx'}")

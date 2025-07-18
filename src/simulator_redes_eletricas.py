@@ -5,7 +5,6 @@ from DashboardApp.views.pages.themes import Theme
 
 from DashboardApp.views.pages.AgendamentoRedePage import AgendamentoRedePage
 from DashboardApp.views.pages.EasyPDF_page import EasyPDF
-from DashboardApp.views.Screens.RCE_Framework_Page import FrameworkRCEDashboard
 from DashboardApp.views.Screens.simulacao_redes_IEEE_page import SimulacaoAnaliseContigenciasPage
 
 import sys

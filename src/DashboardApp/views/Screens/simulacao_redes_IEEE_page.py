@@ -52,9 +52,9 @@ def SimulacaoAnaliseContigenciasPage():
     # --- Barra Lateral de Controles ---
     with st.sidebar:
         st.header("Parâmetros da Simulação")
-        nome_rede = st.selectbox("Selecione a Rede Elétrica:", ("case14", "case30", "case57", "case118"), key="rede_selecionada")
+        nome_rede = st.selectbox("Selecione a Rede Elétrica:", ("14", "30", "57", "118"), key="rede_selecionada")
 
-        if 'rede_eletrica' not in st.session_state or st.session_state.rede_eletrica.network_name != nome_rede:
+        if 'rede_eletrica' not in st.session_state != nome_rede:
             with st.spinner(f"Carregando a rede {nome_rede}..."):
                 st.session_state.rede_eletrica = RedeEletricaPandaPower(nome_rede)
 
@@ -76,10 +76,10 @@ def SimulacaoAnaliseContigenciasPage():
 
     # --- Execução da Análise ---
     with st.spinner("Executando fluxo de potência..."):
-        convergiu, mensagem_erro = rede.executar_fluxo_de_carga()
+        convergiu = rede.executar_fluxo_de_potencia()
 
     if not convergiu:
-        st.error(f"**Falha na Simulação:** {mensagem_erro}")
+        st.error(f"**Falha na Simulação:** ")
     else:
         st.success("**Simulação concluída com sucesso!**")
         
