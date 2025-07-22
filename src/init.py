@@ -86,7 +86,7 @@ def configs_dict(configs):
 
 
 def run_framework_groups_executions():
-    print(f"Combinação de Configuração {}/{len()} - Execução {+1}/{}")
+    print(f"Combinação de Configuração {config}/{len()} - Execução {+1}/{}")
 
     dados = entrada_de_dados()
     print(f"\n\nIniciando execução com os parâmetros: {config}")
