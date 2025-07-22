@@ -211,7 +211,7 @@ def main():
     r_sph, theta_sph, phi_sph = symbols('r_sph theta_sph phi_sph')
     E_sph = k * Q / (r_sph**2)
     
-    display(Math(f"E = {latex(E_sph)}"))
+    display(Math(f"E = {latex(E_sph)}"))s
     
     # Exemplo em coordenadas esféricas
     valores_sph = {r_sph: 3, theta_sph: math.pi/3, phi_sph: math.pi/6, k: 9e9, Q: 1e-6}
