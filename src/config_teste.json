@@ -1,7 +1,7 @@
 {
     "config 1": {
         "NUM_GENERATIONS": [
-            40
+            20
         ],
         "CROSSOVER": [
             0.95
@@ -19,12 +19,12 @@
         "DELTA_MIN": 2,
         "ARRAY_VAR": 14,
         "LIMITE_VAR": 0,
-        "repeticoes_por_config": 3,
+        "repeticoes_por_config": 5,
         "key": true
     },
     "config 2": {
         "NUM_GENERATIONS": [
-            40
+            20
         ],
         "CROSSOVER": [
             0.95
@@ -42,12 +42,12 @@
         "DELTA_MIN": 2,
         "ARRAY_VAR": 14,
         "LIMITE_VAR": 31,
-        "repeticoes_por_config": 3,
+        "repeticoes_por_config": 5,
         "key": true
     },
     "config 3": {
         "NUM_GENERATIONS": [
-            40
+            20
         ],
         "CROSSOVER": [
             0.95
@@ -65,12 +65,12 @@
         "DELTA_MIN": 2,
         "ARRAY_VAR": 15,
         "LIMITE_VAR": 0,
-        "repeticoes_por_config": 3,
+        "repeticoes_por_config": 5,
         "key": true
     },
     "config 4": {
         "NUM_GENERATIONS": [
-            40
+            20
         ],
         "CROSSOVER": [
             0.95
@@ -88,12 +88,12 @@
         "DELTA_MIN": 2,
         "ARRAY_VAR": 15,
         "LIMITE_VAR": 31,
-        "repeticoes_por_config": 3,
+        "repeticoes_por_config": 5,
         "key": true
     },
     "config 5": {
         "NUM_GENERATIONS": [
-            40
+            20
         ],
         "CROSSOVER": [
             0.95
@@ -111,12 +111,12 @@
         "DELTA_MIN": 2,
         "ARRAY_VAR": 14,
         "LIMITE_VAR": 0,
-        "repeticoes_por_config": 3,
+        "repeticoes_por_config": 5,
         "key": true
     },
     "config 6": {
         "NUM_GENERATIONS": [
-            40
+            20
         ],
         "CROSSOVER": [
             0.95
@@ -134,12 +134,12 @@
         "DELTA_MIN": 2,
         "ARRAY_VAR": 14,
         "LIMITE_VAR": 31,
-        "repeticoes_por_config": 3,
+        "repeticoes_por_config": 5,
         "key": true
     },
     "config 7": {
         "NUM_GENERATIONS": [
-            40
+            20
         ],
         "CROSSOVER": [
             0.95
@@ -157,12 +157,12 @@
         "DELTA_MIN": 2,
         "ARRAY_VAR": 18,
         "LIMITE_VAR": 0,
-        "repeticoes_por_config": 3,
+        "repeticoes_por_config": 5,
         "key": true
     },
     "config 8": {
         "NUM_GENERATIONS": [
-            40
+            20
         ],
         "CROSSOVER": [
             0.95
@@ -180,12 +180,12 @@
         "DELTA_MIN": 2,
         "ARRAY_VAR": 18,
         "LIMITE_VAR": 31,
-        "repeticoes_por_config": 3,
+        "repeticoes_por_config": 5,
         "key": true
     },
     "config 9": {
         "NUM_GENERATIONS": [
-            40
+            20
         ],
         "CROSSOVER": [
             0.95
@@ -203,12 +203,12 @@
         "DELTA_MIN": 2,
         "ARRAY_VAR": 15,
         "LIMITE_VAR": 0,
-        "repeticoes_por_config": 3,
+        "repeticoes_por_config": 5,
         "key": true
     },
     "config 10": {
         "NUM_GENERATIONS": [
-            40
+            20
         ],
         "CROSSOVER": [
             0.95
@@ -226,7 +226,27 @@
         "DELTA_MIN": 2,
         "ARRAY_VAR": 15,
         "LIMITE_VAR": 31,
-        "repeticoes_por_config": 3,
+        "repeticoes_por_config": 5,
         "key": true
-    }
+    },
+    "NUM_GENERATIONS": 40,
+    "CROSSOVER": 0.95,
+    "MUTACAO": 0.25,
+    "POP_SIZE": 5,
+    "IND_SIZE": 5,
+    "RCE_REPOPULATION_GENERATIONS": 50,
+    "NUM_VAR_DIFERENTES": 1,
+    "PORCENTAGEM": 0.2,
+    "DELTA_MIN": 2,
+    "ARRAY_VAR": [
+        14,
+        15,
+        14,
+        18,
+        15
+    ],
+    "LIMITE_VAR": [
+        0,
+        31
+    ]
 }
