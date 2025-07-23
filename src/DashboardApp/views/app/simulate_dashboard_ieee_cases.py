@@ -9,7 +9,7 @@ import plotly.graph_objects as go
 
 # --- Configuração da Página ---
 st.set_page_config(
-    page_title="Dashboard de Análise de Redes Elétricas",
+    page_title="Simulador de Redes Elétricas",
     layout="wide",
     initial_sidebar_state="expanded"
 )
