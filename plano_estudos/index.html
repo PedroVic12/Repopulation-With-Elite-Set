@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Plano de Estudos Interativo: Full-Stack</title>
+
+    <!-- Chosen Palette: Tailwind Slate & Sky -->
+    <!-- Application Structure Plan: The SPA transforms the static study plan into an interactive task board. Key sections are 'Principles', 'Architecture Diagram', and 'The Plan'. The plan is divided into Day 1/Day 2 tabs. Each task is a collapsible, checkable card to track progress. This structure enhances engagement and provides a clear path for the user, turning a passive document into an active learning tool. -->
+    <!-- Visualization & Content Choices: Principles -> Styled cards (Inform). Plan -> Interactive task list (Organize/Track). Time Allocation -> Donut Chart (Compare/Inform, using Chart.js). Architecture -> HTML/CSS Diagram (Inform). All interactions are handled by vanilla JS to dynamically update the UI based on user actions (checking tasks, toggling days), providing immediate feedback. -->
+    <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f1f5f9; /* slate-100 */
+        }
+        .task-card.completed {
+            border-left-color: #22c55e; /* green-500 */
+            background-color: #f6fbf8;
+        }
+        .task-card.completed .task-title {
+            text-decoration: line-through;
+            color: #64748b; /* slate-500 */
+        }
+        .details-content {
+            transition: max-height 0.5s ease-in-out, opacity 0.5s ease-in-out;
+            max-height: 0;
+            opacity: 0;
+            overflow: hidden;
+        }
+        .details-content.open {
+            max-height: 1000px; /* Large enough to fit content */
+            opacity: 1;
+        }
+        .chart-container {
+            position: relative;
+            width: 100%;
+            max-width: 400px;
+            margin-left: auto;
+            margin-right: auto;
+            height: auto;
+            max-height: 400px;
+        }
+    </style>
+</head>
+<body class="text-slate-800">
+
+    <div class="container mx-auto p-4 md:p-8 max-w-5xl">
+
+        <!-- Header -->
+        <header class="text-center mb-12">
+            <h1 class="text-4xl md:text-5xl font-extrabold text-slate-900">Plano de Estudos Full-Stack</h1>
+            <p class="mt-4 text-lg text-slate-600">Sua jornada interativa para dominar a arquitetura limpa com Flask, Astro e Flutter.</p>
+        </header>
+
+        <main class="space-y-12">
+
+            <!-- Section: Architecture Principles -->
+            <section>
+                <h2 class="text-3xl font-bold mb-6 text-slate-900 border-b-4 border-sky-500 pb-2">Nossa Bíblia: Princípios da Arquitetura</h2>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div class="bg-white p-6 rounded-lg shadow-md border-l-4 border-sky-500">
+                        <h3 class="font-bold text-xl mb-2">1. API como Fonte da Verdade</h3>
+                        <p class="text-slate-600">O backend Flask apenas entrega dados JSON. Ele não conhece o frontend, garantindo total desacoplamento.</p>
+                    </div>
+                    <div class="bg-white p-6 rounded-lg shadow-md border-l-4 border-sky-500">
+                        <h3 class="font-bold text-xl mb-2">2. Frontend "Burro"</h3>
+                        <p class="text-slate-600">Astro e Flutter são responsáveis apenas por exibir os dados de forma bonita. A lógica de negócio fica na API.</p>
+                    </div>
+                    <div class="bg-white p-6 rounded-lg shadow-md border-l-4 border-sky-500">
+                        <h3 class="font-bold text-xl mb-2">3. Contrato de Dados (JSON)</h3>
+                        <p class="text-slate-600">A comunicação é feita por um "contrato" JSON bem definido, garantindo que backend e frontend falem a mesma língua.</p>
+                    </div>
+                    <div class="bg-white p-6 rounded-lg shadow-md border-l-4 border-sky-500">
+                        <h3 class="font-bold text-xl mb-2">4. Um Serviço por Responsabilidade</h3>
+                        <p class="text-slate-600">No Flask, cada recurso (Blog, Loja, Financeiro) tem seu próprio arquivo de rotas, mantendo o código limpo e organizado.</p>
+                    </div>
+                </div>
+            </section>
+            
+            <!-- Section: Architecture Diagram & Chart -->
+            <section class="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+                <div>
+                    <h2 class="text-3xl font-bold mb-6 text-slate-900 border-b-4 border-sky-500 pb-2">Diagrama da Arquitetura</h2>
+                    <div class="bg-white p-6 rounded-lg shadow-lg text-center space-y-4">
+                        <div class="flex justify-around">
+                            <div class="p-4 bg-sky-100 text-sky-800 font-semibold rounded-lg shadow">Astro (Web)</div>
+                            <div class="p-4 bg-green-100 text-green-800 font-semibold rounded-lg shadow">Flutter (App)</div>
+                        </div>
+                        <div class="text-3xl font-bold text-slate-400">↓ ↑</div>
+                        <div class="p-4 bg-slate-800 text-white font-semibold rounded-lg shadow">API Central (Flask)</div>
+                        <div class="text-3xl font-bold text-slate-400">↓ ↑</div>
+                        <div class="p-4 bg-yellow-100 text-yellow-800 font-semibold rounded-lg shadow">Banco de Dados (Mock)</div>
+                        <p class="text-sm text-slate-500 pt-4">Uma API central serve múltiplas interfaces, garantindo consistência e reuso de código.</p>
+                    </div>
+                </div>
+                <div>
+                    <h2 class="text-3xl font-bold mb-6 text-slate-900 border-b-4 border-sky-500 pb-2">Distribuição do Tempo</h2>
+                    <div class="bg-white p-6 rounded-lg shadow-lg chart-container">
+                        <canvas id="timeAllocationChart"></canvas>
+                    </div>
+                </div>
+            </section>
+
+
+            <!-- Section: The Plan -->
+            <section>
+                <h2 class="text-3xl font-bold mb-6 text-slate-900 border-b-4 border-sky-500 pb-2">O Plano de Batalha (2 Dias)</h2>
+                
+                <!-- Day Toggles -->
+                <div class="flex justify-center mb-8 bg-slate-200 p-1 rounded-lg shadow-inner w-fit mx-auto">
+                    <button id="btn-day-1" class="day-toggle-btn bg-sky-500 text-white px-6 py-2 rounded-md font-semibold">Dia 1: Backend</button>
+                    <button id="btn-day-2" class="day-toggle-btn bg-transparent text-slate-600 px-6 py-2 rounded-md font-semibold">Dia 2: Frontend</button>
+                </div>
+
+                <!-- Task Lists -->
+                <div id="day-1-tasks">
+                    <!-- Day 1 tasks will be rendered here -->
+                </div>
+                <div id="day-2-tasks" class="hidden">
+                    <!-- Day 2 tasks will be rendered here -->
+                </div>
+            </section>
+
+        </main>
+    </div>
+
+    <script>
+        const studyPlan = {
+            day1: [
+                {
+                    session: 'Manhã (4 horas)',
+                    title: 'Setup e Projeto 1 (Blog)',
+                    tasks: [
+                        { id: 'd1t1', title: 'Ambiente (30 min)', details: ['Crie a pasta `projetos_fullstack` e `backend_api` dentro dela.', 'Crie e ative um ambiente virtual (`venv`).', 'Instale `Flask` e `Flask-Cors`.'] },
+                        { id: 'd1t2', title: 'Arquitetura do Flask (1 hora)', details: ['Crie a estrutura de pastas: `app/`, `app/routes/`, `run.py`.', 'Defina os arquivos `__init__.py` para os pacotes.'] },
+                        { id: 'd1t3', title: 'Codando a API do Blog (2 horas)', details: ['Configure o app Flask e o CORS em `app/__init__.py`.', 'Em `blog_routes.py`, crie dados falsos (mock) para os posts.', 'Implemente a rota `GET /api/posts` e `GET /api/posts/<id>`.', 'Configure `run.py` para iniciar o servidor.'] },
+                        { id: 'd1t4', title: 'Teste (30 min)', details: ['Inicie o servidor com `python run.py`.', 'Use Postman/Insomnia para testar as rotas do blog e verificar o retorno do JSON.'] }
+                    ]
+                },
+                {
+                    session: 'Tarde (4 horas)',
+                    title: 'Projetos 2 (Loja) e 3 (Financeiro)',
+                    tasks: [
+                        { id: 'd1t5', title: 'Codando a API da Loja (1.5 horas)', details: ['Em `store_routes.py`, crie um mock de produtos.', 'Implemente as rotas `GET /api/products` e `GET /api/products/<id>`.'] },
+                        { id: 'd1t6', title: 'Codando a API Financeira (1.5 horas)', details: ['Em `finance_routes.py`, crie um mock de transações.', 'Implemente a rota `GET /api/transactions`.', 'Implemente a rota `POST /api/transactions` para adicionar um novo item.'] },
+                        { id: 'd1t7', title: 'Teste Geral (1 hora)', details: ['Use o Postman para testar todas as novas rotas (loja e financeiro).', 'Faça um teste de POST para adicionar uma nova transação.'] }
+                    ]
+                }
+            ],
+            day2: [
+                {
+                    session: 'Manhã (4 horas)',
+                    title: 'Astro para Conteúdo (Blog e Loja)',
+                    tasks: [
+                        { id: 'd2t1', title: 'Setup do Astro (30 min)', details: ['Crie a pasta `frontend_astro`.', 'Inicie um novo projeto Astro (`npm create astro@latest`).', 'Adicione o Tailwind CSS ao projeto (`npx astro add tailwind`).'] },
+                        { id: 'd2t2', title: 'Construindo o Blog (1.5 horas)', details: ['Crie `src/pages/blog/index.astro` para listar os posts via `fetch` da sua API.', 'Renderize um card para cada post.', 'Crie a página de detalhe `src/pages/blog/[id].astro` para buscar e exibir um post específico.'] },
+                        { id: 'd2t3', title: 'Construindo a Vitrine da Loja (2 horas)', details: ['Aplique o mesmo padrão do blog para a loja.', 'Crie as páginas de listagem e detalhe para os produtos.', 'Desafio: Estilize os cards de produto com Tailwind.'] }
+                    ]
+                },
+                {
+                    session: 'Tarde (4 horas)',
+                    title: 'Flutter para a Experiência de App (Controle Financeiro)',
+                    tasks: [
+                        { id: 'd2t4', title: 'Setup do Flutter (30 min)', details: ['Crie um novo projeto Flutter (`flutter create app_financeiro`).', 'Adicione o pacote `http` ao `pubspec.yaml`.'] },
+                        { id: 'd2t5', title: 'Estrutura do App (30 min)', details: ['Crie as pastas `api/`, `models/`, `screens/` dentro de `lib/`.'] },
+                        { id: 'd2t6', title: 'Buscando e Exibindo Dados (1.5 horas)', details: ['Crie o modelo `Transaction` com o método `fromJson`.', 'Crie o serviço `ApiService` com a função `fetchTransactions`.', 'Na tela, use um `FutureBuilder` para chamar o serviço e exibir os dados em uma `ListView`.'] },
+                        { id: 'd2t7', title: 'Enviando Dados (1.5 horas)', details: ['Adicione um `FloatingActionButton` para abrir um formulário (AlertDialog ou nova tela).', 'Crie a função `addTransaction` no serviço para fazer o `POST` para a API.', 'Após o sucesso, atualize a UI com a nova transação.'] }
+                    ]
+                }
+            ]
+        };
+
+        let taskStates = JSON.parse(localStorage.getItem('studyPlanProgress')) || {};
+
+        function saveProgress() {
+            localStorage.setItem('studyPlanProgress', JSON.stringify(taskStates));
+        }
+
+        function renderTask(task) {
+            const isCompleted = taskStates[task.id] || false;
+            const detailsHtml = task.details.map(detail => `<li class="text-slate-600">${detail}</li>`).join('');
+            
+            return `
+                <div class="task-card bg-white p-4 rounded-lg shadow-md border-l-4 border-slate-300 mb-4 transition-all duration-300 ${isCompleted ? 'completed' : ''}" data-task-id="${task.id}">
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center gap-4">
+                            <input type="checkbox" class="task-checkbox h-5 w-5 rounded border-gray-300 text-sky-600 focus:ring-sky-500 cursor-pointer" ${isCompleted ? 'checked' : ''}>
+                            <h4 class="task-title font-bold text-lg">${task.title}</h4>
+                        </div>
+                        <button class="details-toggle text-slate-500 hover:text-sky-600">
+                            <svg class="w-6 h-6 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                        </button>
+                    </div>
+                    <div class="details-content pl-10 pt-4">
+                        <ul class="list-disc list-inside space-y-2">
+                            ${detailsHtml}
+                        </ul>
+                    </div>
+                </div>
+            `;
+        }
+
+        function renderDay(dayData, containerId) {
+            const container = document.getElementById(containerId);
+            container.innerHTML = dayData.map(session => `
+                <div class="mb-8">
+                    <h3 class="text-2xl font-semibold mb-4 text-slate-700">${session.session}: <span class="font-bold text-slate-800">${session.title}</span></h3>
+                    ${session.tasks.map(renderTask).join('')}
+                </div>
+            `).join('');
+        }
+
+        function setupEventListeners() {
+            document.querySelectorAll('.task-checkbox').forEach(checkbox => {
+                checkbox.addEventListener('change', (e) => {
+                    const card = e.target.closest('.task-card');
+                    const taskId = card.dataset.taskId;
+                    taskStates[taskId] = e.target.checked;
+                    card.classList.toggle('completed', e.target.checked);
+                    saveProgress();
+                });
+            });
+
+            document.querySelectorAll('.details-toggle').forEach(button => {
+                button.addEventListener('click', (e) => {
+                    const card = e.target.closest('.task-card');
+                    const content = card.querySelector('.details-content');
+                    const icon = card.querySelector('svg');
+                    content.classList.toggle('open');
+                    icon.classList.toggle('rotate-180');
+                });
+            });
+        }
+
+        function init() {
+            renderDay(studyPlan.day1, 'day-1-tasks');
+            renderDay(studyPlan.day2, 'day-2-tasks');
+            setupEventListeners();
+        }
+
+        // Day Toggle Logic
+        const btnDay1 = document.getElementById('btn-day-1');
+        const btnDay2 = document.getElementById('btn-day-2');
+        const tasksDay1 = document.getElementById('day-1-tasks');
+        const tasksDay2 = document.getElementById('day-2-tasks');
+
+        btnDay1.addEventListener('click', () => {
+            btnDay1.classList.add('bg-sky-500', 'text-white');
+            btnDay1.classList.remove('bg-transparent', 'text-slate-600');
+            btnDay2.classList.add('bg-transparent', 'text-slate-600');
+            btnDay2.classList.remove('bg-sky-500', 'text-white');
+            tasksDay1.classList.remove('hidden');
+            tasksDay2.classList.add('hidden');
+        });
+
+        btnDay2.addEventListener('click', () => {
+            btnDay2.classList.add('bg-sky-500', 'text-white');
+            btnDay2.classList.remove('bg-transparent', 'text-slate-600');
+            btnDay1.classList.add('bg-transparent', 'text-slate-600');
+            btnDay1.classList.remove('bg-sky-500', 'text-white');
+            tasksDay2.classList.remove('hidden');
+            tasksDay1.classList.add('hidden');
+        });
+
+        // Chart.js Logic
+        const ctx = document.getElementById('timeAllocationChart').getContext('2d');
+        const timeAllocationChart = new Chart(ctx, {
+            type: 'doughnut',
+            data: {
+                labels: ['Flask (Backend)', 'Astro (Web)', 'Flutter (App)'],
+                datasets: [{
+                    label: 'Horas de Estudo',
+                    data: [8, 4, 4], // 8h Dia 1, 4h Astro, 4h Flutter
+                    backgroundColor: [
+                        'rgb(55, 65, 81)',    // slate-700
+                        'rgb(14, 165, 233)',  // sky-500
+                        'rgb(34, 197, 94)',   // green-500
+                    ],
+                    borderColor: '#f1f5f9',
+                    borderWidth: 4,
+                    hoverOffset: 8
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'bottom',
+                        labels: {
+                            font: {
+                                size: 14,
+                                family: 'Inter'
+                            }
+                        }
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                let label = context.label || '';
+                                if (label) {
+                                    label += ': ';
+                                }
+                                if (context.parsed !== null) {
+                                    label += context.parsed + ' horas';
+                                }
+                                return label;
+                            }
+                        }
+                    }
+                }
+            }
+        });
+
+        document.addEventListener('DOMContentLoaded', init);
+    </script>
+</body>
+</html>
