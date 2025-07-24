@@ -23,15 +23,16 @@ def load_json(path):
         return json.load(f)
 
 def get_param_variaveis(options):
+    # Só pega listas com mais de 1 valor (parâmetros variáveis)
     return [k for k, v in options.items() if isinstance(v, list) and len(v) > 1]
 
 def gerar_combinacoes(options, variaveis):
     valores = [options[var] for var in variaveis]
+    # Para cada combinação, monta um dicionário com os valores corretos
     return [
         {**options, **dict(zip(variaveis, comb))}
         for comb in itertools.product(*valores)
     ]
-
 def configs_dict(configs):
     return {f"config {i+1}": cfg for i, cfg in enumerate(configs)}
 
@@ -45,6 +46,17 @@ def consulta_hashtable(setup):
         print(f"Erro ao ler o arquivo xlsx: {e}")
 
 def tratamento_dados_json(config):
+    # Para todos os parâmetros que são listas, pega só o valor da combinação (primeiro valor)
+    for k, v in config.items():
+        if isinstance(v, list) and len(v) == 1:
+            config[k] = v[0]
+    print("Configuração tratada:", config)
+    
+    
+    #! codigo acima feito por IA e ta com versao estavel roando sme mostrar o tempo mas com concfig 2/10 com exec = 3
+    
+    #! cada config faz uma instancia no setup. ta certo isso?
+    
     # Exemplo: sempre força POP_SIZE e NUM_GENERATIONS para int
     if isinstance(config.get("POP_SIZE"), list):
         config["POP_SIZE"] = int(config["POP_SIZE"][0])
@@ -82,6 +94,8 @@ def load_many_executions(options, setupobj, algoritmo):
         print(f"\n=== Execução: {i + 1} ===")
         start = datetime.now()
         pop_with_repopulation, logbook_with_repopulation, best_variables = algoritmo.run(RCE=True)
+        
+        # aqrui preciso passar a varaivel contador de config para passar para salvar os graficos em html
         x, y, z, fig = algoritmo.dashboard.visualize(
             logbook_with_repopulation, pop_with_repopulation,
             execution_num=i + 1
