@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard 3D - Fluxo de Potência ONS</title>
+    <style>
+        body {
+            margin: 0;
+            overflow: hidden;
+            font-family: 'Inter', sans-serif;
+            background-color: #111827;
+            color: #f3f4f6;
+        }
+        #info-panel {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            background-color: rgba(17, 24, 39, 0.8);
+            border: 1px solid #374151;
+            padding: 16px;
+            border-radius: 12px;
+            width: 220px;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+        }
+        #info-panel h1 {
+            margin-top: 0;
+            font-size: 1.2rem;
+            color: #e5e7eb;
+            border-bottom: 1px solid #4b5563;
+            padding-bottom: 10px;
+        }
+        .region-info {
+            margin-bottom: 20px;
+        }
+        .region-info h2 {
+            font-size: 1.1rem;
+            color: #9ca3af;
+            margin: 0 0 5px 0;
+        }
+        .region-info p {
+            margin: 0;
+            font-size: 1rem;
+            color: #f9fafb;
+        }
+        .label {
+            color: #fff;
+            font-size: 16px;
+            background: rgba(0, 0, 0, 0.6);
+            padding: 5px 10px;
+            border-radius: 5px;
+            text-shadow: 1px 1px 2px black;
+        }
+    </style>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700&display=swap" rel="stylesheet">
+</head>
+<body>
+
+    <div id="info-panel">
+        <h1>Fluxo de Potência (MW) - ONS 2025</h1>
+        <div id="data-container">
+            <!-- As informações das regiões serão inseridas aqui pelo JavaScript -->
+        </div>
+    </div>
+
+    <img src="C:\Users\pedrovictor.veras\OneDrive - Operador Nacional do Sistema Eletrico\Documentos\ESTAGIO ONS PVRV 2025\mapa_brasil.png" alt="Minha Imagem" style="position:absolute; top:20px; right:20px; width:120px; border-radius:10px; box-shadow:0 2px 8px rgba(0,0,0,0.3);">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/renderers/CSS2DRenderer.js"></script>
+
+    <script>
+        // --- SETUP BÁSICO ---
+        const scene = new THREE.Scene();
+        const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+        camera.position.set(0, 70, 20);
+
+        const renderer = new THREE.WebGLRenderer({ antialias: true });
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer.setPixelRatio(window.devicePixelRatio);
+        document.body.appendChild(renderer.domElement);
+
+        const labelRenderer = new THREE.CSS2DRenderer();
+        labelRenderer.setSize(window.innerWidth, window.innerHeight);
+        labelRenderer.domElement.style.position = 'absolute';
+        labelRenderer.domElement.style.top = '0px';
+        document.body.appendChild(labelRenderer.domElement);
+
+        const controls = new THREE.OrbitControls(camera, labelRenderer.domElement);
+        controls.enableDamping = true;
+
+        // --- ILUMINAÇÃO ---
+        const ambientLight = new THREE.AmbientLight(0x404040, 2);
+        scene.add(ambientLight);
+        const directionalLight = new THREE.DirectionalLight(0xffffff, 1.5);
+        directionalLight.position.set(10, 20, 5);
+        scene.add(directionalLight);
+
+        // --- DADOS INICIAIS (baseado na imagem) ---
+        const initialData = {
+            norte: { carga: 7871, geracao: { hidraulica: 5736, termica: 1895, eolica: 220 } },
+            nordeste: { carga: 12124, geracao: { hidraulica: 2542, termica: 359, eolica: 18247, solar: 7247 } },
+            sudeste: { carga: 41949, geracao: { hidraulica: 18610, termica: 7748, ufv_mmgd: 2025 } },
+            sul: { carga: 15022, geracao: { hidraulica: 11112, termica: 1105, eolica: 513 } }
+        };
+
+        let currentData = JSON.parse(JSON.stringify(initialData));
+
+        // --- CRIAÇÃO DO MAPA DO BRASIL (Simplificado) ---
+        const mapGroup = new THREE.Group();
+        const loader = new THREE.TextureLoader();
+        loader.crossOrigin = "anonymous"; // Permite carregar imagens de outros domínios com CORS
+
+        // Use uma imagem com CORS habilitado, como do Wikimedia Commons
+        loader.load('mapa_colorido_brasil.png', (texture) => {
+
+            let coodernadas_geometria = (50,50)
+
+            const planeGeometry = new THREE.PlaneGeometry(50,40);
+            const planeMaterial = new THREE.MeshPhongMaterial({
+                map: texture,
+                transparent: true,
+                shininess: 10
+            });
+            const mapPlane = new THREE.Mesh(planeGeometry, planeMaterial);
+            mapPlane.rotation.x = -Math.PI / 2;
+            mapGroup.add(mapPlane);
+        }, undefined, () => {
+             console.error('Falha ao carregar a textura do mapa. Usando um plano cinza.');
+             const planeGeometry = new THREE.PlaneGeometry(50, 60);
+             const planeMaterial = new THREE.MeshPhongMaterial({ color: 0x444444, shininess: 10 });
+             const mapPlane = new THREE.Mesh(planeGeometry, planeMaterial);
+             mapPlane.rotation.x = -Math.PI / 2;
+             mapGroup.add(mapPlane);
+        });
+        scene.add(mapGroup);
+        
+        // --- POSIÇÕES E NÓS REGIONAIS ---
+        const regionPositions = {
+            norte: new THREE.Vector3(-8, 0, -15),
+            nordeste: new THREE.Vector3(10, 0, -8),
+            sudeste: new THREE.Vector3(5, 0, 5),
+            sul: new THREE.Vector3(-2, 0, 15)
+        };
+
+        const regionNodes = {};
+        const nodeGeometry = new THREE.CylinderGeometry(1, 1, 1, 32);
+
+        for (const region in regionPositions) {
+            const data = currentData[region];
+            const totalCarga = data.carga;
+            
+            const material = new THREE.MeshPhongMaterial({ color: 0x0ea5e9 });
+            const node = new THREE.Mesh(nodeGeometry, material);
+            
+            node.position.copy(regionPositions[region]);
+            // Altura do cilindro proporcional à carga
+            const scaleY = Math.max(0.1, totalCarga / 5000);
+            node.scale.set(1, scaleY, 1);
+            node.position.y = scaleY / 2;
+            
+            mapGroup.add(node);
+            regionNodes[region] = node;
+
+            // Adiciona Rótulos
+            const labelDiv = document.createElement('div');
+            labelDiv.className = 'label';
+            labelDiv.textContent = region.charAt(0).toUpperCase() + region.slice(1);
+            const label = new THREE.CSS2DObject(labelDiv);
+            label.position.set(0, scaleY + 1, 0);
+            node.add(label);
+        }
+
+        // --- CONEXÕES (FLUXO DE ENERGIA) ---
+        const connections = [
+            { from: 'norte', to: 'nordeste', value: 3602 },
+            { from: 'norte', to: 'sudeste', value: 4000 },
+            { from: 'nordeste', to: 'sudeste', value: 7710 },
+            { from: 'sul', to: 'sudeste', value: 2309 }
+        ];
+
+        const particleSystems = [];
+
+        connections.forEach(conn => {
+            const startPos = regionPositions[conn.from];
+            const endPos = regionPositions[conn.to];
+            const curve = new THREE.CatmullRomCurve3([
+                startPos,
+                new THREE.Vector3((startPos.x + endPos.x)/2, 10, (startPos.z + endPos.z)/2), // Ponto de controle para arquear a linha
+                endPos
+            ]);
+
+            // Linha visual
+            const points = curve.getPoints(50);
+            const lineGeometry = new THREE.BufferGeometry().setFromPoints(points);
+            const lineMaterial = new THREE.LineBasicMaterial({ color: 0xfbbf24, transparent: true, opacity: 0.5 });
+            const curveObject = new THREE.Line(lineGeometry, lineMaterial);
+            mapGroup.add(curveObject);
+
+            // Partículas para o fluxo
+            const particleCount = Math.floor(conn.value / 20); // Mais partículas para mais fluxo
+            const particleGeometry = new THREE.BufferGeometry();
+            const particlePositions = new Float32Array(particleCount * 3);
+            const particleProgress = new Float32Array(particleCount);
+
+            for (let i = 0; i < particleCount; i++) {
+                const progress = Math.random();
+                particleProgress[i] = progress;
+                const point = curve.getPointAt(progress);
+                particlePositions[i * 3] = point.x;
+                particlePositions[i * 3 + 1] = point.y;
+                particlePositions[i * 3 + 2] = point.z;
+            }
+
+            particleGeometry.setAttribute('position', new THREE.BufferAttribute(particlePositions, 3));
+            const particleMaterial = new THREE.PointsMaterial({ color: 0xfffde7, size: 0.3, transparent: true, opacity: 0.8 });
+            const particles = new THREE.Points(particleGeometry, particleMaterial);
+            particleSystems.push({ particles, curve, progress: particleProgress });
+            mapGroup.add(particles);
+        });
+
+        // --- FUNÇÕES DE ATUALIZAÇÃO ---
+        function updateData() {
+            for (const region in currentData) {
+                // Simula uma variação de +/- 5% nos dados
+                currentData[region].carga = Math.round(initialData[region].carga * (1 + (Math.random() - 0.5) * 0.1));
+                for (const type in currentData[region].geracao) {
+                    currentData[region].geracao[type] = Math.round(initialData[region].geracao[type] * (1 + (Math.random() - 0.5) * 0.1));
+                }
+            }
+        }
+
+        function updateUI() {
+            const container = document.getElementById('data-container');
+            container.innerHTML = '';
+            for (const region in currentData) {
+                const data = currentData[region];
+                let totalGeracao = 0;
+                for(const type in data.geracao) {
+                    totalGeracao += data.geracao[type];
+                }
+
+                const regionDiv = document.createElement('div');
+                regionDiv.className = 'region-info';
+                regionDiv.innerHTML = `
+                    <h2>${region.charAt(0).toUpperCase() + region.slice(1)}</h2>
+                    <p><strong>Carga:</strong> ${data.carga.toLocaleString('pt-BR')} MW</p>
+                    <p><strong>Geração Total:</strong> ${totalGeracao.toLocaleString('pt-BR')} MW</p>
+                `;
+                container.appendChild(regionDiv);
+            }
+        }
+        
+        function updateVisualization() {
+            for (const region in regionNodes) {
+                const node = regionNodes[region];
+                const newCarga = currentData[region].carga;
+                const newScaleY = Math.max(0.1, newCarga / 5000);
+
+                // Animação suave da altura do pilar
+                node.scale.y += (newScaleY - node.scale.y) * 0.1;
+                node.position.y = node.scale.y / 2;
+
+                // Atualiza posição do rótulo
+                const label = node.children.find(child => child instanceof THREE.CSS2DObject);
+                if (label) {
+                    label.position.set(0, node.scale.y + 1, 0);
+                }
+            }
+        }
+        
+        // --- LOOP DE ANIMAÇÃO ---
+        function animate() {
+            requestAnimationFrame(animate);
+            controls.update();
+
+            // Animação das partículas
+            const speed = 0.002;
+            particleSystems.forEach(system => {
+                const positions = system.particles.geometry.attributes.position.array;
+                for (let i = 0; i < system.progress.length; i++) {
+                    system.progress[i] += speed;
+                    if (system.progress[i] > 1) {
+                        system.progress[i] = 0;
+                    }
+                    const point = system.curve.getPointAt(system.progress[i]);
+                    positions[i * 3] = point.x;
+                    positions[i * 3 + 1] = point.y;
+                    positions[i * 3 + 2] = point.z;
+                }
+                system.particles.geometry.attributes.position.needsUpdate = true;
+            });
+            
+            updateVisualization();
+
+            renderer.render(scene, camera);
+            labelRenderer.render(scene, camera);
+        }
+
+        // --- INICIALIZAÇÃO E INTERVALOS ---
+        updateUI();
+        animate();
+
+        setInterval(() => {
+            updateData();
+            updateUI();
+        }, 3000); // Atualiza os dados a cada 3 segundos
+
+        // --- RESPONSIVIDADE ---
+        window.addEventListener('resize', () => {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            labelRenderer.setSize(window.innerWidth, window.innerHeight);
+        });
+
+    </script>
+</body>
+</html>
