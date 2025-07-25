@@ -1,10 +1,13 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
 // Aggregated Vaden application file
 // ignore_for_file: prefer_function_declarations_over_variables, implementation_imports
-import 'package:dio/dio.dart' as dioPackage;
 import 'package:dart_vaden_app/config/dio_configuration.dart';
 import 'package:dart_vaden_app/data/api/product_api.dart';
 import 'package:dart_vaden_app/models/product_model.dart';
+
+//import 'dart:convert';
+//import 'dart:io';
+import 'package:dio/dio.dart' as dioPackage;
 import 'package:flutter_vaden/flutter_vaden.dart';
 
 late final AutoInjector _injector;
