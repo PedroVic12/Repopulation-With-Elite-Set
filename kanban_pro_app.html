@@ -1,0 +1,399 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Kanban Pro</title>
+    
+    <!-- Google Fonts para Material-UI -->
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,400,500,700&display=swap" />
+    <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons" />
+
+    <!-- Scripts do React, ReactDOM e Babel -->
+    <script src="https://unpkg.com/react@17/umd/react.development.js"></script>
+    <script src="https://unpkg.com/react-dom@17/umd/react-dom.development.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    
+    <!-- Scripts do Material-UI -->
+    <script src="https://unpkg.com/@mui/material@5/umd/material-ui.development.js"></script>
+    
+    <!-- Bibliotecas de Visualização e Utilitários -->
+    <script src="https://unpkg.com/react-markdown@8.0.0/react-markdown.min.js"></script>
+    <script src="https://cdn.plot.ly/plotly-2.33.0.min.js"></script>
+    <script src="https://unpkg.com/xlsx/dist/xlsx.full.min.js"></script>
+
+
+    <style>
+        body {
+            font-family: 'Roboto', sans-serif;
+            background-color: #f4f6f8;
+            margin: 0;
+            padding: 0;
+            overflow-x: hidden;
+        }
+        .kanban-column-content::-webkit-scrollbar { width: 8px; }
+        .kanban-column-content::-webkit-scrollbar-track { background: #e0e0e0; border-radius: 10px; }
+        .kanban-column-content::-webkit-scrollbar-thumb { background: #bdbdbd; border-radius: 10px; }
+        .kanban-column-content::-webkit-scrollbar-thumb:hover { background: #888; }
+        .prose { line-height: 1.6; color: #333; }
+        .prose h1, .prose h2, .prose h3 { margin-bottom: 0.5em; margin-top: 1em; font-weight: 600; }
+        .prose ul { padding-left: 1.5em; margin-top: 0.5em; }
+        .prose li { margin-bottom: 0.25em; }
+        .dragging { opacity: 0.5; transform: rotate(3deg); }
+    </style>
+</head>
+<body>
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const {
+            colors, createTheme, ThemeProvider, CssBaseline, Box, AppBar, Toolbar,
+            IconButton, Typography, Drawer, List, ListItem, ListItemButton,
+            ListItemIcon, ListItemText, Grid, Card, CardHeader, CardContent,
+            CardActions, Button, Dialog, DialogTitle, DialogContent, TextField,
+            DialogActions, Select, MenuItem, LinearProgress, CircularProgress,
+            Paper, Icon, useMediaQuery, Table, TableBody, TableCell, TableContainer,
+            TableHead, TableRow, Chip, Avatar, Divider
+        } = MaterialUI;
+
+        // =============================================================================
+        // CAMADA DE DADOS COM PERSISTÊNCIA
+        // =============================================================================
+        class DataRepository {
+             constructor() {
+                this.loadFromStorage();
+            }
+
+            _loadInitialData() {
+                return {
+                    projects: [
+                        { id: '1', title: 'Implementar Dashboard com Gráficos', status: 'concluido', category: 'flutter', content: '- [x] Criar cards de estatísticas\n- [x] Implementar gráfico de status\n- [x] Implementar gráfico de categorias', createdAt: new Date('2023-10-01'), updatedAt: new Date('2023-10-15') },
+                        { id: '2', title: 'Desenvolver Tela de Tabelas', status: 'concluido', category: 'flutter', content: '- [x] Criar componente de tabela\n- [x] Adicionar paginação e filtros', createdAt: new Date('2023-10-05'), updatedAt: new Date('2023-10-20') },
+                        { id: '3', title: 'Estudar Análise de Sistemas de Potência', status: 'in progress', category: 'ons', content: '- [x] Ler sobre Fluxo de Potência\n- [ ] Simular circuito no ANAREDE', createdAt: new Date(), updatedAt: new Date() },
+                        { id: '4', title: 'Adicionar Timer Pomodoro', status: 'in progress', category: 'flutter', content: '- [x] Criar UI do timer\n- [x] Implementar Modo Foco\n- [ ] Adicionar notificações', createdAt: new Date(), updatedAt: new Date() },
+                        { id: '5', title: 'Preparar Relatório Semanal', status: 'todo', category: 'ons', content: '- [ ] Coletar dados de performance\n- [ ] Gerar gráficos\n- [ ] Redigir sumário executivo', createdAt: new Date(), updatedAt: new Date() },
+                        { id: '6', title: 'Desenvolver Algoritmo de IA', status: 'backlog', category: 'python', content: 'Definir escopo do projeto de IA para otimização de redes.', createdAt: new Date(), updatedAt: new Date() },
+                        { id: '7', title: 'Revisar Documentação da API', status: 'review', category: 'backend', content: '- [x] Verificar endpoint /users\n- [ ] Documentar endpoint /projects', createdAt: new Date(), updatedAt: new Date() },
+                    ],
+                    files: [],
+                    pomodoroSessions: [ { id: 'p1', projectId: '3', duration: 25, completedAt: new Date() }, { id: 'p2', projectId: '3', duration: 25, completedAt: new Date(Date.now() - 86400000) } ],
+                };
+            }
+
+            loadFromStorage() {
+                try {
+                    const projectsJSON = localStorage.getItem('kanban_projects');
+                    const filesJSON = localStorage.getItem('kanban_files');
+                    const pomodoroJSON = localStorage.getItem('kanban_pomodoro');
+
+                    if (projectsJSON) {
+                        this.db = {
+                            projects: JSON.parse(projectsJSON).map(p => ({...p, createdAt: new Date(p.createdAt), updatedAt: new Date(p.updatedAt)})),
+                            files: filesJSON ? JSON.parse(filesJSON).map(f => ({...f, uploadedAt: new Date(f.uploadedAt)})) : [],
+                            pomodoroSessions: pomodoroJSON ? JSON.parse(pomodoroJSON).map(s => ({...s, completedAt: new Date(s.completedAt)})) : []
+                        };
+                    } else {
+                        this.db = this._loadInitialData();
+                        this.saveToStorage();
+                    }
+                } catch (e) {
+                    console.error("Failed to load from storage", e);
+                    this.db = this._loadInitialData();
+                }
+            }
+
+            saveToStorage() {
+                try {
+                    localStorage.setItem('kanban_projects', JSON.stringify(this.db.projects));
+                    localStorage.setItem('kanban_files', JSON.stringify(this.db.files));
+                    localStorage.setItem('kanban_pomodoro', JSON.stringify(this.db.pomodoroSessions));
+                } catch(e) {
+                    console.error("Failed to save to storage", e);
+                }
+            }
+
+            getProjects = () => this.db.projects;
+            
+            addProject = (p) => {
+                this.db.projects.push({ ...p, id: Date.now().toString(), createdAt: new Date(), updatedAt: new Date() });
+                this.saveToStorage();
+            }
+            
+            updateProject = (id, u) => {
+                const i = this.db.projects.findIndex(p => p.id === id);
+                if (i !== -1) {
+                    this.db.projects[i] = { ...this.db.projects[i], ...u, updatedAt: new Date() };
+                    this.saveToStorage();
+                }
+            }
+            
+            deleteProject = (id) => {
+                this.db.projects = this.db.projects.filter(p => p.id !== id);
+                this.saveToStorage();
+            }
+
+            importFromExcel(data) {
+                if (data.projects) this.db.projects = data.projects.map(p => ({...p, createdAt: new Date(p.createdAt), updatedAt: new Date(p.updatedAt)}));
+                if (data.files) this.db.files = data.files.map(f => ({...f, uploadedAt: new Date(f.uploadedAt)}));
+                if (data.pomodoro) this.db.pomodoroSessions = data.pomodoro.map(s => ({...s, completedAt: new Date(s.completedAt)}));
+                this.saveToStorage();
+            }
+
+            exportToExcel() {
+                const projectsData = this.db.projects.map(p => ({...p, createdAt: p.createdAt.toISOString(), updatedAt: p.updatedAt.toISOString()}));
+                const filesData = this.db.files.map(f => ({...f, uploadedAt: f.uploadedAt.toISOString()}));
+                const pomodoroData = this.db.pomodoroSessions.map(s => ({...s, completedAt: s.completedAt.toISOString()}));
+                return { projectsData, filesData, pomodoroData };
+            }
+
+            getStatusStats = () => this.db.projects.reduce((acc, p) => { acc[p.status] = (acc[p.status] || 0) + 1; return acc; }, {});
+            getCategoryStats = () => this.db.projects.reduce((acc, p) => { acc[p.category] = (acc[p.category] || 0) + 1; return acc; }, {});
+            getPomodoroStats = () => ({ today: this.db.pomodoroSessions.filter(s => new Date(s.completedAt).toDateString() === new Date().toDateString()).length, total: this.db.pomodoroSessions.length });
+        }
+        
+        const repository = new DataRepository();
+        
+        const STATUS_COLUMNS = { 'backlog': { title: 'Backlog', emoji: '📦' }, 'todo': { title: 'A Fazer', emoji: '📝' }, 'in progress': { title: 'Em Progresso', emoji: '⏳' }, 'review': { title: 'Revisão', emoji: '👀' }, 'concluido': { title: 'Concluído', emoji: '✅' } };
+        const CATEGORIES = { 'ons': { label: 'ONS', color: 'primary' }, 'python': { label: 'Python', color: 'secondary' }, 'flutter': { label: 'Flutter', color: 'success' }, 'backend': { label: 'Backend', color: 'warning' } };
+
+        // ... (O resto dos componentes de UI e Telas permanecem os mesmos) ...
+
+        const ChecklistProgress = ({ content }) => {
+            const items = (content.match(/- \[[x ]\]/g) || []);
+            if (items.length === 0) return null;
+            const completed = (content.match(/- \[x\]/g) || []).length;
+            const progress = (completed / items.length) * 100;
+            return <Box mt={2}><LinearProgress variant="determinate" value={progress} /><Typography variant="caption" display="block" textAlign="right">{`${completed}/${items.length}`}</Typography></Box>;
+        };
+
+        const KanbanCard = ({ item, onEdit, isDragging }) => (
+            <Card className={isDragging ? 'dragging' : ''} sx={{ mb: 2, cursor: 'grab', '&:hover': { boxShadow: 6 }, transition: 'opacity 0.2s, transform 0.2s' }} onClick={() => onEdit(item)}>
+                <CardContent sx={{ pb: 1 }}><Chip label={CATEGORIES[item.category]?.label || 'Geral'} color={CATEGORIES[item.category]?.color || 'default'} size="small" sx={{ mb: 1 }}/><Typography variant="body1" sx={{ fontWeight: 'bold' }}>{item.title}</Typography>{item.content && <ChecklistProgress content={item.content} />}</CardContent>
+                <CardActions sx={{ justifyContent: 'space-between', pt: 0, px: 2, pb: 1 }}><Typography variant="caption">{new Date(item.updatedAt).toLocaleDateString()}</Typography><Icon sx={{ color: 'grey.500' }}>drag_indicator</Icon></CardActions>
+            </Card>
+        );
+
+        const PlotlyChart = ({ data, layout, style }) => {
+            const chartRef = React.useRef(null);
+            React.useEffect(() => {
+                if (chartRef.current) {
+                    Plotly.newPlot(chartRef.current, data, layout, {responsive: true});
+                }
+            }, [data, layout]);
+            return <div ref={chartRef} style={style}></div>;
+        };
+        
+        const DashboardScreen = () => {
+            const statusStats = repository.getStatusStats();
+            const categoryStats = repository.getCategoryStats();
+
+            const statusChartData = [{ x: Object.keys(statusStats).map(k => STATUS_COLUMNS[k].title), y: Object.values(statusStats), type: 'bar' }];
+            const categoryChartData = [{ labels: Object.keys(categoryStats).map(k => CATEGORIES[k].label), values: Object.values(categoryStats), type: 'pie', hole: .4 }];
+            
+            const chartLayout = { margin: { t: 20, b: 40, l: 40, r: 20 }, paper_bgcolor: 'rgba(0,0,0,0)', plot_bgcolor: 'rgba(0,0,0,0)'};
+
+            return (
+                <Box p={3}>
+                    <Typography variant="h4" gutterBottom>Dashboard</Typography>
+                    <Grid container spacing={3}>
+                        <Grid item xs={12} md={6}><Card><CardHeader title="Projetos por Status" /><CardContent><PlotlyChart data={statusChartData} layout={chartLayout} /></CardContent></Card></Grid>
+                        <Grid item xs={12} md={6}><Card><CardHeader title="Projetos por Categoria" /><CardContent><PlotlyChart data={categoryChartData} layout={chartLayout} /></CardContent></Card></Grid>
+                    </Grid>
+                </Box>
+            );
+        };
+
+        const TableScreen = () => (
+            <Box p={3}>
+                <Typography variant="h4" gutterBottom>Tabela de Projetos</Typography>
+                <Paper><TableContainer><Table><TableHead><TableRow><TableCell>Título</TableCell><TableCell>Status</TableCell><TableCell>Categoria</TableCell><TableCell>Atualizado em</TableCell></TableRow></TableHead>
+                <TableBody>{repository.getProjects().map(p => (<TableRow key={p.id} hover><TableCell>{p.title}</TableCell><TableCell><Chip label={STATUS_COLUMNS[p.status]?.title} size="small" /></TableCell><TableCell><Chip label={CATEGORIES[p.category]?.label} color={CATEGORIES[p.category]?.color} size="small" /></TableCell><TableCell>{new Date(p.updatedAt).toLocaleDateString()}</TableCell></TableRow>))}</TableBody>
+                </Table></TableContainer></Paper>
+            </Box>
+        );
+        
+        const PomodoroScreen = () => {
+            const [timeLeft, setTimeLeft] = React.useState(25 * 60);
+            const [isActive, setIsActive] = React.useState(false);
+            const [isFocusMode, setIsFocusMode] = React.useState(false);
+            const timerRef = React.useRef(null);
+            
+            React.useEffect(() => {
+                if (isActive) { timerRef.current = setInterval(() => setTimeLeft(t => t > 0 ? t - 1 : 0), 1000); } 
+                else { clearInterval(timerRef.current); }
+                return () => clearInterval(timerRef.current);
+            }, [isActive]);
+            
+            const formatTime = (s) => `${Math.floor(s/60).toString().padStart(2,'0')}:${(s%60).toString().padStart(2,'0')}`;
+            const progress = (timeLeft / (25*60)) * 100;
+
+            if (isFocusMode) {
+                return (
+                    <Box sx={{ position: 'fixed', top: 0, left: 0, width: '100%', height: '100%', bgcolor: 'black', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', zIndex: 9999 }}>
+                        <Typography variant="h1" sx={{ color: 'primary.main', fontWeight: 'bold' }}>{formatTime(timeLeft)}</Typography>
+                        <IconButton onClick={() => setIsFocusMode(false)} sx={{ position: 'absolute', top: 20, right: 20, color: 'white' }}><Icon>fullscreen_exit</Icon></IconButton>
+                    </Box>
+                );
+            }
+
+            return (
+                <Box p={3} display="flex" flexDirection="column" alignItems="center" justifyContent="center" height="100%">
+                    <Box display="flex" justifyContent="space-between" width="100%" maxWidth="sm" alignItems="center">
+                        <Typography variant="h4" gutterBottom>Timer Pomodoro</Typography>
+                        <IconButton onClick={() => setIsFocusMode(true)}><Icon>fullscreen</Icon></IconButton>
+                    </Box>
+                    <Box sx={{ position: 'relative', display: 'inline-flex', my: 4 }}>
+                        <CircularProgress variant="determinate" value={100} size={200} sx={{color: 'grey.300'}} />
+                        <CircularProgress variant="determinate" value={progress} size={200} sx={{ position: 'absolute', left: 0 }} />
+                        <Box sx={{ top: 0, left: 0, bottom: 0, right: 0, position: 'absolute', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><Typography variant="h3">{formatTime(timeLeft)}</Typography></Box>
+                    </Box>
+                    <Box>
+                        <Button variant="contained" onClick={() => setIsActive(!isActive)} sx={{mr: 2}} startIcon={<Icon>{isActive ? 'pause' : 'play_arrow'}</Icon>}>{isActive ? 'Pausar' : 'Iniciar'}</Button>
+                        <Button onClick={() => { setIsActive(false); setTimeLeft(25 * 60); }} startIcon={<Icon>replay</Icon>}>Resetar</Button>
+                    </Box>
+                </Box>
+            );
+        };
+
+        const ItemEditorDialog = ({ open, onClose, item, onSave, onDelete }) => {
+            const [title, setTitle] = React.useState('');
+            const [content, setContent] = React.useState('');
+            const [category, setCategory] = React.useState('ons');
+            const ActualReactMarkdown = ReactMarkdown.default || ReactMarkdown;
+
+            React.useEffect(() => { if (item) { setTitle(item.title || ''); setContent(item.content || ''); setCategory(item.category || 'ons'); } }, [item]);
+            if (!item) return null;
+            const handleSave = () => onSave({ ...item, title, content, category });
+
+            return (
+                <Dialog open={open} onClose={onClose} fullWidth maxWidth="lg">
+                    <DialogTitle>Editar Item<IconButton onClick={onClose} sx={{ position: 'absolute', right: 8, top: 8 }}><Icon>close</Icon></IconButton></DialogTitle>
+                    <DialogContent dividers>
+                        <TextField label="Título" value={title} onChange={(e) => setTitle(e.target.value)} fullWidth margin="normal" />
+                        <Select value={category} onChange={(e) => setCategory(e.target.value)} fullWidth>{Object.entries(CATEGORIES).map(([k, v]) => <MenuItem key={k} value={k}>{v.label}</MenuItem>)}</Select>
+                        <Grid container spacing={2} sx={{ mt: 1, height: '50vh' }}>
+                            <Grid item xs={12} md={6}><TextField label="Conteúdo (Markdown)" value={content} onChange={(e) => setContent(e.target.value)} fullWidth multiline sx={{ height: '100%', '& .MuiOutlinedInput-root': { height: '100%' } }} /></Grid>
+                            <Grid item xs={12} md={6}><Box border={1} borderColor="grey.300" borderRadius={1} p={2} sx={{overflowY: 'auto', height: '100%'}}><div className="prose"><ActualReactMarkdown>{content}</ActualReactMarkdown></div></Box></Grid>
+                        </Grid>
+                    </DialogContent>
+                    <DialogActions><Button onClick={() => onDelete(item.id)} color="error">Excluir</Button><Box sx={{ flex: '1 0 0' }} /><Button onClick={onClose}>Cancelar</Button><Button onClick={handleSave} variant="contained">Salvar</Button></DialogActions>
+                </Dialog>
+            );
+        };
+
+        // =============================================================================
+        // COMPONENTE APP PRINCIPAL
+        // =============================================================================
+        function App() {
+            const [mobileOpen, setMobileOpen] = React.useState(false);
+            const [currentScreen, setCurrentScreen] = React.useState('kanban');
+            const [isEditing, setIsEditing] = React.useState(false);
+            const [editingItem, setEditingItem] = React.useState(null);
+            const [projects, setProjects] = React.useState([]);
+            const [draggingItem, setDraggingItem] = React.useState(null);
+            const [dragOverColumn, setDragOverColumn] = React.useState(null);
+            const fileInputRef = React.useRef(null);
+            
+            const theme = createTheme();
+            const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
+
+            React.useEffect(() => setProjects(repository.getProjects()), []);
+            const refreshProjects = () => setProjects([...repository.getProjects()]);
+
+            const handleDrawerToggle = () => setMobileOpen(!mobileOpen);
+            const handleOpenEditor = (item) => { setEditingItem(item); setIsEditing(true); };
+            const handleAddItem = (status) => handleOpenEditor({ title: 'Novo Item', status, category: 'ons', content: '' });
+            const handleSaveItem = (item) => { item.id ? repository.updateProject(item.id, item) : repository.addProject(item); refreshProjects(); setIsEditing(false); };
+            const handleDeleteItem = (id) => { repository.deleteProject(id); refreshProjects(); setIsEditing(false); };
+            
+            const handleDragStart = (e, item) => { e.dataTransfer.setData("itemId", item.id); setDraggingItem(item.id); };
+            const handleDragEnd = () => { setDraggingItem(null); setDragOverColumn(null); };
+            const handleDropItem = (id, newStatus) => { repository.updateProject(id, { status: newStatus }); refreshProjects(); };
+            
+            const handleExport = () => {
+                const { projectsData, filesData, pomodoroData } = repository.exportToExcel();
+                const wb = XLSX.utils.book_new();
+                XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(projectsData), 'Projetos');
+                XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(filesData), 'Arquivos');
+                XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(pomodoroData), 'Pomodoro');
+                XLSX.writeFile(wb, 'database.xlsx');
+            };
+
+            const handleImport = (event) => {
+                const file = event.target.files[0];
+                if (!file) return;
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    try {
+                        const data = new Uint8Array(e.target.result);
+                        const workbook = XLSX.read(data, { type: 'array' });
+                        const projects = XLSX.utils.sheet_to_json(workbook.Sheets['Projetos']);
+                        const files = XLSX.utils.sheet_to_json(workbook.Sheets['Arquivos']);
+                        const pomodoro = XLSX.utils.sheet_to_json(workbook.Sheets['Pomodoro']);
+                        repository.importFromExcel({ projects, files, pomodoro });
+                        refreshProjects();
+                        alert('Dados importados com sucesso!');
+                    } catch (err) {
+                        console.error("Erro ao importar:", err);
+                        alert('Erro ao importar o arquivo. Verifique o formato.');
+                    }
+                };
+                reader.readAsArrayBuffer(file);
+            };
+
+            const drawerWidth = 240;
+            const menuItems = [ { id: 'dashboard', text: 'Dashboard', icon: 'dashboard' }, { id: 'kanban', text: 'Kanban', icon: 'view_kanban' }, { id: 'table', text: 'Tabelas', icon: 'table_view' }, { id: 'pomodoro', text: 'Pomodoro', icon: 'timer' } ];
+
+            const drawerContent = (
+                <Box>
+                    <Toolbar><Icon sx={{mr:2}}>dynamic_feed</Icon><Typography variant="h6">Kanban Pro</Typography></Toolbar>
+                    <List>{menuItems.map(i => <ListItem key={i.id} disablePadding><ListItemButton selected={currentScreen === i.id} onClick={() => { setCurrentScreen(i.id); isMobile && handleDrawerToggle(); }}><ListItemIcon><Icon>{i.icon}</Icon></ListItemIcon><ListItemText primary={i.text} /></ListItemButton></ListItem>)}</List>
+                    <Divider />
+                    <List>
+                        <ListItem disablePadding><ListItemButton onClick={handleExport}><ListItemIcon><Icon>download</Icon></ListItemIcon><ListItemText primary="Backup Excel" /></ListItemButton></ListItem>
+                        <ListItem disablePadding><ListItemButton onClick={() => fileInputRef.current.click()}><ListItemIcon><Icon>upload</Icon></ListItemIcon><ListItemText primary="Importar Excel" /></ListItemButton></ListItem>
+                        <ListItem disablePadding><ListItemButton onClick={() => repository.saveToStorage()}><ListItemIcon><Icon>sync</Icon></ListItemIcon><ListItemText primary="Sincronizar" /></ListItemButton></ListItem>
+                    </List>
+                </Box>
+            );
+
+            const KanbanScreenComponent = () => (
+                <Box sx={{ display: 'flex', overflowX: 'auto', p: 2, gap: 2, height: '100%' }}>
+                    {Object.entries(STATUS_COLUMNS).map(([status, info]) => (
+                        <Paper key={status} onDragOver={(e) => e.preventDefault()} onDragEnter={() => setDragOverColumn(status)} onDrop={(e) => { e.preventDefault(); handleDropItem(e.dataTransfer.getData("itemId"), status); }}
+                            sx={{ p: 1.5, bgcolor: dragOverColumn === status ? 'primary.light' : '#f0f2f5', transition: 'background-color 0.3s ease', display: 'flex', flexDirection: 'column', minWidth: 300, height: 'calc(100vh - 110px)' }}>
+                            <Box display="flex" justifyContent="space-between" alignItems="center" mb={2} px={1}><Typography variant="h6" sx={{ display: 'flex', alignItems: 'center', gap: 1, fontSize: '1rem', fontWeight: 'bold' }}><span>{info.emoji}</span> {info.title}</Typography><IconButton size="small" onClick={() => handleAddItem(status)}><Icon>add_circle_outline</Icon></IconButton></Box>
+                            <Box className="kanban-column-content" sx={{ overflowY: 'auto', flexGrow: 1, p: 1 }}>{projects.filter(p => p.status === status).map(item => <div key={item.id} draggable onDragStart={(e) => handleDragStart(e, item)} onDragEnd={handleDragEnd}><KanbanCard item={item} onEdit={handleOpenEditor} isDragging={draggingItem === item.id}/></div>)}</Box>
+                        </Paper>
+                    ))}
+                </Box>
+            );
+
+            const renderScreen = () => {
+                switch(currentScreen) {
+                    case 'dashboard': return <DashboardScreen />;
+                    case 'kanban': return <KanbanScreenComponent />;
+                    case 'table': return <TableScreen />;
+                    case 'pomodoro': return <PomodoroScreen />;
+                    default: return <Typography p={3}>Tela não encontrada</Typography>;
+                }
+            };
+
+            return (
+                <ThemeProvider theme={createTheme()}>
+                    <input type="file" ref={fileInputRef} onChange={handleImport} accept=".xlsx, .xls" style={{ display: 'none' }} />
+                    <Box sx={{ display: 'flex', height: '100vh', overflow: 'hidden' }}>
+                        <CssBaseline />
+                        <AppBar position="fixed" sx={{ zIndex: (t) => t.zIndex.drawer + 1 }}><Toolbar><IconButton color="inherit" edge="start" onClick={handleDrawerToggle} sx={{ mr: 2, display: { sm: 'none' } }}><Icon>menu</Icon></IconButton><Typography variant="h6">{menuItems.find(i => i.id === currentScreen)?.text}</Typography></Toolbar></AppBar>
+                        <Box component="nav" sx={{ width: { sm: drawerWidth }, flexShrink: { sm: 0 } }}><Drawer variant={isMobile ? "temporary" : "permanent"} open={isMobile ? mobileOpen : true} onClose={handleDrawerToggle} sx={{ '& .MuiDrawer-paper': { width: drawerWidth } }}>{drawerContent}</Drawer></Box>
+                        <Box component="main" sx={{ flexGrow: 1, width: { sm: `calc(100% - ${drawerWidth}px)` }, display: 'flex', flexDirection: 'column' }}><Toolbar />{renderScreen()}</Box>
+                        <ItemEditorDialog open={isEditing} onClose={() => setIsEditing(false)} item={editingItem} onSave={handleSaveItem} onDelete={handleDeleteItem}/>
+                    </Box>
+                </ThemeProvider>
+            );
+        }
+
+        ReactDOM.render(<App />, document.getElementById('root'));
+    </script>
+</body>
+</html>
