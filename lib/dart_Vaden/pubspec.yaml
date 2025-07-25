@@ -1,0 +1,17 @@
+name: kyogre_vaden_getx
+description: Projeto Vaden como backend com arquitetura simples MVC com Flutter .
+version: 1.0.0
+# repository: https://github.com/my_org/my_repo
+
+environment:
+  sdk: ^3.7.2
+
+dependencies:
+  dio: ^5.8.0+1
+  postgres: ^3.5.4
+  vaden_security: ^0.0.6
+  vaden: ^0.1.1
+
+dev_dependencies:
+  build_runner: ^2.4.14
+  vaden_class_scanner: ^0.1.2

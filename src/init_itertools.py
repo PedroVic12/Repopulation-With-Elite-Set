@@ -55,7 +55,7 @@ def tratamento_dados_json(config):
     
     #! codigo acima feito por IA e ta com versao estavel roando sme mostrar o tempo mas com concfig 2/10 com exec = 3
     
-    #! cada config faz uma instancia no setup. ta certo isso?
+    #! cada config faz uma instancia no setup. ta certo isso?dar
     
     # Exemplo: sempre força POP_SIZE e NUM_GENERATIONS para int
     if isinstance(config.get("POP_SIZE"), list):
