@@ -13,8 +13,7 @@ def evaluate(individual):
 	"""Função objetivo do problema """
 	a = sum(individual)
 	b = len(individual)
-	return b / a
-
+	return a / b
 
 def rastrigin(individual ):
         rastrigin = 10 * len(individual)
