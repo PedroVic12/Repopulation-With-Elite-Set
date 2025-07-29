@@ -156,7 +156,7 @@ def SimulacaoAnaliseContigenciasPage():
 
         if 'rede_eletrica' not in st.session_state or st.session_state.rede_eletrica.network_name != nome_rede:
             with st.spinner(f"Carregando a rede {nome_rede}..."):
-                st.session_state.rede_eletrica = RedeEletrica(nome_rede)
+                st.session_state.rede_eletrica = RedeEletricaModel(nome_rede)
 
         rede = st.session_state.rede_eletrica
         rede.resetar_rede()

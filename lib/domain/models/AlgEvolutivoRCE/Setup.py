@@ -8,7 +8,20 @@ import os
 import sys
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
-from config import configuracoes_execucoes
+from DashboardApp.controllers.Utils import PARAMETROS_JSON
+
+
+# 4 parametros variando [Mutação, Crossover, Var DIFF, DELTA e restante fixo 
+configuracoes_execucoes = {
+        "key": True,
+        "value": 7,
+        "parametros_opcionais": [
+            {"MUTACAO": [PARAMETROS_JSON['MUTACAO']]},
+            {"CROSSOVER": [PARAMETROS_JSON['CROSSOVER']]},
+            {'NUM_GENERATIONS': [PARAMETROS_JSON['NUM_GENERATIONS']]},
+            {'POP_SIZE': [PARAMETROS_JSON['POP_SIZE']]},
+        ]
+}
 
 
 #! WARN (04/06/2025) - Usado fora da classes para NAO ter logs no output
@@ -18,8 +31,6 @@ from config import configuracoes_execucoes
 #creator.create("Individual", list, fitness=creator.FitnessMin, rce=str, index=int)
 
 
-#! O ideal seria importar o arquivo de configuração do projeto de forma global para o App em Streamlit também, mas como o arquivo de configuração está em outro diretório,
-#from ..config import FOLDER_NAME, configuracoes_execucoes
 
 array_decisions =  [14,15,14,18,15]
 

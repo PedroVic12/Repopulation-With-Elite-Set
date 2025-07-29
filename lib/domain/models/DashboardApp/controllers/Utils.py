@@ -2,12 +2,8 @@
 import json
 import streamlit as st
 import pickle
-import plotly.io as pio
-import plotly.graph_objects as go
-import pandas as pd
 import os
 import pathlib
-import time 
 
 def load_params_from_file(path):
     with open(path, 'r') as file:
@@ -18,6 +14,8 @@ path_json = pathlib.Path(__file__).resolve().parent.parent.parent / "params.json
 path_options = pathlib.Path(__file__).resolve().parent.parent.parent / "options.json"
 PARAMETROS_JSON = load_params_from_file(path_json)
 OPTIONS_JSON = load_params_from_file(path_options)
+
+
 #print("PARAMETROS_JSON DEFAULT:", PARAMETROS_JSON)  
 current_dir = pathlib.Path(__file__).parent
 

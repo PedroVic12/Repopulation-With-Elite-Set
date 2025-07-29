@@ -1,7 +1,8 @@
 # -*- coding: utf-8 -*-
 # Import RCE Framework
-from AlgEvolutivoRCE.Setup import Setup
-from AlgEvolutivoRCE.alg_evolutivo_rce import AlgoritimoEvolutivoRCE
+
+from domain.models.AlgEvolutivoRCE.Setup import Setup
+from domain.models.AlgEvolutivoRCE.alg_evolutivo_rce import AlgoritimoEvolutivoRCE
 
 # Utils 
 from config import FOLDER_NAME, options_main_file, entrada_de_dados,load_many_executions, format_elapsed_time
@@ -37,8 +38,8 @@ src/DashboardApp
 # Import functions benchmark
 #? Foi Criado um arquivo em `utils/functions_fitness/functions_benchmarking.py` para armazenar as funções de benchmark usadas no primeiro artigo e a função de avaliação da rede IEEE 14.
 # Voce foi olhar o arquivo config.py para gerenciar a quantidade de execuções do algoritimo.
-from utils.functions_fitness.functions_benchmarking import rosenbrock_benchmark,esfera_benchmark,rastrigin, evaluate
-from utils.functions_fitness.function_IEEE_14_contigencias import funcao_objetivo_IEEE14
+from domain.models.utils.functions_fitness.functions_benchmarking import rosenbrock_benchmark,esfera_benchmark,rastrigin, evaluate
+from domain.models.utils.functions_fitness.function_IEEE_14_contigencias import funcao_objetivo_IEEE14
 
 #! Lendo os parametros em JSON em /AlgEvolutivoRCE/params.json
 def load_params(file_path):
@@ -52,7 +53,7 @@ def load_params(file_path):
 results_consolidados = []  # Initialize an empty list to store results
 execution_times = []  # Lista para armazenar os tempos de execução
 BASE_DIR = pathlib.Path(__file__).resolve().parent 
-
+print(f"Base Directory: {BASE_DIR}")
 params = load_params(f"{BASE_DIR}/params.json")
 # windows
 #params = load_params(r"C:\Users\Pedro Victor R V\Documents\GitHub\Repopulation-With-Elite-Set\src\AlgEvolutivoRCE\params.json")

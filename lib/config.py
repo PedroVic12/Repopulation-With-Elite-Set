@@ -5,22 +5,8 @@ import numpy as np
 from IPython.display import display
 from datetime import datetime
 
-from DashboardApp.controllers.Utils import FOLDER_NAME, PARAMETROS_JSON
+from domain.models.DashboardApp.controllers.Utils import FOLDER_NAME
 
-# 4 parametros variando [Mutação, Crossover, Var DIFF, DELTA e restante fixo 
-
-configuracoes_execucoes = {
-        "key": True,
-        "value": 7,
-        "parametros_opcionais": [
-            {"MUTACAO": [PARAMETROS_JSON['MUTACAO']]},
-            {"CROSSOVER": [PARAMETROS_JSON['CROSSOVER']]},
-            {'NUM_GENERATIONS': [PARAMETROS_JSON['NUM_GENERATIONS']]},
-            {'POP_SIZE': [PARAMETROS_JSON['POP_SIZE']]},
-        ]
-}
-
-options_main_file = configuracoes_execucoes
 
 # Função para simular a entrada de dados, como se fosse a leitura de um arquivo JSON ou Excel
 def entrada_de_dados():
