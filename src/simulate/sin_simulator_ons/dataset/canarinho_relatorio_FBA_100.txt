@@ -1,0 +1,171 @@
+CEPEL - CENTRO DE PESQUISAS DE ENERGIA ELETRICA - PROGRAMA DE ANALISE DE REDES - V12.00.01                                 PAG.   1
+
+ ESTAVEL FBA=100                                                                 
+ RELATORIO DE BARRAS CA DO SISTEMA * AREA   1 * AREA A                              
+
+ X---------------------X-----------X---------------X---------------X---------------X---------------X---------------X---------------X---X
+          BARRA            TENSAO        GERACAO     INJECAO EQUIV        CARGA          ELO CC          SHUNT           MOTOR
+  NUM.      NOME     TP  MOD   ANG      MW    Mvar\     MW    Mvar      MW    Mvar      MW    Mvar    Mvar   EQUIV      MW    Mvar
+                                            CE Mvar                                                 SHUNT L                         EST
+ X-----X------------X--X-----X-----X-------X-------X-------X-------X-------X-------X-------X-------X-------X-------X-------X-------X---X
+
+     10 CANARIO-18    2 1.015  -0.0   381.3   -30.6     0.0     0.0     0.0     0.0     0.0     0.0     0.0     0.0     0.0     0.0 LIG
+     11 SABIA---13    1 1.015 -12.3   250.0   -24.6     0.0     0.0     0.0     0.0     0.0     0.0     0.0     0.0     0.0     0.0 LIG
+    100 CANARIO230    0 1.028  -5.6     0.0     0.0     0.0     0.0     0.0     0.0     0.0     0.0     0.0     0.0     0.0     0.0 LIG
+    110 SABIA--230    0 1.029 -17.6     0.0     0.0     0.0     0.0     0.0     0.0     0.0     0.0     0.0     0.0     0.0     0.0 LIG
+    111 SABIA--138    0 1.009 -22.1     0.0     0.0     0.0     0.0    40.0    10.0     0.0     0.0     0.0     0.0     0.0     0.0 LIG
+    112 SABIA--440    0 1.063 -20.7     0.0     0.0     0.0     0.0     0.0     0.0     0.0     0.0     0.0     0.0     0.0     0.0 LIG
+    113 SABIA---13    0 1.065 -20.9     0.0     0.0     0.0     0.0     0.0     0.0     0.0     0.0     0.0     0.0     0.0     0.0 LIG
+    120 CARDEAL230    0 1.011 -16.2     0.0     0.0     0.0     0.0     0.0     0.0     0.0     0.0     0.0     0.0     0.0     0.0 LIG
+    121 CARDEAL-88    0 0.984 -20.3     0.0     0.0     0.0     0.0   120.0    40.0     0.0     0.0     0.0     0.0     0.0     0.0 LIG
+    130 CURIO--230    0 1.033 -18.8     0.0     0.0     0.0     0.0     0.0     0.0     0.0     0.0     0.0     0.0     0.0     0.0 LIG
+    131 CURIO--CS5    0 1.070 -16.9     0.0     0.0     0.0     0.0     0.0     0.0     0.0     0.0   -91.6     0.0     0.0     0.0 LIG
+    132 CURIO--440    0 1.080 -16.4     0.0     0.0     0.0     0.0     0.0     0.0     0.0     0.0     0.0     0.0     0.0     0.0 LIG
+    133 CURIO---13    0 1.083 -16.3     0.0     0.0     0.0     0.0     0.0     0.0     0.0     0.0     0.0     0.0     0.0     0.0 LIG
+CEPEL - CENTRO DE PESQUISAS DE ENERGIA ELETRICA - PROGRAMA DE ANALISE DE REDES - V12.00.01                                 PAG.   2
+
+ ESTAVEL FBA=100                                                                 
+ RELATORIO DE BARRAS CA DO SISTEMA * AREA   1 * AREA A                              
+
+ X---------------------X-----------X---------------X---------------X---------------X---------------X---------------X---------------X---X
+          BARRA            TENSAO        GERACAO     INJECAO EQUIV        CARGA          ELO CC          SHUNT           MOTOR
+  NUM.      NOME     TP  MOD   ANG      MW    Mvar\     MW    Mvar      MW    Mvar      MW    Mvar    Mvar   EQUIV      MW    Mvar
+                                            CE Mvar                                                 SHUNT L                         EST
+ X-----X------------X--X-----X-----X-------X-------X-------X-------X-------X-------X-------X-------X-------X-------X-------X-------X---X
+
+    134 CURIO---69    0 1.003 -24.3     0.0     0.0     0.0     0.0     0.0     0.0     0.0     0.0     0.0     0.0     0.0     0.0 LIG
+    135 CURIO--138    0 0.987 -25.0     0.0     0.0     0.0     0.0   110.0    40.0     0.0     0.0     0.0     0.0     0.0     0.0 LIG
+    140 SANHACO-69    0 0.974 -26.1     0.0     0.0     0.0     0.0    70.0    20.0     0.0     0.0     4.7     0.0     0.0     0.0 LIG
+    150 TIZIU--230    0 1.003 -17.0     0.0     0.0     0.0     0.0     0.0     0.0     0.0     0.0     0.0     0.0     0.0     0.0 LIG
+    151 TIZIU--138    0 0.986 -22.2     0.0     0.0     0.0     0.0   160.0    60.0     0.0     0.0     0.0     0.0     0.0     0.0 LIG
+    160 PARDAL-138    0 0.993 -23.6     0.0     0.0     0.0     0.0     0.0     0.0     0.0     0.0    39.4     0.0     0.0     0.0 LIG
+    161 PARDAL--69    0 0.988 -24.5     0.0     0.0     0.0     0.0    40.0    10.0     0.0     0.0     0.0     0.0     0.0     0.0 LIG
+    170 AZULAO-138    0 0.993 -23.3     0.0     0.0     0.0     0.0     0.0     0.0     0.0     0.0     0.0     0.0     0.0     0.0 LIG
+    171 AZULAO--69    0 0.984 -25.4     0.0     0.0     0.0     0.0    40.0    10.0     0.0     0.0     0.0     0.0     0.0     0.0 LIG
+    180 BICUDO-440    0 1.067 -21.4     0.0     0.0     0.0     0.0     0.0     0.0     0.0     0.0   -45.5     0.0     0.0     0.0 LIG
+    181 BICUDO--69    0 1.042 -26.4     0.0     0.0     0.0     0.0   130.0    40.0     0.0     0.0     0.0     0.0     0.0     0.0 LIG
+    182 BICUDO--13    0 1.044 -26.4     0.0     0.0     0.0     0.0     0.0     0.0     0.0     0.0    10.9     0.0     0.0     0.0 LIG
+    190 CHOPIN-440    0 1.078 -21.4     0.0     0.0     0.0     0.0     0.0     0.0     0.0     0.0   -93.0     0.0     0.0     0.0 LIG
+CEPEL - CENTRO DE PESQUISAS DE ENERGIA ELETRICA - PROGRAMA DE ANALISE DE REDES - V12.00.01                                 PAG.   3
+
+ ESTAVEL FBA=100                                                                 
+ RELATORIO DE BARRAS CA DO SISTEMA * AREA   1 * AREA A                              
+
+ X---------------------X-----------X---------------X---------------X---------------X---------------X---------------X---------------X---X
+          BARRA            TENSAO        GERACAO     INJECAO EQUIV        CARGA          ELO CC          SHUNT           MOTOR
+  NUM.      NOME     TP  MOD   ANG      MW    Mvar\     MW    Mvar      MW    Mvar      MW    Mvar    Mvar   EQUIV      MW    Mvar
+                                            CE Mvar                                                 SHUNT L                         EST
+ X-----X------------X--X-----X-----X-------X-------X-------X-------X-------X-------X-------X-------X-------X-------X-------X-------X---X
+
+    191 CHOPIN-138    0 1.047 -27.5     0.0     0.0     0.0     0.0    90.0    20.0     0.0     0.0     0.0     0.0     0.0     0.0 LIG
+   1110 SABIA--FIC    0 1.065 -20.9     0.0     0.0     0.0     0.0     0.0     0.0     0.0     0.0     0.0     0.0     0.0     0.0 LIG
+   1130 CURIO--FIC    0 1.083 -16.3     0.0     0.0     0.0     0.0     0.0     0.0     0.0     0.0     0.0     0.0     0.0     0.0 LIG
+   1180 BICUDO-FIC    0 1.042 -26.4     0.0     0.0     0.0     0.0     0.0     0.0     0.0     0.0     0.0     0.0     0.0     0.0 LIG
+CEPEL - CENTRO DE PESQUISAS DE ENERGIA ELETRICA - PROGRAMA DE ANALISE DE REDES - V12.00.01                                 PAG.   4
+
+ ESTAVEL FBA=100                                                                 
+ RELATORIO DE BARRAS CA DO SISTEMA * AREA   2 * AREA B                              
+
+ X---------------------X-----------X---------------X---------------X---------------X---------------X---------------X---------------X---X
+          BARRA            TENSAO        GERACAO     INJECAO EQUIV        CARGA          ELO CC          SHUNT           MOTOR
+  NUM.      NOME     TP  MOD   ANG      MW    Mvar\     MW    Mvar      MW    Mvar      MW    Mvar    Mvar   EQUIV      MW    Mvar
+                                            CE Mvar                                                 SHUNT L                         EST
+ X-----X------------X--X-----X-----X-------X-------X-------X-------X-------X-------X-------X-------X-------X-------X-------X-------X---X
+
+     20 TUCANO--13    1 1.050   2.2   373.0    16.0     0.0     0.0     0.0     0.0     0.0     0.0     0.0     0.0     0.0     0.0 LIG
+     21 GAVIAO--13    1 0.960   0.9   250.0   -95.7     0.0     0.0     0.0     0.0     0.0     0.0     0.0     0.0     0.0     0.0 LIG
+    200 TUCANO-230    0 1.050  -3.1     0.0     0.0     0.0     0.0     0.0     0.0     0.0     0.0     0.0     0.0     0.0     0.0 LIG
+    210 GAVIAO-230    0 0.998  -4.3     0.0     0.0     0.0     0.0     0.0     0.0     0.0     0.0     0.0     0.0     0.0     0.0 LIG
+    220 ARARA--230    0 1.044 -11.5     0.0     0.0     0.0     0.0     0.0     0.0     0.0     0.0     0.0     0.0     0.0     0.0 LIG
+    221 ARARA--CS5    0 1.078 -13.4     0.0     0.0     0.0     0.0     0.0     0.0     0.0     0.0   -93.0     0.0     0.0     0.0 LIG
+    222 ARARA--440    0 1.088 -13.9     0.0     0.0     0.0     0.0     0.0     0.0     0.0     0.0     0.0     0.0     0.0     0.0 LIG
+    223 ARARA---13    0 1.090 -14.0     0.0     0.0     0.0     0.0     0.0     0.0     0.0     0.0     0.0     0.0     0.0     0.0 LIG
+    224 ARARA--138    0 1.012 -17.0     0.0     0.0     0.0     0.0   110.0    30.0     0.0     0.0     0.0     0.0     0.0     0.0 LIG
+    230 PELICAN230    0 1.036 -17.4     0.0     0.0     0.0     0.0     0.0     0.0     0.0     0.0     0.0     0.0     0.0     0.0 LIG
+    231 PELICAN440    0 1.081 -19.7     0.0     0.0     0.0     0.0     0.0     0.0     0.0     0.0     0.0     0.0     0.0     0.0 LIG
+    232 PELICANO13    0 1.083 -19.8     0.0     0.0     0.0     0.0     0.0     0.0     0.0     0.0     0.0     0.0     0.0     0.0 LIG
+    240 CORUJA-230    0 1.023 -19.3     0.0     0.0     0.0     0.0    90.0    10.0     0.0     0.0     0.0     0.0     0.0     0.0 LIG
+CEPEL - CENTRO DE PESQUISAS DE ENERGIA ELETRICA - PROGRAMA DE ANALISE DE REDES - V12.00.01                                 PAG.   5
+
+ ESTAVEL FBA=100                                                                 
+ RELATORIO DE BARRAS CA DO SISTEMA * AREA   2 * AREA B                              
+
+ X---------------------X-----------X---------------X---------------X---------------X---------------X---------------X---------------X---X
+          BARRA            TENSAO        GERACAO     INJECAO EQUIV        CARGA          ELO CC          SHUNT           MOTOR
+  NUM.      NOME     TP  MOD   ANG      MW    Mvar\     MW    Mvar      MW    Mvar      MW    Mvar    Mvar   EQUIV      MW    Mvar
+                                            CE Mvar                                                 SHUNT L                         EST
+ X-----X------------X--X-----X-----X-------X-------X-------X-------X-------X-------X-------X-------X-------X-------X-------X-------X---X
+
+    250 URUBU--230    0 1.000 -14.0     0.0     0.0     0.0     0.0     0.0     0.0     0.0     0.0     0.0     0.0     0.0     0.0 LIG
+    251 URUBU--138    0 0.981 -20.1     0.0     0.0     0.0     0.0    80.0    10.0     0.0     0.0     0.0     0.0     0.0     0.0 LIG
+    260 GARCA--230    0 0.994 -11.9     0.0     0.0     0.0     0.0   120.0    50.0     0.0     0.0    49.4     0.0     0.0     0.0 LIG
+   1220 ARARA--FIC    0 1.090 -14.0     0.0     0.0     0.0     0.0     0.0     0.0     0.0     0.0     0.0     0.0     0.0     0.0 LIG
+   1230 PELICANFIC    0 1.083 -19.8     0.0     0.0     0.0     0.0     0.0     0.0     0.0     0.0     0.0     0.0     0.0     0.0 LIG
+CEPEL - CENTRO DE PESQUISAS DE ENERGIA ELETRICA - PROGRAMA DE ANALISE DE REDES - V12.00.01                                 PAG.   6
+
+ ESTAVEL FBA=100                                                                 
+ RELATORIO DE GERADOR * AREA   1 * AREA A                              
+
+ X---------------------X-----------X---------------------------X---------------------------X-------X-----------X-----X---X
+           BARRA           TENSAO           GER  MW                    GER  Mvar              GER   FATOR PART. BARRA
+  NUM.      NOME     TP  MOD   ANG     MIN     MAX    ATUAL        MIN     MAX    ATUAL       MVA   GER   EQV % CONT. EST
+ X-----X------------X--X-----X-----X-------X-------X-----------X-------X-------X-----------X-------X-----X-----X-----X---X
+
+     10 CANARIO-18    2 1.015  -0.0     0.0 99999.0   381.3      -140.0   140.0   -30.6       382.5   0.0   0.0    10 LIG
+     11 SABIA---13    1 1.015 -12.3     0.0 99999.0   250.0      -100.0   100.0   -24.6       251.2   0.0   0.0    11 LIG
+CEPEL - CENTRO DE PESQUISAS DE ENERGIA ELETRICA - PROGRAMA DE ANALISE DE REDES - V12.00.01                                 PAG.   7
+
+ ESTAVEL FBA=100                                                                 
+ RELATORIO DE GERADOR * AREA   2 * AREA B                              
+
+ X---------------------X-----------X---------------------------X---------------------------X-------X-----------X-----X---X
+           BARRA           TENSAO           GER  MW                    GER  Mvar              GER   FATOR PART. BARRA
+  NUM.      NOME     TP  MOD   ANG     MIN     MAX    ATUAL        MIN     MAX    ATUAL       MVA   GER   EQV % CONT. EST
+ X-----X------------X--X-----X-----X-------X-------X-----------X-------X-------X-----------X-------X-----X-----X-----X---X
+
+     20 TUCANO--13    1 1.050   2.2     0.0 99999.0   373.0      -140.0   140.0    16.0       373.3   0.0   0.0    20 LIG
+     21 GAVIAO--13    1 0.960   0.9     0.0 99999.0   250.0       -90.0    90.0   -95.7  I    267.7   0.0   0.0    21 LIG
+CEPEL - CENTRO DE PESQUISAS DE ENERGIA ELETRICA - PROGRAMA DE ANALISE DE REDES - V12.00.01                                 PAG.   8
+
+ ESTAVEL FBA=100                                                                 
+ MONITORACAO DE TENSAO
+
+ X----------------------X--------------------X--------X--------X--------X---------------X
+           BARRA                TENSAO        VIOLACAO SHUNTBAR SHUNTLIN    SEVERIDADE
+   NUM.     NOME     ARE   MIN    MOD.   MAX    (PU)    (Mvar)   (Mvar)
+ X-----X------------X---X------X------X------X--------X--------X--------X---------------X
+
+   1220 ARARA--FIC     2  0.950  1.090  1.050    0.040                   *****
+    223 ARARA---13     2  0.950  1.090  1.050    0.040                   *****
+    222 ARARA--440     2  0.950  1.088  1.050    0.038                   ****
+   1230 PELICANFIC     2  0.950  1.083  1.050    0.033                   ****
+    232 PELICANO13     2  0.950  1.083  1.050    0.033                   ****
+    133 CURIO---13     1  0.950  1.083  1.050    0.033                   ****
+   1130 CURIO--FIC     1  0.950  1.083  1.050    0.033                   ****
+    231 PELICAN440     2  0.950  1.081  1.050    0.031                   ****
+    132 CURIO--440     1  0.950  1.080  1.050    0.030                   ****
+    221 ARARA--CS5     2  0.950  1.078  1.050    0.028   -80.00          ***
+    190 CHOPIN-440     1  0.950  1.078  1.050    0.028   -80.00          ***
+    131 CURIO--CS5     1  0.950  1.070  1.050    0.020   -80.00          **
+    180 BICUDO-440     1  0.950  1.067  1.050    0.017   -40.00          **
+    113 SABIA---13     1  0.950  1.065  1.050    0.015                   **
+CEPEL - CENTRO DE PESQUISAS DE ENERGIA ELETRICA - PROGRAMA DE ANALISE DE REDES - V12.00.01                                 PAG.   9
+
+ ESTAVEL FBA=100                                                                 
+ MONITORACAO DE TENSAO
+
+ X----------------------X--------------------X--------X--------X--------X---------------X
+           BARRA                TENSAO        VIOLACAO SHUNTBAR SHUNTLIN    SEVERIDADE
+   NUM.     NOME     ARE   MIN    MOD.   MAX    (PU)    (Mvar)   (Mvar)
+ X-----X------------X---X------X------X------X--------X--------X--------X---------------X
+
+   1110 SABIA--FIC     1  0.950  1.065  1.050    0.015                   **
+    112 SABIA--440     1  0.950  1.063  1.050    0.013                   **
+    200 TUCANO-230     2  0.950  1.050  1.050    0.000                   *
+
+ ------ IND SEVER.     137.1 -------
+
+
+ MONITORACAO DE FLUXOS CORRIGIDOS PELA TENSAO - MFCT
+
+ Não foram encontradas violações de fluxo entre os circuitos monitorados
