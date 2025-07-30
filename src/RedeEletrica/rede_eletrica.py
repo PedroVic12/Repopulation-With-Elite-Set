@@ -10,6 +10,10 @@ from rich.theme import Theme
 from rich.traceback import install
 import logging
 
+from pandapower.plotting import simple_plot, simple_plotly, pf_res_plotly
+import plotly.graph_objects as go
+from plotly.subplots import make_subplots
+import plotly.io as pio
 
 logging.basicConfig(
     filename='logs.txt',
@@ -37,7 +41,7 @@ class Logger:
         """Logs a message with the specified level and color."""
         if level == "success":
             self.console.print(f"[success]{message}[/]")
-            self.logger.info(message)
+            #self.logger.info(message)
         elif level == "warning":
             self.console.print(f"[warning]{message}[/]")
             #self.logger.warning(message)
@@ -54,7 +58,7 @@ class RedeEletricaPandaPower:
     def __init__(self, network_name = None, debug=False):
         self.net = self.loading_networks_cases(network_name)
         self.debug = debug
-        self.name_network = ""
+        self.nome_rede = ""
         self.console = Logger()
 
         #metodos
@@ -70,30 +74,31 @@ class RedeEletricaPandaPower:
         self.agendamento = pd.DataFrame()
         self.contingencia= pd.DataFrame()
 
-    def loading_networks_cases(self,network_name = "14"):
+    def loading_networks_cases(self, network_name = "14"):
         #!todo -> Switch para as redes disponiveis na lib
         match network_name:
             case "14":
-                network = pw.case14()
-                self.name_network = "Case 14"
+                self.nome_rede = "Case 14"
                 
-                #if self.debug:
-                #    print("Carregando a simulação da Rede IEEE 14...")
+                network = pw.case14()
+                
+
 
             case "30":
                 #RZ não confundir com case30
+                self.nome_rede = "Case 30"
+
                 network = pw.case_ieee30()
-                self.name_network = "Case 30"
 
             case "57":
                 network = pw.case57()
                 
-                self.name_network = "Case 57"
+                self.nome_rede = "Case 57"
 
 
             case "118":
                 network = pw.case118()
-                self.name_network ="Case 118"
+                self.nome_rede ="Case 118"
                 
 
 
@@ -101,9 +106,9 @@ class RedeEletricaPandaPower:
                 network = pw.create_empty_network()
                 nome_rede = input("Digite o nome da sua rede que voce quer simular")
                 if nome_rede != "":
-                    self.name_network = "Nova Rede (desconheçida)"
+                    self.nome_rede = "Nova Rede (desconheçida)"
                 else:
-                    self.name_network = nome_rede
+                    self.nome_rede = nome_rede
 
 
             case _:
@@ -316,7 +321,7 @@ class RedeEletricaPandaPower:
         plt.show()  # Mostrar o gráfico
 
 
-    def show_status(self):
+    def show_status(self, debug = False):
 
         if self.debug:
             print("="*80)
@@ -378,6 +383,130 @@ class RedeEletricaPandaPower:
             #display(self.net.res_trafo[['loading_percent']])
 
             #print("="*80)
+            
+    def plot_potencia_ativa_reativa(self):
+        figs = []
+        net = self.net
+        output_file = f"./potencia_caso_{self.nome_rede}.html"
+        
+        #fig_diagrama = self.plot_diagrama_cenario()
+        figs.append(pf_res_plotly(net))
+
+        # === Gráfico 1: Potências ===
+        fig_pot = make_subplots(rows=1, cols=1, subplot_titles=["Potências Ativa e Reativa"])
+        if not net.line.empty:
+            idx = np.arange(len(net.res_line))
+            fig_pot.add_trace(go.Scatter(x=idx, y=net.res_line['p_from_mw'], name="P Linhas (MW)", mode='lines'))
+            fig_pot.add_trace(go.Scatter(x=idx, y=net.res_line['q_from_mvar'], name="Q Linhas (MVAr)", mode='lines'))
+        if not net.trafo.empty:
+            idx = np.arange(len(net.res_trafo))
+            fig_pot.add_trace(go.Scatter(x=idx, y=net.res_trafo['p_hv_mw'], name="P Trafos (MW)", mode='lines'))
+            fig_pot.add_trace(go.Scatter(x=idx, y=net.res_trafo['q_hv_mvar'], name="Q Trafos (MVAr)", mode='lines'))
+        if not net.load.empty:
+            idx = np.arange(len(net.res_load))
+            fig_pot.add_trace(go.Scatter(x=idx, y=net.res_load['p_mw'], name="P Cargas (MW)", mode='lines'))
+            fig_pot.add_trace(go.Scatter(x=idx, y=net.res_load['q_mvar'], name="Q Cargas (MVAr)", mode='lines'))
+        fig_pot.update_layout(title="Gráfico de Potências", xaxis_title="Índice", yaxis_title="Potência")
+
+        figs.append(fig_pot)
+
+        # === Gráfico 2: Tensões ===
+        fig_tens = make_subplots(rows=1, cols=1, subplot_titles=["Tensões em pu"])
+        idx_bus = np.arange(len(net.res_bus))
+        fig_tens.add_trace(go.Scatter(x=idx_bus, y=net.res_bus['vm_pu'], name="Tensão Barras", mode='lines'))
+        if not net.line.empty:
+            idx_line = np.arange(len(net.res_line))
+            fig_tens.add_trace(go.Scatter(x=idx_line, y=net.res_line['vm_from_pu'], name="Tensão Linhas", mode='lines'))
+        fig_tens.update_layout(title="Gráfico de Tensões", xaxis_title="Índice", yaxis_title="Tensão (pu)")
+
+        figs.append(fig_tens)
+        
+        # === Exportar tudo para HTML ===
+        html_parts = ""
+        for fig in figs:
+            html_parts += pio.to_html(fig, full_html=False, include_plotlyjs='cdn')
+
+        with open(output_file, "w") as f:
+            f.write(f"""
+            <html>
+                <head><title>Relatório Elétrico</title></head>
+                <body>
+                    <h1>Cáculo de Potencia da Rede - net.nome_rede </h1>
+                    {html_parts}
+                </body>
+            </html>
+            """)
+            
+
+
+    def plot_all_results_to_html(self, output_file="relatorio_eletrico.html"):
+        """
+        Gera três gráficos interativos separados (potência, tensão, corrente) e exporta para um único HTML.
+        """
+        figs = []
+        net = self.net
+        
+        #fig_diagrama = self.plot_diagrama_cenario()
+        figs.append(pf_res_plotly(net))
+
+
+        # === Gráfico 1: Potências ===
+        fig_pot = make_subplots(rows=1, cols=1, subplot_titles=["Potências Ativa e Reativa"])
+        if not net.line.empty:
+            idx = np.arange(len(net.res_line))
+            fig_pot.add_trace(go.Scatter(x=idx, y=net.res_line['p_from_mw'], name="P Linhas (MW)", mode='lines'))
+            fig_pot.add_trace(go.Scatter(x=idx, y=net.res_line['q_from_mvar'], name="Q Linhas (MVAr)", mode='lines'))
+        if not net.trafo.empty:
+            idx = np.arange(len(net.res_trafo))
+            fig_pot.add_trace(go.Scatter(x=idx, y=net.res_trafo['p_hv_mw'], name="P Trafos (MW)", mode='lines'))
+            fig_pot.add_trace(go.Scatter(x=idx, y=net.res_trafo['q_hv_mvar'], name="Q Trafos (MVAr)", mode='lines'))
+        if not net.load.empty:
+            idx = np.arange(len(net.res_load))
+            fig_pot.add_trace(go.Scatter(x=idx, y=net.res_load['p_mw'], name="P Cargas (MW)", mode='lines'))
+            fig_pot.add_trace(go.Scatter(x=idx, y=net.res_load['q_mvar'], name="Q Cargas (MVAr)", mode='lines'))
+        fig_pot.update_layout(title="Gráfico de Potências", xaxis_title="Índice", yaxis_title="Potência")
+
+        figs.append(fig_pot)
+
+        # === Gráfico 2: Tensões ===
+        fig_tens = make_subplots(rows=1, cols=1, subplot_titles=["Tensões em pu"])
+        idx_bus = np.arange(len(net.res_bus))
+        fig_tens.add_trace(go.Scatter(x=idx_bus, y=net.res_bus['vm_pu'], name="Tensão Barras", mode='lines'))
+        if not net.line.empty:
+            idx_line = np.arange(len(net.res_line))
+            fig_tens.add_trace(go.Scatter(x=idx_line, y=net.res_line['vm_from_pu'], name="Tensão Linhas", mode='lines'))
+        fig_tens.update_layout(title="Gráfico de Tensões", xaxis_title="Índice", yaxis_title="Tensão (pu)")
+
+        figs.append(fig_tens)
+
+        # === Gráfico 3: Correntes ===
+        fig_corr = make_subplots(rows=1, cols=1, subplot_titles=["Correntes Elétricas"])
+        if not net.line.empty:
+            fig_corr.add_trace(go.Bar(x=np.arange(len(net.res_line)), y=net.res_line['i_ka'], name="Corrente Linhas (kA)"))
+        if not net.trafo.empty:
+            fig_corr.add_trace(go.Bar(x=np.arange(len(net.res_trafo)), y=net.res_trafo['i_hv_ka'], name="Corrente Trafos (kA)"))
+        fig_corr.update_layout(title="Gráfico de Correntes", xaxis_title="Índice", yaxis_title="Corrente (kA)")
+
+        figs.append(fig_corr)
+
+        # === Exportar tudo para HTML ===
+        html_parts = ""
+        for fig in figs:
+            html_parts += pio.to_html(fig, full_html=False, include_plotlyjs='cdn')
+
+        with open(output_file, "w") as f:
+            f.write(f"""
+            <html>
+                <head><title>Relatório Elétrico</title></head>
+                <body>
+                    <h1>Relatório de Resultados Elétricos - {self.nome_rede} </h1>
+                    {html_parts}
+                </body>
+            </html>
+            """)
+
+        print(f"✅ Relatório gerado com sucesso: {output_file}")
+
 
 
     def plot_power_data(self, index = None):
@@ -386,43 +515,74 @@ class RedeEletricaPandaPower:
         Args:
             index: Um array contendo os valores do índice da série temporal (tempo ou número da iteração).
         """
+        print("Tentativa do primeiro plot com tensões e potencias de linhas, trafos e barras")
+        try:
+            #index = np.arange(len(self.net.res_line['p_from_mw']))
+            # Extrair os dados de cada elemento da rede com nomes mais descritivos
+            line_p_from_mw_data = self.net.res_line['p_from_mw'].values
 
-        index = np.arange(len(self.net.res_line['p_from_mw']))
-
-
-        # Extrair os dados de cada elemento da rede com nomes mais descritivos
-        line_p_from_mw_data = self.net.res_line['p_from_mw'].values
-
-        index = line_p_from_mw_data
-
-
-        line_q_from_mvar_data = self.net.res_line['q_from_mvar'].values
-        trafo_p_hv_mw_data = self.net.res_trafo['p_hv_mw'].values
-        trafo_q_hv_mvar_data = self.net.res_trafo['q_hv_mvar'].values
-        #trafo_s_aparente_hv_mva_data = self.net.res_trafo['s_aparente_hv_mva'].values
-        #time_series = self.net['time'].values  # Or self.net['iteration'].values
-        #print(time_series)
-
-        # Criar o gráfico de linhas
-        fig, ax = plt.subplots(figsize=(10, 6))
-
-        # Plotar cada grandeza com uma cor diferente e rótulos descritivos
-        ax.plot(index, line_p_from_mw_data, label='Potência Ativa Linhas (MW)', color='blue')
-        ax.plot(index, line_q_from_mvar_data, label='Potência Reativa Linhas (MVar)', color='red')
-        ax.plot(index, trafo_p_hv_mw_data, label='Potência Ativa Trafos (MW)', color='green')
-        ax.plot(index, trafo_q_hv_mvar_data, label='Potência Reativa Trafos (MVar)', color='orange')
-        #ax.plot(index, trafo_s_aparente_hv_mva_data, label='Potência Aparente Trafos (MVA)', color='purple')
+            index = line_p_from_mw_data
 
 
-        # Configurar o gráfico
-        ax.set_xlabel("Tempo/Iteração")
-        ax.set_ylabel("Valores")
-        ax.set_title("Dados de Potência")
-        ax.legend()
-        plt.grid(True)
-        plt.show()
+            line_q_from_mvar_data = self.net.res_line['q_from_mvar'].values
+            trafo_p_hv_mw_data = self.net.res_trafo['p_hv_mw'].values
+            trafo_q_hv_mvar_data = self.net.res_trafo['q_hv_mvar'].values
+            tensoes_barramentos = self.net.res_bus['vm_pu'].values
+            tensoes_linhas = self.net.res_line['vm_from_pu'].values
+            
+            #trafo_s_aparente_hv_mva_data = self.net.res_trafo['s_aparente_hv_mva'].values
+            #time_series = self.net['time'].values  # Or self.net['iteration'].values
+            #print(time_series)
+
+            fig, ax = plt.subplots(figsize=(14, 8))
+
+                    # === PLOTAGEM DAS LINHAS ===
+            if not self.net.line.empty:
+                        index_line = np.arange(len(self.net.res_line))
+                        ax.plot(index_line, self.net.res_line['p_from_mw'], label='P Ativa Linhas (MW)', color='blue')
+                        ax.plot(index_line, self.net.res_line['q_from_mvar'], label='Q Reativa Linhas (MVAr)', color='red')
+                        ax.plot(index_line, self.net.res_line['vm_from_pu'], label='Tensão Linhas (pu)', color='cyan')
+                        #ax.plot(index_line, self.net.res_line['i_ka'], label='Corrente Linhas (kA)', color='darkblue')
+
+                    # === PLOTAGEM DOS TRANSFORMADORES ===
+            if not self.net.trafo.empty:
+                        index_trafo = np.arange(len(self.net.res_trafo))
+                        ax.plot(index_trafo, self.net.res_trafo['p_hv_mw'], label='P Ativa Trafos (MW)', color='green')
+                        ax.plot(index_trafo, self.net.res_trafo['q_hv_mvar'], label='Q Reativa Trafos (MVAr)', color='orange')
+                        #ax.plot(index_trafo, self.net.res_trafo['i_hv_ka'], label='Corrente Trafos (kA)', color='gold')
+
+                    # === PLOTAGEM DAS BARRAS ===
+            index_bus = np.arange(len(self.net.res_bus))
+            ax.plot(index_bus, self.net.res_bus['vm_pu'], label='Tensão Barras (pu)', color='purple')
+            #ax.plot(index_bus, self.net.res_bus['va_degree'], label='Ângulo de Fase (°)', color='magenta')
+
+                    # === PLOTAGEM DAS CARGAS ===
+            if not self.net.load.empty:
+                index_load = np.arange(len(self.net.res_load))
+                ax.plot(index_load, self.net.res_load['p_mw'], label='P Carga (MW)', color='darkgreen')
+                ax.plot(index_load, self.net.res_load['q_mvar'], label='Q Carga (MVAr)', color='brown')
+
+            ax.set_title("⚡ Dados Elétricos da Simulação Completa")
+            ax.set_xlabel("Índice do Elemento")
+            ax.set_ylabel("Valor")
+            ax.grid(True)
+            ax.legend()
+            plt.tight_layout()
+            plt.show()
 
 
+        
+        except Exception as e:
+            print("Erro ao plotar os dados de potência:", e)
+            self.console.log(f"Erro ao plotar os dados de potência: {e}", level="error")
+
+    #! Funções de Graficos
+    def plot_diagrama_cenario(self, net = None):
+        if net is None:
+            net = self.net
+            
+        fig = pf_res_plotly(net)
+        return fig
 
     #! Otimização com Pandapower Métodos para Analise de contigencia com Casos IEEE
 
@@ -604,6 +764,7 @@ class RedeEletricaPandaPower:
         except pp.LoadflowNotConverged:
             self.console.log("\nErro: Fluxo de potência não convergiu...", level = "error")
             Pdem = 99
+            print("Penalidade de não convergência do fluxo de potência aplicada:", Pdem)
             self.calcular_violacoes_fitness()
             return False
 
@@ -884,17 +1045,26 @@ class RedeEletricaPandaPower:
     
     
     
-def main_rede_eletrica(simulate = False):
+def main_rede_eletrica(simulate = True):
     print("iniciando a simulação de Rede Eleticas...")
-    network = RedeEletricaPandaPower("14")
-    #network.simulate_network_functional()
+    CASO = "14"  # Exemplo de caso, pode ser alterado para outros casos como "30", "57", etc.
+    network_modelada = RedeEletricaPandaPower(CASO)
+    network_modelada = network_modelada.loading_networks_cases(CASO)
     
     
     if simulate:
-        print("Simulação da Rede IEEE 14")    
-        #net.imprimir_resultados()
+        print("[debug] da classe Model RedeEletricaPandapower =  Simulação {network_modelada.nome_rede} iniciada")
+        #network_modelada.ajustar_cargas(perfil = 2)  # Ajusta para o perfil médio (IEEE 14)
+        network_modelada.executar_fluxo_de_potencia(fast = True)
+        #network.show_status(debug = True)
+        #network.imprimir_resultados() 
+        network_modelada.plot_power_data()
+        network_modelada.plot_potencia_ativa_reativa()
+        network_modelada.plot_all_results_to_html(output_file="./relatorio_eletrico_{network_modelada.nome_rede}.html")
+            #network_modelada.simulate_network_functional()
+
     
-#main()
+main_rede_eletrica()
 
 
 

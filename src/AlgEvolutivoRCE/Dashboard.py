@@ -119,7 +119,7 @@ class DashboardApp:
         return figure
 
     # --- visualize MODIFICADO (salva dados e chama Streamlit) ---
-    def visualize(self, logbook, pop, repopulation=True, DEBUG=False, current_params=None, execution_num=1):
+    def visualize(self, logbook, pop, repopulation=True, DEBUG=False, current_params=None, execution_num=1, num_configs=1):
         """
         Processa dados, imprime no console, RETORNA figura e resultados,
         E salva os arquivos de dados e figura com um número de execução.
@@ -175,7 +175,7 @@ class DashboardApp:
             print("="*90)
 
             grafico_RCE = self.graficoRCE(generation, array_values, repopulation=repopulation)
-
+            
 
              # --- MODIFIED: Define filenames based on execution_num ---
             if execution_num is None:
@@ -187,9 +187,10 @@ class DashboardApp:
             else:
 
                 # check se o diretorio output exists
+                print(f"\n[INFO]: Salvando dados .pkl, .json e figura .html para execução {execution_num}...") # Added execution num here
                 output_path = f"{FOLDER_NAME}"
                 data_file = f"{output_path}/dashboard_data_{execution_num}.pkl"
-                fig_file = f"{output_path}/dashboard_fig_{execution_num}.json"
+                fig_file = f"{output_path}/dashboard_fig_{num_configs}_{execution_num}.json"
 
                 # --- Salvar dados e figura para o script Streamlit ---
                 data_to_save = {
@@ -205,7 +206,7 @@ class DashboardApp:
                 }
 
             # Salvar a figura em formato HTML
-            fig_filename = f"{output_path}/grafico_execucao_{execution_num}.html"
+            fig_filename = f"{output_path}/grafico_execucao_{num_configs}_{execution_num}.html"
             grafico_RCE.write_html(fig_filename)
 
 

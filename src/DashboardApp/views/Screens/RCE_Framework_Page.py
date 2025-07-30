@@ -4,7 +4,7 @@
 from functools import reduce
 import json
 import operator
-from ..components.dash_rce_components import ConsolidatedResultsComponent, CardSolutions, StatisticsTableComponent, GraficoRCEComponent
+from ..components.dash_rce_components import ConsolidatedResultsComponent, CardSolutions, GraficoPotenciaAtivaReativaComponent, StatisticsTableComponent, GraficoRCEComponent
 
 
 #backend
@@ -201,7 +201,7 @@ class FrameworkRCEDashboard:
             if dados_exec:
                 exec_tabs_dict[f"Execução {exec_num}"] = {
                     "Soluções": lambda de=dados_exec, en=exec_num: CardSolutions.render(de, en, debug=False),
-                    "Gráfico": lambda en=exec_num: GraficoRCEComponent.render(en),
+                    "Gráfico": lambda en=exec_num: [GraficoRCEComponent.render(en),GraficoPotenciaAtivaReativaComponent.render(en,1)],
                     "Estatísticas": lambda de=dados_exec: StatisticsTableComponent.render(de)
                 }
             else:

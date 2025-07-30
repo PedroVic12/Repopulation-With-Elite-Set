@@ -203,17 +203,38 @@ class CardSolutions:
 
         st.markdown("---")
 
+class GraficoPotenciaAtivaReativaComponent:
+    """Componente para exibir o gráfico de potência ativa e reativa."""
+
+    @staticmethod
+    def render(exec_num, num_configs = 1):
+        """Exibe o gráfico de potência ativa e reativa na página principal."""
+        st.header(f"📊 Gráfico Potência Ativa e Reativa (Execução {exec_num})")
+        
+        #! Debug aqui Caminho do arquivo HTML
+        html_file = path_foler_output / f"potencia_caso_.html"
+        
+        if html_file.exists(): 
+            try:
+                with open(html_file, 'r', encoding='utf-8') as f:
+                    html_content = f.read()
+                    st.components.v1.html(html_content, height=500, scrolling=True)
+                    
+            except Exception as error:
+                st.warning("Erro ao renderizar o grafico", error)
+        else:
+            st.warning(f"Arquivo HTML não encontrado para a execução {exec_num}.")
 
 class GraficoRCEComponent:
     """Componente para exibir o gráfico de convergência."""
     
     @staticmethod
-    def render(exec_num):
+    def render(exec_num, num_configs = 1):
         """Exibe os gráficos de convergência na página principal."""
         st.header(f"📉 Gráfico RCE: F(x,y) = Generations x Fitness (Execução {exec_num})")
         
-        # Caminho do arquivo HTML
-        html_file = path_foler_output / f"grafico_execucao_{exec_num}.html"
+        #! Debug aqui Caminho do arquivo HTML
+        html_file = path_foler_output / f"grafico_execucao_{num_configs}_{exec_num}.html"
         
         if html_file.exists(): 
             try:
@@ -225,7 +246,9 @@ class GraficoRCEComponent:
                 #                     label="Baixar Gráfico",
                 #                     url=html_file,
                 #                     help="Baixar o gráfico gerado para a execução atual.",
-                #                     icon="📥",)      
+                #                     icon="📥",)   
+                
+                
 
 
             except Exception as error:
