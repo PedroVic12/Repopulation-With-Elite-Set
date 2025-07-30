@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistema de Potência Interativo</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap" rel="stylesheet">
+    <!-- Chosen Palette: Warm Neutrals with Cyan Accent -->
+    <!-- Application Structure Plan: A single-page application designed as a top-down interactive flowchart. The user journey follows the path of electricity: Geração -> Transmissão -> Distribuição. Each of these main stages is a clickable, collapsible section that reveals detailed information. This structure was chosen to transform a linear text document into an exploratory experience, reinforcing the core process visually. It breaks down complex information into manageable, user-triggered chunks, preventing cognitive overload and encouraging active learning over passive reading. A final interactive section details key components. -->
+    <!-- Visualization & Content Choices: 
+        - Process Flow (G->T->D): Report Info -> 3 stages of power system. Goal -> Show the process. Viz/Method -> Horizontal flowchart with HTML/Tailwind divs. Interaction -> Clicking a stage toggles the visibility of its detailed content section. Justification -> Visually represents the energy journey and serves as the primary navigation. Library/Method -> Vanilla JS.
+        - Generation Sources: Report Info -> List of generation types. Goal -> Compare and inform. Viz/Method -> Interactive tabs for each source and an illustrative Chart.js donut chart for a sample energy matrix. Interaction -> Clicking a tab displays its details; hovering the chart shows tooltips. Justification -> More engaging than a list and adds a quantitative feel. Library/Method -> Vanilla JS, Chart.js.
+        - Key Components: Report Info -> List of 8 key components. Goal -> Organize and define terms. Viz/Method -> A grid of clickable buttons linked to a single display panel. Interaction -> Clicking a button shows the component's definition. Justification -> Hides complexity until requested, providing a cleaner UI. Library/Method -> Vanilla JS.
+        - CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        .content-section {
+            transition: all 0.5s ease-in-out;
+            max-height: 0;
+            overflow: hidden;
+            opacity: 0;
+        }
+        .content-section.open {
+            max-height: 2000px;
+            opacity: 1;
+        }
+        .tab-btn.active {
+            background-color: #0891b2;
+            color: white;
+        }
+        .component-btn.active {
+            background-color: #0e7490;
+            color: white;
+            transform: scale(1.05);
+        }
+        .flow-arrow {
+            font-size: 2.5rem;
+            color: #94a3b8;
+        }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-800">
+
+    <div class="container mx-auto p-4 md:p-8">
+        
+        <header class="text-center mb-12">
+            <h1 class="text-4xl md:text-5xl font-bold text-cyan-900 mb-2">Sistema de Potência Interativo</h1>
+            <p class="text-lg text-slate-600 max-w-3xl mx-auto">Uma jornada visual pela geração, transmissão e distribuição da energia elétrica que move nosso mundo.</p>
+        </header>
+
+        <main>
+            <!-- Fluxo Principal -->
+            <div class="flex flex-col md:flex-row items-center justify-center text-center mb-8">
+                <div id="btn-geracao" class="m-2 cursor-pointer p-4 border-2 border-transparent rounded-lg hover:bg-cyan-100 hover:border-cyan-300 transition-all duration-300">
+                    <h2 class="text-2xl font-bold text-cyan-800">⚡ Geração</h2>
+                    <p class="text-slate-500">Onde tudo começa</p>
+                </div>
+                <div class="flow-arrow hidden md:block mx-4">→</div>
+                <div class="flow-arrow block md:hidden my-2">↓</div>
+                <div id="btn-transmissao" class="m-2 cursor-pointer p-4 border-2 border-transparent rounded-lg hover:bg-cyan-100 hover:border-cyan-300 transition-all duration-300">
+                    <h2 class="text-2xl font-bold text-cyan-800">🗼 Transmissão</h2>
+                    <p class="text-slate-500">Levando energia longe</p>
+                </div>
+                <div class="flow-arrow hidden md:block mx-4">→</div>
+                <div class="flow-arrow block md:hidden my-2">↓</div>
+                <div id="btn-distribuicao" class="m-2 cursor-pointer p-4 border-2 border-transparent rounded-lg hover:bg-cyan-100 hover:border-cyan-300 transition-all duration-300">
+                    <h2 class="text-2xl font-bold text-cyan-800">🏠 Distribuição</h2>
+                    <p class="text-slate-500">Energia na sua porta</p>
+                </div>
+            </div>
+
+            <!-- Seções de Conteúdo Detalhado -->
+            <div id="content-container" class="mt-4">
+                
+                <!-- 1. Geração -->
+                <section id="content-geracao" class="content-section bg-white rounded-xl shadow-lg p-6 md:p-8 mb-8 border border-slate-200">
+                    <h3 class="text-3xl font-bold text-cyan-900 mb-4">1. Geração de Energia Elétrica</h3>
+                    <p class="text-slate-600 mb-6">Esta é a primeira etapa, onde a energia é produzida a partir de diversas fontes antes de ser enviada para a rede. Aqui você pode explorar os principais tipos de usinas geradoras e ver uma representação de como elas compõem nossa matriz energética. Clique nas abas abaixo para aprender sobre cada fonte.</p>
+                    
+                    <div class="flex flex-col lg:flex-row gap-8">
+                        <div class="lg:w-1/2">
+                            <div id="tabs-container" class="flex flex-wrap gap-2 mb-4 border-b border-slate-200 pb-2">
+                                <!-- As abas serão inseridas aqui pelo JS -->
+                            </div>
+                            <div id="tab-content-container" class="p-4 bg-slate-50 rounded-lg min-h-[200px]">
+                                <!-- O conteúdo da aba será inserido aqui pelo JS -->
+                            </div>
+                        </div>
+                        <div class="lg:w-1/2 flex flex-col items-center">
+                             <h4 class="text-xl font-semibold text-center mb-4 text-slate-700">Exemplo de Matriz Energética</h4>
+                             <div class="chart-container relative w-full max-w-sm mx-auto h-72 md:h-80">
+                                <canvas id="generationChart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- 2. Transmissão -->
+                <section id="content-transmissao" class="content-section bg-white rounded-xl shadow-lg p-6 md:p-8 mb-8 border border-slate-200">
+                    <h3 class="text-3xl font-bold text-cyan-900 mb-4">2. Transmissão de Energia Elétrica</h3>
+                    <p class="text-slate-600 mb-6">Após ser gerada, a energia precisa viajar grandes distâncias das usinas até os centros de consumo. Esta seção detalha como esse transporte é feito de forma eficiente e segura, utilizando altas tensões e uma vasta rede de linhas e subestações.</p>
+                    <ul class="space-y-4 text-slate-700">
+                        <li class="p-4 bg-slate-50 rounded-lg"><strong>Altas Tensões:</strong> Para reduzir as perdas de energia (que são proporcionais ao quadrado da corrente), a energia é transmitida em tensões muito elevadas, na casa de centenas de milhares de Volts. Isso permite transportar mais energia com menos desperdício.</li>
+                        <li class="p-4 bg-slate-50 rounded-lg"><strong>Linhas de Transmissão:</strong> São as estruturas que vemos nas estradas e campos, compostas por grandes torres metálicas e cabos condutores que levam a eletricidade por todo o país.</li>
+                        <li class="p-4 bg-slate-50 rounded-lg"><strong>Subestações de Transmissão:</strong> Localizadas em pontos estratégicos da rede, essas instalações usam transformadores para elevar a tensão na saída das usinas e rebaixá-la na chegada perto das cidades, preparando a energia para a etapa de distribuição.</li>
+                    </ul>
+                </section>
+
+                <!-- 3. Distribuição -->
+                <section id="content-distribuicao" class="content-section bg-white rounded-xl shadow-lg p-6 md:p-8 mb-8 border border-slate-200">
+                    <h3 class="text-3xl font-bold text-cyan-900 mb-4">3. Distribuição de Energia Elétrica</h3>
+                    <p class="text-slate-600 mb-6">Esta é a etapa final da jornada, onde a energia elétrica é entregue aos consumidores. A tensão é progressivamente reduzida para níveis seguros e utilizáveis, passando por redes urbanas até chegar às residências, comércios e indústrias.</p>
+                     <ul class="space-y-4 text-slate-700">
+                        <li class="p-4 bg-slate-50 rounded-lg"><strong>Redução de Tensão:</strong> A energia chega às subestações de distribuição em tensões mais baixas que na transmissão, mas ainda altas para o consumo direto. Transformadores reduzem essa tensão para níveis utilizáveis.</li>
+                        <li class="p-4 bg-slate-50 rounded-lg"><strong>Redes de Distribuição:</strong> São as redes de cabos e postes que vemos nas cidades e bairros, levando a energia até os transformadores de rua e, daí, para as instalações dos consumidores.</li>
+                        <li class="p-4 bg-slate-50 rounded-lg"><strong>Subestações de Distribuição:</strong> Reduzem a tensão das linhas de transmissão para níveis que podem ser distribuídos localmente, garantindo a segurança e a adequação da energia para o uso final.</li>
+                    </ul>
+                </section>
+            </div>
+
+            <!-- 4. Componentes Chave -->
+            <section class="bg-white rounded-xl shadow-lg p-6 md:p-8 mt-12 border border-slate-200">
+                <h3 class="text-3xl font-bold text-center text-cyan-900 mb-2">4. Componentes Chave de um Sistema de Potência</h3>
+                <p class="text-slate-600 mb-8 text-center max-w-3xl mx-auto">Um sistema de potência é composto por diversos equipamentos que trabalham em conjunto. Clique nos botões abaixo para conhecer a função de cada componente fundamental.</p>
+                <div id="components-btn-container" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3 md:gap-4 mb-6">
+                    <!-- Botões dos componentes serão inseridos aqui -->
+                </div>
+                <div id="component-content-display" class="p-6 bg-cyan-50 text-cyan-900 rounded-lg min-h-[100px] transition-all duration-300">
+                    <p class="text-center">Selecione um componente para ver sua descrição.</p>
+                </div>
+            </section>
+        </main>
+        
+        <footer class="text-center mt-12 text-slate-500 text-sm">
+            <p>Aplicação Interativa desenvolvida para fins educacionais.</p>
+        </footer>
+    </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+
+    // --- Dados ---
+    const generationData = [
+        { name: 'Hidrelétricas', description: 'Utilizam a força da água para girar turbinas e geradores. São uma fonte limpa e renovável, mas dependem de recursos hídricos.' },
+        { name: 'Termelétricas', description: 'Queimam combustíveis fósseis (carvão, gás natural, óleo) ou biomassa para aquecer água, produzir vapor e girar turbinas. São flexíveis, mas emitem gases de efeito estufa.' },
+        { name: 'Nucleares', description: 'Utilizam a fissão nuclear para gerar calor, que produz vapor para as turbinas. São eficientes e não emitem gases de efeito estufa, mas geram resíduos radioativos.' },
+        { name: 'Eólicas', description: 'Convertem a energia do vento em eletricidade através de aerogeradores. São renováveis e limpas, mas intermitentes.' },
+        { name: 'Solares', description: 'Convertem a luz do sol em eletricidade, seja por painéis fotovoltaicos (diretamente) ou por usinas termossolares. Também são renováveis e limpas, mas intermitentes.' }
+    ];
+
+    const componentsData = [
+        { name: 'Geradores', description: 'Convertem outras formas de energia (mecânica, térmica, etc.) em energia elétrica. São o coração das usinas.' },
+        { name: 'Transformadores', description: 'Alteram os níveis de tensão da eletricidade. Elevam a tensão para a transmissão e a reduzem para a distribuição e consumo.' },
+        { name: 'Linhas', description: 'Conduzem a energia através de cabos aéreos ou subterrâneos, formando as redes de transmissão e distribuição.' },
+        { name: 'Disjuntores e Chaves', description: 'Controlam o fluxo de energia e protegem o sistema contra falhas. Atuam como interruptores de grande porte.' },
+        { name: 'Relés de Proteção', description: 'Detectam condições anormais (como curtos-circuitos) e acionam os disjuntores para isolar a falha e proteger o resto do sistema.' },
+        { name: 'Barramentos', description: 'São barras condutoras que conectam vários circuitos em uma subestação, funcionando como um nó de distribuição de energia.' },
+        { name: 'Capacitores e Reatores', description: 'São usados para controlar a tensão e compensar a potência reativa na rede, melhorando a eficiência e a estabilidade do sistema.' }
+    ];
+
+    // --- Lógica de Navegação Principal (G-T-D) ---
+    const btnGeracao = document.getElementById('btn-geracao');
+    const btnTransmissao = document.getElementById('btn-transmissao');
+    const btnDistribuicao = document.getElementById('btn-distribuicao');
+    const contentGeracao = document.getElementById('content-geracao');
+    const contentTransmissao = document.getElementById('content-transmissao');
+    const contentDistribuicao = document.getElementById('content-distribuicao');
+    const allContentSections = document.querySelectorAll('.content-section');
+
+    const toggleSection = (sectionToOpen) => {
+        allContentSections.forEach(section => {
+            if (section === sectionToOpen) {
+                section.classList.toggle('open');
+            } else {
+                section.classList.remove('open');
+            }
+        });
+    };
+
+    btnGeracao.addEventListener('click', () => toggleSection(contentGeracao));
+    btnTransmissao.addEventListener('click', () => toggleSection(contentTransmissao));
+    btnDistribuicao.addEventListener('click', () => toggleSection(contentDistribuicao));
+
+    // --- Lógica da Seção de Geração (Abas) ---
+    const tabsContainer = document.getElementById('tabs-container');
+    const tabContentContainer = document.getElementById('tab-content-container');
+
+    generationData.forEach((item, index) => {
+        const tabBtn = document.createElement('button');
+        tabBtn.className = 'tab-btn px-4 py-2 rounded-md text-sm font-medium transition-all duration-200 bg-slate-200 hover:bg-cyan-500 hover:text-white';
+        tabBtn.textContent = item.name;
+        tabBtn.dataset.index = index;
+        tabsContainer.appendChild(tabBtn);
+    });
+
+    tabsContainer.addEventListener('click', (e) => {
+        if (e.target.classList.contains('tab-btn')) {
+            const index = e.target.dataset.index;
+            tabContentContainer.innerHTML = `<p>${generationData[index].description}</p>`;
+            
+            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+            e.target.classList.add('active');
+        }
+    });
+    
+    // Ativa a primeira aba por padrão
+    tabsContainer.querySelector('.tab-btn').click();
+
+    // --- Lógica do Gráfico de Geração ---
+    const ctx = document.getElementById('generationChart').getContext('2d');
+    new Chart(ctx, {
+        type: 'doughnut',
+        data: {
+            labels: ['Hidrelétrica', 'Termelétrica', 'Eólica', 'Solar', 'Nuclear & Outras'],
+            datasets: [{
+                label: 'Matriz Energética (%)',
+                data: [62, 20, 11, 5, 2],
+                backgroundColor: [
+                    '#06b6d4', // cyan-500
+                    '#64748b', // slate-500
+                    '#38bdf8', // lightBlue-400
+                    '#facc15', // yellow-400
+                    '#a8a29e'  // stone-400
+                ],
+                borderColor: '#ffffff',
+                borderWidth: 3
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    position: 'bottom',
+                    labels: {
+                        font: {
+                            size: 12,
+                            family: 'Inter'
+                        }
+                    }
+                },
+                tooltip: {
+                    callbacks: {
+                        label: function(context) {
+                            let label = context.label || '';
+                            if (label) {
+                                label += ': ';
+                            }
+                            if (context.parsed !== null) {
+                                label += context.parsed + '%';
+                            }
+                            return label;
+                        }
+                    }
+                }
+            }
+        }
+    });
+
+    // --- Lógica dos Componentes Chave ---
+    const componentsBtnContainer = document.getElementById('components-btn-container');
+    const componentContentDisplay = document.getElementById('component-content-display');
+
+    componentsData.forEach((item, index) => {
+        const componentBtn = document.createElement('button');
+        componentBtn.className = 'component-btn p-3 text-center rounded-lg bg-slate-100 hover:bg-cyan-600 hover:text-white font-semibold transition-all duration-200';
+        componentBtn.textContent = item.name;
+        componentBtn.dataset.index = index;
+        componentsBtnContainer.appendChild(componentBtn);
+    });
+
+    componentsBtnContainer.addEventListener('click', (e) => {
+        if (e.target.classList.contains('component-btn')) {
+            const index = e.target.dataset.index;
+            componentContentDisplay.innerHTML = `
+                <h4 class="font-bold text-lg mb-2">${componentsData[index].name}</h4>
+                <p>${componentsData[index].description}</p>
+            `;
+            document.querySelectorAll('.component-btn').forEach(btn => btn.classList.remove('active'));
+            e.target.classList.add('active');
+        }
+    });
+});
+</script>
+
+</body>
+</html>
