@@ -1045,15 +1045,15 @@ class RedeEletricaPandaPower:
     
     
     
-def main_rede_eletrica(simulate = True):
+def main_rede_eletrica(simulate = False):
     print("iniciando a simulação de Rede Eleticas...")
     CASO = "14"  # Exemplo de caso, pode ser alterado para outros casos como "30", "57", etc.
     network_modelada = RedeEletricaPandaPower(CASO)
-    network_modelada = network_modelada.loading_networks_cases(CASO)
+    #network_modelada = network_modelada.loading_networks_cases(CASO)
     
     
     if simulate:
-        print("[debug] da classe Model RedeEletricaPandapower =  Simulação {network_modelada.nome_rede} iniciada")
+        print(f"[debug] da classe Model RedeEletricaPandapower =  Simulação {network_modelada.nome_rede} iniciada")
         #network_modelada.ajustar_cargas(perfil = 2)  # Ajusta para o perfil médio (IEEE 14)
         network_modelada.executar_fluxo_de_potencia(fast = True)
         #network.show_status(debug = True)

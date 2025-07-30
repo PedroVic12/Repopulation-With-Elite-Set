@@ -327,7 +327,7 @@ if __name__ == "__main__":
     # Check if the user wants to run multiple executions or a single execution
     if options_main_file["key"]:
         print("Running multiple executions...")
-        run_framework_many_executions(function_bechmarking = True)
+        run_framework_many_executions(function_bechmarking = False)
         #run_framework_groups_executions()
     else:
         print("Running a single execution...")
