@@ -7,7 +7,7 @@
 
 3) Condição IF para verificar todos os cenarios
 
-4)Configuração inicial e instancia da classe
+4) Configuração inicial e instancia da classe
 
 5) Ajusta o carregamento do cenario (scaling - net.load e net.gen)
 

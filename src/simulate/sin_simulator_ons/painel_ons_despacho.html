@@ -1,0 +1,399 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Painel de Operação com Simulação de Despacho</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- React -->
+    <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+    <!-- Babel para transpilar JSX -->
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <!-- Leaflet (para o Mapa) -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <!-- Leaflet Polyline Decorator (para as setas) -->
+    <script src="https://unpkg.com/leaflet-polylinedecorator@1.6.0/dist/leaflet.polylineDecorator.js"></script>
+    <!-- Chart.js (para os gráficos) -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+        body { font-family: 'Inter', sans-serif; background-color: #f1f5f9; }
+        .fade-in { animation: fadeIn 0.5s ease-in-out; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
+        #map { height: 600px; border-radius: 0.75rem; box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1); background-color: #e2e8f0; }
+        .leaflet-container { font-family: 'Inter', sans-serif; }
+        .region-label { background-color: rgba(255, 255, 255, 0.85); border: 1px solid #9ca3af; border-radius: 0.5rem; padding: 0.25rem 0.75rem; font-weight: 700; font-size: 1.25rem; color: #1f2937; text-shadow: 0 0 3px white; }
+    </style>
+</head>
+<body>
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { useState, useEffect, useMemo, useRef } = React;
+
+        // --- Geração de Dados Realista ---
+        const subsistemasSIN = ['Norte', 'Nordeste', 'Sudeste/CO', 'Sul'];
+        const tensoes = ['765kV', '525kV', '500kV', '345kV', '230kV', '138kV'];
+        
+        const regionBounds = {
+            'Norte':      { lat: { min: -10, max: 5 },  lng: { min: -74, max: -46 } },
+            'Nordeste':   { lat: { min: -18, max: -1 },  lng: { min: -47, max: -34 } },
+            'Sudeste/CO': { lat: { min: -25, max: -14 }, lng: { min: -53, max: -41 } },
+            'Sul':        { lat: { min: -34, max: -22 }, lng: { min: -58, max: -48 } }
+        };
+
+        const generateInitialBusData = (count = 200) => {
+            const data = [];
+            for (let i = 1; i <= count; i++) {
+                const subsistema = subsistemasSIN[i % subsistemasSIN.length];
+                const bounds = regionBounds[subsistema];
+                const tensao = tensoes[i % tensoes.length];
+                const isGenerator = Math.random() < 0.25;
+                const carga_mw = isGenerator 
+                    ? -(Math.floor(Math.random() * 20) * 100 + 500) // Geração
+                    : Math.floor(Math.random() * 500) + 50; // Carga
+                
+                const max_mw = isGenerator 
+                    ? carga_mw / (Math.random() * 0.4 + 0.6)
+                    : carga_mw * (Math.random() * 0.5 + 1.1);
+
+                data.push({
+                    id: `${subsistema.charAt(0)}-${String(i).padStart(3, '0')}`,
+                    nome: `BARRA ${subsistema.charAt(0)}${String(i).padStart(3, '0')}`,
+                    subsistema,
+                    tensao,
+                    carga_mw: Math.round(carga_mw),
+                    max_mw: Math.round(max_mw),
+                    carga_mvar: Math.round(carga_mw * (isGenerator ? 0.2 : 0.4)),
+                    status: 'Ativo',
+                    lat: bounds.lat.min + Math.random() * (bounds.lat.max - bounds.lat.min),
+                    lng: bounds.lng.min + Math.random() * (bounds.lng.max - bounds.lng.min),
+                    despacho_novo_pct: isGenerator ? Math.round((carga_mw / max_mw) * 100) : 100,
+                });
+            }
+            return data;
+        };
+        
+        const createInitialInterconnectionData = () => [
+            { id: 'INT-N-SE', nome: 'Norte ↔ SE/CO', from_sub: 'Norte', to_sub: 'Sudeste/CO' },
+            { id: 'INT-NE-SE', nome: 'Nordeste ↔ SE/CO', from_sub: 'Nordeste', to_sub: 'Sudeste/CO' },
+            { id: 'INT-SE-S', nome: 'SE/CO ↔ Sul', from_sub: 'Sudeste/CO', to_sub: 'Sul' },
+            { id: 'INT-N-NE', nome: 'Norte ↔ Nordeste', from_sub: 'Norte', to_sub: 'Nordeste' },
+        ];
+        
+        const subsistemaCoords = { 'Norte': [-5, -58], 'Nordeste': [-8, -42], 'Sudeste/CO': [-20, -48], 'Sul': [-28, -52] };
+        const statusConfig = { 'Ativo': { color: 'bg-green-100 text-green-800', mapColor: 'limegreen' }, 'Inativo': { color: 'bg-gray-100 text-gray-800', mapColor: 'grey' }, 'Manutenção': { color: 'bg-yellow-100 text-yellow-800', mapColor: 'gold' } };
+
+        class BusRepository {
+            constructor() {
+                this.storageKey = 'sinBusData_v13';
+                this.data = this._loadFromStorage();
+            }
+            _loadFromStorage() { try { const d = localStorage.getItem(this.storageKey); return d ? JSON.parse(d) : generateInitialBusData(); } catch (e) { return generateInitialBusData(); } }
+            _saveToStorage() { try { localStorage.setItem(this.storageKey, JSON.stringify(this.data)); } catch (e) { console.error(e); } }
+            getAll() { return this.data; }
+            updateAll(newData) {
+                this.data = newData;
+                this._saveToStorage();
+            }
+        }
+
+        const StatusBadge = ({ status }) => <span className={`inline-flex items-center rounded-md px-2.5 py-1 text-xs font-medium ${statusConfig[status]?.color || 'bg-gray-100'}`}>{status}</span>;
+        
+        const BusTable = ({ buses, onNewDispatchChange }) => (
+            <div className="overflow-x-auto max-h-[600px]">
+                <table className="min-w-full divide-y divide-gray-200">
+                    <thead className="bg-gray-50 sticky top-0">
+                        <tr>
+                            <th className="px-3 py-3 text-left text-xs font-bold text-gray-600 uppercase">Barra</th>
+                            <th className="px-3 py-3 text-left text-xs font-bold text-gray-600 uppercase">Tensão</th>
+                            <th className="px-3 py-3 text-left text-xs font-bold text-gray-600 uppercase">Carga (MW)</th>
+                            <th className="px-3 py-3 text-left text-xs font-bold text-gray-600 uppercase">Carga (Mvar)</th>
+                            <th className="px-3 py-3 text-left text-xs font-bold text-gray-600 uppercase">Uso Atual (%)</th>
+                            <th className="px-3 py-3 text-left text-xs font-bold text-gray-600 uppercase w-48">Despacho Novo (%)</th>
+                        </tr>
+                    </thead>
+                    <tbody className="bg-white divide-y divide-gray-200">
+                        {buses.map((bus) => {
+                             const isGenerator = bus.max_mw < 0;
+                             const usoAtualPct = bus.max_mw !== 0 ? Math.abs(Math.round((bus.carga_mw / bus.max_mw) * 100)) : 0;
+
+                             return (
+                                <tr key={bus.id} className="hover:bg-gray-50">
+                                    <td className="px-3 py-2 whitespace-nowrap text-sm font-medium text-gray-900">{bus.nome}</td>
+                                    <td className="px-3 py-2 whitespace-nowrap text-sm font-semibold text-indigo-600">{bus.tensao}</td>
+                                    <td className={`px-3 py-2 whitespace-nowrap text-sm font-semibold ${bus.carga_mw >= 0 ? 'text-blue-600' : 'text-red-600'}`}>{bus.carga_mw.toLocaleString('pt-BR')}</td>
+                                    <td className={`px-3 py-2 whitespace-nowrap text-sm font-semibold ${bus.carga_mvar >= 0 ? 'text-blue-600' : 'text-red-600'}`}>{bus.carga_mvar.toLocaleString('pt-BR')}</td>
+                                    <td className="px-3 py-2 whitespace-nowrap text-sm text-gray-600">{usoAtualPct}%</td>
+                                    <td className="px-3 py-2 whitespace-nowrap text-sm">
+                                        {isGenerator ? (
+                                            <input
+                                                type="number"
+                                                min="0"
+                                                max="100"
+                                                value={bus.despacho_novo_pct}
+                                                onChange={(e) => onNewDispatchChange(bus.id, e.target.value)}
+                                                className="w-full p-1 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500"
+                                            />
+                                        ) : (
+                                            <span className="text-gray-400">-</span>
+                                        )}
+                                    </td>
+                                </tr>
+                            );
+                        })}
+                    </tbody>
+                </table>
+            </div>
+        );
+
+        const MapView = ({ buses, interconnections }) => {
+            const mapRef = useRef(null);
+            const layersRef = useRef([]);
+
+            useEffect(() => {
+                if (!mapRef.current) {
+                    mapRef.current = L.map('map', { zoomControl: false, attributionControl: false }).setView([-16, -55], 4);
+                    L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', { attribution: '&copy; CartoDB' }).addTo(mapRef.current);
+                }
+            }, []);
+
+            useEffect(() => {
+                layersRef.current.forEach(layer => layer.remove());
+                layersRef.current = [];
+
+                // Desenha as grandes interconexões
+                interconnections.forEach(line => {
+                    const fromCoords = subsistemaCoords[line.from_sub];
+                    const toCoords = subsistemaCoords[line.to_sub];
+                    if (fromCoords && toCoords) {
+                        const latlngs = [fromCoords, toCoords];
+                        const polyline = L.polyline(latlngs, { color: '#ef4444', weight: 6, opacity: 0.8 }).addTo(mapRef.current);
+                        polyline.bindTooltip(`${line.from_sub} → ${line.to_sub}: ${line.flow_mw.toLocaleString('pt-BR')} MW`, { permanent: false, direction: 'center', className: 'font-semibold text-lg' });
+                        layersRef.current.push(polyline);
+                        
+                        const decorator = L.polylineDecorator(polyline, {
+                            patterns: [{ offset: '50%', repeat: 0, symbol: L.Symbol.arrowHead({ pixelSize: 20, polygon: false, pathOptions: { stroke: true, weight: 2, color: '#ef4444' } }) }]
+                        }).addTo(mapRef.current);
+                        layersRef.current.push(decorator);
+                    }
+                });
+                
+                // Adiciona labels das regiões
+                Object.entries(subsistemaCoords).forEach(([name, coords]) => {
+                    const labelIcon = L.divIcon({ className: 'region-label', html: name });
+                    const labelMarker = L.marker(coords, { icon: labelIcon, interactive: false }).addTo(mapRef.current);
+                    layersRef.current.push(labelMarker);
+                });
+
+                // Desenha as barras (cidades/subestações)
+                buses.forEach(bus => {
+                    const color = statusConfig[bus.status]?.mapColor || 'grey';
+                    const iconHtml = `<svg viewBox="0 0 24 24" width="12" height="12" fill="${color}" stroke="white" stroke-width="1.5"><circle cx="12" cy="12" r="10"/></svg>`;
+                    const customIcon = L.divIcon({ html: iconHtml, className: '', iconSize: [12, 12], iconAnchor: [6, 6] });
+                    const marker = L.marker([bus.lat, bus.lng], { icon: customIcon }).addTo(mapRef.current);
+                    layersRef.current.push(marker);
+                });
+
+            }, [buses, interconnections]);
+
+            return <div id="map"></div>;
+        };
+        
+        const Dashboard = ({ buses, interconnections }) => {
+            const chartRef = useRef(null);
+            const chartInstance = useRef(null);
+            const [activeTab, setActiveTab] = useState('load');
+
+            const chartConfigs = useMemo(() => {
+                const loadBySubsystem = { 'Norte': 0, 'Nordeste': 0, 'Sudeste/CO': 0, 'Sul': 0 };
+                const tensionCounts = {};
+                buses.forEach(bus => {
+                    if (bus.carga_mw > 0) { loadBySubsystem[bus.subsistema] += bus.carga_mw; }
+                    tensionCounts[bus.tensao] = (tensionCounts[bus.tensao] || 0) + 1;
+                });
+
+                return {
+                    load: {
+                        type: 'pie', data: { labels: Object.keys(loadBySubsystem), datasets: [{ data: Object.values(loadBySubsystem), backgroundColor: ['#3b82f6', '#16a34a', '#ef4444', '#f97316'] }] },
+                        options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'top' }, title: { display: true, text: 'Distribuição de Carga (MW) por Subsistema' } } }
+                    },
+                    tension: {
+                        type: 'pie', data: { labels: Object.keys(tensionCounts), datasets: [{ data: Object.values(tensionCounts), backgroundColor: ['#8b5cf6', '#ec4899', '#fde047', '#22d3ee', '#a3e635'] }] },
+                        options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'top' }, title: { display: true, text: 'Distribuição de Barras por Nível de Tensão' } } }
+                    },
+                    flow: {
+                        type: 'bar', data: { labels: interconnections.map(l => `${l.from_sub} → ${l.to_sub}`), datasets: [{ label: 'Fluxo (MW)', data: interconnections.map(l => l.flow_mw), backgroundColor: '#4f46e5' }] },
+                        options: { indexAxis: 'y', responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false }, title: { display: true, text: 'Fluxo de Energia nas Interconexões (MW)' } } }
+                    }
+                };
+            }, [buses, interconnections]);
+
+            useEffect(() => {
+                if (chartInstance.current) {
+                    chartInstance.current.destroy();
+                }
+                if (chartRef.current) {
+                    const ctx = chartRef.current.getContext('2d');
+                    chartInstance.current = new Chart(ctx, chartConfigs[activeTab]);
+                }
+            }, [activeTab, chartConfigs]);
+
+            const tabs = [
+                { id: 'load', name: 'Carga por Região' },
+                { id: 'tension', name: 'Níveis de Tensão' },
+                { id: 'flow', name: 'Fluxo nas Interconexões' },
+            ];
+
+            return (
+                <div className="mt-8 pt-6 border-t border-gray-200">
+                    <h2 className="text-2xl font-bold text-gray-800 mb-4">Dashboard Analítico</h2>
+                    <div className="border-b border-gray-200">
+                        <nav className="-mb-px flex space-x-8" aria-label="Tabs">
+                            {tabs.map(tab => (
+                                <button
+                                    key={tab.id}
+                                    onClick={() => setActiveTab(tab.id)}
+                                    className={`${activeTab === tab.id ? 'border-indigo-500 text-indigo-600' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'} whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm`}
+                                >
+                                    {tab.name}
+                                </button>
+                            ))}
+                        </nav>
+                    </div>
+                    <div className="mt-6 bg-white p-4 rounded-lg shadow-md" style={{height: '400px'}}>
+                        <canvas ref={chartRef}></canvas>
+                    </div>
+                </div>
+            );
+        };
+
+        function App() {
+            const busRepo = useMemo(() => new BusRepository(), []);
+            const [buses, setBuses] = useState(busRepo.getAll());
+            const [baseInterconnections] = useState(createInitialInterconnectionData());
+            
+            const [searchTerm, setSearchTerm] = useState('');
+            const [statusFilter, setStatusFilter] = useState('Todos');
+            const [sinFilter, setSinFilter] = useState('Todos');
+            const [view, setView] = useState('table');
+
+            const interconnections = useMemo(() => {
+                const balance = { 'Norte': 0, 'Nordeste': 0, 'Sudeste/CO': 0, 'Sul': 0 };
+                buses.forEach(bus => { if (bus.status === 'Ativo') { balance[bus.subsistema] += bus.carga_mw; } });
+
+                const flows = {};
+                baseInterconnections.forEach(inter => {
+                    const from = inter.from_sub;
+                    const to = inter.to_sub;
+                    let flow = 0;
+                    // Tenta satisfazer o deficit de 'to' com o superavit de 'from'
+                    if (balance[to] > 0 && balance[from] < 0) {
+                        flow = Math.min(balance[to], -balance[from]);
+                        balance[to] -= flow;
+                        balance[from] += flow;
+                    } 
+                    // Tenta satisfazer o deficit de 'from' com o superavit de 'to' (fluxo reverso)
+                    else if (balance[from] > 0 && balance[to] < 0) {
+                        flow = -Math.min(balance[from], -balance[to]);
+                        balance[from] -= Math.abs(flow);
+                        balance[to] += Math.abs(flow);
+                    }
+                    flows[inter.id] = { ...inter, flow_mw: flow };
+                });
+                
+                return Object.values(flows).map(f => {
+                    if (f.flow_mw < 0) { // Inverte a seta se o fluxo for negativo
+                        return { ...f, from_sub: f.to_sub, to_sub: f.from_sub, flow_mw: Math.abs(f.flow_mw) };
+                    }
+                    return f;
+                }).filter(f => f.flow_mw > 1); // Apenas mostra fluxos significativos
+
+            }, [buses, baseInterconnections]);
+
+            const filteredBuses = useMemo(() => {
+                return buses
+                    .filter(bus => (bus.nome.toLowerCase().includes(searchTerm.toLowerCase())))
+                    .filter(bus => statusFilter === 'Todos' || bus.status === statusFilter)
+                    .filter(bus => sinFilter === 'Todos' || bus.subsistema === sinFilter);
+            }, [buses, searchTerm, statusFilter, sinFilter]);
+            
+            const handleNewDispatchChange = (busId, pct) => {
+                const newBuses = buses.map(bus => 
+                    bus.id === busId ? { ...bus, despacho_novo_pct: Math.max(0, Math.min(100, parseInt(pct, 10) || 0)) } : bus
+                );
+                setBuses(newBuses);
+            };
+
+            const handleApplyDispatch = () => {
+                const newBuses = buses.map(bus => {
+                    if (bus.max_mw < 0) { // Aplica apenas a geradores
+                        const newMw = Math.round((bus.max_mw * bus.despacho_novo_pct) / 100);
+                        return { ...bus, carga_mw: newMw };
+                    }
+                    return bus;
+                });
+                busRepo.updateAll(newBuses);
+                setBuses(newBuses);
+            };
+
+            return (
+                <div className="min-h-screen bg-gray-100 p-4 sm:p-6 lg:p-8">
+                    <div className="max-w-full mx-auto">
+                        <header className="mb-6">
+                             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                                <div>
+                                    <h1 className="text-3xl font-bold text-gray-800">Painel de Operação do SIN</h1>
+                                    <p className="mt-1 text-gray-600">Simule o redespacho de geração e analise o impacto no sistema.</p>
+                                </div>
+                             </div>
+                        </header>
+
+                        <main className="bg-white rounded-xl shadow-lg p-5 sm:p-6 fade-in">
+                            <div className="flex flex-col md:flex-row justify-between items-center mb-6 gap-4">
+                                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 flex-grow">
+                                    <input type="text" placeholder="🔎 Buscar por nome da barra..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} className="block w-full rounded-lg border-gray-300 py-2.5 px-3 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"/>
+                                    <select value={sinFilter} onChange={(e) => setSinFilter(e.target.value)} className="block w-full rounded-lg border-gray-300 py-2.5 pl-3 pr-10 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
+                                        <option value="Todos">Todos Subsistemas</option>
+                                        {subsistemasSIN.map(sub => <option key={sub} value={sub}>{sub}</option>)}
+                                    </select>
+                                    <select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)} className="block w-full rounded-lg border-gray-300 py-2.5 pl-3 pr-10 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
+                                        <option value="Todos">Todos Status</option>
+                                        {Object.keys(statusConfig).map(status => <option key={status}>{status}</option>)}
+                                    </select>
+                                </div>
+                                <div className="flex items-center gap-4 mt-4 md:mt-0">
+                                    <button onClick={handleApplyDispatch} className="bg-green-600 text-white font-bold py-2.5 px-6 rounded-lg shadow-sm hover:bg-green-700 transition-colors">
+                                        Aplicar Novo Despacho
+                                    </button>
+                                    <div className="flex items-center bg-gray-200 rounded-lg p-1">
+                                        <button onClick={() => setView('table')} className={`px-4 py-1.5 text-sm font-medium rounded-md transition-colors ${view === 'table' ? 'bg-white text-indigo-600 shadow' : 'text-gray-600 hover:bg-gray-300'}`}>Tabela</button>
+                                        <button onClick={() => setView('map')} className={`px-4 py-1.5 text-sm font-medium rounded-md transition-colors ${view === 'map' ? 'bg-white text-indigo-600 shadow' : 'text-gray-600 hover:bg-gray-300'}`}>Mapa</button>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {view === 'table' ? (
+                                <BusTable buses={filteredBuses} onNewDispatchChange={handleNewDispatchChange} />
+                            ) : (
+                                <MapView buses={filteredBuses} interconnections={interconnections} />
+                            )}
+                        </main>
+                        
+                        <Dashboard buses={buses} interconnections={interconnections} />
+
+                    </div>
+                </div>
+            );
+        }
+
+        const container = document.getElementById('root');
+        const root = ReactDOM.createRoot(container);
+        root.render(<App />);
+    </script>
+</body>
+</html>

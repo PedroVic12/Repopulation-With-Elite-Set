@@ -1,0 +1,756 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Painel de Despacho de Energia Elétrica - ONS</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+            color: #e2e8f0;
+        }
+        .grid-layout {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            grid-template-rows: auto auto auto auto;
+            gap: 20px;
+            grid-template-areas:
+                "header header header"
+                "map map sidebar"
+                "cards cards sidebar"
+                "chart chart chart";
+        }
+        .header { grid-area: header; }
+        .map-container { grid-area: map; }
+        .sidebar { grid-area: sidebar; }
+        .cards-container { grid-area: cards; }
+        .chart-container { grid-area: chart; }
+        .bus-card {
+            background: rgba(30, 41, 59, 0.7);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(71, 85, 105, 0.5);
+            transition: all 0.3s ease;
+        }
+        .bus-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+        }
+        .bus-card.swing {
+            border: 2px solid #f59e0b;
+            background: rgba(30, 41, 59, 0.9);
+        }
+        .map-tooltip {
+            background: rgba(15, 23, 42, 0.85);
+            border: 1px solid #334155;
+            border-radius: 8px;
+            color: #e2e8f0;
+            padding: 10px;
+            font-size: 14px;
+            backdrop-filter: blur(5px);
+        }
+        .leaflet-div-icon {
+            background: transparent !important;
+            border: none !important;
+        }
+        .voltage-indicator {
+            position: relative;
+            height: 8px;
+            border-radius: 4px;
+            overflow: hidden;
+        }
+        .voltage-fill {
+            height: 100%;
+            border-radius: 4px;
+        }
+        input[type="range"] {
+            -webkit-appearance: none;
+            width: 100%;
+            height: 8px;
+            border-radius: 4px;
+            background: #334155;
+            outline: none;
+        }
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: #3b82f6;
+            cursor: pointer;
+            box-shadow: 0 0 5px rgba(59, 130, 246, 0.5);
+        }
+        .generation-badge {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+        .grid-stack {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 15px;
+        }
+        .region-tag {
+            position: absolute;
+            top: -10px;
+            right: 10px;
+            padding: 3px 10px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            z-index: 10;
+        }
+        .sankey-chart {
+            background: rgba(30, 41, 59, 0.7);
+            border-radius: 12px;
+            padding: 15px;
+            height: 100%;
+        }
+        #map {
+            border-radius: 12px;
+            overflow: hidden;
+            height: 450px;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.3);
+        }
+        .card-header {
+            border-bottom: 1px solid #334155;
+            padding-bottom: 12px;
+            margin-bottom: 12px;
+        }
+    </style>
+</head>
+<body class="min-h-screen p-4 md:p-6">
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { useState, useEffect, useRef } = React;
+        
+        // Dados iniciais das barras
+        const initialBusData = [
+            {
+                id: "N-101",
+                name: "Tucuruí",
+                region: "Norte",
+                voltage: 500,
+                loadMW: 1240,
+                loadMvar: 310,
+                generationMW: 8370,
+                generationType: "Hidráulica",
+                dispatchPercentage: 85,
+                isSwing: false,
+                position: [-3.83, -49.67]
+            },
+            {
+                id: "NE-205",
+                name: "Sobradinho",
+                region: "Nordeste",
+                voltage: 500,
+                loadMW: 1870,
+                loadMvar: 468,
+                generationMW: 1050,
+                generationType: "Hidráulica",
+                dispatchPercentage: 70,
+                isSwing: false,
+                position: [-9.42, -40.82]
+            },
+            {
+                id: "SE-301",
+                name: "Itaipu",
+                region: "Sudeste",
+                voltage: 750,
+                loadMW: 0,
+                loadMvar: 0,
+                generationMW: 14000,
+                generationType: "Hidráulica",
+                dispatchPercentage: 92,
+                isSwing: false,
+                position: [-25.41, -54.59]
+            },
+            {
+                id: "SE-302",
+                name: "Furnas",
+                region: "Sudeste",
+                voltage: 500,
+                loadMW: 2450,
+                loadMvar: 612,
+                generationMW: 0,
+                generationType: "",
+                dispatchPercentage: 100,
+                isSwing: true,
+                position: [-20.27, -46.0]
+            },
+            {
+                id: "S-401",
+                name: "Itá",
+                region: "Sul",
+                voltage: 500,
+                loadMW: 980,
+                loadMvar: 245,
+                generationMW: 1450,
+                generationType: "Hidráulica",
+                dispatchPercentage: 78,
+                isSwing: false,
+                position: [-27.07, -52.32]
+            },
+            {
+                id: "NE-206",
+                name: "Canindé",
+                region: "Nordeste",
+                voltage: 230,
+                loadMW: 650,
+                loadMvar: 162,
+                generationMW: 0,
+                generationType: "",
+                dispatchPercentage: 100,
+                isSwing: false,
+                position: [-4.36, -39.31]
+            },
+            {
+                id: "S-402",
+                name: "Machadinho",
+                region: "Sul",
+                voltage: 230,
+                loadMW: 720,
+                loadMvar: 180,
+                generationMW: 1140,
+                generationType: "Hidráulica",
+                dispatchPercentage: 65,
+                isSwing: false,
+                position: [-27.57, -51.67]
+            },
+            {
+                id: "N-102",
+                name: "Jirau",
+                region: "Norte",
+                voltage: 500,
+                loadMW: 0,
+                loadMvar: 0,
+                generationMW: 3750,
+                generationType: "Hidráulica",
+                dispatchPercentage: 88,
+                isSwing: false,
+                position: [-9.25, -64.38]
+            }
+        ];
+
+        // Dados de fluxo entre regiões
+        const initialFlowData = [
+            { source: "Norte", target: "Nordeste", value: 3200 },
+            { source: "Norte", target: "Sudeste", value: 4200 },
+            { source: "Nordeste", target: "Sudeste", value: 2800 },
+            { source: "Sudeste", target: "Sul", value: 3800 },
+            { source: "Sul", target: "Sudeste", value: 1500 }
+        ];
+
+        // Configurações de cores por região
+        const regionColors = {
+            "Norte": "#3b82f6",
+            "Nordeste": "#ef4444",
+            "Sudeste": "#10b981",
+            "Sul": "#8b5cf6"
+        };
+
+        // Componente para o card de barra
+        const BusCard = ({ bus, onDispatchChange }) => {
+            const voltagePercentage = Math.min(100, Math.max(0, (bus.voltage - 200) / 5));
+            
+            return (
+                <div className={`bus-card rounded-xl p-5 relative overflow-hidden ${bus.isSwing ? 'swing' : ''}`}>
+                    {bus.isSwing && (
+                        <div className="region-tag" style={{ backgroundColor: "#f59e0b", color: "#1e293b" }}>
+                            <i className="fas fa-bolt mr-1"></i> Barra Swing
+                        </div>
+                    )}
+                    
+                    <div className="flex justify-between items-start mb-4">
+                        <div>
+                            <h3 className="text-xl font-bold text-white">{bus.name}</h3>
+                            <div className="flex items-center mt-1">
+                                <span className="text-sm text-slate-300 mr-2">{bus.id}</span>
+                                <span className="generation-badge" style={{ 
+                                    backgroundColor: regionColors[bus.region] + '20', 
+                                    color: regionColors[bus.region],
+                                    border: `1px solid ${regionColors[bus.region]}`
+                                }}>
+                                    {bus.region}
+                                </span>
+                            </div>
+                        </div>
+                        <div className="text-right">
+                            <span className="text-2xl font-bold" style={{ color: regionColors[bus.region] }}>
+                                {bus.voltage}kV
+                            </span>
+                            <div className="voltage-indicator w-24 bg-slate-700 mt-1">
+                                <div 
+                                    className="voltage-fill" 
+                                    style={{ 
+                                        width: `${voltagePercentage}%`, 
+                                        background: `linear-gradient(90deg, ${regionColors[bus.region]}, ${regionColors[bus.region]}bb)`
+                                    }}
+                                ></div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div className="grid grid-cols-2 gap-4 mb-4">
+                        <div className="bg-slate-800 rounded-lg p-3">
+                            <div className="text-slate-400 text-sm mb-1">Carga MW</div>
+                            <div className="text-lg font-bold text-blue-300">{bus.loadMW.toLocaleString('pt-BR')}</div>
+                        </div>
+                        <div className="bg-slate-800 rounded-lg p-3">
+                            <div className="text-slate-400 text-sm mb-1">Carga Mvar</div>
+                            <div className="text-lg font-bold text-purple-300">{bus.loadMvar.toLocaleString('pt-BR')}</div>
+                        </div>
+                    </div>
+                    
+                    {bus.generationMW > 0 && (
+                        <div className="mb-4">
+                            <div className="flex justify-between text-sm text-slate-400 mb-2">
+                                <span>Despacho de Geração</span>
+                                <span>{bus.dispatchPercentage}% ({Math.round(bus.generationMW * bus.dispatchPercentage / 100).toLocaleString('pt-BR')} MW)</span>
+                            </div>
+                            <input 
+                                type="range" 
+                                min="0" 
+                                max="100" 
+                                value={bus.dispatchPercentage} 
+                                onChange={(e) => onDispatchChange(bus.id, parseInt(e.target.value))}
+                                className="mb-2"
+                                style={{ background: `linear-gradient(90deg, ${regionColors[bus.region]} 0%, ${regionColors[bus.region]} ${bus.dispatchPercentage}%, #334155 ${bus.dispatchPercentage}%, #334155 100%)` }}
+                            />
+                            <div className="text-sm text-slate-400 flex justify-between">
+                                <span>{bus.generationType}</span>
+                                <span>Capacidade: {bus.generationMW.toLocaleString('pt-BR')} MW</span>
+                            </div>
+                        </div>
+                    )}
+                    
+                    {bus.isSwing && (
+                        <div className="mt-4 pt-3 border-t border-slate-700">
+                            <h4 className="font-bold text-slate-300 mb-2">Controle de Tensão (Barra Swing)</h4>
+                            <div className="flex items-center">
+                                <button className="bg-amber-500 hover:bg-amber-600 text-slate-900 font-bold py-1 px-3 rounded-l-lg">
+                                    <i className="fas fa-minus"></i>
+                                </button>
+                                <div className="flex-1 text-center mx-2">
+                                    <div className="text-xl font-bold text-amber-400">1.05 pu</div>
+                                    <div className="text-xs text-slate-400">Tensão Atual</div>
+                                </div>
+                                <button className="bg-amber-500 hover:bg-amber-600 text-slate-900 font-bold py-1 px-3 rounded-r-lg">
+                                    <i className="fas fa-plus"></i>
+                                </button>
+                            </div>
+                        </div>
+                    )}
+                </div>
+            );
+        };
+
+        // Componente do mapa do Brasil
+        const BrazilMap = ({ buses, onBusSelect }) => {
+            const mapRef = useRef(null);
+            const markersRef = useRef([]);
+            
+            useEffect(() => {
+                // Inicializa o mapa
+                mapRef.current = L.map('map').setView([-14.2350, -51.9253], 4);
+                
+                // Adiciona camada do mapa
+                L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                    attribution: '&copy; OpenStreetMap contributors'
+                }).addTo(mapRef.current);
+                
+                // Adiciona marcadores para cada barra
+                markersRef.current = buses.map(bus => {
+                    const marker = L.marker(bus.position, {
+                        icon: L.divIcon({
+                            className: 'leaflet-div-icon',
+                            html: `
+                                <div style="position: relative;">
+                                    <div style="
+                                        width: 24px; 
+                                        height: 24px; 
+                                        background: ${regionColors[bus.region]};
+                                        border-radius: 50%;
+                                        border: 2px solid white;
+                                        box-shadow: 0 0 10px rgba(0,0,0,0.3);
+                                        display: flex;
+                                        align-items: center;
+                                        justify-content: center;
+                                        color: white;
+                                        font-weight: bold;
+                                        font-size: 10px;
+                                    ">
+                                        ${bus.voltage}
+                                    </div>
+                                    ${bus.isSwing ? `
+                                    <div style="
+                                        position: absolute;
+                                        top: -5px;
+                                        right: -5px;
+                                        width: 16px;
+                                        height: 16px;
+                                        background: #f59e0b;
+                                        border-radius: 50%;
+                                        border: 2px solid white;
+                                        display: flex;
+                                        align-items: center;
+                                        justify-content: center;
+                                    ">
+                                        <i class="fas fa-bolt" style="font-size: 8px; color: white;"></i>
+                                    </div>` : ''}
+                                </div>
+                            `,
+                            iconSize: [24, 24]
+                        })
+                    }).addTo(mapRef.current);
+                    
+                    marker.bindTooltip(`
+                        <div class="map-tooltip">
+                            <strong>${bus.name}</strong> (${bus.id})<br>
+                            <span style="color: ${regionColors[bus.region]}">${bus.region}</span><br>
+                            ${bus.generationMW > 0 ? `Geração: ${bus.generationMW} MW` : `Carga: ${bus.loadMW} MW`}
+                        </div>
+                    `);
+                    
+                    marker.on('click', () => onBusSelect(bus.id));
+                    
+                    return marker;
+                });
+                
+                // Adiciona contornos das regiões
+                const regionBounds = {
+                    "Norte": [[5, -74], [-20, -46]],
+                    "Nordeste": [[1, -47], [-18, -34]],
+                    "Sudeste": [[-14, -53], [-25, -41]],
+                    "Sul": [[-22, -58], [-34, -48]]
+                };
+                
+                Object.entries(regionBounds).forEach(([region, bounds]) => {
+                    const rect = L.rectangle(bounds, {
+                        color: regionColors[region],
+                        fillColor: regionColors[region] + '20',
+                        fillOpacity: 0.2,
+                        weight: 2,
+                        dashArray: '5, 5'
+                    }).addTo(mapRef.current);
+                    
+                    rect.bindTooltip(`<div class="map-tooltip"><strong>${region}</strong></div>`);
+                });
+                
+                return () => {
+                    if (mapRef.current) {
+                        mapRef.current.remove();
+                    }
+                };
+            }, []);
+            
+            return <div id="map" className="w-full"></div>;
+        };
+
+        // Componente do gráfico Sankey
+        const FlowChart = ({ flowData }) => {
+            const chartRef = useRef(null);
+            
+            useEffect(() => {
+                if (!flowData || flowData.length === 0) return;
+                
+                // Preparar dados para o Sankey
+                const nodes = [];
+                const links = [];
+                const nodeNames = new Set();
+                
+                // Adicionar nós
+                flowData.forEach(flow => {
+                    if (!nodeNames.has(flow.source)) {
+                        nodes.push({ label: flow.source, color: regionColors[flow.source] });
+                        nodeNames.add(flow.source);
+                    }
+                    if (!nodeNames.has(flow.target)) {
+                        nodes.push({ label: flow.target, color: regionColors[flow.target] });
+                        nodeNames.add(flow.target);
+                    }
+                });
+                
+                // Adicionar links
+                flowData.forEach(flow => {
+                    const sourceIndex = Array.from(nodeNames).indexOf(flow.source);
+                    const targetIndex = Array.from(nodeNames).indexOf(flow.target);
+                    
+                    links.push({
+                        source: sourceIndex,
+                        target: targetIndex,
+                        value: flow.value,
+                        color: regionColors[flow.source] + '99'
+                    });
+                });
+                
+                // Criar o gráfico
+                const data = {
+                    type: "sankey",
+                    orientation: "h",
+                    node: {
+                        pad: 15,
+                        thickness: 30,
+                        line: { color: "black", width: 0.5 },
+                        label: nodes.map(node => node.label),
+                        color: nodes.map(node => node.color)
+                    },
+                    link: {
+                        source: links.map(link => link.source),
+                        target: links.map(link => link.target),
+                        value: links.map(link => link.value),
+                        color: links.map(link => link.color)
+                    }
+                };
+                
+                const layout = {
+                    title: "Fluxo de Energia entre Regiões (MW)",
+                    font: { size: 12, color: "#e2e8f0" },
+                    paper_bgcolor: "rgba(0,0,0,0)",
+                    plot_bgcolor: "rgba(0,0,0,0)",
+                    margin: { t: 40, l: 0, r: 0, b: 20 }
+                };
+                
+                if (chartRef.current) {
+                    Plotly.newPlot(chartRef.current, [data], layout);
+                }
+                
+                return () => {
+                    if (chartRef.current) {
+                        Plotly.purge(chartRef.current);
+                    }
+                };
+            }, [flowData]);
+            
+            return <div ref={chartRef} className="sankey-chart"></div>;
+        };
+
+        // Componente de resumo do sistema
+        const SystemSummary = ({ buses }) => {
+            // Calcular totais por região
+            const regionTotals = {
+                "Norte": { loadMW: 0, loadMvar: 0, generationMW: 0 },
+                "Nordeste": { loadMW: 0, loadMvar: 0, generationMW: 0 },
+                "Sudeste": { loadMW: 0, loadMvar: 0, generationMW: 0 },
+                "Sul": { loadMW: 0, loadMvar: 0, generationMW: 0 }
+            };
+            
+            buses.forEach(bus => {
+                regionTotals[bus.region].loadMW += bus.loadMW;
+                regionTotals[bus.region].loadMvar += bus.loadMvar;
+                regionTotals[bus.region].generationMW += bus.generationMW;
+            });
+            
+            // Calcular totais gerais
+            const totalLoadMW = Object.values(regionTotals).reduce((sum, region) => sum + region.loadMW, 0);
+            const totalLoadMvar = Object.values(regionTotals).reduce((sum, region) => sum + region.loadMvar, 0);
+            const totalGenerationMW = Object.values(regionTotals).reduce((sum, region) => sum + region.generationMW, 0);
+            const balanceMW = totalGenerationMW - totalLoadMW;
+            
+            return (
+                <div className="bg-slate-800 rounded-xl p-5 h-full">
+                    <div className="card-header">
+                        <h2 className="text-xl font-bold text-white">Resumo do Sistema</h2>
+                        <p className="text-slate-400 text-sm">Dados consolidados de carga e geração</p>
+                    </div>
+                    
+                    <div className="mb-5">
+                        <div className="flex justify-between mb-1">
+                            <span className="text-slate-400">Carga Total:</span>
+                            <span className="font-bold text-blue-300">{totalLoadMW.toLocaleString('pt-BR')} MW</span>
+                        </div>
+                        <div className="flex justify-between mb-1">
+                            <span className="text-slate-400">Geração Total:</span>
+                            <span className="font-bold text-green-300">{totalGenerationMW.toLocaleString('pt-BR')} MW</span>
+                        </div>
+                        <div className="flex justify-between mb-1">
+                            <span className="text-slate-400">Balanço:</span>
+                            <span className={`font-bold ${balanceMW >= 0 ? 'text-green-400' : 'text-red-400'}`}>
+                                {balanceMW >= 0 ? '+' : ''}{balanceMW.toLocaleString('pt-BR')} MW
+                            </span>
+                        </div>
+                        <div className="flex justify-between">
+                            <span className="text-slate-400">Carga Reativa:</span>
+                            <span className="font-bold text-purple-300">{totalLoadMvar.toLocaleString('pt-BR')} Mvar</span>
+                        </div>
+                    </div>
+                    
+                    <div className="mb-5">
+                        <h3 className="font-bold text-slate-300 mb-3">Resumo por Região</h3>
+                        {Object.entries(regionTotals).map(([region, data]) => (
+                            <div key={region} className="mb-3">
+                                <div className="flex justify-between mb-1">
+                                    <div className="flex items-center">
+                                        <div className="w-3 h-3 rounded-full mr-2" style={{ backgroundColor: regionColors[region] }}></div>
+                                        <span className="text-slate-300">{region}</span>
+                                    </div>
+                                    <span className="text-slate-400">{data.generationMW > 0 ? 'Geração' : 'Carga'}</span>
+                                </div>
+                                <div className="flex justify-between">
+                                    <div className="w-full bg-slate-700 rounded-full h-2.5 mr-2">
+                                        <div 
+                                            className="h-2.5 rounded-full" 
+                                            style={{ 
+                                                width: `${(data.generationMW > 0 ? data.generationMW : data.loadMW) / 15000 * 100}%`, 
+                                                background: `linear-gradient(90deg, ${regionColors[region]}, ${regionColors[region]}bb)`
+                                            }}
+                                        ></div>
+                                    </div>
+                                    <span className="font-bold text-sm">
+                                        {data.generationMW > 0 
+                                            ? data.generationMW.toLocaleString('pt-BR') + ' MW' 
+                                            : data.loadMW.toLocaleString('pt-BR') + ' MW'}
+                                    </span>
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                    
+                    <div className="flex justify-between">
+                        <button className="bg-amber-500 hover:bg-amber-600 text-slate-900 font-bold py-2 px-4 rounded-lg flex items-center">
+                            <i className="fas fa-bolt mr-2"></i> Despacho Automático
+                        </button>
+                        <button className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-2 px-4 rounded-lg flex items-center">
+                            <i className="fas fa-check mr-2"></i> Aplicar Alterações
+                        </button>
+                    </div>
+                </div>
+            );
+        };
+
+        // Componente principal
+        const App = () => {
+            const [buses, setBuses] = useState(initialBusData);
+            const [flowData, setFlowData] = useState(initialFlowData);
+            const [selectedBus, setSelectedBus] = useState(null);
+            
+            const handleDispatchChange = (busId, newPercentage) => {
+                setBuses(prevBuses => 
+                    prevBuses.map(bus => 
+                        bus.id === busId ? { ...bus, dispatchPercentage: newPercentage } : bus
+                    )
+                );
+            };
+            
+            const handleBusSelect = (busId) => {
+                setSelectedBus(busId);
+                
+                // Scroll para o card selecionado
+                setTimeout(() => {
+                    const element = document.getElementById(`bus-${busId}`);
+                    if (element) {
+                        element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                        element.classList.add('ring-2', 'ring-amber-400');
+                        setTimeout(() => element.classList.remove('ring-2', 'ring-amber-400'), 2000);
+                    }
+                }, 100);
+            };
+            
+            return (
+                <div className="max-w-7xl mx-auto">
+                    <header className="header mb-8">
+                        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                            <div>
+                                <h1 className="text-3xl md:text-4xl font-bold text-white">
+                                    <i className="fas fa-bolt text-amber-400 mr-3"></i>
+                                    Painel de Despacho de Energia
+                                </h1>
+                                <p className="mt-2 text-slate-400">
+                                    Controle e monitoramento do Sistema Interligado Nacional - Operador Nacional do Sistema
+                                </p>
+                            </div>
+                            <div className="flex items-center gap-3">
+                                <div className="bg-slate-800 px-4 py-2 rounded-lg">
+                                    <div className="text-slate-400 text-sm">Data/Hora</div>
+                                    <div className="text-white font-medium">05/07/2025 14:45:32</div>
+                                </div>
+                                <button className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg flex items-center">
+                                    <i className="fas fa-download mr-2"></i> Relatório
+                                </button>
+                            </div>
+                        </div>
+                    </header>
+                    
+                    <div className="grid-layout">
+                        <div className="map-container">
+                            <div className="bg-slate-800 rounded-xl p-5 h-full">
+                                <div className="flex justify-between items-center mb-4">
+                                    <h2 className="text-xl font-bold text-white">Mapa do Sistema</h2>
+                                    <div className="flex gap-2">
+                                        <button className="bg-slate-700 hover:bg-slate-600 text-white px-3 py-1 rounded-lg text-sm">
+                                            <i className="fas fa-sync-alt mr-1"></i> Atualizar
+                                        </button>
+                                        <button className="bg-slate-700 hover:bg-slate-600 text-white px-3 py-1 rounded-lg text-sm">
+                                            <i className="fas fa-layer-group mr-1"></i> Camadas
+                                        </button>
+                                    </div>
+                                </div>
+                                <BrazilMap buses={buses} onBusSelect={handleBusSelect} />
+                            </div>
+                        </div>
+                        
+                        <div className="sidebar">
+                            <SystemSummary buses={buses} />
+                        </div>
+                        
+                        <div className="cards-container">
+                            <div className="bg-slate-800 rounded-xl p-5 h-full">
+                                <div className="card-header">
+                                    <h2 className="text-xl font-bold text-white">Barras do Sistema</h2>
+                                    <p className="text-slate-400 text-sm">
+                                        {buses.length} barras monitoradas | {buses.filter(b => b.isSwing).length} barra swing
+                                    </p>
+                                </div>
+                                <div className="grid-stack">
+                                    {buses.map(bus => (
+                                        <div key={bus.id} id={`bus-${bus.id}`}>
+                                            <BusCard 
+                                                bus={bus} 
+                                                onDispatchChange={handleDispatchChange} 
+                                            />
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div className="chart-container">
+                            <div className="bg-slate-800 rounded-xl p-5 h-full">
+                                <div className="flex justify-between items-center mb-4">
+                                    <h2 className="text-xl font-bold text-white">Fluxo de Energia entre Regiões</h2>
+                                    <div className="text-sm text-slate-400">
+                                        Dados em tempo real | Atualizado: agora
+                                    </div>
+                                </div>
+                                <FlowChart flowData={flowData} />
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <footer className="mt-8 text-center text-slate-500 text-sm">
+                        <p>Operador Nacional do Sistema Elétrico (ONS) - Painel de Controle © 2025</p>
+                        <p className="mt-1">Sistema Interligado Nacional - Dados atualizados em tempo real</p>
+                    </footer>
+                </div>
+            );
+        };
+
+        // Renderizar a aplicação
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<App />);
+    </script>
+</body>
+</html>
