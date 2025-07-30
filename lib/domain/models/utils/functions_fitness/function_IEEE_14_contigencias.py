@@ -207,7 +207,6 @@ def simulate_IEEE_14_cenario():
         individuo=horarios,
         setupobj= setup_obj,
         _debug = True
-
     )
     
     fitness

@@ -4,14 +4,14 @@ from views.pages.themes import Theme
 
 from views.pages.AgendamentoRedePage import AgendamentoRedePage
 from views.pages.EasyPDF_page import EasyPDF
-from views.Screens.RCE_Framework_Page import FrameworkRCEDashboard
+from views.Screens.RCE_Framework_Page import FrameworkRCEDashboardV14
 from views.Screens.simulacao_redes_IEEE_page import SimulacaoAnaliseContigenciasPage
+from controllers.Utils import FOLDER_NAME, OPTIONS_JSON
 
 import sys
 import os
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
-from config import options_main_file
 
 
 
@@ -26,7 +26,7 @@ def DrawerSideBar():
 
     # Opções de páginas 
     page_options = {
-        "⚡ Framework RCE ": FrameworkRCEDashboard(options_main_file).run,
+        "⚡ Framework RCE ": FrameworkRCEDashboardV14(OPTIONS_JSON).run,
 
         #"Dashboard Simulação de Contigencias": SimulacaoAnaliseContigenciasPage,
         #"Gerador de PDF": EasyPDF,
@@ -76,21 +76,14 @@ class App:
 
 # --- Main Execution ---
 if __name__ == "__main__":
-    app = App()  # Initialize app config and styling
+    app = App()  
 
     try:
-        # Obter parâmetros de URL
-        #query_params = st.experimental_get_query_params()
-        #selected_page = query_params.get("page", ["framework_rce"])[0]
-    
-        # Renderizar a página selecionada
-        #pagina_selecionada = DrawerSideBar()
-        pagina_selecionada = FrameworkRCEDashboard(options_main_file).run
+        pagina_selecionada = FrameworkRCEDashboardV14(OPTIONS_JSON).run
         app.run(pagina_selecionada)
 
     except Exception as e:
         print(e)
 
     finally:
-
         print("Aplicativo Streamlit carregado!")

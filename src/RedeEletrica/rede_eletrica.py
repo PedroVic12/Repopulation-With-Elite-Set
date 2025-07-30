@@ -29,7 +29,7 @@ class Logger:
             "info": "white"  # Added "info" level for default blue color
         }))
 
-        self.logger = logging.getLogger()
+        #self.logger = logging.getLogger()
 
 
 

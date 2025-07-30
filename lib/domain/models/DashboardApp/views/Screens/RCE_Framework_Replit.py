@@ -61,7 +61,7 @@ class UseState:
 
 
 # --- Classe Principal do Aplicativo ---
-class FrameworkRCEDashboardV14:
+class FrameworkRCEDashboard:
     def __init__(self, options = None):
         self.controller = Controller()
         self.utils = Utils()
@@ -347,37 +347,112 @@ class FrameworkRCEDashboardV14:
                     # )
 
     def ConfigWebApp(self):
+        # CSS customizado para melhorar a aparência
+        st.markdown("""
+        <style>
+        .config-container {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 2rem;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            margin: 1rem 0;
+        }
+        .param-card {
+            background: rgba(255,255,255,0.95);
+            padding: 1.5rem;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            margin: 1rem 0;
+            border-left: 4px solid #4CAF50;
+        }
+        .metric-card {
+            background: linear-gradient(135deg, #4CAF50 0%, #45a049 100%);
+            padding: 1rem;
+            border-radius: 10px;
+            text-align: center;
+            color: white;
+            box-shadow: 0 4px 15px rgba(76, 175, 80, 0.3);
+        }
+        .section-header {
+            color: #2E3B4E;
+            font-size: 1.8rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+            text-align: center;
+            background: linear-gradient(45deg, #4CAF50, #2196F3);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        .toggle-container {
+            background: #f8f9fa;
+            padding: 1rem;
+            border-radius: 8px;
+            border: 2px solid #e9ecef;
+            margin: 0.5rem 0;
+        }
+        .stButton > button {
+            background: linear-gradient(45deg, #4CAF50, #45a049) !important;
+            color: white !important;
+            border: none !important;
+            padding: 0.75rem 2rem !important;
+            border-radius: 25px !important;
+            font-weight: 600 !important;
+            font-size: 1.1rem !important;
+            box-shadow: 0 4px 15px rgba(76, 175, 80, 0.4) !important;
+            transition: all 0.3s ease !important;
+        }
+        .stButton > button:hover {
+            transform: translateY(-2px) !important;
+            box-shadow: 0 6px 20px rgba(76, 175, 80, 0.6) !important;
+        }
+        </style>
+        """, unsafe_allow_html=True)
+
+        # Cabeçalho principal com design aprimorado
+        st.markdown("""
+        <div style="text-align: center; padding: 2rem 0;">
+            <h1 style="background: linear-gradient(45deg, #667eea, #764ba2); 
+                       -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+                       font-size: 3rem; font-weight: 800; margin-bottom: 0.5rem;">
+                🛠️ Configurador do Framework
+            </h1>
+            <p style="color: #6c757d; font-size: 1.2rem; margin-top: 0;">
+                Configure os parâmetros do Algoritmo Evolutivo RCE de forma intuitiva
+            </p>
+        </div>
+        """, unsafe_allow_html=True)
         
-#    !TODO GUI para interação com o usuário
-
-#    1 - 256 conjuntos de parametros (4⁴) 
-#    2 - 10 ou 20 numero de execucoes
-#    3 - 4 parametros variando [Mutação, Crossover, Var DIFF, DELTA e restante fixo 
-#    4 - 4 Caixas de texto fixas para esses parametros variando
-#    5 - Criar checkbox para o usuario desabilitar as demais caixas de texto, deixando um valor possivel para aquele parametro 
-#    6 - butao Radio para selecionar a tabela a configuração das 256 conjuntos
-#    7 - Progress bar para cada geração em tempo de execução 
-
-
-        st.title("🛠️ Configurador do Framework")
-        
-        with st.expander("Configuração de Execução em options.json", expanded=False):
+        with st.expander("⚙️ Configuração de Execução em options.json", expanded=False):
             config = st.session_state.user_config
 
             # --- Seção de Configurações Gerais ---
-            st.subheader("Configurações Gerais")
-            config['value'] = st.number_input(
-                "Número de Execuções por Configuração",
-                min_value=1,
-                value=config.get('value', 1),
-                help="Quantas vezes cada combinação única de parâmetros será executada."
-            )
+            st.markdown('<div class="section-header">📊 Configurações Gerais</div>', unsafe_allow_html=True)
+            
+            with st.container():
+                st.markdown('<div class="param-card">', unsafe_allow_html=True)
+                
+                col_input, col_info = st.columns([2, 1])
+                with col_input:
+                    config['value'] = st.number_input(
+                        "🔄 Número de Execuções por Configuração",
+                        min_value=1,
+                        max_value=100,
+                        value=config.get('value', 1),
+                        help="Quantas vezes cada combinação única de parâmetros será executada."
+                    )
+                
+                with col_info:
+                    st.info("💡 Mais execuções = resultados mais confiáveis")
+                
+                st.markdown('</div>', unsafe_allow_html=True)
+
             st.markdown("---")
 
             # --- Seção de Parâmetros Evolutivos ---
-            st.subheader("Parâmetros AG (Algoritmo Genético)")
+            st.markdown('<div class="section-header">🧬 Parâmetros do Algoritmo Genético</div>', unsafe_allow_html=True)
 
-            def render_parameter_widget(param_name, default_value_from_params):
+            def render_parameter_widget(param_name, default_value_from_params, icon, description):
                 # --- LÓGICA ROBUSTA PARA ENCONTRAR O PARÂMETRO E SEU ÍNDICE ---
                 param_dict = None
                 param_index = -1
@@ -387,37 +462,50 @@ class FrameworkRCEDashboardV14:
                         param_index = i
                         break
 
-                # Corrigido: Verifica se param_dict é None antes de tentar acessar
                 if param_dict is None or param_index == -1:
-                    st.error(f"Parâmetro de configuração '{param_name}' não encontrado no estado da sessão ou não foi configurado.")
+                    st.error(f"⚠️ Parâmetro '{param_name}' não encontrado na configuração.")
                     return
 
                 current_value = param_dict[param_name]
 
-
-                # --- FIM DA LÓGICA ROBUSTA ---
-
-
-
+                # Container do parâmetro com design melhorado
+                st.markdown('<div class="param-card">', unsafe_allow_html=True)
+                
                 # Altera os nomes dos parametros para português e adiciona toggle
-                toggle_label = {
-                    "NUM_GENERATIONS": "Configurar Número de Gerações?",
-                    "POP_SIZE": "Configurar Tamanho da População?",
-                    "MUTACAO": "Configurar Taxa de Mutação?",
-                    "CROSSOVER": "Configurar Taxa de Crossover?"
-                }.get(param_name, f"Configurar {param_name}?")
-
-                if st.toggle(toggle_label, key=f"config_check_{param_index}"):
-
-
+                toggle_labels = {
+                    "NUM_GENERATIONS": f"{icon} Configurar Número de Gerações",
+                    "POP_SIZE": f"{icon} Configurar Tamanho da População",
+                    "MUTACAO": f"{icon} Configurar Taxa de Mutação",
+                    "CROSSOVER": f"{icon} Configurar Taxa de Crossover"
+                }
+                
+                toggle_label = toggle_labels.get(param_name, f"{icon} Configurar {param_name}")
+                
+                st.markdown(f"**{toggle_label}**")
+                st.caption(description)
+                
+                st.markdown('<div class="toggle-container">', unsafe_allow_html=True)
+                
+                toggle_state = st.toggle(
+                    f"Ativar configuração personalizada",
+                    key=f"config_check_{param_index}",
+                    help=f"Ative para personalizar os valores de {param_name}"
+                )
+                
+                if toggle_state:
                     mode = "Variável" if isinstance(current_value, list) and len(current_value) > 1 else "Fixo"
+                    
                     choice = st.radio(
-                        "Modo:", ("Fixo", "Variável"), index=1 if mode == "Variável" else 0,
-                        key=f"radio_{param_index}", horizontal=True, label_visibility="collapsed"
+                        "🎛️ Modo de Configuração:",
+                        ("🔒 Fixo", "📊 Variável"),
+                        index=1 if mode == "Variável" else 0,
+                        key=f"radio_{param_index}",
+                        horizontal=True,
+                        help="Fixo: um valor único | Variável: múltiplos valores para teste"
                     )
 
-                    if choice == "Variável":
-                        st.write(f"Valores para {param_name}:")
+                    if choice == "📊 Variável":
+                        st.markdown(f"**Valores para {param_name}:**")
                         cols = st.columns(4)
                         new_values = []
                         existing_values = current_value if mode == "Variável" else [""]*4
@@ -425,7 +513,12 @@ class FrameworkRCEDashboardV14:
                         for j, col in enumerate(cols):
                             with col:
                                 val_str = str(existing_values[j]) if j < len(existing_values) else ""
-                                user_input = st.text_input(f"V {j+1}", val_str, key=f"input_{param_index}_{j}", label_visibility="collapsed")
+                                user_input = st.text_input(
+                                    f"Valor {j+1}",
+                                    val_str,
+                                    key=f"input_{param_index}_{j}",
+                                    placeholder=f"V{j+1}"
+                                )
                                 if user_input:
                                     try:
                                         if param_name in ["NUM_GENERATIONS", "POP_SIZE"]:
@@ -433,89 +526,176 @@ class FrameworkRCEDashboardV14:
                                         else:
                                             new_values.append(round(float(user_input), 1))
                                     except ValueError:
-                                        st.error("Valor inválido", icon="⚠️")
+                                        st.error("⚠️ Valor inválido", icon="❌")
                         
                         if not new_values:
-                            st.warning(f"Preencha ao menos um valor para '{param_name}'.")
+                            st.warning(f"⚠️ Preencha ao menos um valor para '{param_name}'.")
                         
                         config['parametros_opcionais'][param_index] = {param_name: new_values or [default_value_from_params]}
 
-                    else: # Fixo
+                    else:  # Fixo
                         default_value = current_value[0] if isinstance(current_value, list) else current_value
                         if param_name in ["NUM_GENERATIONS", "POP_SIZE"]:
-                            new_val = st.number_input(f"Valor para {param_name}", value=int(default_value), step=1, key=f"s_{param_index}", format="%d")
+                            new_val = st.number_input(
+                                f"Valor para {param_name}",
+                                value=int(default_value),
+                                step=1,
+                                key=f"s_{param_index}",
+                                format="%d",
+                                min_value=1
+                            )
                         else:
-                            new_val = st.number_input(f"Valor para {param_name}", value=float(default_value), step=0.1, key=f"s_{param_index}", format="%.1f")
+                            new_val = st.number_input(
+                                f"Valor para {param_name}",
+                                value=float(default_value),
+                                step=0.1,
+                                key=f"s_{param_index}",
+                                format="%.1f",
+                                min_value=0.0,
+                                max_value=1.0
+                            )
                         config['parametros_opcionais'][param_index] = {param_name: [new_val]}
 
+                st.markdown('</div>', unsafe_allow_html=True)
+                st.markdown('</div>', unsafe_allow_html=True)
 
-                        
-                st.markdown("---")
-
+            # Renderiza os parâmetros em layout de duas colunas
             col1, col2 = st.columns(2)
+            
             with col1:
-                render_parameter_widget("MUTACAO", PARAMETROS_JSON["MUTACAO"])
-                render_parameter_widget("CROSSOVER", PARAMETROS_JSON["CROSSOVER"])
+                render_parameter_widget(
+                    "MUTACAO",
+                    PARAMETROS_JSON["MUTACAO"],
+                    "🧬",
+                    "Taxa de mutação: probabilidade de alteração dos genes"
+                )
+                render_parameter_widget(
+                    "CROSSOVER",
+                    PARAMETROS_JSON["CROSSOVER"],
+                    "🔄",
+                    "Taxa de crossover: probabilidade de reprodução entre indivíduos"
+                )
+            
             with col2:
-                render_parameter_widget("NUM_GENERATIONS", PARAMETROS_JSON["NUM_GENERATIONS"])
-                render_parameter_widget("POP_SIZE", PARAMETROS_JSON["POP_SIZE"])
+                render_parameter_widget(
+                    "NUM_GENERATIONS",
+                    PARAMETROS_JSON["NUM_GENERATIONS"],
+                    "⏳",
+                    "Número de gerações: quantas iterações o algoritmo executará"
+                )
+                render_parameter_widget(
+                    "POP_SIZE",
+                    PARAMETROS_JSON["POP_SIZE"],
+                    "👥",
+                    "Tamanho da população: número de indivíduos por geração"
+                )
 
-            # --- Seção de Resumo ---
-            st.subheader("Quantidade de Execuções Configuradas")
+            # --- Seção de Resumo com Cards Melhorados ---
+            st.markdown("---")
+            st.markdown('<div class="section-header">📈 Resumo da Configuração</div>', unsafe_allow_html=True)
+            
             num_variations = [len(v) for p in config['parametros_opcionais'] for k,v in p.items() if isinstance(v, list) and len(v) > 1 and v]
             total_combinations = reduce(operator.mul, num_variations, 1) if num_variations else 1
             total_execucoes = total_combinations * config.get('value', 1)
 
-            metric_col1, metric_col2 = st.columns(2)
+            metric_col1, metric_col2, metric_col3 = st.columns(3)
+            
             with metric_col1:
-                st.metric("Configurações Únicas", total_combinations, help="Número de combinações diferentes de parâmetros.")
+                st.markdown("""
+                <div class="metric-card">
+                    <h3 style="margin: 0; font-size: 2rem;">⚙️</h3>
+                    <h2 style="margin: 0.5rem 0;">{}</h2>
+                    <p style="margin: 0; opacity: 0.9;">Configurações Únicas</p>
+                </div>
+                """.format(total_combinations), unsafe_allow_html=True)
+            
             with metric_col2:
-                st.metric("Total de Execuções", total_execucoes)
+                st.markdown("""
+                <div class="metric-card">
+                    <h3 style="margin: 0; font-size: 2rem;">🚀</h3>
+                    <h2 style="margin: 0.5rem 0;">{}</h2>
+                    <p style="margin: 0; opacity: 0.9;">Total de Execuções</p>
+                </div>
+                """.format(total_execucoes), unsafe_allow_html=True)
+            
+            with metric_col3:
+                tempo_estimado = total_execucoes * 2  # Estimativa de 2 min por execução
+                st.markdown("""
+                <div class="metric-card">
+                    <h3 style="margin: 0; font-size: 2rem;">⏱️</h3>
+                    <h2 style="margin: 0.5rem 0;">~{} min</h2>
+                    <p style="margin: 0; opacity: 0.9;">Tempo Estimado</p>
+                </div>
+                """.format(tempo_estimado), unsafe_allow_html=True)
 
-            # --- Botão para Salvar ---
-            if st.button("Salvar e Executar", type="primary"):
-                try:
-                    self.utils.apagar_arquivos()
+            st.markdown("---")
 
-                    final_config = {**PARAMETROS_JSON}
-                    user_config = st.session_state.user_config
+            # --- Botão para Salvar com Design Aprimorado ---
+            col_btn1, col_btn2, col_btn3 = st.columns([1, 2, 1])
+            
+            with col_btn2:
+                if st.button("🚀 Salvar e Executar Framework", type="primary", use_container_width=True):
+                    try:
+                        with st.spinner("🔄 Preparando configurações..."):
+                            self.utils.apagar_arquivos()
 
-                    # Pega os dados atualizados do usuario na tela
-                    optional_params_dict = {k: v for d in user_config.get('parametros_opcionais', []) for k, v in d.items()}
-                    final_config.update(optional_params_dict)
-                    final_config['repeticoes_por_config'] = user_config.get('value')
-                    final_config.update(user_config)
+                            final_config = {**PARAMETROS_JSON}
+                            user_config = st.session_state.user_config
 
-                    # --- TRATAMENTO DE TIPOS ---
-                    for k in ["NUM_GENERATIONS", "POP_SIZE"]:
-                        if isinstance(final_config[k], list):
-                            final_config[k] = [int(x) for x in final_config[k]]
-                        else:
-                            final_config[k] = int(final_config[k])
-                    for k in ["MUTACAO", "CROSSOVER"]:
-                        if isinstance(final_config[k], list):
-                            final_config[k] = [float(x) for x in final_config[k]]
-                        else:
-                            final_config[k] = float(final_config[k])
+                            # Pega os dados atualizados do usuario na tela
+                            optional_params_dict = {k: v for d in user_config.get('parametros_opcionais', []) for k, v in d.items()}
+                            final_config.update(optional_params_dict)
+                            final_config['repeticoes_por_config'] = user_config.get('value')
+                            final_config.update(user_config)
+
+                            # --- TRATAMENTO DE TIPOS ---
+                            for k in ["NUM_GENERATIONS", "POP_SIZE"]:
+                                if isinstance(final_config[k], list):
+                                    final_config[k] = [int(x) for x in final_config[k]]
+                                else:
+                                    final_config[k] = int(final_config[k])
+                            for k in ["MUTACAO", "CROSSOVER"]:
+                                if isinstance(final_config[k], list):
+                                    final_config[k] = [float(x) for x in final_config[k]]
+                                else:
+                                    final_config[k] = float(final_config[k])
+                                    
+                            # remove os campos desnecessários
+                            del final_config['parametros_opcionais']
+                            del final_config['value']
+
+                            with open("../options.json", "w", encoding="utf-8") as f:
+                                json.dump(final_config, f, indent=4, ensure_ascii=False)
                             
-                    # remove os campos desnecessários
-                    del final_config['parametros_opcionais']
-                    del final_config['value']
-                    # -------------------------
-                    
+                            st.success("✅ Configuração salva em **options.json**!")
 
-                    with open("../options.json", "w", encoding="utf-8") as f:
-                            json.dump(final_config, f, indent=4, ensure_ascii=False)
-                    st.success(f"Configuração salva em **options.json**!")
+                            # Executa o script principal
+                            script_path = FOLDER_NAME.parent / "run_framework.py"
+                            print("Configurações do usuário escolhida:", final_config)
+                            self.run_script(script_path)
+                            st.rerun()
 
-                    # Executa o script principal
-                    script_path = FOLDER_NAME.parent / "run_framework.py"
-                    print("Configurações o Usuario escolhida", final_config)
-                    self.run_script(script_path)
-                    st.rerun()
+                    except Exception as e:
+                        st.error(f"❌ Erro ao salvar ou executar: {e}")
 
-                except Exception as e:
-                    st.error(f"Ocorreu um erro ao salvar os options.json ou executar o script run_framework.py : {e}")
+            # Informações adicionais
+            with st.expander("ℹ️ Informações Adicionais", expanded=False):
+                st.markdown("""
+                ### 📚 Guia Rápido de Parâmetros
+                
+                - **🧬 Taxa de Mutação (0.0-1.0)**: Controla a diversidade genética
+                - **🔄 Taxa de Crossover (0.0-1.0)**: Controla a reprodução entre soluções
+                - **⏳ Número de Gerações**: Quantas iterações o algoritmo executará
+                - **👥 Tamanho da População**: Número de soluções por geração
+                
+                ### 💡 Dicas de Configuração
+                - Para problemas complexos, use mais gerações e população maior
+                - Taxa de mutação alta (0.3-0.5) para exploração
+                - Taxa de mutação baixa (0.1-0.2) para refinamento
+                - Use modo "Variável" para testar diferentes combinações
+                """)
+
+        st.markdown("---")
 
     def atualizar_pagina(self):
         """Atualiza a página."""

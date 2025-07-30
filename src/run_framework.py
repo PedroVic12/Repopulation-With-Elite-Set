@@ -254,7 +254,7 @@ def run_framework_groups_executions():
 
                     
 
-def run_framework_many_executions():
+def run_framework_many_executions(function_bechmarking = False):
     """Função para executar o framework com múltiplas execuções."""
     
     # Load parameters from the JSON file in any configuration of PC
@@ -267,8 +267,15 @@ def run_framework_many_executions():
     
     print(f"\n\nIniciando execução do USER com os parâmetros: {options}")
     
+    if not function_bechmarking:
+        #! Função de avaliação da rede IEEE 14
+        #! 2min a 3 min com config de AG básica mesmo com hashtable
+        fitness_func = funcao_objetivo_IEEE14
+    else:
+        fitness_func = rastrigin
+        
     # Instanciando o Setup para configuração
-    setup = Setup(params, fitness_function = funcao_objetivo_IEEE14,
+    setup = Setup(params, fitness_function = fitness_func,
                   tamanho_hash=(entrada_de_dados()["num_contingencias"] * entrada_de_dados()["num_carregamentos"]*(2**entrada_de_dados()["num_desligamentos"])))   
     
     #TODO for loop para conjunto de configurações de parametros_opcionais
@@ -320,7 +327,7 @@ if __name__ == "__main__":
     # Check if the user wants to run multiple executions or a single execution
     if options_main_file["key"]:
         print("Running multiple executions...")
-        run_framework_many_executions()
+        run_framework_many_executions(function_bechmarking = True)
         #run_framework_groups_executions()
     else:
         print("Running a single execution...")

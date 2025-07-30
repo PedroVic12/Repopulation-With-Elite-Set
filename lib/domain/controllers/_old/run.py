@@ -6,10 +6,10 @@ import os
 import itertools
 
 # Importes do seu framework
-from domain.models.AlgEvolutivoRCE.Setup import Setup
-from domain.models.AlgEvolutivoRCE.alg_evolutivo_rce import AlgoritimoEvolutivoRCE
+from AlgEvolutivoRCE.Setup import Setup
+from AlgEvolutivoRCE.alg_evolutivo_rce import AlgoritimoEvolutivoRCE
 from config import entrada_de_dados, format_elapsed_time
-from domain.models.utils.functions_fitness.function_IEEE_14_contigencias import funcao_objetivo_IEEE14
+from utils.functions_fitness.function_IEEE_14_contigencias import funcao_objetivo_IEEE14
 
 
 """

@@ -5,8 +5,7 @@ from domain.models.AlgEvolutivoRCE.Setup import Setup
 from domain.models.AlgEvolutivoRCE.alg_evolutivo_rce import AlgoritimoEvolutivoRCE
 
 # Utils 
-from config import FOLDER_NAME, entrada_de_dados,load_many_executions, format_elapsed_time
-from domain.models.DashboardApp.controllers.Utils import  OPTIONS_JSON
+from config import FOLDER_NAME, options_main_file, entrada_de_dados,load_many_executions, format_elapsed_time
 
 import streamlit as st
 import json
@@ -24,7 +23,7 @@ import pandas as pd
 src/DashboardApp
 ```
 ```bash
-# streamlit run dashboard_rce_app_v11.py\
+# streamlit run dashboard_rce_app_v11.py
 ```
 
 2) Para executar o Algoritmo Evolutivo com Reposição de Conjunto de Elite (RCE), execute esse mesmo script no terminal run_rce_framework.py, sugiro rodar o pip install -r requirements.txt antes de executar o script.: 
@@ -256,41 +255,23 @@ def run_framework_groups_executions():
 
                     
 
-def run_framework_many_executions(benchmark_function=False):
+def run_framework_many_executions():
     """Função para executar o framework com múltiplas execuções."""
     
     # Load parameters from the JSON file in any configuration of PC
     params = load_params(f"{BASE_DIR}/params.json")
     options = load_params(f"{BASE_DIR}/options.json")
+    
     # Convert values to int, except for specified float keys
-    #options = convert_values_to_int(options)
+    #options = convert_values_to_int(options)s
     params = convert_values_to_int(params)
     
     print(f"\n\nIniciando execução do USER com os parâmetros: {options}")
     
     # Instanciando o Setup para configuração
-    if not benchmark_function:
-        setup = Setup(params, fitness_function=funcao_objetivo_IEEE14,
-                      tamanho_hash=(entrada_de_dados()["num_contingencias"] * entrada_de_dados()["num_carregamentos"] * (2 ** entrada_de_dados()["num_desligamentos"])))
-    else:
-        # Caso seja passado uma função objetivo definida pelo usuario, como por exemplo `rastrigin_benchmark`, `esfera_benchmark` ou `rosenbrock_benchmark e etc`.
-        num = input("Escolha o número da função objetivo: 1 - Rastrigin, 2 - Esfera, 3 - Rosenbrock, 4 - IEEE14, 5 - Evaluate (A/B): ")
-        if num == "1":
-            benchmark_function = rastrigin
-        elif num == "2":
-            benchmark_function = esfera_benchmark
-        elif num == "3":    
-            benchmark_function = rosenbrock_benchmark
-        elif num == "4":
-            benchmark_function = funcao_objetivo_IEEE14
-        elif num == "5":
-            benchmark_function = evaluate
-        else:
-            print("Opção inválida, forneça uma função objetivo com valores inteiro ou float.")
-        print(f"Função objetivo definida pelo usuário: {benchmark_function}")
-        setup = Setup(params, fitness_function = benchmark_function,
-                    tamanho_hash=(entrada_de_dados()["num_contingencias"] * entrada_de_dados()["num_carregamentos"]*(2**entrada_de_dados()["num_desligamentos"])))   
-        
+    setup = Setup(params, fitness_function = funcao_objetivo_IEEE14,
+                  tamanho_hash=(entrada_de_dados()["num_contingencias"] * entrada_de_dados()["num_carregamentos"]*(2**entrada_de_dados()["num_desligamentos"])))   
+    
     #TODO for loop para conjunto de configurações de parametros_opcionais
     def consulta_hashtable():
         #! TODO para melhor performace
@@ -325,7 +306,7 @@ def run_framework_many_executions(benchmark_function=False):
     consulta_hashtable()
 
     
-    #! Usando o algoritimo Genetico do DEAP
+    # Usando o algoritimo Genetico do DEAP
     alg = AlgoritimoEvolutivoRCE(setup, DEBUG = False)
 
     # Run the utility function to load many executions
@@ -338,13 +319,9 @@ if __name__ == "__main__":
     export_all_configs_to_json(options)
 
     # Check if the user wants to run multiple executions or a single execution
-    if OPTIONS_JSON["key"]:
+    if options_main_file["key"]:
         print("Running multiple executions...")
-        
-        # função versão estavel com ate mais de 1000 execuções com uma configuração unica como se tivesse usando no terminal dentro da pasta AlgEvolutivoRCE
-        run_framework_many_executions(benchmark_function = True)
-        
-        # função que usa itertools para gerar combinações de parâmetros e executar o framework
+        run_framework_many_executions()
         #run_framework_groups_executions()
     else:
         print("Running a single execution...")

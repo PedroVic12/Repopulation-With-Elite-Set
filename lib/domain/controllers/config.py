@@ -5,9 +5,7 @@ import numpy as np
 from IPython.display import display
 from datetime import datetime
 
-from domain.models.DashboardApp.controllers.Utils import FOLDER_NAME, OPTIONS_JSON
-
-
+from domain.models.DashboardApp.controllers.Utils import FOLDER_NAME
 
 
 # Função para simular a entrada de dados, como se fosse a leitura de um arquivo JSON ou Excel

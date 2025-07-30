@@ -17,7 +17,7 @@ from controllers.Utils import Controller, OPTIONS_JSON
 def get_folder_path():
     BASE_DIR = pathlib.Path(__file__).resolve().parent.parent.parent  
     # Define o caminho relativo para a pasta "output" dentro do projeto
-    FOLDER_NAME = BASE_DIR.parent.parent / "src" / "output"
+    FOLDER_NAME = BASE_DIR.parent.parent / "output"
     return FOLDER_NAME
 
 path_foler_output = get_folder_path()

@@ -61,7 +61,7 @@ class UseState:
 
 
 # --- Classe Principal do Aplicativo ---
-class FrameworkRCEDashboardV14:
+class FrameworkRCEDashboard:
     def __init__(self, options = None):
         self.controller = Controller()
         self.utils = Utils()
@@ -91,6 +91,7 @@ class FrameworkRCEDashboardV14:
     def init_css(self):
         st.markdown("""
         <style>
+            /* Hide Streamlit elements */
             .st-emotion-cache-j7qwjs.e1c29vlm3 {
                 display: none;
             }
@@ -119,19 +120,101 @@ class FrameworkRCEDashboardV14:
                 display: none;
             }
             
-            .st-emotion-cache-1gczx66.edtmxes2 {
-                display: none;
-            }
-            .st-emotion-cache-1s1exd7.edtmxes19 {
-                display: none;
-            }
-
-            .st-emotion-cache-1s1exd7.edtmxes19 {
-                display: none;
+            /* Custom UI Improvements */
+            .main .block-container {
+                padding-top: 1rem;
+                padding-bottom: 1rem;
             }
             
-            .st-emotion-cache-1gczx66.edtmxes2 {
-                display: none;
+            /* Improved buttons */
+            .stButton > button {
+                border-radius: 8px;
+                border: none;
+                font-weight: 600;
+                transition: all 0.3s ease;
+                box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            }
+            
+            .stButton > button[kind="primary"] {
+                background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+                color: white;
+                font-size: 1.1rem;
+                padding: 0.75rem 2rem;
+            }
+            
+            .stButton > button[kind="primary"]:hover {
+                transform: translateY(-2px);
+                box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+            }
+            
+            /* Enhanced expander */
+            .streamlit-expanderHeader {
+                background: linear-gradient(90deg, #f8f9fa 0%, #e9ecef 100%);
+                border-radius: 8px;
+                font-weight: 600;
+            }
+            
+            /* Number input improvements */
+            .stNumberInput > div > div > input {
+                border-radius: 6px;
+                border: 2px solid #e9ecef;
+                padding: 0.5rem;
+                transition: border-color 0.3s ease;
+            }
+            
+            .stNumberInput > div > div > input:focus {
+                border-color: #667eea;
+                box-shadow: 0 0 0 2px rgba(102, 126, 234, 0.1);
+            }
+            
+            /* Text input improvements */
+            .stTextInput > div > div > input {
+                border-radius: 6px;
+                border: 2px solid #e9ecef;
+                padding: 0.5rem;
+                transition: border-color 0.3s ease;
+            }
+            
+            .stTextInput > div > div > input:focus {
+                border-color: #667eea;
+                box-shadow: 0 0 0 2px rgba(102, 126, 234, 0.1);
+            }
+            
+            /* Toggle improvements */
+            .stToggle > div {
+                background: #f8f9fa;
+                border-radius: 8px;
+                padding: 0.5rem;
+            }
+            
+            /* Radio button improvements */
+            .stRadio > div {
+                background: #f8f9fa;
+                border-radius: 8px;
+                padding: 0.5rem;
+            }
+            
+            /* Success/Warning/Error message improvements */
+            .stSuccess, .stWarning, .stError {
+                border-radius: 8px;
+                border-left: 4px solid;
+                padding: 1rem;
+                margin: 0.5rem 0;
+            }
+            
+            .stSuccess {
+                border-left-color: #28a745;
+                background: #d4edda;
+            }
+            
+            .stWarning {
+                border-left-color: #ffc107;
+                background: #fff3cd;
+            }
+            
+            .stError {
+                border-left-color: #dc3545;
+                background: #f8d7da;
             }
         </style>
     """, unsafe_allow_html=True)
@@ -347,35 +430,85 @@ class FrameworkRCEDashboardV14:
                     # )
 
     def ConfigWebApp(self):
+        # Header com estilo moderno
+        st.markdown("""
+        <div style="
+            background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+            padding: 2rem;
+            border-radius: 15px;
+            margin-bottom: 2rem;
+            text-align: center;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        ">
+            <h1 style="color: white; margin: 0; font-size: 2.5rem;">🛠️ Configurador do Framework RCE</h1>
+            <p style="color: #f0f0f0; margin: 0.5rem 0 0 0; font-size: 1.2rem;">Configure parâmetros do Algoritmo Evolutivo</p>
+        </div>
+        """, unsafe_allow_html=True)
         
-#    !TODO GUI para interação com o usuário
-
-#    1 - 256 conjuntos de parametros (4⁴) 
-#    2 - 10 ou 20 numero de execucoes
-#    3 - 4 parametros variando [Mutação, Crossover, Var DIFF, DELTA e restante fixo 
-#    4 - 4 Caixas de texto fixas para esses parametros variando
-#    5 - Criar checkbox para o usuario desabilitar as demais caixas de texto, deixando um valor possivel para aquele parametro 
-#    6 - butao Radio para selecionar a tabela a configuração das 256 conjuntos
-#    7 - Progress bar para cada geração em tempo de execução 
-
-
-        st.title("🛠️ Configurador do Framework")
+        # Card container principal
+        st.markdown("""
+        <style>
+        .config-card {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 12px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            border-left: 4px solid #667eea;
+            margin-bottom: 1rem;
+        }
+        .metric-container {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 1rem;
+            border-radius: 8px;
+            color: white;
+            text-align: center;
+            margin: 0.5rem 0;
+        }
+        .param-group {
+            background: #f8f9fa;
+            padding: 1rem;
+            border-radius: 8px;
+            margin: 1rem 0;
+            border: 1px solid #e9ecef;
+        }
+        .toggle-section {
+            background: #e3f2fd;
+            padding: 1rem;
+            border-radius: 8px;
+            margin: 0.5rem 0;
+            border-left: 3px solid #2196f3;
+        }
+        </style>
+        """, unsafe_allow_html=True)
         
-        with st.expander("Configuração de Execução em options.json", expanded=False):
+        with st.container():
             config = st.session_state.user_config
 
             # --- Seção de Configurações Gerais ---
-            st.subheader("Configurações Gerais")
-            config['value'] = st.number_input(
-                "Número de Execuções por Configuração",
-                min_value=1,
-                value=config.get('value', 1),
-                help="Quantas vezes cada combinação única de parâmetros será executada."
-            )
-            st.markdown("---")
+            st.markdown('<div class="config-card">', unsafe_allow_html=True)
+            st.markdown("### 📊 Configurações Gerais")
+            
+            col_exec1, col_exec2 = st.columns([2, 1])
+            with col_exec1:
+                config['value'] = st.number_input(
+                    "🔄 Número de Execuções por Configuração",
+                    min_value=1,
+                    value=config.get('value', 1),
+                    help="Quantas vezes cada combinação única de parâmetros será executada."
+                )
+            with col_exec2:
+                st.markdown(f"""
+                <div class="metric-container">
+                    <h3 style="margin: 0;">{config.get('value', 1)}</h3>
+                    <p style="margin: 0; opacity: 0.8;">Execuções</p>
+                </div>
+                """, unsafe_allow_html=True)
+            st.markdown('</div>', unsafe_allow_html=True)
 
             # --- Seção de Parâmetros Evolutivos ---
-            st.subheader("Parâmetros AG (Algoritmo Genético)")
+            st.markdown('<div class="config-card">', unsafe_allow_html=True)
+            st.markdown("### 🧬 Parâmetros do Algoritmo Genético")
+            st.markdown("Configure os parâmetros que variarão durante a otimização")
 
             def render_parameter_widget(param_name, default_value_from_params):
                 # --- LÓGICA ROBUSTA PARA ENCONTRAR O PARÂMETRO E SEU ÍNDICE ---
@@ -400,24 +533,40 @@ class FrameworkRCEDashboardV14:
 
 
                 # Altera os nomes dos parametros para português e adiciona toggle
-                toggle_label = {
-                    "NUM_GENERATIONS": "Configurar Número de Gerações?",
-                    "POP_SIZE": "Configurar Tamanho da População?",
-                    "MUTACAO": "Configurar Taxa de Mutação?",
-                    "CROSSOVER": "Configurar Taxa de Crossover?"
-                }.get(param_name, f"Configurar {param_name}?")
+                param_info = {
+                    "NUM_GENERATIONS": {"label": "🔄 Configurar Número de Gerações", "icon": "🔄", "desc": "Quantas gerações o algoritmo executará"},
+                    "POP_SIZE": {"label": "👥 Configurar Tamanho da População", "icon": "👥", "desc": "Número de indivíduos por geração"},
+                    "MUTACAO": {"label": "🧬 Configurar Taxa de Mutação", "icon": "🧬", "desc": "Probabilidade de mutação (0-1)"},
+                    "CROSSOVER": {"label": "🔀 Configurar Taxa de Crossover", "icon": "🔀", "desc": "Probabilidade de cruzamento (0-1)"}
+                }
+                
+                param_config = param_info.get(param_name, {"label": f"Configurar {param_name}", "icon": "⚙️", "desc": ""})
+                
+                st.markdown('<div class="toggle-section">', unsafe_allow_html=True)
+                col_toggle, col_info = st.columns([3, 1])
+                
+                with col_toggle:
+                    toggle_active = st.toggle(param_config["label"], key=f"config_check_{param_index}")
+                
+                with col_info:
+                    if param_config["desc"]:
+                        st.markdown(f'<small style="color: #666;">{param_config["desc"]}</small>', unsafe_allow_html=True)
 
-                if st.toggle(toggle_label, key=f"config_check_{param_index}"):
+                if toggle_active:
 
 
+                    st.markdown('<div class="param-group">', unsafe_allow_html=True)
+                    
                     mode = "Variável" if isinstance(current_value, list) and len(current_value) > 1 else "Fixo"
                     choice = st.radio(
-                        "Modo:", ("Fixo", "Variável"), index=1 if mode == "Variável" else 0,
-                        key=f"radio_{param_index}", horizontal=True, label_visibility="collapsed"
+                        "📌 Modo de Configuração:", ("Fixo", "Variável"), 
+                        index=1 if mode == "Variável" else 0,
+                        key=f"radio_{param_index}", horizontal=True,
+                        help="Fixo: um valor constante | Variável: múltiplos valores para teste"
                     )
 
                     if choice == "Variável":
-                        st.write(f"Valores para {param_name}:")
+                        st.markdown(f"**🎯 Valores para {param_config['icon']} {param_name}:**")
                         cols = st.columns(4)
                         new_values = []
                         existing_values = current_value if mode == "Variável" else [""]*4
@@ -425,7 +574,11 @@ class FrameworkRCEDashboardV14:
                         for j, col in enumerate(cols):
                             with col:
                                 val_str = str(existing_values[j]) if j < len(existing_values) else ""
-                                user_input = st.text_input(f"V {j+1}", val_str, key=f"input_{param_index}_{j}", label_visibility="collapsed")
+                                user_input = st.text_input(
+                                    f"Valor {j+1}", val_str, 
+                                    key=f"input_{param_index}_{j}",
+                                    placeholder=f"V{j+1}"
+                                )
                                 if user_input:
                                     try:
                                         if param_name in ["NUM_GENERATIONS", "POP_SIZE"]:
@@ -433,47 +586,116 @@ class FrameworkRCEDashboardV14:
                                         else:
                                             new_values.append(round(float(user_input), 1))
                                     except ValueError:
-                                        st.error("Valor inválido", icon="⚠️")
+                                        st.error("⚠️ Valor inválido")
                         
-                        if not new_values:
-                            st.warning(f"Preencha ao menos um valor para '{param_name}'.")
+                        if new_values:
+                            st.success(f"✅ {len(new_values)} valores configurados")
+                        else:
+                            st.warning(f"⚠️ Preencha ao menos um valor para '{param_name}'")
                         
                         config['parametros_opcionais'][param_index] = {param_name: new_values or [default_value_from_params]}
 
                     else: # Fixo
                         default_value = current_value[0] if isinstance(current_value, list) else current_value
+                        st.markdown(f"**🎯 Valor fixo para {param_config['icon']} {param_name}:**")
+                        
                         if param_name in ["NUM_GENERATIONS", "POP_SIZE"]:
-                            new_val = st.number_input(f"Valor para {param_name}", value=int(default_value), step=1, key=f"s_{param_index}", format="%d")
+                            new_val = st.number_input(
+                                "Valor", value=int(default_value), step=1, 
+                                key=f"s_{param_index}", format="%d",
+                                label_visibility="collapsed"
+                            )
                         else:
-                            new_val = st.number_input(f"Valor para {param_name}", value=float(default_value), step=0.1, key=f"s_{param_index}", format="%.1f")
+                            new_val = st.number_input(
+                                "Valor", value=float(default_value), step=0.1, 
+                                key=f"s_{param_index}", format="%.1f",
+                                label_visibility="collapsed"
+                            )
                         config['parametros_opcionais'][param_index] = {param_name: [new_val]}
 
+                    st.markdown('</div>', unsafe_allow_html=True)
+                
+                st.markdown('</div>', unsafe_allow_html=True)
 
-                        
-                st.markdown("---")
-
-            col1, col2 = st.columns(2)
+            # Layout em grid responsivo
+            col1, col2 = st.columns(2, gap="large")
             with col1:
+                st.markdown("**📊 Parâmetros de População**")
                 render_parameter_widget("MUTACAO", PARAMETROS_JSON["MUTACAO"])
                 render_parameter_widget("CROSSOVER", PARAMETROS_JSON["CROSSOVER"])
             with col2:
+                st.markdown("**⚙️ Parâmetros de Execução**")
                 render_parameter_widget("NUM_GENERATIONS", PARAMETROS_JSON["NUM_GENERATIONS"])
                 render_parameter_widget("POP_SIZE", PARAMETROS_JSON["POP_SIZE"])
+            
+            st.markdown('</div>', unsafe_allow_html=True)
 
             # --- Seção de Resumo ---
-            st.subheader("Quantidade de Execuções Configuradas")
+            st.markdown('<div class="config-card">', unsafe_allow_html=True)
+            st.markdown("### 📈 Resumo da Configuração")
+            
             num_variations = [len(v) for p in config['parametros_opcionais'] for k,v in p.items() if isinstance(v, list) and len(v) > 1 and v]
             total_combinations = reduce(operator.mul, num_variations, 1) if num_variations else 1
             total_execucoes = total_combinations * config.get('value', 1)
 
-            metric_col1, metric_col2 = st.columns(2)
+            # Cards de métricas com visual aprimorado
+            metric_col1, metric_col2, metric_col3 = st.columns(3)
+            
             with metric_col1:
-                st.metric("Configurações Únicas", total_combinations, help="Número de combinações diferentes de parâmetros.")
+                st.markdown(f"""
+                <div class="metric-container">
+                    <h2 style="margin: 0; font-size: 2rem;">{total_combinations}</h2>
+                    <p style="margin: 0; opacity: 0.9;">Configurações Únicas</p>
+                    <small style="opacity: 0.7;">Combinações de parâmetros</small>
+                </div>
+                """, unsafe_allow_html=True)
+                
             with metric_col2:
-                st.metric("Total de Execuções", total_execucoes)
+                st.markdown(f"""
+                <div class="metric-container">
+                    <h2 style="margin: 0; font-size: 2rem;">{total_execucoes}</h2>
+                    <p style="margin: 0; opacity: 0.9;">Total de Execuções</p>
+                    <small style="opacity: 0.7;">Todas as repetições</small>
+                </div>
+                """, unsafe_allow_html=True)
+                
+            with metric_col3:
+                tempo_estimado = total_execucoes * 2  # Estimativa de 2 min por execução
+                st.markdown(f"""
+                <div class="metric-container">
+                    <h2 style="margin: 0; font-size: 2rem;">{tempo_estimado}</h2>
+                    <p style="margin: 0; opacity: 0.9;">Tempo Estimado (min)</p>
+                    <small style="opacity: 0.7;">Aproximadamente</small>
+                </div>
+                """, unsafe_allow_html=True)
+            
+            # Barra de progresso visual para mostrar complexidade
+            complexity_level = min(total_combinations / 10, 1.0)  # Normaliza para 0-1
+            st.markdown(f"""
+            <div style="background: #e0e0e0; border-radius: 10px; height: 8px; margin: 1rem 0;">
+                <div style="background: linear-gradient(90deg, #4CAF50, #FF9800, #F44336); width: {complexity_level*100}%; height: 8px; border-radius: 10px; transition: width 0.3s ease;"></div>
+            </div>
+            <p style="text-align: center; color: #666; font-size: 0.9rem;">Complexidade: {"Baixa" if complexity_level < 0.3 else "Média" if complexity_level < 0.7 else "Alta"}</p>
+            """, unsafe_allow_html=True)
+            
+            st.markdown('</div>', unsafe_allow_html=True)
 
             # --- Botão para Salvar ---
-            if st.button("Salvar e Executar", type="primary"):
+            st.markdown('<div class="config-card">', unsafe_allow_html=True)
+            
+            # Botão estilizado
+            col_btn1, col_btn2, col_btn3 = st.columns([1, 2, 1])
+            with col_btn2:
+                execute_btn = st.button(
+                    "🚀 Salvar Configuração e Executar", 
+                    type="primary",
+                    use_container_width=True,
+                    help="Salva a configuração em options.json e inicia a execução do algoritmo evolutivo"
+                )
+            
+            st.markdown('</div>', unsafe_allow_html=True)
+            
+            if execute_btn:
                 try:
                     self.utils.apagar_arquivos()
 

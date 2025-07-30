@@ -133,6 +133,28 @@ class FrameworkRCEDashboard:
             .st-emotion-cache-1gczx66.edtmxes2 {
                 display: none;
             }
+            
+            /* Estilos para o sistema de bloqueio de tabs */
+            .locked-tab-container {
+                border: 2px solid #ffd700;
+                border-radius: 10px;
+                padding: 15px;
+                background-color: #fffef7;
+                margin: 10px 0;
+            }
+            
+            .lock-indicator {
+                background-color: #ffd700;
+                color: #333;
+                padding: 5px 10px;
+                border-radius: 15px;
+                font-weight: bold;
+                font-size: 12px;
+            }
+            
+            .stSelectbox > div > div {
+                background-color: #f8f9fa;
+            }
         </style>
     """, unsafe_allow_html=True)
 
@@ -189,26 +211,74 @@ class FrameworkRCEDashboard:
     # Função separada para renderizar o container de tabs
     def ContainerTabs(self,exec_tabs_dict):
         with st.container():
-            st.subheader("🔄 Seleção da Execução (NEW)")
+            # Inicializa estados para o sistema de bloqueio de tabs
+            UseState.initialize_state("tab_locked", False)
+            UseState.initialize_state("locked_tab_index", 0)
+            
+            # Header com controles
+            col1, col2 = st.columns([3, 1])
+            with col1:
+                st.subheader("🔄 Seleção da Execução (NEW)")
+            with col2:
+                # Toggle para bloquear/desbloquear tab
+                tab_locked = UseState.get_state("tab_locked", False)
+                lock_icon = "🔒" if tab_locked else "🔓"
+                new_lock_state = st.toggle(f"{lock_icon} Fixar Aba", value=tab_locked, key="tab_lock_toggle")
+                UseState.set_state("tab_locked", new_lock_state)
+            
             main_tabs = st.tabs(list(exec_tabs_dict.keys()))
             for i, (main_tab, main_key) in enumerate(zip(main_tabs, exec_tabs_dict.keys())):
                 with main_tab:
                     sub_dict = exec_tabs_dict[main_key]
                     if isinstance(sub_dict, dict):
-                        sub_tabs = st.tabs(list(sub_dict.keys()))
-                        for j, (sub_tab, sub_key) in enumerate(zip(sub_tabs, sub_dict.keys())):
-                            with sub_tab:
-                                content = sub_dict[sub_key]
-                                if callable(content):
-                                    try:
-                                        content()
-                                    except Exception as e:
-                                        st.error(f"Erro ao renderizar '{sub_key}': {e}")
-                                else:
-                                    st.write(content)
+                        # Se a aba está bloqueada, mostra apenas a aba selecionada
+                        if UseState.get_state("tab_locked", False):
+                            locked_tab_index = UseState.get_state("locked_tab_index", 0)
+                            sub_keys = list(sub_dict.keys())
+                            
+                            # Seletor para escolher qual aba fixar
+                            col_select, col_info = st.columns([2, 1])
+                            with col_select:
+                                selected_tab_name = st.selectbox(
+                                    "Aba Fixada:", 
+                                    sub_keys, 
+                                    index=locked_tab_index,
+                                    key=f"locked_tab_selector_{i}"
+                                )
+                                UseState.set_state("locked_tab_index", sub_keys.index(selected_tab_name))
+                            
+                            with col_info:
+                                st.info(f"🔒 Fixado em: **{selected_tab_name}**")
+                            
+                            # Renderiza apenas o conteúdo da aba selecionada
+                            st.markdown("---")
+                            content = sub_dict[selected_tab_name]
+                            if callable(content):
+                                try:
+                                    content()
+                                except Exception as e:
+                                    st.error(f"Erro ao renderizar '{selected_tab_name}': {e}")
+                            else:
+                                st.write(content)
+                        else:
+                            # Modo normal com todas as tabs
+                            sub_tabs = st.tabs(list(sub_dict.keys()))
+                            for j, (sub_tab, sub_key) in enumerate(zip(sub_tabs, sub_dict.keys())):
+                                with sub_tab:
+                                    content = sub_dict[sub_key]
+                                    if callable(content):
+                                        try:
+                                            content()
+                                        except Exception as e:
+                                            st.error(f"Erro ao renderizar '{sub_key}': {e}")
+                                    else:
+                                        st.write(content)
                     else:
                         st.write(sub_dict)
-                        self.footer()
+            
+            # Footer apenas na última execução
+            if not UseState.get_state("tab_locked", False):
+                self.footer()
 
 
     def Config_AG_Json(self):
