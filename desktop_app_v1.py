@@ -7,7 +7,6 @@ import time
 from pathlib import Path
 from functools import reduce
 import operator
-from itertools import product
 
 from PySide6.QtWidgets import (
     QApplication, QMainWindow, QPushButton, QVBoxLayout, QWidget, QLabel,
@@ -16,7 +15,7 @@ from PySide6.QtWidgets import (
     QButtonGroup, QGridLayout
 )
 from PySide6.QtCore import Qt, QThread, Signal, QTimer
-from PySide6.QtGui import QFont, QIcon, QIntValidator, QDoubleValidator
+from PySide6.QtGui import QFont, QIcon
 
 # --- CONFIGURAÇÃO ---
 # pasta raiz do projeto
@@ -73,7 +72,7 @@ class ExecutionThread(QThread):
             self.log_updated.emit(f"Executando: {' '.join(cmd)}")
             self.process = subprocess.Popen(
                 cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
-                universal_newlines=True, cwd=SRC_DIR, encoding='utf-8'
+                universal_newlines=True, cwd=SRC_DIR
             )
             for line in iter(self.process.stdout.readline, ''):
                 if line:
@@ -88,10 +87,9 @@ class ExecutionThread(QThread):
     def stop(self):
         if self.process:
             self.process.terminate()
-            self.log_updated.emit("Processo de execução terminado pelo usuário.")
 
 class ConfigTab(QWidget):
-    execution_requested = Signal(list, int)
+    execution_requested = Signal()
 
     def __init__(self, config_manager):
         super().__init__()
@@ -120,10 +118,10 @@ class ConfigTab(QWidget):
         ag_layout = QGridLayout(ag_group)
         
         params_to_render = {
-            "MUTACAO": self.config_manager.params.get("MUTACAO", 0.1),
-            "CROSSOVER": self.config_manager.params.get("CROSSOVER", 0.8),
-            "NUM_GENERATIONS": self.config_manager.params.get("NUM_GENERATIONS", 100),
-            "POP_SIZE": self.config_manager.params.get("POP_SIZE", 50),
+            "MUTACAO": self.config_manager.params.get("MUTACAO"),
+            "CROSSOVER": self.config_manager.params.get("CROSSOVER"),
+            "NUM_GENERATIONS": self.config_manager.params.get("NUM_GENERATIONS"),
+            "POP_SIZE": self.config_manager.params.get("POP_SIZE"),
         }
 
         row, col = 0, 0
@@ -149,7 +147,7 @@ class ConfigTab(QWidget):
         # Botão de Execução
         self.run_button = QPushButton("💾 Salvar e Executar")
         self.run_button.setObjectName("run_button")
-        self.run_button.clicked.connect(self.prepare_and_run)
+        self.run_button.clicked.connect(self.save_and_run)
         layout.addWidget(self.run_button, alignment=Qt.AlignCenter)
 
         layout.addStretch()
@@ -158,6 +156,7 @@ class ConfigTab(QWidget):
         widget_group = QGroupBox(name)
         layout = QVBoxLayout(widget_group)
         
+        # Mode selection
         mode_group = QButtonGroup(self)
         fixed_radio = QRadioButton("Fixo")
         variable_radio = QRadioButton("Variável")
@@ -170,14 +169,17 @@ class ConfigTab(QWidget):
         mode_layout.addWidget(variable_radio)
         layout.addLayout(mode_layout)
 
+        # Input widgets
         is_int = isinstance(default_value, int)
-        
-        fixed_input = QLineEdit()
         if is_int:
-            fixed_input.setValidator(QIntValidator(1, 100000))
+            fixed_input = QSpinBox()
+            fixed_input.setRange(1, 10000)
+            fixed_input.setValue(default_value)
         else:
-            fixed_input.setValidator(QDoubleValidator(0.0, 1.0, 5))
-        fixed_input.setText(str(default_value))
+            fixed_input = QDoubleSpinBox()
+            fixed_input.setRange(0.0, 1.0)
+            fixed_input.setSingleStep(0.01)
+            fixed_input.setValue(default_value)
 
         variable_inputs_widget = QWidget()
         variable_layout = QHBoxLayout(variable_inputs_widget)
@@ -186,10 +188,6 @@ class ConfigTab(QWidget):
         for i in range(4):
             input_field = QLineEdit()
             input_field.setPlaceholderText(f"V{i+1}")
-            if is_int:
-                input_field.setValidator(QIntValidator(1, 100000))
-            else:
-                input_field.setValidator(QDoubleValidator(0.0, 1.0, 5))
             variable_layout.addWidget(input_field)
             variable_inputs.append(input_field)
         variable_inputs_widget.setVisible(False)
@@ -197,25 +195,30 @@ class ConfigTab(QWidget):
         layout.addWidget(fixed_input)
         layout.addWidget(variable_inputs_widget)
 
-        fixed_radio.toggled.connect(fixed_input.setVisible)
-        variable_radio.toggled.connect(variable_inputs_widget.setVisible)
+        # Toggle logic
+        fixed_radio.toggled.connect(lambda checked: fixed_input.setVisible(checked))
+        variable_radio.toggled.connect(lambda checked: variable_inputs_widget.setVisible(checked))
 
+        # Store widgets for later access
         self.param_widgets[name] = {
-            "mode": mode_group, "fixed": fixed_input,
-            "variable": variable_inputs, "is_int": is_int
+            "mode": mode_group,
+            "fixed": fixed_input,
+            "variable": variable_inputs
         }
 
-        fixed_input.textChanged.connect(self.update_summary)
+        # Connect signals to update summary
+        fixed_input.valueChanged.connect(self.update_summary)
         for var_input in variable_inputs:
             var_input.textChanged.connect(self.update_summary)
         mode_group.buttonClicked.connect(self.update_summary)
 
         return widget_group
 
-    def update_summary(self, _=None):
+    def update_summary(self):
         num_variations = []
         for name, widgets in self.param_widgets.items():
-            if widgets["mode"].buttons()[1].isChecked():
+            is_variable = widgets["mode"].buttons()[1].isChecked()
+            if is_variable:
                 var_values = [inp.text() for inp in widgets["variable"] if inp.text()]
                 if var_values:
                     num_variations.append(len(var_values))
@@ -226,57 +229,54 @@ class ConfigTab(QWidget):
         self.unique_configs_label.setText(f"Configurações Únicas: {total_combinations}")
         self.total_runs_label.setText(f"Total de Execuções: {total_execucoes}")
 
-    def prepare_and_run(self):
+    def save_and_run(self):
         try:
-            variable_params, fixed_params = {}, {}
+            final_config = self.config_manager.params.copy()
+            optional_params = {}
+
             for name, widgets in self.param_widgets.items():
-                is_int = widgets["is_int"]
-                if widgets["mode"].buttons()[1].isChecked(): # Variável
+                is_variable = widgets["mode"].buttons()[1].isChecked()
+                is_int = isinstance(widgets["fixed"], QSpinBox)
+                
+                if is_variable:
                     values = []
                     for field in widgets["variable"]:
                         if field.text():
                             try:
                                 values.append(int(field.text()) if is_int else float(field.text()))
                             except ValueError:
-                                QMessageBox.warning(self, "Valor Inválido", f"Valor inválido para {name}: '{field.text()}'")
+                                QMessageBox.warning(self, "Valor Inválido", f"Por favor, insira um número válido para {name}.")
                                 return
-                    if values: variable_params[name] = values
-                    else: fixed_params[name] = int(widgets["fixed"].text()) if is_int else float(widgets["fixed"].text())
-                else: # Fixo
-                    try:
-                        fixed_params[name] = int(widgets["fixed"].text()) if is_int else float(widgets["fixed"].text())
-                    except ValueError:
-                        QMessageBox.warning(self, "Valor Inválido", f"Valor inválido para {name}: '{widgets['fixed'].text()}'")
-                        return
+                    if values:
+                        optional_params[name] = values
+                    else: # Fallback to fixed if no variable values are provided
+                        optional_params[name] = [widgets["fixed"].value()]
+                else:
+                    optional_params[name] = [widgets["fixed"].value()]
 
-            keys, values = variable_params.keys(), variable_params.values()
-            configurations = [dict(zip(keys, v)) for v in product(*values)] if keys else [{}]
-            for config in configurations:
-                config.update(fixed_params)
+            final_config.update(optional_params)
+            final_config['repeticoes_por_config'] = self.runs_per_config_spin.value()
+            
+            # Ensure correct types
+            for k in ["NUM_GENERATIONS", "POP_SIZE"]:
+                if k in final_config: final_config[k] = [int(x) for x in final_config[k]]
+            for k in ["MUTACAO", "CROSSOVER"]:
+                 if k in final_config: final_config[k] = [float(x) for x in final_config[k]]
 
-            runs_per_config = self.runs_per_config_spin.value()
-            options = self.config_manager.options.copy()
-            options['repeticoes_por_config'] = runs_per_config
-            if not self.config_manager.save_json(options, OPTIONS_FILE):
-                QMessageBox.critical(self, "Erro", f"Falha ao salvar {OPTIONS_FILE.name}")
-                return
-
-            msg = f"{len(configurations)} configs únicas serão executadas {runs_per_config} vez(es) cada."
-            QMessageBox.information(self, "Pronto para Iniciar", msg)
-            self.execution_requested.emit(configurations, runs_per_config)
+            if self.config_manager.save_json(final_config, OPTIONS_FILE):
+                QMessageBox.information(self, "Sucesso", f"Configuração salva em {OPTIONS_FILE.name}")
+                self.execution_requested.emit()
+            else:
+                QMessageBox.critical(self, "Erro", "Falha ao salvar o arquivo de configuração.")
 
         except Exception as e:
-            QMessageBox.critical(self, "Erro", f"Erro ao preparar execução: {e}")
+            QMessageBox.critical(self, "Erro", f"Ocorreu um erro inesperado: {e}")
+
 
 class ExecutionTab(QWidget):
-    def __init__(self, config_manager):
+    def __init__(self):
         super().__init__()
-        self.config_manager = config_manager
         self.execution_thread = None
-        self.configurations = []
-        self.runs_per_config = 0
-        self.current_run_number = 0
-        self.total_runs = 0
         self.init_ui()
 
     def init_ui(self):
@@ -291,14 +291,8 @@ class ExecutionTab(QWidget):
         self.stop_btn.clicked.connect(self.stop_execution)
         self.stop_btn.setEnabled(False)
         control_layout.addWidget(self.stop_btn)
+        
         layout.addLayout(control_layout)
-
-        self.current_config_group = QGroupBox("Configuração da Execução Atual")
-        current_config_layout = QVBoxLayout(self.current_config_group)
-        self.current_config_label = QLabel("Aguardando início...")
-        self.current_config_label.setAlignment(Qt.AlignCenter)
-        current_config_layout.addWidget(self.current_config_label)
-        layout.addWidget(self.current_config_group)
         
         self.progress_bar = QProgressBar()
         self.progress_bar.setVisible(False)
@@ -309,94 +303,54 @@ class ExecutionTab(QWidget):
         layout.addWidget(QLabel("Log de Execução:"))
         layout.addWidget(self.log_text)
 
-    def start_executions(self, configurations, runs_per_config):
+    def start_execution(self):
         if not RUN_FRAMEWORK_SCRIPT.exists():
             QMessageBox.critical(self, "Erro", f"Script não encontrado: {RUN_FRAMEWORK_SCRIPT}")
             return
         
-        self.configurations = configurations
-        self.runs_per_config = runs_per_config
-        self.total_runs = len(self.configurations) * self.runs_per_config
-        self.current_run_number = 0
-        
-        self.log_text.clear()
-        self.append_log(f"Iniciando bateria de testes com {len(self.configurations)} configs e {self.runs_per_config} repetições.")
-        self.append_log(f"Total de execuções: {self.total_runs}")
-
         self.stop_btn.setEnabled(True)
         self.progress_bar.setVisible(True)
-        self.progress_bar.setRange(0, self.total_runs)
-        self.progress_bar.setValue(0)
+        self.progress_bar.setRange(0, 0)
+        self.log_text.clear()
         
-        self.run_next_configuration()
-
-    def run_next_configuration(self):
-        if self.current_run_number >= self.total_runs:
-            self.on_all_executions_finished(True, "Todas as execuções foram concluídas.")
-            return
-
-        config_index = self.current_run_number // self.runs_per_config
-        repetition = (self.current_run_number % self.runs_per_config) + 1
-        current_config = self.configurations[config_index]
-        
-        config_str = ", ".join([f"{k}: {v}" for k, v in current_config.items()])
-        self.current_config_label.setText(f"Execução {self.current_run_number + 1}/{self.total_runs} (Rep. {repetition}) | {config_str}")
-        self.append_log("-" * 20)
-        self.append_log(f"Iniciando Execução {self.current_run_number + 1}: {config_str} (Rep. {repetition})")
-
-        base_params = self.config_manager.load_json(PARAMS_FILE)
-        base_params.update(current_config)
-        if not self.config_manager.save_json(base_params, PARAMS_FILE):
-             self.append_log(f"❌ Erro ao salvar o arquivo de parâmetros {PARAMS_FILE}")
-             self.on_all_executions_finished(False, "Erro de arquivo.")
-             return
-
         self.execution_thread = ExecutionThread(RUN_FRAMEWORK_SCRIPT)
         self.execution_thread.log_updated.connect(self.append_log)
-        self.execution_thread.execution_finished.connect(self.on_single_execution_finished)
+        self.execution_thread.execution_finished.connect(self.on_execution_finished)
         self.execution_thread.start()
-
-    def on_single_execution_finished(self, success, message):
-        self.append_log(f"Finalizada execução {self.current_run_number + 1}. Sucesso: {success}. {message}")
-        if not success:
-            self.append_log(f"❌ Erro na execução, pulando para a próxima.")
-        
-        self.current_run_number += 1
-        self.progress_bar.setValue(self.current_run_number)
-        
-        QTimer.singleShot(100, self.run_next_configuration)
 
     def run_dashboard(self):
         if not DASHBOARD_SCRIPT.exists():
             QMessageBox.critical(self, "Erro", f"Dashboard não encontrado: {DASHBOARD_SCRIPT}")
             return
         try:
-            subprocess.Popen(["streamlit", "run", str(DASHBOARD_SCRIPT), "--server.port", "8501"], cwd=BASE_DIR)
+            subprocess.Popen([
+                "streamlit", "run", str(DASHBOARD_SCRIPT),
+                "--server.port", "8501"
+            ], cwd=BASE_DIR)
             self.append_log("Dashboard iniciado em http://localhost:8501")
         except Exception as e:
             self.append_log(f"Erro ao iniciar dashboard: {e}")
 
     def stop_execution(self):
-        self.current_run_number = self.total_runs # Prevent next run
         if self.execution_thread and self.execution_thread.isRunning():
             self.execution_thread.stop()
-        self.on_all_executions_finished(False, "Interrompido pelo usuário.")
+            self.append_log("Execução interrompida pelo usuário.")
+        self.on_execution_finished(False, "Interrompido")
 
     def append_log(self, message):
         self.log_text.append(f"[{time.strftime('%H:%M:%S')}] {message}")
         self.log_text.ensureCursorVisible()
 
-    def on_all_executions_finished(self, success, message):
+    def on_execution_finished(self, success, message):
         self.stop_btn.setEnabled(False)
-        self.progress_bar.setValue(self.progress_bar.maximum())
-        self.current_config_label.setText(f"Finalizado. {message}")
+        self.progress_bar.setVisible(False)
         if success:
-            self.append_log(f"✅ {message}")
-            QMessageBox.information(self, "Sucesso", "Bateria de testes concluída com sucesso!")
+            self.append_log("✅ Execução concluída com sucesso!")
+            QMessageBox.information(self, "Sucesso", "Framework executado com sucesso!")
         else:
-            self.append_log(f"❌ {message}")
             if "Interrompido" not in message:
-                QMessageBox.critical(self, "Erro", f"A bateria de testes terminou com erro: {message}")
+                self.append_log(f"❌ Erro na execução: {message}")
+                QMessageBox.critical(self, "Erro", f"Erro na execução: {message}")
 
 class LauncherWindow(QMainWindow):
     def __init__(self):
@@ -424,7 +378,7 @@ class LauncherWindow(QMainWindow):
         
         tab_widget = QTabWidget()
         self.config_tab = ConfigTab(self.config_manager)
-        self.execution_tab = ExecutionTab(self.config_manager)
+        self.execution_tab = ExecutionTab()
         
         tab_widget.addTab(self.config_tab, "⚙️ Configuração e Execução")
         tab_widget.addTab(self.execution_tab, "📊 Dashboard e Logs")
@@ -433,8 +387,8 @@ class LauncherWindow(QMainWindow):
         self.statusBar().showMessage("Pronto.")
 
         # Connect signals
-        self.config_tab.execution_requested.connect(self.execution_tab.start_executions)
         self.config_tab.execution_requested.connect(lambda: tab_widget.setCurrentWidget(self.execution_tab))
+        self.config_tab.execution_requested.connect(self.execution_tab.start_execution)
 
 
 if __name__ == "__main__":
