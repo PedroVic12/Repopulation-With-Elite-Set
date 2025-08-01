@@ -1,4 +1,6 @@
-# -*- coding: utf-8 -*-
+import argparse
+
+# -*- coding: utf-8 -#
 # Import RCE Framework
 from AlgEvolutivoRCE_backup.Setup import Setup
 from AlgEvolutivoRCE_backup.alg_evolutivo_rce import AlgoritimoEvolutivoRCE
@@ -58,7 +60,7 @@ params = load_params(f"{BASE_DIR}/params.json")
 #params = load_params(r"C:\Users\Pedro Victor R V\Documents\GitHub\Repopulation-With-Elite-Set\src\AlgEvolutivoRCE\params.json")
 
 
-def run_framework_single_execution():
+def run_framework_single_execution(config_num=1, exec_num=1):
     """Função principal para executar o framework de otimização."""
     start = datetime.now()
 
@@ -122,6 +124,7 @@ def run_framework_single_execution():
         # # Resultados
         x, y, z, fig = alg.dashboard.visualize(
             logbook_with_repopulation, pop_with_repopulation,
+            config_num=config_num, execution_num=exec_num
         )
 
         print(f"Objective function runs : {setup.objectiveruns}")
@@ -165,7 +168,6 @@ def convert_values_to_int(params):
         else:
             params[key] = int(value)
     return params
-
 
 
 
@@ -253,8 +255,7 @@ def run_framework_groups_executions():
             load_many_executions(config, setup, alg)
 
                     
-
-def run_framework_many_executions(function_bechmarking = False):
+def run_framework_many_executions(function_bechmarking = False, config_num=1, exec_num=1):
     """Função para executar o framework com múltiplas execuções."""
     
     # Load parameters from the JSON file in any configuration of PC
@@ -276,7 +277,7 @@ def run_framework_many_executions(function_bechmarking = False):
         
     # Instanciando o Setup para configuração
     setup = Setup(params, fitness_function = fitness_func,
-                  tamanho_hash=(entrada_de_dados()["num_contingencias"] * entrada_de_dados()["num_carregamentos"]*(2**entrada_de_dados()["num_desligamentos"])))   
+                  tamanho_hash=(entrada_de_dados()["num_contingencias"] * entrada_de_dados()["num_carregamentos"]*(2**entrada_de_dados()["num_desligamentos"])))
     
     #TODO for loop para conjunto de configurações de parametros_opcionais
     def consulta_hashtable():
@@ -316,22 +317,26 @@ def run_framework_many_executions(function_bechmarking = False):
     alg = AlgoritimoEvolutivoRCE(setup, DEBUG = False)
 
     # Run the utility function to load many executions
-    load_many_executions(options, setup, alg)
+    load_many_executions(options, setup, alg, config_num=config_num, exec_num=exec_num)
 
 
 
 if __name__ == "__main__":
+    parser = argparse.ArgumentParser(description='Executa o framework RCE.')
+    parser.add_argument('--config_num', type=int, default=1, help='Número da configuração')
+    parser.add_argument('--exec_num', type=int, default=1, help='Número da execução')
+    args = parser.parse_args()
+
     options = load_params(f"{BASE_DIR}/options.json")
-    export_all_configs_to_json(options)
+    #export_all_configs_to_json(options)
 
     # Check if the user wants to run multiple executions or a single execution
     if options.get("key", True):
         print("Running multiple executions...")
-        run_framework_many_executions(function_bechmarking = False)
-        #run_framework_groups_executions()
+        run_framework_many_executions(function_bechmarking=False, config_num=args.config_num, exec_num=args.exec_num)
     else:
         print("Running a single execution...")
-        run_framework_single_execution()
+        run_framework_single_execution(config_num=args.config_num, exec_num=args.exec_num)
 
 
 

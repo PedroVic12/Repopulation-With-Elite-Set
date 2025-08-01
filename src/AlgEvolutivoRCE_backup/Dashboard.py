@@ -119,7 +119,7 @@ class DashboardApp:
         return figure
 
     # --- visualize MODIFICADO (salva dados e chama Streamlit) ---
-    def visualize(self, logbook, pop, repopulation=True, DEBUG=False, current_params=None, execution_num=1, num_configs=1):
+    def visualize(self, logbook, pop, repopulation=True, DEBUG=False, current_params=None, config_num=1, execution_num=1):
         """
         Processa dados, imprime no console, RETORNA figura e resultados,
         E salva os arquivos de dados e figura com um número de execução.
@@ -138,7 +138,7 @@ class DashboardApp:
 
             if DEBUG:
                 print("\n\nDEBUG: Dados para gráfico (generation x statics)")
-                print(len(statics["min_fitness"])) # DEBGU = 90
+                print(len(statics["min_fitness"]))
 
             min_fitness_values = statics.get("min_fitness", [])
 
@@ -167,7 +167,7 @@ class DashboardApp:
 
             print("\n\n")
             print("="*90)
-            print(f"  >>> Soluções do problema (Execução {execution_num} - Console Output) <<<")
+            print(f"  >>> Soluções do problema (Execução {execution_num} - Console Output) <<<")
             print("="*90)
             print(f"Best Generation: {best_solution_index}")
             print(f"Best Variables: {best_solution_variables}")
@@ -176,55 +176,37 @@ class DashboardApp:
 
             grafico_RCE = self.graficoRCE(generation, array_values, repopulation=repopulation)
             
+            print(f"\n[INFO]: Salvando dados .pkl, .json e figura .html para Config {config_num} / Execução {execution_num}...")
+            output_path = f"{FOLDER_NAME}"
+            data_file = f"{output_path}/dashboard_data_config{config_num}_exec{execution_num}.pkl"
 
-             # --- MODIFIED: Define filenames based on execution_num ---
-            if execution_num is None:
-
-                print("WARN: execution_num not provided. Using default filenames.")
-
-                raise ValueError("Execution number (execution_num) must be provided to visualize for saving files.")
-
-            else:
-
-                # check se o diretorio output exists
-                print(f"\n[INFO]: Salvando dados .pkl, .json e figura .html para execução {execution_num}...") # Added execution num here
-                output_path = f"{FOLDER_NAME}"
-                data_file = f"{output_path}/dashboard_data_{execution_num}.pkl"
-                fig_file = f"{output_path}/dashboard_fig_{num_configs}_{execution_num}.json"
-
-                # --- Salvar dados e figura para o script Streamlit ---
-                data_to_save = {
-                    'execution_num': execution_num, # Store execution number in data
-                    'best_gen_idx': best_solution_index,
-                    'best_vars': best_solution_variables,
-                    'best_fitness': best_solution_fitness,
-                    'params': current_params if current_params else params,
-                    'logbook_data': {
-                        'generation': generation,
-                        'statics': statics
-                    }
+            # --- Salvar dados e figura para o script Streamlit ---
+            data_to_save = {
+                'execution_num': execution_num,
+                'config_num': config_num,
+                'best_gen_idx': best_solution_index,
+                'best_vars': best_solution_variables,
+                'best_fitness': best_solution_fitness,
+                'params': current_params if current_params else params,
+                'logbook_data': {
+                    'generation': generation,
+                    'statics': statics
                 }
+            }
 
             # Salvar a figura em formato HTML
-            fig_filename = f"{output_path}/grafico_execucao_{num_configs}_{execution_num}.html"
+            fig_filename = f"{output_path}/grafico_execucao_config{config_num}_exec{execution_num}.html"
             grafico_RCE.write_html(fig_filename)
-
 
             # Salva os dados no arquivo .pkl numerado
             with open(data_file, 'wb') as f:
                 pickle.dump(data_to_save, f)
-
-
-            # Salva a figura no arquivo .json numerado
-            #fig_json = pio.to_json(grafico_RCE)
-            #with open(fig_file, 'w') as f:
-            #    f.write(fig_json)
    
-            print(f"\n[INFO]: Dados e figura para execução {execution_num} salvos com sucesso.") # Added execution num here
+            print(f"\n[INFO]: Dados e figura para execução {execution_num} salvos com sucesso.")
             print(fig_filename)
 
         except Exception as e:
-            print(f"\n\n\nERRO em visualize (Execução {execution_num}): {e}") # Added execution num here
+            print(f"\n\n\nERRO em visualize (Execução {execution_num}): {e}")
             st.sidebar.info("Erro em visualize: ",e)
             return -1, [], float('inf'), None
 

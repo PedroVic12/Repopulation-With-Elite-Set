@@ -102,11 +102,15 @@ class ConfigTab(QWidget):
 
     def init_ui(self):
         layout = QVBoxLayout(self)
+        self.create_general_settings(layout)
+        self.create_ag_params(layout)
+        self.create_summary(layout)
+        self.create_run_button(layout)
+        layout.addStretch()
 
-        # Configurações Gerais
+    def create_general_settings(self, layout):
         general_group = QGroupBox("Configurações Gerais")
         general_layout = QVBoxLayout(general_group)
-        
         self.runs_per_config_spin = QSpinBox()
         self.runs_per_config_spin.setRange(1, 100)
         self.runs_per_config_spin.setValue(self.config_manager.options.get('repeticoes_por_config', 1))
@@ -115,29 +119,25 @@ class ConfigTab(QWidget):
         general_layout.addWidget(self.runs_per_config_spin)
         layout.addWidget(general_group)
 
-        # Parâmetros AG
+    def create_ag_params(self, layout):
         ag_group = QGroupBox("Parâmetros do Algoritmo Genético")
         ag_layout = QGridLayout(ag_group)
-        
         params_to_render = {
             "MUTACAO": self.config_manager.params.get("MUTACAO", 0.1),
             "CROSSOVER": self.config_manager.params.get("CROSSOVER", 0.8),
             "NUM_GENERATIONS": self.config_manager.params.get("NUM_GENERATIONS", 100),
             "POP_SIZE": self.config_manager.params.get("POP_SIZE", 50),
         }
-
         row, col = 0, 0
         for name, default_val in params_to_render.items():
             param_widget = self._create_param_widget(name, default_val)
             ag_layout.addWidget(param_widget, row, col)
             col += 1
             if col > 1:
-                col = 0
-                row += 1
-        
+                col, row = 0, row + 1
         layout.addWidget(ag_group)
 
-        # Resumo
+    def create_summary(self, layout):
         summary_group = QGroupBox("Resumo da Execução")
         summary_layout = QHBoxLayout(summary_group)
         self.unique_configs_label = QLabel("Configurações Únicas: 1")
@@ -146,32 +146,27 @@ class ConfigTab(QWidget):
         summary_layout.addWidget(self.total_runs_label)
         layout.addWidget(summary_group)
 
-        # Botão de Execução
+    def create_run_button(self, layout):
         self.run_button = QPushButton("💾 Salvar e Executar")
         self.run_button.setObjectName("run_button")
         self.run_button.clicked.connect(self.prepare_and_run)
         layout.addWidget(self.run_button, alignment=Qt.AlignCenter)
 
-        layout.addStretch()
-
     def _create_param_widget(self, name, default_value):
         widget_group = QGroupBox(name)
         layout = QVBoxLayout(widget_group)
-        
         mode_group = QButtonGroup(self)
         fixed_radio = QRadioButton("Fixo")
         variable_radio = QRadioButton("Variável")
         fixed_radio.setChecked(True)
         mode_group.addButton(fixed_radio)
         mode_group.addButton(variable_radio)
-        
         mode_layout = QHBoxLayout()
         mode_layout.addWidget(fixed_radio)
         mode_layout.addWidget(variable_radio)
         layout.addLayout(mode_layout)
 
         is_int = isinstance(default_value, int)
-        
         fixed_input = QLineEdit()
         if is_int:
             fixed_input.setValidator(QIntValidator(1, 100000))
@@ -281,29 +276,36 @@ class ExecutionTab(QWidget):
 
     def init_ui(self):
         layout = QVBoxLayout(self)
+        self.create_control_buttons(layout)
+        self.create_status_panel(layout)
+        self.create_progress_bar(layout)
+        self.create_log_area(layout)
+
+    def create_control_buttons(self, layout):
         control_layout = QHBoxLayout()
-        
         self.run_dashboard_btn = QPushButton("📊 Abrir Dashboard")
         self.run_dashboard_btn.clicked.connect(self.run_dashboard)
         control_layout.addWidget(self.run_dashboard_btn)
-        
         self.stop_btn = QPushButton("⏹️ Parar Execução")
         self.stop_btn.clicked.connect(self.stop_execution)
         self.stop_btn.setEnabled(False)
         control_layout.addWidget(self.stop_btn)
         layout.addLayout(control_layout)
 
+    def create_status_panel(self, layout):
         self.current_config_group = QGroupBox("Configuração da Execução Atual")
         current_config_layout = QVBoxLayout(self.current_config_group)
         self.current_config_label = QLabel("Aguardando início...")
         self.current_config_label.setAlignment(Qt.AlignCenter)
         current_config_layout.addWidget(self.current_config_label)
         layout.addWidget(self.current_config_group)
-        
+
+    def create_progress_bar(self, layout):
         self.progress_bar = QProgressBar()
         self.progress_bar.setVisible(False)
         layout.addWidget(self.progress_bar)
-        
+
+    def create_log_area(self, layout):
         self.log_text = QTextEdit()
         self.log_text.setReadOnly(True)
         layout.addWidget(QLabel("Log de Execução:"))
@@ -342,7 +344,7 @@ class ExecutionTab(QWidget):
         config_str = ", ".join([f"{k}: {v}" for k, v in current_config.items()])
         self.current_config_label.setText(f"Execução {self.current_run_number + 1}/{self.total_runs} (Rep. {repetition}) | {config_str}")
         self.append_log("-" * 20)
-        self.append_log(f"Iniciando Execução {self.current_run_number + 1}: {config_str} (Rep. {repetition})")
+        self.append_log(f"Iniciando Config {config_index + 1}, Execução {repetition}: {config_str}")
 
         base_params = self.config_manager.load_json(PARAMS_FILE)
         base_params.update(current_config)
@@ -351,7 +353,8 @@ class ExecutionTab(QWidget):
              self.on_all_executions_finished(False, "Erro de arquivo.")
              return
 
-        self.execution_thread = ExecutionThread(RUN_FRAMEWORK_SCRIPT)
+        args = ["--config_num", str(config_index + 1), "--exec_num", str(repetition)]
+        self.execution_thread = ExecutionThread(RUN_FRAMEWORK_SCRIPT, args)
         self.execution_thread.log_updated.connect(self.append_log)
         self.execution_thread.execution_finished.connect(self.on_single_execution_finished)
         self.execution_thread.start()
@@ -412,16 +415,23 @@ class LauncherWindow(QMainWindow):
         self.setCentralWidget(central_widget)
         main_layout = QVBoxLayout(central_widget)
         
+        self.create_header(main_layout)
+        self.create_tabs(main_layout)
+        
+        self.statusBar().showMessage("Pronto.")
+
+    def create_header(self, layout):
         title = QLabel("Repopulation-With-Elite-Set Framework")
         title.setObjectName("title")
         title.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        main_layout.addWidget(title)
+        layout.addWidget(title)
         
         subtitle = QLabel("Configuração e Execução em Tempo Real usando PySide6")
         subtitle.setObjectName("subtitle")
         subtitle.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        main_layout.addWidget(subtitle)
-        
+        layout.addWidget(subtitle)
+
+    def create_tabs(self, layout):
         tab_widget = QTabWidget()
         self.config_tab = ConfigTab(self.config_manager)
         self.execution_tab = ExecutionTab(self.config_manager)
@@ -429,8 +439,7 @@ class LauncherWindow(QMainWindow):
         tab_widget.addTab(self.config_tab, "⚙️ Configuração e Execução")
         tab_widget.addTab(self.execution_tab, "📊 Dashboard e Logs")
         
-        main_layout.addWidget(tab_widget)
-        self.statusBar().showMessage("Pronto.")
+        layout.addWidget(tab_widget)
 
         # Connect signals
         self.config_tab.execution_requested.connect(self.execution_tab.start_executions)

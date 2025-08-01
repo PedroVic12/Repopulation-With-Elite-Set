@@ -33,81 +33,55 @@ class ConsolidatedResultsComponent:
     @staticmethod
     def render():
         """Verifica e exibe a seção de resultados consolidados."""
+        st.header("✅ Resultados Consolidados Gerais de todas as execuções")
+        
+        all_dfs = []
+        for file in os.listdir(path_foler_output):
+            if file.startswith("results_consolidados_config") and file.endswith(".xlsx"):
+                config_num = int(file.split("config")[1].split(".")[0])
+                df = pd.read_excel(os.path.join(path_foler_output, file))
+                df['config_num'] = config_num
+                all_dfs.append(df)
 
-        # Nome base do arquivo
-        consolidated_excel_path = rf"{path_foler_output}/results_consolidados.xlsx"
+        if not all_dfs:
+            st.info("Nenhum arquivo de resultado consolidado encontrado.")
+            return
 
-        def button_save_excel(arquivo, nome_arquivo):
-            # Abre o arquivo usando o caminho completo para o botão de download
-            with open(arquivo, "rb") as fp:
-                        st.download_button(
-                            label="Baixar Resultados Consolidados (Excel)",
-                            data=fp,
-                            # Usa o nome base do arquivo para o download
-                            file_name=nome_arquivo,
-                            mime="application/vnd.ms-excel"
-                        )
+        df_consolidado = pd.concat(all_dfs, ignore_index=True)
+        df_consolidado["execution_time"] = df_consolidado["execution_time"].astype(str).str.replace(" segundos", "").astype(float)
 
-        # Verifica a existência usando o caminho completo
-        if os.path.exists(consolidated_excel_path):
-            st.header("✅ Resultados Consolidados Gerais de todas as execuções")
-            try:
-                # Lê o excel usando o caminho completo
-                df_consolidado = pd.read_excel(consolidated_excel_path)
-                df_consolidado["execution_time"] = df_consolidado["execution_time"].str.replace(" segundos", "").astype(float)
+        # Calcula a média da coluna execution_time
+        exec_time = df_consolidado["execution_time"]
+        time_exec_media = exec_time.mean()
+        tempo_total = exec_time.sum()
 
-                # Calcula a média da coluna execution_time
-                exec_time = df_consolidado["execution_time"]
-                time_exec_media = exec_time.mean()
-                tempo_total = exec_time.sum()
+        st.dataframe(df_consolidado)
+        
+        if time_exec_media <= 60:
+            st.write(f"Média do tempo de cada execução (em segundos) = ",round(time_exec_media,3))
+            
+            if tempo_total <= 60:
+                st.write("Tempo total de execução (em segundos) = ", round(tempo_total,2))
+            else:
+                st.write("Tempo total de execução (em minutos) = ", round(tempo_total/60,2))
 
-                 
-                
-                # Descobrir quantas linhas por configuração
-                rep = OPTIONS_JSON['repeticoes_por_config']
-                num_rows = len(df_consolidado)
-                
-                
-                # Adicionar as colunas dos parâmetros
-                for param in ['CROSSOVER', 'MUTACAO', 'POP_SIZE', 'IND_SIZE']:
-                    values = OPTIONS_JSON[param]
-                    if isinstance(values, list) and len(values) > 1:
-                        # Repete cada valor 'rep' vezes e ajusta para o tamanho do DataFrame
-                        repeated = [v for v in values for _ in range(rep)]
-                        if len(repeated) < num_rows:
-                            repeated = (repeated * ((num_rows // len(repeated)) + 1))[:num_rows]
-                        df_consolidado[param] = repeated
-                    else:
-                        # Valor único para todas as linhas
-                        df_consolidado[param] = [values[0] if isinstance(values, list) else values] * num_rows
-
-                #if OPTIONS_JSON:
-                #    st.write(f"**Parâmetros de Execução Options.json:** {OPTIONS_JSON}")
-                
-                st.dataframe(df_consolidado)
-                
-                if time_exec_media <= 60:
-                    st.write(f"Média do tempo de cada execução (em segundos) = ",round(time_exec_media,3))
-                    
-                    if tempo_total <= 60:
-                        st.write("Tempo total de execução (em segundos) = ", round(tempo_total,2))
-                    else:
-                        st.write("Tempo total de execução (em minutos) = ", round(tempo_total/60,2))
-
-                else:
-                    st.write(f"Média do tempo de cada execução (em segundos) = ",round(time_exec_media,3))
-                    st.write(f"Média do tempo de cada execução (em minutos) = ",round(time_exec_media/60,3))
-
-                # Adiciona o botão de download
-                button_save_excel(consolidated_excel_path, "results_consolidados.xlsx")
-
-
-
-
-            except Exception as e:
-                st.error(f"Erro ao ler os resultados consolidados: {e}")
         else:
-            st.info(f"Arquivo de resultados consolidados ({consolidated_excel_path}) não encontrado.")
+            st.write(f"Média do tempo de cada execução (em segundos) = ",round(time_exec_media,3))
+            st.write(f"Média do tempo de cada execução (em minutos) = ",round(time_exec_media/60,3))
+
+        # Adiciona o botão de download
+        @st.cache_data
+        def convert_df_to_csv(df):
+            return df.to_csv(index=False).encode('utf-8')
+
+        csv = convert_df_to_csv(df_consolidado)
+
+        st.download_button(
+            label="Baixar Resultados Consolidados (CSV)",
+            data=csv,
+            file_name="resultados_consolidados_geral.csv",
+            mime="text/csv",
+        )
         st.markdown("---")
 
 
