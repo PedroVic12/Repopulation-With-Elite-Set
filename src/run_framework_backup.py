@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # Import RCE Framework
-from AlgEvolutivoRCE.Setup import Setup
-from AlgEvolutivoRCE.alg_evolutivo_rce import AlgoritimoEvolutivoRCE
+from components.setup import Setup
+from components.alg_evolutivo import AlgoritimoEvolutivoRCE
 
 # Utils 
 from config import FOLDER_NAME, options_main_file, entrada_de_dados,load_many_executions, format_elapsed_time
@@ -66,7 +66,7 @@ def run_framework_single_execution():
     dados = entrada_de_dados()
 
     # Instanciando os Objetos
-    setup = Setup(params, fitness_function = funcao_objetivo_IEEE14,
+    setup = Setup(params, fitness_function = lambda ind: funcao_objetivo_IEEE14(ind, setup),
                   tamanho_hash=(dados["num_contingencias"] * dados["num_carregamentos"]*(2**dados["num_desligamentos"])))
 
     def consulta_hashtable():
@@ -325,7 +325,7 @@ if __name__ == "__main__":
     export_all_configs_to_json(options)
 
     # Check if the user wants to run multiple executions or a single execution
-    if options_main_file["key"]:
+    if options.get("key", True):
         print("Running multiple executions...")
         run_framework_many_executions(function_bechmarking = False)
         #run_framework_groups_executions()

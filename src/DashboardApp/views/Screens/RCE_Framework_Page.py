@@ -170,11 +170,15 @@ class FrameworkRCEDashboard:
 
             else:
                 dados = None
-                    
-            # Sempre renderiza a configuração do app e do AG 
-            self.ConfigWebApp()
-            # Optiins e params em json separados mas talves ter as configuracoes em array de dicts
-            self.Config_AG_Json()
+
+            desktop_app = st.toggle("Executar Desktop App", value=False, key="desktop_app_toggle")
+            if desktop_app:
+                st.write("Executando Desktop App...")
+
+                # Sempre renderiza a configuração do app e do AG 
+                self.ConfigWebApp()
+                # Optiins e params em json separados mas talves ter as configuracoes em array de dicts
+                self.Config_AG_Json()
 
             # Cabeçalho
             self.header()

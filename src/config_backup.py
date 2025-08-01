@@ -110,7 +110,7 @@ def format_elapsed_time(elapsed_time):
 
 
 def load_many_executions(options, setupobj, algoritmo):
-    if options["key"]:
+    if options.get("key", True):
         for i in range(options["repeticoes_por_config"]):
             print("\n================================")
             print("\tExecução:", i + 1)
