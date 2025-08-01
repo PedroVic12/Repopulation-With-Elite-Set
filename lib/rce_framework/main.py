@@ -7,8 +7,8 @@ from pathlib import Path
 from datetime import datetime
 
 # Import RCE Framework
-from components.setup import Setup
-from components.alg_evolutivo import AlgoritimoEvolutivoRCE
+from domain.models.AG.setup import Setup
+from domain.models.AG.alg_evolutivo_rce import AlgoritimoEvolutivoRCE
 from utils.functions_fitness.function_IEEE_14_contigencias import funcao_objetivo_IEEE14
 
 # Variáveis globais

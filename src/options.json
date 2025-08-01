@@ -6,7 +6,10 @@
         0.95
     ],
     "MUTACAO": [
-        0.25
+        90.0,
+        80.0,
+        70.0,
+        60.0
     ],
     "POP_SIZE": [
         5
@@ -27,5 +30,5 @@
         0,
         31
     ],
-    "repeticoes_por_config": 7
+    "repeticoes_por_config": 5
 }
