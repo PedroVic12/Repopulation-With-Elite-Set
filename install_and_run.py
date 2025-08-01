@@ -69,7 +69,7 @@ class FrameworkInstaller:
             # Instala outras dependências se requirements.txt existir
             if self.requirements_file.exists():
                 subprocess.run([
-                    sys.executable, "-m", "pip", "install", "-r", str(self.requirements_file)
+                    sys.executable, "-m", "pip", "install", "-r", str(self.requirements_file, "--break-system-packages")
                 ], check=True)
             
             print("✅ Dependências instaladas com sucesso!")
