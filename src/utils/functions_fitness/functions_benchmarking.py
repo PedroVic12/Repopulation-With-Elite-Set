@@ -1,7 +1,7 @@
 
 import math
 import numpy as np
-from RedeEletrica.rede_eletrica import RedeEletricaPandaPower
+from RedeEletrica_backup.rede_eletrica import RedeEletricaPandaPower
 import pandas as pd
 
 

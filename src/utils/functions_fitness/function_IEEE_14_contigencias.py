@@ -5,8 +5,9 @@ import sys
 import pandas as pd
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..')))
-from RedeEletrica.rede_eletrica import RedeEletricaPandaPower
-from AlgEvolutivoRCE.Setup import Setup
+
+from RedeEletrica_backup.rede_eletrica import RedeEletricaPandaPower
+from AlgEvolutivoRCE_backup.Setup import Setup
 
 
 #! TODO -> (10/07/25) Função implementada em Março mas precisa de paralelismo para ficar mais eficiente e melhor uso da hash table

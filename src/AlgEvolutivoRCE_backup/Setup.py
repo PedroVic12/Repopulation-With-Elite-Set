@@ -8,7 +8,7 @@ import os
 import sys
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
-from config import configuracoes_execucoes
+from config_backup import configuracoes_execucoes
 
 
 #! WARN (04/06/2025) - Usado fora da classes para NAO ter logs no output
