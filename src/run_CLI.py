@@ -24,7 +24,7 @@ BASE_DIR = Path(__file__).parent
 PARAMS_FILE = BASE_DIR / "params.json"
 OPTIONS_FILE = BASE_DIR / "options.json"
 RESULTS_DIR = BASE_DIR / "resultados"
-DASHBOARD_SCRIPT = BASE_DIR / "DashboardApp" / "dashboard_rce_app_v11.py"
+DASHBOARD_SCRIPT = BASE_DIR / "DashboardApp" /"views" / "Screens" / "RCE_Framework_Page.py"
 
 class RealTimeDataManager:
     """Gerencia dados em tempo real entre framework e dashboard"""
