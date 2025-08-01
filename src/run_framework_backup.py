@@ -1,10 +1,10 @@
 # -*- coding: utf-8 -*-
 # Import RCE Framework
-from components.setup import Setup
-from components.alg_evolutivo import AlgoritimoEvolutivoRCE
+from AlgEvolutivoRCE_backup.Setup import Setup
+from AlgEvolutivoRCE_backup.alg_evolutivo_rce import AlgoritimoEvolutivoRCE
 
 # Utils 
-from config import FOLDER_NAME, options_main_file, entrada_de_dados,load_many_executions, format_elapsed_time
+from config_backup import FOLDER_NAME, options_main_file, entrada_de_dados,load_many_executions, format_elapsed_time
 
 import streamlit as st
 import json

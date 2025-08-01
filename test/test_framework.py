@@ -8,8 +8,8 @@ import os
 # Adiciona o diretório raiz ao sys.path para permitir a importação de módulos do projeto
 sys.path.append(str(Path(__file__).resolve().parent.parent))
 
-from lib.rce_framework.components.setup import Setup
-from lib.rce_framework.components.alg_evolutivo import AlgoritimoEvolutivoRCE
+from lib.rce_framework.domain.models.AG.setup import Setup
+from lib.rce_framework.domain.models.AG.alg_evolutivo_rce import AlgoritimoEvolutivoRCE
 from lib.rce_framework.utils.functions_fitness.function_IEEE_14_contigencias import funcao_objetivo_IEEE14
 from lib.rce_framework.main import entrada_de_dados, load_json
 

@@ -27,7 +27,7 @@ PARAMS_FILE = SRC_DIR / "params.json"
 OPTIONS_FILE = SRC_DIR / "options.json"
 
 # arquivos de execução do framework e dashboard
-RUN_FRAMEWORK_SCRIPT = BASE_DIR / "rce_framework_backup.py" 
+RUN_FRAMEWORK_SCRIPT = SRC_DIR /"run_framework_backup.py" 
 #RUN_FRAMEWORK_SCRIPT = BASE_DIR / "lib" / "rce_framework" / "main.py"
 DASHBOARD_SCRIPT = SRC_DIR / "DashboardApp" / "dashboard_RCE_APP.py"
 
