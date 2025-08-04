@@ -181,6 +181,7 @@ class ConfigTab(QWidget):
         for i in range(4):
             input_field = QLineEdit()
             input_field.setPlaceholderText(f"V{i+1}")
+            input_field.setText(str(default_value)) # Preenche com o valor padrão
             if is_int:
                 input_field.setValidator(QIntValidator(1, 100000))
             else:
@@ -348,6 +349,13 @@ class ExecutionTab(QWidget):
 
         base_params = self.config_manager.load_json(PARAMS_FILE)
         base_params.update(current_config)
+        
+        # Salva uma cópia do params.json para cada configuração
+        config_params_path = SRC_DIR / f"output/params_config{config_index + 1}.json"
+        if not self.config_manager.save_json(base_params, config_params_path):
+             self.append_log(f"❌ Erro ao salvar o arquivo de parâmetros de configuração {config_params_path}")
+             # Decide se quer parar ou continuar
+
         if not self.config_manager.save_json(base_params, PARAMS_FILE):
              self.append_log(f"❌ Erro ao salvar o arquivo de parâmetros {PARAMS_FILE}")
              self.on_all_executions_finished(False, "Erro de arquivo.")

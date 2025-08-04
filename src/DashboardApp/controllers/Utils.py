@@ -114,23 +114,33 @@ class Utils:
 
     # --- Funções Auxiliares ---
     def find_available_executions(self):
-        """Encontra arquivos .pkl de execução na pasta especificada
-        e retorna os números de execução ordenados."""
-        # Use pathlib pattern matching
-        data_files = list(FOLDER_NAME.glob("dashboard_data_*.pkl"))
-        execution_numbers = []
+        """
+        Encontra arquivos .pkl de execução, extrai os números de configuração e execução,
+        e retorna um dicionário estruturado e uma lista de avisos.
+        """
+        data_files = list(FOLDER_NAME.glob("dashboard_data_config*_exec*.pkl"))
+        executions = {}
+        warnings = []
+        import re
 
         for f_path in data_files:
-            try:
-                # Extract number from filename using Path
-                num_str = f_path.stem.split("_")[-1]
-                execution_numbers.append(int(num_str))
-            except (IndexError, ValueError):
-                st.warning(
-                    f"Não foi possível extrair o número de execução do arquivo: {f_path}"
+            match = re.search(r"config(\d+)_exec(\d+)", f_path.stem)
+            if match:
+                config_num = int(match.group(1))
+                exec_num = int(match.group(2))
+                if config_num not in executions:
+                    executions[config_num] = []
+                executions[config_num].append(exec_num)
+            else:
+                warnings.append(
+                    f"Não foi possível extrair o número de execução do arquivo: {f_path.name}"
                 )
-
-        return sorted(execution_numbers)
+        
+        # Ordena as execuções para cada configuração
+        for config_num in executions:
+            executions[config_num] = sorted(executions[config_num])
+            
+        return dict(sorted(executions.items())), warnings
 
     def select_execution(self, execution_numbers):
         """Exibe o seletor na barra lateral e retorna o número da execução selecionada."""
@@ -141,56 +151,73 @@ class Utils:
         )
         return selected_num
 
-    def load_execution_data(self, exec_num, debug=False):
-        """Carrega os dados .pkl e a figura .json para a execução especificada,
-        buscando na pasta FOLDER_NAME."""
+    def load_execution_data(self, config_num, exec_num, debug=False):
+        """
+        Carrega os dados .pkl para a configuração e execução especificadas.
+        """
         data = None
+        file_name = f"dashboard_data_config{config_num}_exec{exec_num}.pkl"
+        data_file_selected = FOLDER_NAME / file_name
 
-        # Use pathlib to construct paths
-        data_file_selected = rf"{FOLDER_NAME}/dashboard_data_{exec_num}.pkl"
-        
         def initial_screen():
             st.title("Bem-vindo ao Dashboard RCE")
             st.info("O framework ainda não foi executado. Execute o framework para visualizar os resultados.")
             st.markdown("---")
 
-
-        # verifica se a pasta esta vazia
         if not os.listdir(FOLDER_NAME):
-            #st.error("Erro Crítico: Nenhum dado disponível. O framework ainda não foi executado.")
-            #time.sleep(2)
-            #st.rerun()
             initial_screen()
-
             return None
 
-        else:
-            if debug:
-                print(f"[DEBUG] A pasta não está vazia, possui arquivos em")
-                print(FOLDER_NAME)
+        if debug:
+            print(f"[DEBUG] Tentando carregar: {data_file_selected}")
 
-        # Carregar Dados
         try:
             with open(data_file_selected, "rb") as f:
                 data = pickle.load(f)
-            st.sidebar.success(
-                f"INFO:Dados da execução {exec_num} carregados de '{FOLDER_NAME}'."
-            )
-
+            if debug:
+                st.sidebar.success(
+                    f"INFO: Dados da config {config_num}/exec {exec_num} carregados."
+                )
         except FileNotFoundError:
-            st.warning("Aguarde, a página será atualizada em breve.")
-            st.info(
-                f"Erro Crítico: O Arquivo de dados selecionado ({data_file_selected}) não encontrado!!!"
-            )
-            #time.sleep(2)  # Pausa para o usuário ler a mensagem
-            #st.rerun()
-            initial_screen()
+            st.warning(f"Arquivo de dados não encontrado: {file_name}")
+            # Não chama a tela inicial aqui para não interromper a renderização das outras abas
         except Exception as e:
-            st.error(f"Erro ao carregar dados de {data_file_selected}: {e}")
+            st.error(f"Erro ao carregar dados de {file_name}: {e}")
 
         return data
 
 
+
+
+from repository.ConfigRepository import ConfigRepository
+
+class ConfigController:
+    """Controlador para gerenciar a lógica de negócio das configurações."""
+    def __init__(self):
+        output_path = get_folder_path()
+        self.repository = ConfigRepository(output_path)
+
+    def get_formatted_configs(self) -> dict[int, pd.DataFrame]:
+        """
+        Busca todas as configurações e as formata em DataFrames do Pandas para exibição.
+
+        Returns:
+            dict: Dicionário onde a chave é o número da config e o valor é um DataFrame
+                  com seus parâmetros.
+        """
+        configs = self.repository.get_all_configs()
+        formatted_configs = {}
+        for config_num, params in configs.items():
+            # Exclui chaves que não são parâmetros diretos do AG
+            params_to_display = {
+                k: v for k, v in params.items() 
+                if k in ["MUTACAO", "CROSSOVER", "NUM_GENERATIONS", "POP_SIZE"]
+            }
+            df = pd.DataFrame.from_dict(params_to_display, orient='index', columns=['Valor'])
+            df.index.name = "Parâmetro"
+            formatted_configs[config_num] = df
+        
+        return formatted_configs
 
 
 class Controller:

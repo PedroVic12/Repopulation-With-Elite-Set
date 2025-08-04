@@ -1,24 +1,44 @@
 import sys
 import os
 import json
+import subprocess
+import threading
+import time
 from pathlib import Path
+from functools import reduce
+import operator
+from itertools import product
 
 from PySide6.QtWidgets import (
     QApplication, QMainWindow, QPushButton, QVBoxLayout, QWidget, QLabel,
-    QHBoxLayout, QGroupBox, QSpinBox, QDoubleSpinBox, QCheckBox, QLineEdit, 
-    QGridLayout, QMessageBox
+    QHBoxLayout, QTextEdit, QProgressBar, QTabWidget, QGroupBox, QSpinBox,
+    QDoubleSpinBox, QCheckBox, QLineEdit, QComboBox, QMessageBox, QRadioButton,
+    QButtonGroup, QGridLayout
 )
-from PySide6.QtCore import Qt, Signal
+from PySide6.QtCore import Qt, QThread, Signal, QTimer
+from PySide6.QtGui import QFont, QIcon, QIntValidator, QDoubleValidator
 
-# Configuração
+# --- CONFIGURAÇÃO ---
+# pasta raiz do projeto
 BASE_DIR = Path(__file__).parent
-PARAMS_FILE = BASE_DIR / "lib" / "params.json"
-OPTIONS_FILE = BASE_DIR / "lib" / "options.json"
+SRC_DIR = BASE_DIR / "src"
+
+# arquivos de configuração .json para AG
+PARAMS_FILE = SRC_DIR / "params.json"
+OPTIONS_FILE = SRC_DIR / "options.json"
+
+# arquivos de execução do framework e dashboard
+RUN_FRAMEWORK_SCRIPT = SRC_DIR /"run_framework_backup.py" 
+#! Script refatorado da pasta lib
+#RUN_FRAMEWORK_SCRIPT = BASE_DIR / "lib" / "rce_framework" / "main.py"
+DASHBOARD_SCRIPT = SRC_DIR / "DashboardApp" / "dashboard_RCE_APP.py"
+
+from style import STYLESHEET
 
 class ConfigManager:
     def __init__(self):
-        self.global_params = self.load_json(PARAMS_FILE)
-        self.execution_options = self.load_json(OPTIONS_FILE)
+        self.params = self.load_json(PARAMS_FILE)
+        self.options = self.load_json(OPTIONS_FILE)
 
     def load_json(self, file_path):
         try:
@@ -28,303 +48,415 @@ class ConfigManager:
             print(f"Erro ao carregar {file_path}: {e}")
             return {}
 
-    def save_options_json(self, options_data):
+    def save_json(self, data, file_path):
         try:
-            with open(OPTIONS_FILE, 'w', encoding='utf-8') as f:
-                json.dump(options_data, f, indent=4, ensure_ascii=False)
+            with open(file_path, 'w', encoding='utf-8') as f:
+                json.dump(data, f, indent=4, ensure_ascii=False)
             return True
         except Exception as e:
-            print(f"Erro ao salvar options.json: {e}")
+            print(f"Erro ao salvar {file_path}: {e}")
             return False
+
+class ExecutionThread(QThread):
+    log_updated = Signal(str)
+    execution_finished = Signal(bool, str)
+
+    def __init__(self, script_path, args=None):
+        super().__init__()
+        self.script_path = script_path
+        self.args = args or []
+        self.process = None
+
+    def run(self):
+        try:
+            cmd = [sys.executable, str(self.script_path)] + self.args
+            self.log_updated.emit(f"Executando: {' '.join(cmd)}")
+            self.process = subprocess.Popen(
+                cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
+                universal_newlines=True, cwd=SRC_DIR, encoding='utf-8'
+            )
+            for line in iter(self.process.stdout.readline, ''):
+                if line:
+                    self.log_updated.emit(line.strip())
+            return_code = self.process.wait()
+            success = return_code == 0
+            self.execution_finished.emit(success, f"Código de retorno: {return_code}")
+        except Exception as e:
+            self.log_updated.emit(f"Erro na execução: {e}")
+            self.execution_finished.emit(False, str(e))
+
+    def stop(self):
+        if self.process:
+            self.process.terminate()
+            self.log_updated.emit("Processo de execução terminado pelo usuário.")
+
+class ConfigTab(QWidget):
+    execution_requested = Signal(list, int)
+
+    def __init__(self, config_manager):
+        super().__init__()
+        self.config_manager = config_manager
+        self.param_widgets = {}
+        self.init_ui()
+        self.update_summary()
+
+    def init_ui(self):
+        layout = QVBoxLayout(self)
+        self.create_general_settings(layout)
+        self.create_ag_params(layout)
+        self.create_summary(layout)
+        self.create_run_button(layout)
+        layout.addStretch()
+
+    def create_general_settings(self, layout):
+        general_group = QGroupBox("Configurações Gerais")
+        general_layout = QVBoxLayout(general_group)
+        self.runs_per_config_spin = QSpinBox()
+        self.runs_per_config_spin.setRange(1, 100)
+        self.runs_per_config_spin.setValue(self.config_manager.options.get('repeticoes_por_config', 1))
+        self.runs_per_config_spin.valueChanged.connect(self.update_summary)
+        general_layout.addWidget(QLabel("Execuções por Configuração:"))
+        general_layout.addWidget(self.runs_per_config_spin)
+        layout.addWidget(general_group)
+
+    def create_ag_params(self, layout):
+        ag_group = QGroupBox("Parâmetros do Algoritmo Genético")
+        ag_layout = QGridLayout(ag_group)
+        params_to_render = {
+            "MUTACAO": self.config_manager.params.get("MUTACAO", 0.1),
+            "CROSSOVER": self.config_manager.params.get("CROSSOVER", 0.8),
+            "NUM_GENERATIONS": self.config_manager.params.get("NUM_GENERATIONS", 100),
+            "POP_SIZE": self.config_manager.params.get("POP_SIZE", 50),
+        }
+        row, col = 0, 0
+        for name, default_val in params_to_render.items():
+            param_widget = self._create_param_widget(name, default_val)
+            ag_layout.addWidget(param_widget, row, col)
+            col += 1
+            if col > 1:
+                col, row = 0, row + 1
+        layout.addWidget(ag_group)
+
+    def create_summary(self, layout):
+        summary_group = QGroupBox("Resumo da Execução")
+        summary_layout = QHBoxLayout(summary_group)
+        self.unique_configs_label = QLabel("Configurações Únicas: 1")
+        self.total_runs_label = QLabel(f"Total de Execuções: {self.runs_per_config_spin.value()}")
+        summary_layout.addWidget(self.unique_configs_label)
+        summary_layout.addWidget(self.total_runs_label)
+        layout.addWidget(summary_group)
+
+    def create_run_button(self, layout):
+        self.run_button = QPushButton("💾 Salvar e Executar")
+        self.run_button.setObjectName("run_button")
+        self.run_button.clicked.connect(self.prepare_and_run)
+        layout.addWidget(self.run_button, alignment=Qt.AlignCenter)
+
+    def _create_param_widget(self, name, default_value):
+        widget_group = QGroupBox(name)
+        layout = QVBoxLayout(widget_group)
+        mode_group = QButtonGroup(self)
+        fixed_radio = QRadioButton("Fixo")
+        variable_radio = QRadioButton("Variável")
+        fixed_radio.setChecked(True)
+        mode_group.addButton(fixed_radio)
+        mode_group.addButton(variable_radio)
+        mode_layout = QHBoxLayout()
+        mode_layout.addWidget(fixed_radio)
+        mode_layout.addWidget(variable_radio)
+        layout.addLayout(mode_layout)
+
+        is_int = isinstance(default_value, int)
+        fixed_input = QLineEdit()
+        if is_int:
+            fixed_input.setValidator(QIntValidator(1, 100000))
+        else:
+            fixed_input.setValidator(QDoubleValidator(0.0, 1.0, 5))
+        fixed_input.setText(str(default_value))
+
+        variable_inputs_widget = QWidget()
+        variable_layout = QHBoxLayout(variable_inputs_widget)
+        variable_layout.setContentsMargins(0,0,0,0)
+        variable_inputs = []
+        for i in range(4):
+            input_field = QLineEdit()
+            input_field.setPlaceholderText(f"V{i+1}")
+            input_field.setText(str(default_value)) # Preenche com o valor padrão
+            if is_int:
+                input_field.setValidator(QIntValidator(1, 100000))
+            else:
+                input_field.setValidator(QDoubleValidator(0.0, 1.0, 5))
+            variable_layout.addWidget(input_field)
+            variable_inputs.append(input_field)
+        variable_inputs_widget.setVisible(False)
+
+        layout.addWidget(fixed_input)
+        layout.addWidget(variable_inputs_widget)
+
+        fixed_radio.toggled.connect(fixed_input.setVisible)
+        variable_radio.toggled.connect(variable_inputs_widget.setVisible)
+
+        self.param_widgets[name] = {
+            "mode": mode_group, "fixed": fixed_input,
+            "variable": variable_inputs, "is_int": is_int
+        }
+
+        fixed_input.textChanged.connect(self.update_summary)
+        for var_input in variable_inputs:
+            var_input.textChanged.connect(self.update_summary)
+        mode_group.buttonClicked.connect(self.update_summary)
+
+        return widget_group
+
+    def update_summary(self, _=None):
+        num_variations = []
+        for name, widgets in self.param_widgets.items():
+            if widgets["mode"].buttons()[1].isChecked():
+                var_values = [inp.text() for inp in widgets["variable"] if inp.text()]
+                if var_values:
+                    num_variations.append(len(var_values))
+        
+        total_combinations = reduce(operator.mul, num_variations, 1) if num_variations else 1
+        total_execucoes = total_combinations * self.runs_per_config_spin.value()
+
+        self.unique_configs_label.setText(f"Configurações Únicas: {total_combinations}")
+        self.total_runs_label.setText(f"Total de Execuções: {total_execucoes}")
+
+    def prepare_and_run(self):
+        try:
+            variable_params, fixed_params = {}, {}
+            for name, widgets in self.param_widgets.items():
+                is_int = widgets["is_int"]
+                if widgets["mode"].buttons()[1].isChecked(): # Variável
+                    values = []
+                    for field in widgets["variable"]:
+                        if field.text():
+                            try:
+                                values.append(int(field.text()) if is_int else float(field.text()))
+                            except ValueError:
+                                QMessageBox.warning(self, "Valor Inválido", f"Valor inválido para {name}: '{field.text()}'")
+                                return
+                    if values: variable_params[name] = values
+                    else: fixed_params[name] = int(widgets["fixed"].text()) if is_int else float(widgets["fixed"].text())
+                else: # Fixo
+                    try:
+                        fixed_params[name] = int(widgets["fixed"].text()) if is_int else float(widgets["fixed"].text())
+                    except ValueError:
+                        QMessageBox.warning(self, "Valor Inválido", f"Valor inválido para {name}: '{widgets['fixed'].text()}'")
+                        return
+
+            keys, values = variable_params.keys(), variable_params.values()
+            configurations = [dict(zip(keys, v)) for v in product(*values)] if keys else [{}]
+            for config in configurations:
+                config.update(fixed_params)
+
+            runs_per_config = self.runs_per_config_spin.value()
+            options = self.config_manager.options.copy()
+            options['repeticoes_por_config'] = runs_per_config
+            if not self.config_manager.save_json(options, OPTIONS_FILE):
+                QMessageBox.critical(self, "Erro", f"Falha ao salvar {OPTIONS_FILE.name}")
+                return
+
+            msg = f"{len(configurations)} configs únicas serão executadas {runs_per_config} vez(es) cada."
+            QMessageBox.information(self, "Pronto para Iniciar", msg)
+            self.execution_requested.emit(configurations, runs_per_config)
+
+        except Exception as e:
+            QMessageBox.critical(self, "Erro", f"Erro ao preparar execução: {e}")
+
+class ExecutionTab(QWidget):
+    def __init__(self, config_manager):
+        super().__init__()
+        self.config_manager = config_manager
+        self.execution_thread = None
+        self.configurations = []
+        self.runs_per_config = 0
+        self.current_run_number = 0
+        self.total_runs = 0
+        self.init_ui()
+
+    def init_ui(self):
+        layout = QVBoxLayout(self)
+        self.create_control_buttons(layout)
+        self.create_status_panel(layout)
+        self.create_progress_bar(layout)
+        self.create_log_area(layout)
+
+    def create_control_buttons(self, layout):
+        control_layout = QHBoxLayout()
+        self.run_dashboard_btn = QPushButton("📊 Abrir Dashboard")
+        self.run_dashboard_btn.clicked.connect(self.run_dashboard)
+        control_layout.addWidget(self.run_dashboard_btn)
+        self.stop_btn = QPushButton("⏹️ Parar Execução")
+        self.stop_btn.clicked.connect(self.stop_execution)
+        self.stop_btn.setEnabled(False)
+        control_layout.addWidget(self.stop_btn)
+        layout.addLayout(control_layout)
+
+    def create_status_panel(self, layout):
+        self.current_config_group = QGroupBox("Configuração da Execução Atual")
+        current_config_layout = QVBoxLayout(self.current_config_group)
+        self.current_config_label = QLabel("Aguardando início...")
+        self.current_config_label.setAlignment(Qt.AlignCenter)
+        current_config_layout.addWidget(self.current_config_label)
+        layout.addWidget(self.current_config_group)
+
+    def create_progress_bar(self, layout):
+        self.progress_bar = QProgressBar()
+        self.progress_bar.setVisible(False)
+        layout.addWidget(self.progress_bar)
+
+    def create_log_area(self, layout):
+        self.log_text = QTextEdit()
+        self.log_text.setReadOnly(True)
+        layout.addWidget(QLabel("Log de Execução:"))
+        layout.addWidget(self.log_text)
+
+    def start_executions(self, configurations, runs_per_config):
+        if not RUN_FRAMEWORK_SCRIPT.exists():
+            QMessageBox.critical(self, "Erro", f"Script não encontrado: {RUN_FRAMEWORK_SCRIPT}")
+            return
+        
+        self.configurations = configurations
+        self.runs_per_config = runs_per_config
+        self.total_runs = len(self.configurations) * self.runs_per_config
+        self.current_run_number = 0
+        
+        self.log_text.clear()
+        self.append_log(f"Iniciando bateria de testes com {len(self.configurations)} configs e {self.runs_per_config} repetições.")
+        self.append_log(f"Total de execuções: {self.total_runs}")
+
+        self.stop_btn.setEnabled(True)
+        self.progress_bar.setVisible(True)
+        self.progress_bar.setRange(0, self.total_runs)
+        self.progress_bar.setValue(0)
+        
+        self.run_next_configuration()
+
+    def run_next_configuration(self):
+        if self.current_run_number >= self.total_runs:
+            self.on_all_executions_finished(True, "Todas as execuções foram concluídas.")
+            return
+
+        config_index = self.current_run_number // self.runs_per_config
+        repetition = (self.current_run_number % self.runs_per_config) + 1
+        current_config = self.configurations[config_index]
+        
+        config_str = ", ".join([f"{k}: {v}" for k, v in current_config.items()])
+        self.current_config_label.setText(f"Execução {self.current_run_number + 1}/{self.total_runs} (Rep. {repetition}) | {config_str}")
+        self.append_log("-" * 20)
+        self.append_log(f"Iniciando Config {config_index + 1}, Execução {repetition}: {config_str}")
+
+        base_params = self.config_manager.load_json(PARAMS_FILE)
+        base_params.update(current_config)
+        
+        # Salva uma cópia do params.json para cada configuração
+        config_params_path = SRC_DIR / f"output/params_config{config_index + 1}.json"
+        if not self.config_manager.save_json(base_params, config_params_path):
+             self.append_log(f"❌ Erro ao salvar o arquivo de parâmetros de configuração {config_params_path}")
+             # Decide se quer parar ou continuar
+
+        if not self.config_manager.save_json(base_params, PARAMS_FILE):
+             self.append_log(f"❌ Erro ao salvar o arquivo de parâmetros {PARAMS_FILE}")
+             self.on_all_executions_finished(False, "Erro de arquivo.")
+             return
+
+        args = ["--config_num", str(config_index + 1), "--exec_num", str(repetition)]
+        self.execution_thread = ExecutionThread(RUN_FRAMEWORK_SCRIPT, args)
+        self.execution_thread.log_updated.connect(self.append_log)
+        self.execution_thread.execution_finished.connect(self.on_single_execution_finished)
+        self.execution_thread.start()
+
+    def on_single_execution_finished(self, success, message):
+        self.append_log(f"Finalizada execução {self.current_run_number + 1}. Sucesso: {success}. {message}")
+        if not success:
+            self.append_log(f"❌ Erro na execução, pulando para a próxima.")
+        
+        self.current_run_number += 1
+        self.progress_bar.setValue(self.current_run_number)
+        
+        QTimer.singleShot(100, self.run_next_configuration)
+
+    def run_dashboard(self):
+        if not DASHBOARD_SCRIPT.exists():
+            QMessageBox.critical(self, "Erro", f"Dashboard não encontrado: {DASHBOARD_SCRIPT}")
+            return
+        try:
+            subprocess.Popen(["streamlit", "run", str(DASHBOARD_SCRIPT), "--server.port", "8501"], cwd=BASE_DIR)
+            self.append_log("Dashboard iniciado em http://localhost:8501")
+        except Exception as e:
+            self.append_log(f"Erro ao iniciar dashboard: {e}")
+
+    def stop_execution(self):
+        self.current_run_number = self.total_runs # Prevent next run
+        if self.execution_thread and self.execution_thread.isRunning():
+            self.execution_thread.stop()
+        self.on_all_executions_finished(False, "Interrompido pelo usuário.")
+
+    def append_log(self, message):
+        self.log_text.append(f"[{time.strftime('%H:%M:%S')}] {message}")
+        self.log_text.ensureCursorVisible()
+
+    def on_all_executions_finished(self, success, message):
+        self.stop_btn.setEnabled(False)
+        self.progress_bar.setValue(self.progress_bar.maximum())
+        self.current_config_label.setText(f"Finalizado. {message}")
+        if success:
+            self.append_log(f"✅ {message}")
+            QMessageBox.information(self, "Sucesso", "Bateria de testes concluída com sucesso!")
+        else:
+            self.append_log(f"❌ {message}")
+            if "Interrompido" not in message:
+                QMessageBox.critical(self, "Erro", f"A bateria de testes terminou com erro: {message}")
 
 class LauncherWindow(QMainWindow):
     def __init__(self):
         super().__init__()
         self.config_manager = ConfigManager()
-        self.param_widgets = {}
         self.init_ui()
 
     def init_ui(self):
-        self.setWindowTitle("🚀 Launcher - Teste de Interface")
-        self.setMinimumSize(800, 600)
+        self.setWindowTitle("RCE Framework Launcher - Otimizado")
+        self.setMinimumSize(900, 700)
         
         central_widget = QWidget()
         self.setCentralWidget(central_widget)
-        layout = QVBoxLayout(central_widget)
+        main_layout = QVBoxLayout(central_widget)
+        
+        self.create_header(main_layout)
+        self.create_tabs(main_layout)
+        
+        self.statusBar().showMessage("Pronto.")
 
-        # Título
-        title = QLabel("🧬 Configuração de Parâmetros")
-        title.setStyleSheet("font-size: 18px; font-weight: bold; color: #2E86AB; margin: 10px;")
+    def create_header(self, layout):
+        title = QLabel("Repopulation-With-Elite-Set Framework")
+        title.setObjectName("title")
         title.setAlignment(Qt.AlignmentFlag.AlignCenter)
         layout.addWidget(title)
-
-        # Execuções por configuração
-        exec_group = QGroupBox("📊 Configurações Gerais")
-        exec_layout = QVBoxLayout(exec_group)
         
-        self.runs_spin = QSpinBox()
-        self.runs_spin.setRange(1, 100)
-        self.runs_spin.setValue(7)
-        self.runs_spin.valueChanged.connect(self.update_summary)
+        subtitle = QLabel("Configuração e Execução em Tempo Real usando PySide6")
+        subtitle.setObjectName("subtitle")
+        subtitle.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        layout.addWidget(subtitle)
+
+    def create_tabs(self, layout):
+        tab_widget = QTabWidget()
+        self.config_tab = ConfigTab(self.config_manager)
+        self.execution_tab = ExecutionTab(self.config_manager)
         
-        exec_layout.addWidget(QLabel("🔁 Execuções por Configuração:"))
-        exec_layout.addWidget(self.runs_spin)
-        layout.addWidget(exec_group)
-
-        # Parâmetros
-        params_group = QGroupBox("🔧 Parâmetros do Algoritmo Genético")
-        params_layout = QVBoxLayout(params_group)
+        tab_widget.addTab(self.config_tab, "⚙️ Configuração e Execução")
+        tab_widget.addTab(self.execution_tab, "📊 Dashboard e Logs")
         
-        # 4 parâmetros principais
-        self.main_params = {
-            "MUTACAO": self.config_manager.global_params.get("MUTACAO", 0.25),
-            "CROSSOVER": self.config_manager.global_params.get("CROSSOVER", 0.95),
-            "NUM_GENERATIONS": self.config_manager.global_params.get("NUM_GENERATIONS", 40),
-            "POP_SIZE": self.config_manager.global_params.get("POP_SIZE", 5),
-        }
+        layout.addWidget(tab_widget)
 
-        for param_name, default_value in self.main_params.items():
-            param_widget = self.create_param_widget(param_name, default_value)
-            params_layout.addWidget(param_widget)
-        
-        layout.addWidget(params_group)
+        # Connect signals
+        self.config_tab.execution_requested.connect(self.execution_tab.start_executions)
+        self.config_tab.execution_requested.connect(lambda: tab_widget.setCurrentWidget(self.execution_tab))
 
-        # Resumo
-        self.summary_label = QLabel("📊 Configurações: 1 | Execuções: 7")
-        self.summary_label.setStyleSheet("font-size: 14px; font-weight: bold; color: #2E86AB; padding: 10px;")
-        layout.addWidget(self.summary_label)
-
-        # Botão
-        self.save_button = QPushButton("💾 Salvar Configuração")
-        self.save_button.setStyleSheet("""
-            QPushButton {
-                background-color: #2E86AB;
-                color: white;
-                font-weight: bold;
-                padding: 10px 20px;
-                border-radius: 5px;
-                font-size: 14px;
-            }
-            QPushButton:hover {
-                background-color: #A23B72;
-            }
-        """)
-        self.save_button.clicked.connect(self.save_config)
-        layout.addWidget(self.save_button, alignment=Qt.AlignmentFlag.AlignCenter)
-
-    def create_param_widget(self, name, default_value):
-        """Cria widget para um parâmetro com checkbox e campos de entrada"""
-        group = QGroupBox(f"📊 {name}")
-        group.setStyleSheet("QGroupBox { font-weight: bold; margin: 5px; }")
-        layout = QVBoxLayout(group)
-
-        # Checkbox para alternar modo
-        checkbox = QCheckBox(f"🔒 Usar valor fixo para {name}")
-        checkbox.setChecked(True)  # Padrão: fixo
-        checkbox.setStyleSheet("QCheckBox { font-weight: bold; color: #2E86AB; margin: 5px; }")
-        layout.addWidget(checkbox)
-
-        # Container para campos de entrada
-        fields_container = QWidget()
-        fields_layout = QVBoxLayout(fields_container)
-
-        # Campo para valor fixo
-        fixed_container = QWidget()
-        fixed_layout = QHBoxLayout(fixed_container)
-        fixed_layout.addWidget(QLabel("Valor Fixo:"))
-        
-        is_int = isinstance(default_value, int)
-        if is_int:
-            fixed_input = QSpinBox()
-            fixed_input.setRange(1, 10000)
-            fixed_input.setValue(default_value)
-        else:
-            fixed_input = QDoubleSpinBox()
-            fixed_input.setRange(0.0, 1.0)
-            fixed_input.setSingleStep(0.01)
-            fixed_input.setValue(default_value)
-            fixed_input.setDecimals(3)
-        
-        fixed_input.setStyleSheet("padding: 5px; font-size: 12px; min-width: 100px;")
-        fixed_layout.addWidget(fixed_input)
-        fixed_layout.addStretch()
-        fields_layout.addWidget(fixed_container)
-
-        # Campos para valores variáveis (2x2)
-        variable_container = QWidget()
-        variable_layout = QGridLayout(variable_container)
-        variable_layout.addWidget(QLabel("Valores Variáveis (máximo 4):"), 0, 0, 1, 4)
-        
-        variable_inputs = []
-        for i in range(4):
-            row = (i // 2) + 1
-            col = (i % 2) * 2
-            
-            label = QLabel(f"V{i+1}:")
-            label.setStyleSheet("font-weight: bold;")
-            
-            input_field = QLineEdit()
-            input_field.setPlaceholderText(f"Ex: {default_value}")
-            input_field.setText(str(default_value))
-            input_field.setStyleSheet("""
-                QLineEdit {
-                    padding: 5px;
-                    border: 2px solid #ddd;
-                    border-radius: 4px;
-                    font-size: 12px;
-                    min-width: 80px;
-                }
-                QLineEdit:focus {
-                    border-color: #2E86AB;
-                }
-            """)
-            input_field.textChanged.connect(self.update_summary)
-            
-            variable_layout.addWidget(label, row, col)
-            variable_layout.addWidget(input_field, row, col + 1)
-            variable_inputs.append(input_field)
-        
-        # Inicialmente escondido (modo fixo)
-        variable_container.setVisible(False)
-        fields_layout.addWidget(variable_container)
-        
-        layout.addWidget(fields_container)
-
-        # Conecta checkbox para alternar visibilidade
-        def toggle_mode(checked):
-            fixed_container.setVisible(checked)
-            variable_container.setVisible(not checked)
-            
-            if checked:
-                checkbox.setText(f"🔒 Usar valor fixo para {name}")
-                checkbox.setStyleSheet("QCheckBox { font-weight: bold; color: #2E86AB; margin: 5px; }")
-            else:
-                checkbox.setText(f"🔀 Usar valores variáveis para {name}")
-                checkbox.setStyleSheet("QCheckBox { font-weight: bold; color: #A23B72; margin: 5px; }")
-            
-            self.update_summary()
-
-        checkbox.toggled.connect(toggle_mode)
-        fixed_input.valueChanged.connect(self.update_summary)
-
-        # Armazena widgets
-        self.param_widgets[name] = {
-            "checkbox": checkbox,
-            "fixed": fixed_input,
-            "variable": variable_inputs,
-            "is_int": is_int
-        }
-
-        return group
-
-    def update_summary(self):
-        """Atualiza o resumo de configurações"""
-        total_configs = 1
-        variable_count = 0
-        
-        for name, widgets in self.param_widgets.items():
-            if not widgets["checkbox"].isChecked():  # Modo variável
-                # Conta valores válidos
-                valid_values = 0
-                for inp in widgets["variable"]:
-                    text = inp.text().strip()
-                    if text:
-                        try:
-                            if widgets["is_int"]:
-                                value = int(text)
-                                if value > 0:
-                                    valid_values += 1
-                            else:
-                                value = float(text)
-                                if 0 <= value <= 1:
-                                    valid_values += 1
-                        except ValueError:
-                            pass
-                
-                if valid_values > 0:
-                    total_configs *= valid_values
-                    variable_count += 1
-        
-        total_executions = total_configs * self.runs_spin.value()
-        
-        if variable_count > 0:
-            self.summary_label.setText(
-                f"📊 Configurações: {total_configs} | Execuções: {total_executions} | Variáveis: {variable_count}"
-            )
-        else:
-            self.summary_label.setText(f"📊 Configurações: 1 (todos fixos) | Execuções: {total_executions}")
-
-    def save_config(self):
-        """Salva a configuração no options.json"""
-        try:
-            parametros_opcionais = []
-            
-            for name, widgets in self.param_widgets.items():
-                if widgets["checkbox"].isChecked():  # Modo fixo
-                    value = widgets["fixed"].value()
-                    parametros_opcionais.append({name: [value]})
-                else:  # Modo variável
-                    values = []
-                    for inp in widgets["variable"]:
-                        text = inp.text().strip()
-                        if text:
-                            try:
-                                if widgets["is_int"]:
-                                    value = int(text)
-                                    if value > 0:
-                                        values.append(value)
-                                else:
-                                    value = float(text)
-                                    if 0 <= value <= 1:
-                                        values.append(value)
-                            except ValueError:
-                                continue
-                    
-                    if values:
-                        parametros_opcionais.append({name: values})
-                    else:
-                        # Se não tem valores válidos, usa o fixo
-                        parametros_opcionais.append({name: [widgets["fixed"].value()]})
-            
-            options_data = {
-                "repeticoes_por_config": self.runs_spin.value(),
-                "parametros_opcionais": parametros_opcionais
-            }
-            
-            if self.config_manager.save_options_json(options_data):
-                QMessageBox.information(self, "Sucesso", "Configuração salva com sucesso!")
-            else:
-                QMessageBox.critical(self, "Erro", "Falha ao salvar configuração.")
-                
-        except Exception as e:
-            QMessageBox.critical(self, "Erro", f"Erro inesperado: {e}")
-
-def main():
-    app = QApplication(sys.argv)
-    
-    # Estilo global
-    app.setStyleSheet("""
-        QMainWindow {
-            background-color: #f5f5f5;
-        }
-        QGroupBox {
-            font-weight: bold;
-            border: 2px solid #cccccc;
-            border-radius: 5px;
-            margin: 5px;
-            padding-top: 10px;
-        }
-        QGroupBox::title {
-            subcontrol-origin: margin;
-            left: 10px;
-            padding: 0 5px 0 5px;
-        }
-    """)
-    
-    window = LauncherWindow()
-    window.show()
-    
-    sys.exit(app.exec())
 
 if __name__ == "__main__":
-    main()
+    app = QApplication(sys.argv)
+    app.setStyleSheet(STYLESHEET)
+    window = LauncherWindow()
+    window.show()
+    sys.exit(app.exec())

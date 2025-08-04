@@ -7,6 +7,9 @@ import pandas as pd
 import numpy as np
 import sys
 import time
+import io
+import json
+import re
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
@@ -28,59 +31,108 @@ path_foler_output = get_folder_path()
 
 
 class ConsolidatedResultsComponent:
-    """Componente para exibir os resultados consolidados."""    
+    """Componente para exibir os resultados consolidados."""
 
     @staticmethod
-    def render():
-        """Verifica e exibe a seção de resultados consolidados."""
-        st.header("✅ Resultados Consolidados Gerais de todas as execuções")
-        
-        all_dfs = []
-        for file in os.listdir(path_foler_output):
-            if file.startswith("results_consolidados_config") and file.endswith(".xlsx"):
-                config_num = int(file.split("config")[1].split(".")[0])
-                df = pd.read_excel(os.path.join(path_foler_output, file))
-                df['config_num'] = config_num
-                all_dfs.append(df)
+    def render(all_params: dict):
+        """Coleta, consolida e exibe os resultados de todas as execuções."""
+        st.header("✅ Resultados Consolidados Gerais")
 
-        if not all_dfs:
-            st.info("Nenhum arquivo de resultado consolidado encontrado.")
+        output_path = get_folder_path()
+        all_results = []
+        warnings = []
+
+        # 1. Encontrar todos os arquivos de dados .pkl
+        data_files = sorted(output_path.glob("dashboard_data_config*_exec*.pkl"))
+
+        if not data_files:
+            st.info("Nenhum arquivo de resultado de execução (.pkl) foi encontrado.")
+            return None, []
+
+        # 2. Iterar sobre cada arquivo de resultado
+        for data_file in data_files:
+            match = re.search(r"config(\d+)_exec(\d+)", data_file.stem)
+            if not match:
+                warnings.append(f"Nome de arquivo inválido, não foi possível processar: {data_file.name}")
+                continue
+
+            config_num = int(match.group(1))
+            exec_num = int(match.group(2))
+
+            # Carregar dados da execução
+            try:
+                with open(data_file, "rb") as f:
+                    exec_data = pickle.load(f)
+            except Exception as e:
+                warnings.append(f"Erro ao ler o arquivo de dados {data_file.name}: {e}")
+                continue
+
+            # Usa os parâmetros já carregados pela página principal
+            params_data = all_params.get(config_num, {})
+            if not params_data:
+                 warnings.append(f"Arquivo de parâmetros não encontrado para a Configuração {config_num}")
+
+            # Extrair e montar os dados
+            execution_time_str = str(exec_data.get("execution_time", "0"))
+            cleaned_time = re.sub(r'[^\d.]', '', execution_time_str)
+
+            all_results.append({
+                "Config": config_num,
+                "Exec": exec_num,
+                "Melhor Fitness": exec_data.get("best_fitness"),
+                "Melhor Geração": exec_data.get("best_gen_idx"),
+                "Tempo de Execução (s)": float(cleaned_time) if cleaned_time else 0.0,
+                "Caso IEEE": params_data.get("ieee_case", "N/A"),
+                "MUTACAO": params_data.get("MUTACAO"),
+                "CROSSOVER": params_data.get("CROSSOVER"),
+                "NUM_GENERATIONS": params_data.get("NUM_GENERATIONS"),
+                "POP_SIZE": params_data.get("POP_SIZE"),
+            })
+
+        if not all_results:
+            st.warning("Nenhum dado de execução pôde ser consolidado.")
             return
 
-        df_consolidado = pd.concat(all_dfs, ignore_index=True)
-        df_consolidado["execution_time"] = df_consolidado["execution_time"].astype(str).str.replace(" segundos", "").astype(float)
-
-        # Calcula a média da coluna execution_time
-        exec_time = df_consolidado["execution_time"]
-        time_exec_media = exec_time.mean()
-        tempo_total = exec_time.sum()
-
-        st.dataframe(df_consolidado)
+        # 3. Criar e ordenar o DataFrame
+        df_consolidado = pd.DataFrame(all_results)
         
-        if time_exec_media <= 60:
-            st.write(f"Média do tempo de cada execução (em segundos) = ",round(time_exec_media,3))
+        # Devolve o DataFrame e os avisos para a página principal renderizar
+        return df_consolidado, warnings
+
+    @staticmethod
+    def display_and_download(df_consolidado):
+        """Exibe o DataFrame e o botão de download."""
+        
+        # Define e aplica a ordem correta das colunas
+        column_order = [
+            "Config", "Exec", "MUTACAO", "CROSSOVER", 
+            "NUM_GENERATIONS", "POP_SIZE", "Melhor Fitness", "Melhor Geração", 
+            "Tempo de Execução (s)"
+        ]
+        existing_columns = [col for col in column_order if col in df_consolidado.columns]
+        df_display = df_consolidado[existing_columns]
+        
+        st.dataframe(df_display)
+
+        # 4. Calcular e exibir métricas
+        if "Tempo de Execução (s)" in df_display.columns:
+            total_time = df_display["Tempo de Execução (s)"].sum()
+            mean_time = df_display["Tempo de Execução (s)"].mean()
             
-            if tempo_total <= 60:
-                st.write("Tempo total de execução (em segundos) = ", round(tempo_total,2))
-            else:
-                st.write("Tempo total de execução (em minutos) = ", round(tempo_total/60,2))
+            col1, col2 = st.columns(2)
+            col1.metric("Tempo Total de Execução", f"{total_time:.2f} s")
+            col2.metric("Tempo Médio por Execução", f"{mean_time:.2f} s")
 
-        else:
-            st.write(f"Média do tempo de cada execução (em segundos) = ",round(time_exec_media,3))
-            st.write(f"Média do tempo de cada execução (em minutos) = ",round(time_exec_media/60,3))
-
-        # Adiciona o botão de download
-        @st.cache_data
-        def convert_df_to_csv(df):
-            return df.to_csv(index=False).encode('utf-8')
-
-        csv = convert_df_to_csv(df_consolidado)
-
+        # 5. Botão de download para XLSX
+        output = io.BytesIO()
+        with pd.ExcelWriter(output, engine='xlsxwriter') as writer:
+            df_display.to_excel(writer, index=False, sheet_name='Resultados Consolidados')
+        
         st.download_button(
-            label="Baixar Resultados Consolidados (CSV)",
-            data=csv,
-            file_name="resultados_consolidados_geral.csv",
-            mime="text/csv",
+            label="📥 Baixar Resultados Consolidados (XLSX)",
+            data=output.getvalue(),
+            file_name="resultados_consolidados_geral.xlsx",
+            mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
         )
         st.markdown("---")
 
@@ -305,7 +357,10 @@ class StatisticsTableComponent:
         #! TODO alterar para gerar arquivo pop_final.xlsx sempre
         #print("\n\nDEBUG ARQUIVO POP FINAL",excel_file)
         arquivo = rf"{path_foler_output}/pop_final.xlsx"
-        df_pop_final = pd.read_excel(arquivo)
+        if os.path.exists(arquivo):
+            df_pop_final = pd.read_excel(arquivo)
+        else:
+            df_pop_final = None
 
         if df_pop_final is not None:
             st.markdown("---")
