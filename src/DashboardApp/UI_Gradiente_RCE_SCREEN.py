@@ -233,9 +233,9 @@ class FrameworkRCEDashboard:
                 dados = None
                     
             # Sempre renderiza a configuração do app e do AG 
-            self.ConfigWebApp()
+            #self.ConfigWebApp()
             # Optiins e params em json separados mas talves ter as configuracoes em array de dicts
-            self.Config_AG_Json()
+            #self.Config_AG_Json()
 
             # Cabeçalho
             self.header()

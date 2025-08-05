@@ -1,22 +1,13 @@
 # --- Componentes da Interface de Usuário ---
-from functools import reduce
-import json
-import operator
-import re
 from ..components.dash_rce_components import ConsolidatedResultsComponent, CardSolutions, GraficoPotenciaAtivaReativaComponent, StatisticsTableComponent, GraficoRCEComponent
-
+from .AgendamentoRedePage import AgendamentoRedePage
 
 #backend
 from controllers.Utils import Controller,FOLDER_NAME, Utils, PARAMETROS_JSON, ConfigController
-import os
 
 # Frontend
 import streamlit as st
-import pandas as pd
-import json
-import time
-import threading
-import pathlib
+
 
 
 
@@ -199,18 +190,22 @@ class FrameworkRCEDashboard:
         try:
             if component_name == "Soluções":
                 CardSolutions.render(data, exec_num, debug=False)
+                AgendamentoRedePage()
+                
             elif component_name == "Gráfico":
                 GraficoRCEComponent.render(exec_num)
                 GraficoPotenciaAtivaReativaComponent.render(exec_num, 1)
+                
             elif component_name == "Estatísticas":
                 StatisticsTableComponent.render(data)
+                
         except Exception as e:
             st.error(f"Erro ao renderizar '{component_name}' para Config {config_num}/Exec {exec_num}: {e}")
 
     def header(self):
         st.markdown("---")
-        st.title("⚡ Framework Repopulation-With-Elite-Set RCE ⚡")
-        st.subheader("Version 14.3.2 - 17/07/2025")
+        st.title("⚡ Dashboard Repopulation-With-Elite-Set RCE ⚡")
+        st.subheader("Version 15.2.4 - 05/08/2025")
         st.markdown("---")
 
     def footer(self):
