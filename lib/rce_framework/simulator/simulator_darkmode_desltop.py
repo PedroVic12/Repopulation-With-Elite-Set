@@ -157,11 +157,9 @@ class NetworkCanvas(FigureCanvas):
         """Plots the network, highlighting out-of-service elements and adding a legend."""
         self.net = net
         self.ax.clear()
-        # Always use light mode colors for the diagram for clarity
         self.fig.set_facecolor("#f0f2f6")
         self.ax.set_facecolor("#f0f2f6")
-        title_color = '#333'
-        legend_text_color = '#333'
+        title_color, legend_text_color = '#333', '#333'
 
         try:
             if not net or net.bus.empty:
@@ -171,19 +169,40 @@ class NetworkCanvas(FigureCanvas):
 
             title = f"Diagrama da Rede: {net.name.upper()}"
 
-            # --- Bus Collections ---
-            bc = plot.create_bus_collection(net, size=0.05, color="b", zorder=10)
+            # --- Determine Bus Colors ---
+            gen_buses = set(net.gen.bus) if not net.gen.empty else set()
+            load_buses = set(net.load.bus) if not net.load.empty else set()
+
+            bus_colors = []
+            for bus_idx in net.bus.index:
+                is_gen = bus_idx in gen_buses
+                is_load = bus_idx in load_buses
+                if is_gen and is_load: bus_colors.append("purple")
+                elif is_gen: bus_colors.append("green")
+                elif is_load: bus_colors.append("red")
+                else: bus_colors.append("blue")
+
+            # --- Create Collections ---
+            bc = plot.create_bus_collection(net, buses=net.bus.index, size=0.05, color=bus_colors, zorder=10)
             self.ax.add_collection(bc)
 
-            # --- Line Collections ---
-            legend_elements = []
+            if hasattr(net, 'bus_geodata') and not net.bus_geodata.empty:
+                for i, bus in net.bus_geodata.iterrows():
+                    self.ax.text(bus.x, bus.y + 0.02, str(i), fontsize=8, weight='bold', ha='center', va='bottom', color='navy', zorder=11)
+
+            legend_elements = [
+                Line2D([0], [0], marker='o', color='w', label='Barra (Transfer)', markerfacecolor='blue', markersize=8),
+                Line2D([0], [0], marker='o', color='w', label='Barra (Geração)', markerfacecolor='green', markersize=8),
+                Line2D([0], [0], marker='o', color='w', label='Barra (Carga)', markerfacecolor='red', markersize=8),
+                Line2D([0], [0], marker='o', color='w', label='Barra (Geração/Carga)', markerfacecolor='purple', markersize=8)
+            ]
+
             if not net.line.empty:
                 line_vns = net.bus.loc[net.line.from_bus, 'vn_kv'].values
                 vn_kv_unique = sorted(pd.unique(line_vns))
                 cmap = plt.get_cmap('viridis', len(vn_kv_unique) + 1)
                 colors = {v: cmap(i) for i, v in enumerate(vn_kv_unique)}
 
-                # In-service lines
                 for v_kv, color in colors.items():
                     lines_at_v = net.line.index[line_vns == v_kv]
                     in_service_lines = net.line.index[net.line.in_service & (net.line.index.isin(lines_at_v))]
@@ -192,7 +211,6 @@ class NetworkCanvas(FigureCanvas):
                         self.ax.add_collection(lc)
                     legend_elements.append(Line2D([0], [0], color=color, lw=2, label=f'{v_kv:.1f} kV'))
 
-                # Out-of-service lines
                 oos_lines = net.line.index[~net.line.in_service]
                 if not oos_lines.empty:
                     lc_oos = plot.create_line_collection(net, lines=oos_lines, color="r", linestyle="--", linewidths=1.5)
@@ -200,21 +218,17 @@ class NetworkCanvas(FigureCanvas):
                     if not any(h.get_label() == 'Fora de Serviço' for h in legend_elements):
                          legend_elements.append(Line2D([0], [0], color='r', linestyle='--', lw=2, label='Fora de Serviço'))
 
-            # --- Transformer Collections ---
             if not net.trafo.empty:
                 in_service_trafos = net.trafo.index[net.trafo.in_service]
                 oos_trafos = net.trafo.index[~net.trafo.in_service]
-
                 if not in_service_trafos.empty:
                     tc = plot.create_trafo_collection(net, trafos=in_service_trafos, color='k', zorder=5)
                     for collection in tc if isinstance(tc, (list, tuple)) else [tc]:
                         if collection: self.ax.add_collection(collection)
-                
                 if not oos_trafos.empty:
                     tc_oos = plot.create_trafo_collection(net, trafos=oos_trafos, color='r', linestyle="--", zorder=5)
                     for collection in tc_oos if isinstance(tc_oos, (list, tuple)) else [tc_oos]:
                         if collection: self.ax.add_collection(collection)
-
                     if not any(h.get_label() == 'Fora de Serviço' for h in legend_elements):
                         legend_elements.append(Line2D([0], [0], color='r', linestyle='--', lw=2, label='Fora de Serviço'))
 
