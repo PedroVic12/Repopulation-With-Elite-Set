@@ -21,17 +21,17 @@ from PySide6.QtGui import QFont, QIcon, QIntValidator, QDoubleValidator
 # --- CONFIGURAÇÃO ---
 # pasta raiz do projeto
 BASE_DIR = Path(__file__).parent
-SRC_DIR = BASE_DIR / "src"
+SRC_DIR = BASE_DIR / "lib"
 
 # arquivos de configuração .json para AG
 PARAMS_FILE = SRC_DIR / "params.json"
 OPTIONS_FILE = SRC_DIR / "options.json"
 
 # arquivos de execução do framework e dashboard
-RUN_FRAMEWORK_SCRIPT = SRC_DIR /"run_framework_backup.py" 
+RUN_FRAMEWORK_SCRIPT = SRC_DIR /"run_framework.py" 
 #! Script refatorado da pasta lib
 #RUN_FRAMEWORK_SCRIPT = BASE_DIR / "lib" / "rce_framework" / "main.py"
-DASHBOARD_SCRIPT = SRC_DIR / "DashboardApp" / "dashboard_RCE_APP.py"
+DASHBOARD_SCRIPT = SRC_DIR / "rce_framework" / "domain" / "models" / "DashboardApp" / "dashboard_RCE_APP.py"
 
 from style import STYLESHEET
 

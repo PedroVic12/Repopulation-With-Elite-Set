@@ -2,10 +2,8 @@
 import streamlit as st
 from views.pages.themes import Theme
 
-from views.pages.AgendamentoRedePage import AgendamentoRedePage
 from views.pages.EasyPDF_page import EasyPDF
 from views.Screens.RCE_Framework_Page import FrameworkRCEDashboardV14
-from views.Screens.simulacao_redes_IEEE_page import SimulacaoAnaliseContigenciasPage
 from controllers.Utils import FOLDER_NAME, OPTIONS_JSON
 
 import sys
@@ -28,9 +26,6 @@ def DrawerSideBar():
     page_options = {
         "⚡ Framework RCE ": FrameworkRCEDashboardV14(OPTIONS_JSON).run,
 
-        #"Dashboard Simulação de Contigencias": SimulacaoAnaliseContigenciasPage,
-        #"Gerador de PDF": EasyPDF,
-        #"Tela de Agendamentos de Redes": AgendamentoRedePage,
     }
 
     # Navegação com rádio buttons

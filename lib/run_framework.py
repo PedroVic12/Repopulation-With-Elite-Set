@@ -1,12 +1,12 @@
 # -*- coding: utf-8 -*-
 # Import RCE Framework
 
-from domain.models.AlgEvolutivoRCE.Setup import Setup
-from domain.models.AlgEvolutivoRCE.alg_evolutivo_rce import AlgoritimoEvolutivoRCE
+from rce_framework.domain.models.AG.setup import Setup
+from rce_framework.domain.models.AG.alg_evolutivo_rce import AlgoritimoEvolutivoRCE
 
 # Utils 
-from config import FOLDER_NAME, entrada_de_dados,load_many_executions, format_elapsed_time
-from domain.models.DashboardApp.controllers.Utils import  OPTIONS_JSON
+from config import  entrada_de_dados,load_many_executions, format_elapsed_time
+from rce_framework.domain.models.DashboardApp.controllers.Utils import  OPTIONS_JSON
 
 import streamlit as st
 import json
@@ -23,7 +23,7 @@ import pandas as pd
 ```bash
 src/DashboardApp
 ```
-```bash
+```bash     
 # streamlit run dashboard_rce_app_v11.py\
 ```
 
@@ -39,8 +39,8 @@ src/DashboardApp
 # Import functions benchmark
 #? Foi Criado um arquivo em `utils/functions_fitness/functions_benchmarking.py` para armazenar as funções de benchmark usadas no primeiro artigo e a função de avaliação da rede IEEE 14.
 # Voce foi olhar o arquivo config.py para gerenciar a quantidade de execuções do algoritimo.
-from domain.models.utils.functions_fitness.functions_benchmarking import rosenbrock_benchmark,esfera_benchmark,rastrigin, evaluate
-from domain.models.utils.functions_fitness.function_IEEE_14_contigencias import funcao_objetivo_IEEE14
+from rce_framework.domain.models.utils.functions_fitness.functions_benchmarking import rosenbrock_benchmark,esfera_benchmark,rastrigin, evaluate
+from rce_framework.domain.models.utils.functions_fitness.function_IEEE_14_contigencias import funcao_objetivo_IEEE14
 
 #! Lendo os parametros em JSON em /AlgEvolutivoRCE/params.json
 def load_params(file_path):

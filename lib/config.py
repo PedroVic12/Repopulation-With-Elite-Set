@@ -5,10 +5,12 @@ import numpy as np
 from IPython.display import display
 from datetime import datetime
 
-from domain.models.DashboardApp.controllers.Utils import FOLDER_NAME, OPTIONS_JSON
+from rce_framework.domain.models.DashboardApp.controllers.Utils import FOLDER_NAME, OPTIONS_JSON
 
-
-
+configuracoes_execucoes = {
+    
+       
+}
 
 # Função para simular a entrada de dados, como se fosse a leitura de um arquivo JSON ou Excel
 def entrada_de_dados():

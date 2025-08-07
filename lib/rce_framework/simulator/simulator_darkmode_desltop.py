@@ -179,7 +179,7 @@ class NetworkCanvas(FigureCanvas):
                 is_load = bus_idx in load_buses
                 if is_gen and is_load: bus_colors.append("purple")
                 elif is_gen: bus_colors.append("green")
-                elif is_load: bus_colors.append("red")
+                elif is_load: bus_colors.append("orange")
                 else: bus_colors.append("blue")
 
             # --- Create Collections ---
@@ -190,12 +190,14 @@ class NetworkCanvas(FigureCanvas):
                 for i, bus in net.bus_geodata.iterrows():
                     self.ax.text(bus.x, bus.y + 0.02, str(i), fontsize=8, weight='bold', ha='center', va='bottom', color='navy', zorder=11)
 
-            legend_elements = [
+            # --- Prepare Legend Handles ---
+            bus_handles = [
                 Line2D([0], [0], marker='o', color='w', label='Barra (Transfer)', markerfacecolor='blue', markersize=8),
                 Line2D([0], [0], marker='o', color='w', label='Barra (Geração)', markerfacecolor='green', markersize=8),
-                Line2D([0], [0], marker='o', color='w', label='Barra (Carga)', markerfacecolor='red', markersize=8),
+                Line2D([0], [0], marker='o', color='w', label='Barra (Carga)', markerfacecolor='orange', markersize=8),
                 Line2D([0], [0], marker='o', color='w', label='Barra (Geração/Carga)', markerfacecolor='purple', markersize=8)
             ]
+            line_handles = []
 
             if not net.line.empty:
                 line_vns = net.bus.loc[net.line.from_bus, 'vn_kv'].values
@@ -209,14 +211,14 @@ class NetworkCanvas(FigureCanvas):
                     if not in_service_lines.empty:
                         lc = plot.create_line_collection(net, lines=in_service_lines, color=color, use_bus_geodata=True, linewidths=1.5)
                         self.ax.add_collection(lc)
-                    legend_elements.append(Line2D([0], [0], color=color, lw=2, label=f'{v_kv:.1f} kV'))
+                    line_handles.append(Line2D([0], [0], color=color, lw=2, label=f'{v_kv:.1f} kV'))
 
                 oos_lines = net.line.index[~net.line.in_service]
                 if not oos_lines.empty:
                     lc_oos = plot.create_line_collection(net, lines=oos_lines, color="r", linestyle="--", linewidths=1.5)
                     self.ax.add_collection(lc_oos)
-                    if not any(h.get_label() == 'Fora de Serviço' for h in legend_elements):
-                         legend_elements.append(Line2D([0], [0], color='r', linestyle='--', lw=2, label='Fora de Serviço'))
+                    if not any(h.get_label() == 'Fora de Serviço' for h in line_handles):
+                         line_handles.append(Line2D([0], [0], color='r', linestyle='--', lw=2, label='Fora de Serviço'))
 
             if not net.trafo.empty:
                 in_service_trafos = net.trafo.index[net.trafo.in_service]
@@ -229,14 +231,32 @@ class NetworkCanvas(FigureCanvas):
                     tc_oos = plot.create_trafo_collection(net, trafos=oos_trafos, color='r', linestyle="--", zorder=5)
                     for collection in tc_oos if isinstance(tc_oos, (list, tuple)) else [tc_oos]:
                         if collection: self.ax.add_collection(collection)
-                    if not any(h.get_label() == 'Fora de Serviço' for h in legend_elements):
-                        legend_elements.append(Line2D([0], [0], color='r', linestyle='--', lw=2, label='Fora de Serviço'))
+                    if not any(h.get_label() == 'Fora de Serviço' for h in line_handles):
+                        line_handles.append(Line2D([0], [0], color='r', linestyle='--', lw=2, label='Fora de Serviço'))
 
             self.ax.set_title(title, fontsize=14, weight='bold', color=title_color)
+            
+            # --- Create Organized Legend ---
+            legend_elements = []
+            if bus_handles:
+                legend_elements.append(Line2D([0], [0], marker='None', color='None', label='Info Barras'))
+                legend_elements.extend(bus_handles)
+            
+            if line_handles:
+                if legend_elements: # Add a spacer
+                    legend_elements.append(Line2D([0], [0], marker='None', color='None', label=''))
+                legend_elements.append(Line2D([0], [0], marker='None', color='None', label='Info Linhas'))
+                legend_elements.extend(line_handles)
+
             if legend_elements:
                 legend = self.ax.legend(handles=legend_elements, title="Legenda", labelcolor=legend_text_color)
                 legend.get_frame().set_facecolor('#ffffff')
                 legend.get_frame().set_edgecolor('#cccccc')
+                # Make titles bold
+                for text in legend.get_texts():
+                    if text.get_text() in ['Info Barras', 'Info Linhas']:
+                        text.set_fontweight('bold')
+            
             self.ax.autoscale_view()
             self.ax.set_xticks([])
             self.ax.set_yticks([])
