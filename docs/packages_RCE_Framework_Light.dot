@@ -1,0 +1,15 @@
+digraph "packages_RCE_Framework_Light" {
+rankdir=BT
+charset="utf-8"
+    bgcolor="#FFFFFF";
+    node [shape=box, style=filled, fillcolor="#F0F0F0", fontcolor="#333333", color="#6699CC", penwidth=2];
+    edge [color="#999999", fontcolor="#333333"];
+    graph [fontname="Helvetica", fontsize=10, labelloc="t", splines=spline];
+    node [fontname="Helvetica", fontsize=10];
+    edge [fontname="Helvetica", fontsize=10];
+
+"laucher" [color="black", label=<laucher>, shape="box", style="solid"];
+"lib.rce_framework.domain.models.AG.alg_evolutivo_rce" [color="black", label=<lib.rce_framework.domain.models.AG.alg_evolutivo_rce>, shape="box", style="solid"];
+"lib.rce_framework.domain.models.AG.rede_eletrica" [color="black", label=<lib.rce_framework.domain.models.AG.rede_eletrica>, shape="box", style="solid"];
+"lib.rce_framework.domain.models.AG.setup" [color="black", label=<lib.rce_framework.domain.models.AG.setup>, shape="box", style="solid"];
+}
