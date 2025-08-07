@@ -52,6 +52,7 @@ def DrawerSideBar():
 
 
 
+import streamlit as st
 
 # --- Main Application Class ---
 class App:
@@ -77,20 +78,15 @@ class App:
 # --- Main Execution ---
 if __name__ == "__main__":
     app = App()  # Initialize app config and styling
-
     try:
         # Obter parâmetros de URL
-        #query_params = st.experimental_get_query_params()
-        #selected_page = query_params.get("page", ["framework_rce"])[0]
-    
-        # Renderizar a página selecionada
-        #pagina_selecionada = DrawerSideBar()
+        query_params = st.experimental_get_query_params()
+
+        # Passando a pagina que desejo exibir
         pagina_selecionada = FrameworkRCEDashboard(options_main_file).run
         app.run(pagina_selecionada)
 
     except Exception as e:
         print(e)
-
     finally:
-
         print("Aplicativo Streamlit carregado!")
