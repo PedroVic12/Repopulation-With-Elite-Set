@@ -30,7 +30,7 @@ class AppStyles:
             left: 10px; 
             color: #333; 
         }
-        QComboBox, QListWidget, QTextEdit { 
+        QComboBox, QListWidget, QTextEdit, QTableWidget { 
             font-family: 'Segoe UI', Arial, sans-serif; 
             padding: 5px; 
             background-color: #ffffff;
@@ -41,6 +41,9 @@ class AppStyles:
         QListWidget::item:selected {
             background-color: #d4edda;
             color: #155724;
+        }
+        QTableWidget::item {
+            color: #333;
         }
         QTabWidget::pane { 
             border: 1px solid #cccccc; 
@@ -120,7 +123,7 @@ class AppStyles:
             left: 10px; 
             color: #f8f9fa; 
         }
-        QComboBox, QListWidget, QTextEdit { 
+        QComboBox, QListWidget, QTextEdit, QTableWidget { 
             font-family: 'Segoe UI', Arial, sans-serif; 
             padding: 5px; 
             background-color: #495057;
@@ -131,6 +134,9 @@ class AppStyles:
         QListWidget::item:selected {
             background-color: #2a9d8f;
             color: #ffffff;
+        }
+        QTableWidget::item {
+            color: #f8f9fa;
         }
         QListWidget::item {
             background-color: #495057;
