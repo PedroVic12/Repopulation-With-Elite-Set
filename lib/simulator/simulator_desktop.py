@@ -18,8 +18,11 @@ from PySide6.QtWidgets import (
 from PySide6.QtCore import Qt, Signal, QTimer
 from PySide6.QtGui import QFont, QColor
 
+from styles import AppStyles
+
 # Desativa o modo interativo do Matplotlib para evitar pop-ups
 plt.ioff()
+
 
 # NOTE: QWebEngineView is required for Plotly charts. 
 # You may need to install it separately:
@@ -615,6 +618,9 @@ def main():
     app = QApplication(sys.argv)
     app.setFont(QFont("Segoe UI", 9))
     
+    # Aplica o estilo claro por padrão
+    app.setStyleSheet(AppStyles.DARK_MODE_STYLESHEET)
+
     if not PLOTLY_AVAILABLE:
         QMessageBox.warning(None, "Dependência Faltando", "O módulo 'PySide6-WebEngine' não foi encontrado. Os gráficos interativos não serão exibidos.\n\nPor favor, instale-o com: pip install PySide6-WebEngine")
 
