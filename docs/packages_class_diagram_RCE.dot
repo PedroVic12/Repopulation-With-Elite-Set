@@ -1,0 +1,8 @@
+digraph "packages_class_diagram_RCE" {
+rankdir=BT
+charset="utf-8"
+"alg_evolutivo_rce" [color="black", label=<alg_evolutivo_rce>, shape="box", style="solid"];
+"laucher" [color="black", label=<laucher>, shape="box", style="solid"];
+"rede_eletrica" [color="black", label=<rede_eletrica>, shape="box", style="solid"];
+"setup" [color="black", label=<setup>, shape="box", style="solid"];
+}
