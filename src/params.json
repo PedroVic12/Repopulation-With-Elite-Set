@@ -1,7 +1,7 @@
 {
     "NUM_GENERATIONS": 15,
     "CROSSOVER": 0.95,
-    "MUTACAO": 60.0,
+    "MUTACAO": 0.6,
     "POP_SIZE": 5,
     "IND_SIZE": 5,
     "RCE_REPOPULATION_GENERATIONS": 50,
