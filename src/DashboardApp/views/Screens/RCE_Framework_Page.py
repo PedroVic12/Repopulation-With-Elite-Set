@@ -1,15 +1,14 @@
+
+
 # --- Componentes da Interface de Usuário ---
-from ..components.dash_rce_components import ConsolidatedResultsComponent, CardSolutions, GraficoPotenciaAtivaReativaComponent, StatisticsTableComponent, GraficoRCEComponent
+from components.dash_rce_components import ConsolidatedResultsComponent, CardSolutions, GraficoPotenciaAtivaReativaComponent, StatisticsTableComponent, GraficoRCEComponent
 from .AgendamentoRedePage import AgendamentoRedePage
 
 #backend
-from controllers.Utils import Controller,FOLDER_NAME, Utils, PARAMETROS_JSON, ConfigController
+from controllers.Utils import Controller, Utils, ConfigController
 
 # Frontend
 import streamlit as st
-
-
-
 
 # Configuração da barra lateral
 class DrawerSideBar:

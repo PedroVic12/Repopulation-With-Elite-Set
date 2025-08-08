@@ -1,11 +1,7 @@
 
 import streamlit as st
 from views.pages.themes import Theme
-
-from views.pages.AgendamentoRedePage import AgendamentoRedePage
-from views.pages.EasyPDF_page import EasyPDF
 from views.Screens.RCE_Framework_Page import FrameworkRCEDashboard
-#from views.Screens.simulacao_redes_IEEE_page import SimulacaoAnaliseContigenciasPage
 
 import sys
 import os
@@ -80,7 +76,7 @@ if __name__ == "__main__":
     app = App()  # Initialize app config and styling
     try:
         # Obter parâmetros de URL
-        query_params = st.experimental_get_query_params()
+        #query_params = st.experimental_get_query_params()
 
         # Passando a pagina que desejo exibir
         pagina_selecionada = FrameworkRCEDashboard(options_main_file).run

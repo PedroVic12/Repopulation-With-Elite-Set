@@ -13,7 +13,7 @@ import re
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
-from controllers.Utils import Controller, OPTIONS_JSON
+from DashboardApp.controllers.Utils import Controller, OPTIONS_JSON
 #! TODO SABER PEGAR IMPORT TUDO DE CONTROLLER E UTILS
 
 # Ajuste conforme a estrutura do projeto

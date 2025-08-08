@@ -119,11 +119,12 @@ class DashboardApp:
         return figure
 
     # --- visualize MODIFICADO (salva dados e chama Streamlit) ---
-    def visualize(self, logbook, pop, repopulation=True, DEBUG=False, current_params=None, config_num=1, execution_num=1):
+    def visualize(self, logbook, pop, repopulation=True, DEBUG=False, current_params=None, config_num=1, execution_num=1, all_results=None):
         """
         Processa dados, imprime no console, RETORNA figura e resultados,
         E salva os arquivos de dados e figura com um número de execução.
         """
+        all_results = []
         generation = []
         statics = {}
         array_values = []
@@ -198,16 +199,19 @@ class DashboardApp:
             fig_filename = f"{output_path}/grafico_execucao_config{config_num}_exec{execution_num}.html"
             grafico_RCE.write_html(fig_filename)
 
-            # Salva os dados no arquivo .pkl numerado
+            # Adiciona os resultados da execução atual à lista
+            all_results.append(data_to_save)
+
+            # Salva a lista completa de resultados
             with open(data_file, 'wb') as f:
-                pickle.dump(data_to_save, f)
+                pickle.dump(all_results, f)
    
             print(f"\n[INFO]: Dados e figura para execução {execution_num} salvos com sucesso.")
             print(fig_filename)
 
         except Exception as e:
             print(f"\n\n\nERRO em visualize (Execução {execution_num}): {e}")
-            st.sidebar.info("Erro em visualize: ",e)
+            st.sidebar.info(f"Erro em visualize: {e}")
             return -1, [], float('inf'), None
 
         return best_solution_index, best_solution_variables, best_solution_fitness, grafico_RCE

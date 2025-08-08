@@ -189,7 +189,7 @@ class Utils:
 
 
 
-from ..repository.ConfigRepository import ConfigRepository
+from repository.ConfigRepository import ConfigRepository
 
 class ConfigController:
     """Controlador para gerenciar a lógica de negócio das configurações."""

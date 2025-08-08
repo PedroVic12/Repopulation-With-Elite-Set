@@ -112,35 +112,7 @@ def run_framework_single_execution(config_num=1, exec_num=1):
     )
 
 
-    import re
-
-def update_dashboard_version():
-    dashboard_path = BASE_DIR / "DashboardApp" / "views" / "Screens" / "RCE_Framework_Page.py"
-    try:
-        with open(dashboard_path, 'r', encoding='utf-8') as f:
-            content = f.read()
-
-        version_match = re.search(r"Version (\d+)\.(\d+)\.(\d+)", content)
-        if version_match:
-            major, minor, patch = [int(g) for g in version_match.groups()]
-            patch += 1 # Incrementa o patch
-            new_version = f"Version {major}.{minor}.{patch}"
-            content = re.sub(r"Version \d+\.\d+\.\d+", new_version, content)
-
-        date_match = re.search(r"- (\d{2}/\d{2}/\d{4})", content)
-        if date_match:
-            new_date = datetime.now().strftime("%d/%m/%Y")
-            content = re.sub(r"- \d{2}/\d{2}/\d{4}", f"- {new_date}", content)
-
-        with open(dashboard_path, 'w', encoding='utf-8') as f:
-            f.write(content)
-        print(f"Dashboard version updated in {dashboard_path}")
-
-    except Exception as e:
-        print(f"Error updating dashboard version: {e}")
-
-
-    def output(start):
+    def output(start, all_results):
         print("\n\nEvolução concluída  - 100%")
         print(f"Best variables", best_variables)
 
@@ -152,7 +124,7 @@ def update_dashboard_version():
         # # Resultados
         x, y, z, fig = alg.dashboard.visualize(
             logbook_with_repopulation, pop_with_repopulation,
-            config_num=config_num, execution_num=exec_num
+            config_num=config_num, execution_num=exec_num, all_results=all_results
         )
 
         print(f"Objective function runs : {setup.objectiveruns}")
@@ -163,9 +135,8 @@ def update_dashboard_version():
         formatted_time = format_elapsed_time(elapsed)
         print(f"Elapsed Time in execution : {formatted_time}")
 
-        update_dashboard_version()
-
-    output(start)
+    all_results = []
+    output(start, all_results)
 
 
 ############################# MUltiplas execuções com grupos de parâmetros #############################
@@ -347,7 +318,15 @@ def run_framework_many_executions(function_bechmarking = False, config_num=1, ex
     alg = AlgoritimoEvolutivoRCE(setup, DEBUG = False)
 
     # Run the utility function to load many executions
-    load_many_executions(options, setup, alg, config_num=config_num, exec_num=exec_num)
+    all_results = {}
+    load_many_executions(options, setup, alg, config_num=config_num, exec_num=exec_num, all_results=all_results)
+
+    # Salva os resultados consolidados
+    with pd.ExcelWriter(f"{FOLDER_NAME}/results_consolidados.xlsx") as writer:
+        for config_num, results in all_results.items():
+            df = pd.DataFrame(results)
+            df.to_excel(writer, sheet_name=f"Config {config_num}", index=False)
+
 
 
 

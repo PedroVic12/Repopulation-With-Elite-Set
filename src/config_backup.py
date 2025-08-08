@@ -1,8 +1,6 @@
 from pathlib import Path
 import pathlib
 import pandas as pd
-import numpy as np
-from IPython.display import display
 from datetime import datetime
 
 from DashboardApp.controllers.Utils import FOLDER_NAME, PARAMETROS_JSON
@@ -80,8 +78,7 @@ def get_folder_path(debug = False):
 
 
 FOLDER_NAME = get_folder_path() # nome da pasta output resolvendo problemas de caminho
-results_consolidados = []  # Initialize an empty list to store results
-execution_times = []  # Lista para armazenar os tempos de execução
+
 
 
 def format_elapsed_time(elapsed_time):
@@ -109,64 +106,56 @@ def format_elapsed_time(elapsed_time):
     return formatted_time.strip()
 
 
-def load_many_executions(options, setupobj, algoritmo, config_num=1, exec_num=1):
-    if options.get("key", True):
-        print("\n================================")
-        print(f"\tExecução: {exec_num}")
-        print("================================\n")
-        start = datetime.now()
-        
-        
-        # Loop principal do Algoritmo Evolutivo
-        pop_with_repopulation, logbook_with_repopulation, best_variables = algoritmo.run(RCE=True)
-        print("\n\nEvolução concluída  - 100%")
-        print(f"Best variables", best_variables)
-        
-        
-        # # Resultados
-        x, y, z, fig = algoritmo.dashboard.visualize(
-            logbook_with_repopulation, pop_with_repopulation,
-            config_num=config_num, execution_num=exec_num
-        )
-        
-
-        # Passando os valores do array direto no dataframe com os index como chave (hash = chave, valor)
-        hash_df1 = pd.DataFrame(setupobj.tabela_hash, columns=['Fitness'])
-        hash_df1.sort_values(by='Fitness', ascending=False, inplace=True)
-        hash_df1.to_excel("hash_table.xlsx", index=False)
-
-
-        print(f"\nObjective function runs : {setupobj.objectiveruns}")
-        print(f"Hash table reads : {setupobj.hashtablereads}")
-
-        end = datetime.now()
-        elapsed = end - start
-        formatted_time = format_elapsed_time(elapsed)
-
-        print(f"Elapsed Time in execution : {formatted_time}")
-
-        execution_times.append(elapsed)  # Armazena o tempo de execução
-
-        # Append results to the list
-        results_consolidados.append({"execution": exec_num, "solution_variables": y, "best_fitness": z, "best_generations": x,"execution_time": elapsed})
-
-
-
-    # Calcula a média e o desvio padrão dos tempos de execução
-    avg_execution_time = np.mean(execution_times)
-    print(f"Tempo médio de execução: {avg_execution_time} segundos")
-
-
-    # Create the DataFrame dos resultados
-    results_consolidados_df = pd.DataFrame(results_consolidados)
-    results_consolidados_df["execution_time"] = results_consolidados_df["execution_time"].apply(
-        lambda x: f"{x.total_seconds():.2f} segundos" if hasattr(x, "total_seconds") else f"{x:.2f} segundos"
+def load_many_executions(options, setupobj, algoritmo, config_num=1, exec_num=1, all_configs_results=None):
+    print("\n================================")
+    print(f"\tExecução: {exec_num}")
+    print("================================\n")
+    start = datetime.now()
+    
+    
+    # Loop principal do Algoritmo Evolutivo
+    pop_with_repopulation, logbook_with_repopulation, best_variables = algoritmo.run(RCE=True)
+    print("\n\nEvolução concluída  - 100%")
+    print(f"Best variables", best_variables)
+    
+    
+    # # Resultados
+    x, y, z, fig = algoritmo.dashboard.visualize(
+        logbook_with_repopulation, pop_with_repopulation,
+        config_num=config_num, execution_num=exec_num
     )
-    results_consolidados_df.to_excel(f"{FOLDER_NAME}/results_consolidados_config{config_num}.xlsx", index=False)
+    
 
-    # Display or use the results
-    print("\nResultados Consolidados salvo:")
-    results_consolidados_df.sort_values(by="best_fitness", inplace=True)
-    display(results_consolidados_df)
+    # Passando os valores do array direto no dataframe com os index como chave (hash = chave, valor)
+    hash_df1 = pd.DataFrame(setupobj.tabela_hash, columns=['Fitness'])
+    hash_df1.sort_values(by='Fitness', ascending=False, inplace=True)
+    hash_df1.to_excel("hash_table.xlsx", index=False)
+
+
+    print(f"\nObjective function runs : {setupobj.objectiveruns}")
+    print(f"Hash table reads : {setupobj.hashtablereads}")
+
+    end = datetime.now()
+    elapsed = end - start
+    formatted_time = format_elapsed_time(elapsed)
+
+    print(f"Elapsed Time in execution : {formatted_time}")
+
+    # Append results to the list for the current config
+    if all_configs_results is not None:
+        if config_num not in all_configs_results:
+            all_configs_results[config_num] = []
+        all_configs_results[config_num].append({
+            "execution": exec_num,
+            "solution_variables": y,
+            "best_fitness": z,
+            "best_generations": x,
+            "execution_time": elapsed.total_seconds() # Save as seconds for easier aggregation
+        })
+
+
+
+
+
 
 
