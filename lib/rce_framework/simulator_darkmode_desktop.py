@@ -563,10 +563,10 @@ class MainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
         self.setWindowTitle("⚡ Dashboard de Análise de Contingências Elétricas")
-        self.setGeometry(100, 100, 1600, 900)
         self.current_theme = 'dark'
         self.setup_ui()
         self.apply_theme()
+        self.showMaximized() # Adiciona esta linha para iniciar em tela cheia
 
     def apply_theme(self):
         stylesheet = AppStyles.DARK_MODE_STYLESHEET if self.current_theme == 'dark' else AppStyles.LIGHT_MODE_STYLESHEET
