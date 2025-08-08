@@ -32,7 +32,7 @@ src/DashboardApp
 
 3) Atenção para entrada de parametros no arquivo params.json, que deve estar localizado na pasta AlgEvolutivoRCE.
    O arquivo params.json contém os parâmetros de configuração do algoritmo evolutivo, como taxa de mutação, taxa de crossover, número de gerações, variaveis de decisão e etc.
-   Certifique-se de que seja passada uma função objetivo definida pelo usuario para o objeto `Setup` no momento da instanciação do Algoritmo Evolutivo, como por exemplo `rastrigin_benchmark`, `esfera_benchmark` ou `rosenbrock_benchmark e etc`.
+   Certifique-se de que seja passada uma função objetivo definida pelo usuario para o objeto `Setup` no momento da instanciação do Algoritmo Evolutivo, como por exemplo `rastrigin_benchmark`, `esfera_benchmark` ou `rosenbrock_benchmark e etc. 
    
 """
 
@@ -169,7 +169,6 @@ def convert_values_to_int(params):
         else:
             params[key] = int(value)
     return params
-
 
 
 
@@ -319,13 +318,28 @@ def run_framework_many_executions(function_bechmarking = False, config_num=1, ex
 
     # Run the utility function to load many executions
     all_results = {}
-    load_many_executions(options, setup, alg, config_num=config_num, exec_num=exec_num, all_results=all_results)
+    load_many_executions(options, setup, alg, config_num=config_num, exec_num=exec_num, all_configs_results=all_results)
 
     # Salva os resultados consolidados
-    with pd.ExcelWriter(f"{FOLDER_NAME}/results_consolidados.xlsx") as writer:
-        for config_num, results in all_results.items():
-            df = pd.DataFrame(results)
-            df.to_excel(writer, sheet_name=f"Config {config_num}", index=False)
+    all_data_for_df = []
+    for config_num_key, results_list in all_results.items():
+        for result_entry in results_list:
+            # Add config_num to each result entry
+            result_entry["config_num"] = config_num_key
+            all_data_for_df.append(result_entry)
+
+    if all_data_for_df:
+        consolidated_df = pd.DataFrame(all_data_for_df)
+        # Reorder columns to have config_num and execution at the beginning
+        cols = ["config_num", "execution"] + [col for col in consolidated_df.columns if col not in ["config_num", "execution"]]
+        consolidated_df = consolidated_df[cols]
+
+        print(f"Consolidando {len(all_data_for_df)} entradas de resultados no Excel.")
+        with pd.ExcelWriter(f"{FOLDER_NAME}/results_consolidados.xlsx") as writer:
+            consolidated_df.to_excel(writer, sheet_name="Consolidated Results", index=False)
+        print(f"Resultados consolidados salvos em {FOLDER_NAME}/results_consolidados.xlsx")
+    else:
+        print("Nenhum resultado para consolidar.")
 
 
 
@@ -346,8 +360,3 @@ if __name__ == "__main__":
     else:
         print("Running a single execution...")
         run_framework_single_execution(config_num=args.config_num, exec_num=args.exec_num)
-
-
-
-
-

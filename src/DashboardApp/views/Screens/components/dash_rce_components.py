@@ -7,6 +7,7 @@ import pandas as pd
 import numpy as np
 import sys
 import time
+import re
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
@@ -16,8 +17,9 @@ from controllers.Utils import Controller, OPTIONS_JSON
 # Ajuste conforme a estrutura do projeto
 def get_folder_path():
     BASE_DIR = pathlib.Path(__file__).resolve().parent.parent.parent  
-    # Define o caminho relativo para a pasta "output" dentro do projeto
-    FOLDER_NAME = BASE_DIR.parent.parent / "src" / "output"
+    # Queremos apontar para .../src/output
+    # BASE_DIR está em .../src/DashboardApp/views, então parent.parent é .../src
+    FOLDER_NAME = BASE_DIR.parent.parent / "output"
     return FOLDER_NAME
 
 path_foler_output = get_folder_path()
@@ -54,7 +56,24 @@ class ConsolidatedResultsComponent:
             try:
                 # Lê o excel usando o caminho completo
                 df_consolidado = pd.read_excel(consolidated_excel_path)
-                df_consolidado["execution_time"] = df_consolidado["execution_time"].str.replace(" segundos", "").astype(float)
+                # Converter execution_time com robustez (aceita números, 'x segundos' ou 'y minutos')
+                if "execution_time" in df_consolidado.columns:
+                    def to_seconds(x):
+                        if pd.isna(x):
+                            return np.nan
+                        if isinstance(x, (int, float)):
+                            return float(x)
+                        s = str(x).strip().lower()
+                        # extrai número (suporta vírgula decimal)
+                        num_str = re.sub(r"[^0-9\.,]", "", s).replace(",", ".")
+                        try:
+                            val = float(num_str) if num_str else np.nan
+                        except Exception:
+                            return np.nan
+                        if "min" in s:  # minutos -> segundos
+                            return val * 60.0
+                        return val  # já está em segundos
+                    df_consolidado["execution_time"] = df_consolidado["execution_time"].apply(to_seconds)
 
                 # Calcula a média da coluna execution_time
                 exec_time = df_consolidado["execution_time"]
@@ -70,16 +89,22 @@ class ConsolidatedResultsComponent:
                 
                 # Adicionar as colunas dos parâmetros
                 for param in ['CROSSOVER', 'MUTACAO', 'POP_SIZE', 'IND_SIZE']:
+                    if param not in OPTIONS_JSON:
+                        continue
                     values = OPTIONS_JSON[param]
-                    if isinstance(values, list) and len(values) > 1:
-                        # Repete cada valor 'rep' vezes e ajusta para o tamanho do DataFrame
-                        repeated = [v for v in values for _ in range(rep)]
-                        if len(repeated) < num_rows:
-                            repeated = (repeated * ((num_rows // len(repeated)) + 1))[:num_rows]
-                        df_consolidado[param] = repeated
-                    else:
-                        # Valor único para todas as linhas
-                        df_consolidado[param] = [values[0] if isinstance(values, list) else values] * num_rows
+                    # Normaliza 'values' para uma lista
+                    vals = values if isinstance(values, list) else [values]
+                    # Repete cada valor 'rep' vezes
+                    repeated = [v for v in vals for _ in range(rep)] if len(vals) > 1 or rep > 1 else vals
+                    # Ajusta exatamente para o tamanho de num_rows (cicla e/ou corta)
+                    if len(repeated) == 0:
+                        repeated = [np.nan] * num_rows
+                    elif len(repeated) < num_rows:
+                        times = (num_rows // len(repeated)) + 1
+                        repeated = (repeated * times)[:num_rows]
+                    elif len(repeated) > num_rows:
+                        repeated = repeated[:num_rows]
+                    df_consolidado[param] = repeated
 
                 #if OPTIONS_JSON:
                 #    st.write(f"**Parâmetros de Execução Options.json:** {OPTIONS_JSON}")
@@ -107,8 +132,67 @@ class ConsolidatedResultsComponent:
             except Exception as e:
                 st.error(f"Erro ao ler os resultados consolidados: {e}")
         else:
-            st.info(f"Arquivo de resultados consolidados ({consolidated_excel_path}) não encontrado.")
-        st.markdown("---")
+            # Tentativa de construir automaticamente o arquivo consolidado a partir dos .pkl no output
+            st.info(f"Arquivo de resultados consolidados ({consolidated_excel_path}) não encontrado. Tentando gerar automaticamente...")
+            rows = []
+            try:
+                for fname in sorted(os.listdir(path_foler_output)):
+                    if not (fname.startswith("dashboard_data_config") and fname.endswith(".pkl")):
+                        continue
+                    # Extrair config e exec do nome do arquivo
+                    m = re.match(r"dashboard_data_config(\d+)_exec(\d+)\\.pkl", fname)
+                    cfg = execn = None
+                    if m:
+                        cfg = int(m.group(1))
+                        execn = int(m.group(2))
+                    fpath = os.path.join(path_foler_output, fname)
+                    try:
+                        with open(fpath, "rb") as f:
+                            data = pickle.load(f)
+                        if isinstance(data, dict):
+                            row = {
+                                "config": cfg,
+                                "execution": execn,
+                                "best_fitness": data.get("best_fitness", np.nan),
+                                "best_gen_idx": data.get("best_gen_idx", np.nan),
+                                "best_vars": data.get("best_vars", []),
+                            }
+                            # tentar pegar execution_time se existir
+                            et = data.get("execution_time") or data.get("tempo_execucao")
+                            row["execution_time"] = et if et is not None else np.nan
+                            rows.append(row)
+                    except Exception as e:
+                        st.warning(f"Falha ao ler {fname}: {e}")
+                if rows:
+                    df_built = pd.DataFrame(rows)
+                    # normalizar execution_time
+                    if "execution_time" in df_built.columns:
+                        def to_seconds2(x):
+                            if pd.isna(x): return np.nan
+                            if isinstance(x, (int, float)): return float(x)
+                            s = str(x).strip().lower()
+                            num_str = re.sub(r"[^0-9\.,]", "", s).replace(",", ".")
+                            try:
+                                val = float(num_str) if num_str else np.nan
+                            except Exception:
+                                return np.nan
+                            if "min" in s:
+                                return val * 60.0
+                            return val
+                        df_built["execution_time"] = df_built["execution_time"].apply(to_seconds2)
+                    # salvar e exibir
+                    try:
+                        df_built.to_excel(consolidated_excel_path, index=False)
+                        st.success("Arquivo consolidado gerado com sucesso.")
+                        st.dataframe(df_built)
+                        button_save_excel(consolidated_excel_path, "results_consolidados.xlsx")
+                    except Exception as e:
+                        st.error(f"Não foi possível salvar o consolidado: {e}")
+                else:
+                    st.info("Nenhum arquivo de execução (.pkl) encontrado em output para gerar o consolidado.")
+            except Exception as e:
+                st.error(f"Erro ao gerar o arquivo consolidado automaticamente: {e}")
+            st.markdown("---")
 
 
 class CardSolutions:
@@ -128,6 +212,26 @@ class CardSolutions:
         best_fitness = data.get('best_fitness', float('nan'))
         best_vars = data.get('best_vars', [])
 
+        # Corrigir/limitar melhor geração com base no logbook ou número de gerações
+        try:
+            max_gen_available = None
+            if isinstance(data.get('logbook_data'), dict):
+                gens = data['logbook_data'].get('generation')
+                if isinstance(gens, (list, tuple)) and len(gens) > 0:
+                    max_gen_available = max(gens)
+                elif isinstance(gens, (int, float)):
+                    max_gen_available = int(gens)
+            if max_gen_available is None and isinstance(data.get('num_generations'), (int, float)):
+                # num_generations pode ser contagem; índice máximo é num_generations-1
+                num_g = int(data['num_generations'])
+                max_gen_available = num_g - 1 if num_g > 0 else None
+
+            if isinstance(best_gen_idx, (int, float)) and max_gen_available is not None:
+                if best_gen_idx > max_gen_available:
+                    best_gen_idx = max_gen_available
+        except Exception:
+            pass
+
         # Criar tabela de variáveis de decisão
         if isinstance(best_vars, (list, tuple)) and len(best_vars) > 0:
             best_vars_table = pd.DataFrame(
@@ -145,38 +249,7 @@ class CardSolutions:
             best_fitness_str = f"{best_fitness:.2f}"
         else:
             best_fitness_str = str(best_fitness)
-            
-            
-                            # Monta uma tabela HTML com as informações em uma única linha
-        card_html_table = f"""
-            <div style="
-            border: 2px solid #e6e6e6; 
-            border-radius: 15px; 
-            background-color: #9c9c9c;
-            padding: 16px;
-            margin-bottom: 10px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            ">
-            <h3 style="color: #1f2db4; text-align: center;">Resumo da Melhor Solução</h3>
-            <table style="width: 100%; border-collapse: collapse; background: #f7f7f7;">
-                <tr>
-                <th style="padding: 8px; border: 1px solid #ccc;">Melhor Geração</th>
-                <th style="padding: 8px; border: 1px solid #ccc;">Melhor Fitness</th>
-                <th style="padding: 8px; border: 1px solid #ccc;">Variáveis de Decisão</th>
-                </tr>
-                <tr>
-                <td style="padding: 8px; border: 1px solid #ccc; text-align: center;">{best_gen_idx}</td>
-                <td style="padding: 8px; border: 1px solid #ccc; text-align: center;">{best_fitness_str}</td>
-                <td style="padding: 8px; border: 1px solid #ccc;">{best_vars_table}</td>
-                </tr>
-            </table>
-            </div>
-            """
-    
-            
-            
+                   
             
         st.markdown(
             f"""
@@ -184,16 +257,21 @@ class CardSolutions:
                 border: 2px solid #e6e6e6; 
                 border-radius: 15px; 
                 background-color: #9c9c9c;
+                padding: 12px;
                 display: flex;
-                flex-direction: column;
-                justify-content: center;
-                align-items: center;
+                flex-direction: row;
+                justify-content: space-between;
+                align-items: flex-start;
             ">
-                <h3 style="color: #1f2db4; text-align: center;">Resumo da Melhor Solução</h2>
-                <h4><strong>Melhor Geração:</strong> {best_gen_idx}</h2>
-                <h4><strong>Melhor Fitness:</strong> {best_fitness_str}</h2>
-                <h3 style="color: #1f2db4; text-align: center;">Melhores Variáveis de Decisão</h2>
-                {best_vars_table}
+                <div style="width: 52%; border: 1px solid #ccc; border-radius: 8px; padding: 12px;">
+                    <h3 style="color: #1f2db4; text-align: left;">Resumo da Melhor Solução</h3>
+                    <h4><strong>Melhor Geração:</strong> {best_gen_idx}</h4>
+                    <h4><strong>Melhor Fitness:</strong> {best_fitness_str}</h4>
+                </div>
+                <div style="width: 46%; border: 1px solid #ccc; border-radius: 8px; padding: 8px;">
+                    <h4 style="color: #1f2db4; text-align: left;">Variáveis de Decisão</h4>
+                    {best_vars_table}
+                </div>
             </div>
             """,
             unsafe_allow_html=True
@@ -202,6 +280,7 @@ class CardSolutions:
 
 
         st.markdown("---")
+
 
 class GraficoPotenciaAtivaReativaComponent:
     """Componente para exibir o gráfico de potência ativa e reativa."""

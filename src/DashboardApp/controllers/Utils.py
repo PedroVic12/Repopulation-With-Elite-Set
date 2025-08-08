@@ -187,9 +187,7 @@ class Utils:
         return data
 
 
-
-
-from repository.ConfigRepository import ConfigRepository
+from .ConfigRepository import ConfigRepository
 
 class ConfigController:
     """Controlador para gerenciar a lógica de negócio das configurações."""

@@ -89,13 +89,9 @@ class FrameworkRCEDashboard:
             config_controller = ConfigController()
             all_params = config_controller.repository.get_all_configs()
 
-            df_consolidado, render_warnings = ConsolidatedResultsComponent.render(all_params)
-            self.menu_lateral.warnings.extend(render_warnings)
-            
-            if df_consolidado is not None and not df_consolidado.empty:
-                ConsolidatedResultsComponent.display_and_download(df_consolidado)
-            else:
-                st.info("Não foi possível gerar a tabela de resultados consolidados.")
+            # Call render method without arguments (it's a static method that doesn't take parameters)
+            ConsolidatedResultsComponent.render()
+            # The render method handles display internally, no need for additional processing
 
             self.render_execution_tabs()
             
@@ -117,6 +113,20 @@ class FrameworkRCEDashboard:
                 st.dataframe(df_params)
             
     def render_execution_tabs(self):
+        # Controle global acima das tabs
+        UseState.initialize_state("lock_all_configs", False)
+        top_cols = st.columns([0.8, 0.2])
+        with top_cols[1]:
+            is_locked_global = st.toggle(
+                "🔒 Fixar Aba",
+                key="toggle_all_configs",
+                value=UseState.get_state("lock_all_configs"),
+                help="Fixar a visualização e escolher componente/execução via select boxes."
+            )
+            UseState.set_state("lock_all_configs", is_locked_global)
+
+        st.markdown("---")
+
         config_keys = list(self.executions.keys())
         config_tabs = st.tabs([f"Config {key}" for key in config_keys])
 
@@ -125,15 +135,7 @@ class FrameworkRCEDashboard:
                 config_num = config_keys[i]
                 exec_numbers = self.executions[config_num]
                 
-                lock_state_key = f"lock_config_{config_num}"
-                UseState.initialize_state(lock_state_key, False)
-                
-                _, col2 = st.columns([0.8, 0.2])
-                with col2:
-                    is_locked = st.toggle("🔒 Fixar Aba", key=f"toggle_{config_num}", value=UseState.get_state(lock_state_key))
-                    UseState.set_state(lock_state_key, is_locked)
-
-                if is_locked:
+                if is_locked_global:
                     self.render_locked_view(config_num, exec_numbers)
                 else:
                     self.render_dynamic_view(config_num, exec_numbers)
@@ -188,8 +190,23 @@ class FrameworkRCEDashboard:
     def render_component(self, component_name, data, config_num, exec_num):
         try:
             if component_name == "Soluções":
-                CardSolutions.render(data, exec_num, debug=False)
-                AgendamentoRedePage()
+                # Check if data is the correct structure for CardSolutions
+                if isinstance(data, list) and len(data) > 0:
+                    # If data is a list, use the first element (assuming it contains the solution data)
+                    solution_data = data[0] if isinstance(data[0], dict) else {}
+                elif isinstance(data, dict):
+                    solution_data = data
+                else:
+                    solution_data = {}
+                    st.warning(f"Estrutura de dados inesperada para Config {config_num}/Exec {exec_num}. Dados: {type(data)}")
+                
+                CardSolutions.render(solution_data, exec_num, debug=False)
+                # Use unique keys and propagate selected execution to keep pages synchronized
+                AgendamentoRedePage(
+                    key_prefix=f"cfg{config_num}_exec{exec_num}",
+                    selected_exec=exec_num,
+                    solution_vars=solution_data.get('best_vars') if isinstance(solution_data, dict) else None,
+                )
                 
             elif component_name == "Gráfico":
                 GraficoRCEComponent.render(exec_num)

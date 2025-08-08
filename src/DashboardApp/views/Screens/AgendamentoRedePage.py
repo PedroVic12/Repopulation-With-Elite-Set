@@ -37,7 +37,7 @@ def carregar_dados_execucao():
     ])
     
     
-def time_line_from_solution_variables(agendamento_df,contingencia_df ,exec_data):
+def time_line_from_solution_variables(agendamento_df, contingencia_df, exec_data, key_prefix: str = ""):
     # Timeline para a execução selecionada
     st.subheader(f"Timeline de Soluções para a Execução {exec_data['execution']}")
     solution_variables = sorted(exec_data["solution_variables"])  # Ordenar os horários
@@ -100,7 +100,7 @@ def time_line_from_solution_variables(agendamento_df,contingencia_df ,exec_data)
             "groupHeightMode": "auto",
             "orientation": {"axis": "top", "item": "top"}
         },
-        key=f"execution_timeline_{exec_data['execution']}"
+        key=f"{key_prefix}_execution_timeline_{exec_data['execution']}"
     )
 
     # Mostrar detalhes da execução ao clicar no timeline
@@ -146,7 +146,7 @@ def time_line_from_solution_variables(agendamento_df,contingencia_df ,exec_data)
 
 
 # Função para exibir a página de agendamento de rede elétrica
-def AgendamentoRedePage():
+def AgendamentoRedePage(key_prefix: str = "", selected_exec: int | None = None):
 
     st.title("Agendamento de Intervenções de Redes Elétricas")
     st.write("Esta página exibe os agendamentos de rede elétrica e suas contingências, além de uma timeline interativa com as sugestões de agendamento.")
@@ -161,23 +161,34 @@ def AgendamentoRedePage():
         if 'solution_variables' in execution_df.columns and isinstance(execution_df['solution_variables'].iloc[0], str):
             import ast
             execution_df['solution_variables'] = execution_df['solution_variables'].apply(ast.literal_eval)
+        # Garantir que a coluna 'execution' seja numérica para comparação confiável
+        if 'execution' in execution_df.columns:
+            execution_df['execution'] = pd.to_numeric(execution_df['execution'], errors='coerce')
+            execution_df = execution_df.dropna(subset=['execution'])
+            execution_df['execution'] = execution_df['execution'].astype(int)
     except Exception as e:
         st.warning(f"Erro ao carregar do Excel: {e}. Usando dados hardcoded com 5 execucões.")
         execution_df = carregar_dados_execucao()
 
     # Exibir tabelas editáveis
-    with st.expander("Editar Agendamentos e Contingências", expanded=True):
+    with st.expander("Editar Agendamentos e Contingências", expanded=False):
         st.subheader("Tabela de Agendamentos")
         edited_agendamento_df = st.data_editor(
             agendamento_df,
             use_container_width=True,
             num_rows="dynamic",
             column_config={},
+            key=f"{key_prefix}_agendamento_editor",
         )
         st.markdown("---")
         st.info("Edite os agendamentos e contingências conforme necessário. As alterações serão salvas automaticamente.")
         st.subheader("Tabela de Contingências")
-        edited_contingencia_df = st.data_editor(contingencia_df, use_container_width=True, num_rows="dynamic")
+        edited_contingencia_df = st.data_editor(
+            contingencia_df,
+            use_container_width=True,
+            num_rows="dynamic",
+            key=f"{key_prefix}_contingencia_editor",
+        )
 
     # st.subheader("Tabela de Agendamentos")
     # edited_agendamento_df = st.data_editor(
@@ -189,6 +200,34 @@ def AgendamentoRedePage():
 
     #st.subheader("Tabela de Contingências")
     #edited_contingencia_df = st.data_editor(contingencia_df, use_container_width=True, num_rows="dynamic")
+
+    # Seleção de execução: centralizada por parâmetro
+    if selected_exec is None:
+        # seletor somente quando não for passado pelo chamador
+        # tentar sincronizar com session_state se existir
+        session_key_exec = f"{key_prefix}_exec_select"
+        if session_key_exec in st.session_state:
+            try:
+                selected_exec = int(st.session_state[session_key_exec])
+            except Exception:
+                selected_exec = None
+        exec_options = list(execution_df['execution'].tolist())
+        selected_exec = st.selectbox(
+            "Selecione a execução",
+            exec_options,
+            index=0,
+            key=session_key_exec,
+        )
+    else:
+        # quando vier do chamador, refletir no session_state para sincronizar UI
+        st.session_state[f"{key_prefix}_exec_select"] = selected_exec
+
+    # Localiza a linha da execução selecionada
+    try:
+        # localizar por igualdade numérica
+        exec_data = execution_df.loc[execution_df['execution'] == int(selected_exec)].iloc[0]
+    except Exception:
+        exec_data = execution_df.iloc[0]
 
     # Converter dados de execução para o formato de timeline
     timeline_items = []
@@ -291,10 +330,14 @@ def AgendamentoRedePage():
     #st.subheader("Tabela de Horários de Agendamento")
     #st.dataframe(execution_df)
 
-    # Cria abas para cada execução disponível em execution_df
-    abas = st.tabs([f"Execução {row['execution']}" for _, row in execution_df.iterrows()])
-    for i, aba in enumerate(abas):
-        with aba:
-            exec_data = execution_df.iloc[i]
-            st.write(exec_data)
-            time_line_from_solution_variables(agendamento_df, contingencia_df, exec_data)
+    # (removido) Abas por execução — agora a seleção é centralizada via selected_exec/selectbox
+
+    # Mostra toda a tabela de execuções primeiro
+    #st.subheader("Tabela de Horários de Agendamento")
+    #st.dataframe(execution_df)
+
+    # Renderiza a timeline apenas para a execução selecionada (unificado com a seleção externa)
+    st.markdown("---")
+    st.subheader(f"Solução/Timeline - Execução {exec_data['execution']}")
+    st.write(exec_data)
+    time_line_from_solution_variables(agendamento_df, contingencia_df, exec_data, key_prefix=key_prefix)
