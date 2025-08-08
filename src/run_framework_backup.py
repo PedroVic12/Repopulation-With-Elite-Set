@@ -68,7 +68,7 @@ def run_framework_single_execution(config_num=1, exec_num=1):
     dados = entrada_de_dados()
 
     # Instanciando os Objetos
-    setup = Setup(params, fitness_function = lambda ind: funcao_objetivo_IEEE14(ind, setup),
+    setup = Setup(params, fitness_function = lambda ind, setup: funcao_objetivo_IEEE14(ind, setup),
                   tamanho_hash=(dados["num_contingencias"] * dados["num_carregamentos"]*(2**dados["num_desligamentos"])))
 
     def consulta_hashtable():
@@ -112,6 +112,34 @@ def run_framework_single_execution(config_num=1, exec_num=1):
     )
 
 
+    import re
+
+def update_dashboard_version():
+    dashboard_path = BASE_DIR / "DashboardApp" / "views" / "Screens" / "RCE_Framework_Page.py"
+    try:
+        with open(dashboard_path, 'r', encoding='utf-8') as f:
+            content = f.read()
+
+        version_match = re.search(r"Version (\d+)\.(\d+)\.(\d+)", content)
+        if version_match:
+            major, minor, patch = [int(g) for g in version_match.groups()]
+            patch += 1 # Incrementa o patch
+            new_version = f"Version {major}.{minor}.{patch}"
+            content = re.sub(r"Version \d+\.\d+\.\d+", new_version, content)
+
+        date_match = re.search(r"- (\d{2}/\d{2}/\d{4})", content)
+        if date_match:
+            new_date = datetime.now().strftime("%d/%m/%Y")
+            content = re.sub(r"- \d{2}/\d{2}/\d{4}", f"- {new_date}", content)
+
+        with open(dashboard_path, 'w', encoding='utf-8') as f:
+            f.write(content)
+        print(f"Dashboard version updated in {dashboard_path}")
+
+    except Exception as e:
+        print(f"Error updating dashboard version: {e}")
+
+
     def output(start):
         print("\n\nEvolução concluída  - 100%")
         print(f"Best variables", best_variables)
@@ -134,6 +162,8 @@ def run_framework_single_execution(config_num=1, exec_num=1):
         elapsed = end - start
         formatted_time = format_elapsed_time(elapsed)
         print(f"Elapsed Time in execution : {formatted_time}")
+
+        update_dashboard_version()
 
     output(start)
 

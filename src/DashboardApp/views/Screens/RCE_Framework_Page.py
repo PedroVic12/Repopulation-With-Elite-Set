@@ -205,7 +205,7 @@ class FrameworkRCEDashboard:
     def header(self):
         st.markdown("---")
         st.title("⚡ Dashboard Repopulation-With-Elite-Set RCE ⚡")
-        st.subheader("Version 15.2.4 - 05/08/2025")
+        st.subheader("Version 15.2.5 - 08/08/2025")
         st.markdown("---")
 
     def footer(self):

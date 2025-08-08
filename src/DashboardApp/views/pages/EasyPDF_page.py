@@ -121,4 +121,4 @@ def EasyPDF():
 
     st.rerun()
     
-EasyPDF()
+#EasyPDF()
