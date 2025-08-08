@@ -235,21 +235,32 @@ def AgendamentoRedePage(key_prefix: str = "", selected_exec: int | None = None, 
         st.error(f"Execução inválida: {selected_exec}")
         return
     mask = (execution_df['execution'] == selected_exec_int)
+    override_applied = False
     if not mask.any():
-        st.error(f"Execução selecionada {selected_exec_int} não encontrada nas execuções disponíveis: {sorted(execution_df['execution'].unique().tolist())}")
-        return
-    exec_data = execution_df.loc[mask].iloc[0]
-
-    # Se recebermos as melhores variáveis da página principal, sobrescrevemos para refletir a seleção atual
-    try:
+        # Se não encontrou no consolidado mas recebemos solution_vars, usa-as para montar o exec_data
         if isinstance(solution_vars, (list, tuple)) and len(solution_vars) > 0:
-            exec_data = exec_data.copy()
-            exec_data['solution_variables'] = list(solution_vars)
+            exec_data = pd.Series({
+                'execution': selected_exec_int,
+                'solution_variables': list(solution_vars),
+            })
             override_applied = True
+            st.warning(
+                f"Execução {selected_exec_int} não encontrada no consolidado. Renderizando timeline com as variáveis fornecidas pela aba de Soluções. Disponíveis no consolidado: {sorted(execution_df['execution'].unique().tolist())}"
+            )
         else:
-            override_applied = False
-    except Exception:
-        override_applied = False
+            st.error(f"Execução selecionada {selected_exec_int} não encontrada nas execuções disponíveis: {sorted(execution_df['execution'].unique().tolist())}")
+            return
+    else:
+        exec_data = execution_df.loc[mask].iloc[0]
+
+        # Se recebermos as melhores variáveis da página principal, sobrescrevemos para refletir a seleção atual
+        try:
+            if isinstance(solution_vars, (list, tuple)) and len(solution_vars) > 0:
+                exec_data = exec_data.copy()
+                exec_data['solution_variables'] = list(solution_vars)
+                override_applied = True
+        except Exception:
+            pass
 
     # Converter dados de execução para o formato de timeline
     timeline_items = []
