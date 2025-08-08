@@ -146,7 +146,7 @@ def time_line_from_solution_variables(agendamento_df, contingencia_df, exec_data
 
 
 # Função para exibir a página de agendamento de rede elétrica
-def AgendamentoRedePage(key_prefix: str = "", selected_exec: int | None = None):
+def AgendamentoRedePage(key_prefix: str = "", selected_exec: int | None = None, solution_vars: list | None = None):
 
     st.title("Agendamento de Intervenções de Redes Elétricas")
     st.write("Esta página exibe os agendamentos de rede elétrica e suas contingências, além de uma timeline interativa com as sugestões de agendamento.")
@@ -202,16 +202,20 @@ def AgendamentoRedePage(key_prefix: str = "", selected_exec: int | None = None):
     #edited_contingencia_df = st.data_editor(contingencia_df, use_container_width=True, num_rows="dynamic")
 
     # Seleção de execução: centralizada por parâmetro
+    # Construir uma chave de sessão compartilhada por configuração (não por execução)
+    shared_prefix = key_prefix.split("_exec")[0] if "_exec" in key_prefix else key_prefix
+    session_key_exec = f"{shared_prefix}_exec_select"
+
     if selected_exec is None:
         # seletor somente quando não for passado pelo chamador
         # tentar sincronizar com session_state se existir
-        session_key_exec = f"{key_prefix}_exec_select"
         if session_key_exec in st.session_state:
             try:
                 selected_exec = int(st.session_state[session_key_exec])
             except Exception:
                 selected_exec = None
-        exec_options = list(execution_df['execution'].tolist())
+        # ordenar opções por execução
+        exec_options = sorted(list(execution_df['execution'].unique().tolist()))
         selected_exec = st.selectbox(
             "Selecione a execução",
             exec_options,
@@ -219,15 +223,33 @@ def AgendamentoRedePage(key_prefix: str = "", selected_exec: int | None = None):
             key=session_key_exec,
         )
     else:
-        # quando vier do chamador, refletir no session_state para sincronizar UI
-        st.session_state[f"{key_prefix}_exec_select"] = selected_exec
+        # quando vier do chamador, usar o valor diretamente sem persistir no session_state
+        # isso evita que múltiplas chamadas em loop sobrescrevam a seleção com a última execução
+        pass
 
     # Localiza a linha da execução selecionada
+    # localizar por igualdade numérica (sem fallback silencioso)
     try:
-        # localizar por igualdade numérica
-        exec_data = execution_df.loc[execution_df['execution'] == int(selected_exec)].iloc[0]
+        selected_exec_int = int(selected_exec)
     except Exception:
-        exec_data = execution_df.iloc[0]
+        st.error(f"Execução inválida: {selected_exec}")
+        return
+    mask = (execution_df['execution'] == selected_exec_int)
+    if not mask.any():
+        st.error(f"Execução selecionada {selected_exec_int} não encontrada nas execuções disponíveis: {sorted(execution_df['execution'].unique().tolist())}")
+        return
+    exec_data = execution_df.loc[mask].iloc[0]
+
+    # Se recebermos as melhores variáveis da página principal, sobrescrevemos para refletir a seleção atual
+    try:
+        if isinstance(solution_vars, (list, tuple)) and len(solution_vars) > 0:
+            exec_data = exec_data.copy()
+            exec_data['solution_variables'] = list(solution_vars)
+            override_applied = True
+        else:
+            override_applied = False
+    except Exception:
+        override_applied = False
 
     # Converter dados de execução para o formato de timeline
     timeline_items = []
@@ -338,6 +360,12 @@ def AgendamentoRedePage(key_prefix: str = "", selected_exec: int | None = None):
 
     # Renderiza a timeline apenas para a execução selecionada (unificado com a seleção externa)
     st.markdown("---")
-    st.subheader(f"Solução/Timeline - Execução {exec_data['execution']}")
-    st.write(exec_data)
+    st.subheader(f"Solução/Timeline - Execução {selected_exec_int}")
+    # Diagnóstico leve para verificar sincronização
+    try:
+        st.caption(
+            f"[diag] key_prefix={key_prefix} | shared_key={session_key_exec} | selected_exec={selected_exec_int} | execs={sorted(execution_df['execution'].unique().tolist())} | resolved_exec={int(exec_data['execution'])} | override={override_applied}"
+        )
+    except Exception:
+        pass
     time_line_from_solution_variables(agendamento_df, contingencia_df, exec_data, key_prefix=key_prefix)

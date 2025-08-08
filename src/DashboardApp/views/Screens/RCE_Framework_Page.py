@@ -200,13 +200,23 @@ class FrameworkRCEDashboard:
                     solution_data = {}
                     st.warning(f"Estrutura de dados inesperada para Config {config_num}/Exec {exec_num}. Dados: {type(data)}")
                 
+                # Sincronizar seleção de execução por configuração via session_state
+                shared_prefix = f"cfg{config_num}"
+                session_key_exec = f"{shared_prefix}_exec_select"
+                try:
+                    st.session_state[session_key_exec] = exec_num
+                except Exception:
+                    pass
+
                 CardSolutions.render(solution_data, exec_num, debug=False)
-                # Use unique keys and propagate selected execution to keep pages synchronized
-                AgendamentoRedePage(
-                    key_prefix=f"cfg{config_num}_exec{exec_num}",
-                    selected_exec=exec_num,
-                    solution_vars=solution_data.get('best_vars') if isinstance(solution_data, dict) else None,
-                )
+                # Renderizar Agendamento apenas quando o exec atual for o selecionado compartilhado
+                selected_from_state = st.session_state.get(session_key_exec, exec_num)
+                if int(selected_from_state) == int(exec_num):
+                    AgendamentoRedePage(
+                        key_prefix=f"cfg{config_num}_exec{exec_num}",
+                        selected_exec=exec_num,
+                        solution_vars=solution_data.get('best_vars') if isinstance(solution_data, dict) else None,
+                    )
                 
             elif component_name == "Gráfico":
                 GraficoRCEComponent.render(exec_num)
