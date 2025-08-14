@@ -4,7 +4,7 @@
 from functools import reduce
 import json
 import operator
-from views.components.dash_rce_components import ConsolidatedResultsComponent, CardSolutions, StatisticsTableComponent, GraficoRCEComponent
+from views.components_backeup.dash_rce_components import ConsolidatedResultsComponent, CardSolutions, StatisticsTableComponent, GraficoRCEComponent
 
 
 #backend

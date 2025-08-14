@@ -6,14 +6,10 @@ import os
 import pandas as pd
 import numpy as np
 import sys
-import time
 import io
-import json
 import re
 
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
-from DashboardApp.controllers.Utils import Controller, OPTIONS_JSON
 #! TODO SABER PEGAR IMPORT TUDO DE CONTROLLER E UTILS
 
 # Ajuste conforme a estrutura do projeto
