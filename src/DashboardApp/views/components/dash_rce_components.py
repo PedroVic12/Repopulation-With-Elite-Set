@@ -214,20 +214,24 @@ class CardSolutions:
             
         st.markdown(
             f"""
-            <div style="
-                border: 2px solid #e6e6e6; 
-                border-radius: 15px; 
-                background-color: #9c9c9c;
-                display: flex;
-                flex-direction: column;
-                justify-content: center;
-                align-items: center;
-            ">
-                <h3 style="color: #1f2db4; text-align: center;">Resumo da Melhor Solução</h2>
-                <h4><strong>Melhor Geração:</strong> {best_gen_idx}</h2>
-                <h4><strong>Melhor Fitness:</strong> {best_fitness_str}</h2>
-                <h3 style="color: #1f2db4; text-align: center;">Melhores Variáveis de Decisão</h2>
+            <div style="display: flex; gap: 16px; align-items: stretch;">
+              <div style="flex:1; border: 1px solid #e6e6e6; border-radius: 12px; background-color: #f7f7f7; padding: 14px;">
+                <h3 style="color: #1f2db4; text-align: center; margin-top: 0;">Resumo da Melhor Solução</h3>
+                <div style="display:flex; justify-content: space-around;">
+                  <div style="text-align:center;">
+                    <div style="font-size: 13px; color:#555;">Melhor Geração</div>
+                    <div style="font-size: 22px; font-weight: 600;">{best_gen_idx}</div>
+                  </div>
+                  <div style="text-align:center;">
+                    <div style="font-size: 13px; color:#555;">Melhor Fitness</div>
+                    <div style="font-size: 22px; font-weight: 600;">{best_fitness_str}</div>
+                  </div>
+                </div>
+              </div>
+              <div style="flex:1; border: 1px solid #e6e6e6; border-radius: 12px; background-color: #f7f7f7; padding: 14px;">
+                <h3 style="color: #1f2db4; text-align: center; margin-top: 0;">Variáveis de Decisão</h3>
                 {best_vars_table}
+              </div>
             </div>
             """,
             unsafe_allow_html=True
@@ -241,40 +245,87 @@ class GraficoPotenciaAtivaReativaComponent:
     """Componente para exibir o gráfico de potência ativa e reativa."""
 
     @staticmethod
-    def render(exec_num, num_configs = 1):
+    def render(exec_num, num_configs = 1, config_num: int | None = None):
         """Exibe o gráfico de potência ativa e reativa na página principal."""
         st.header(f"📊 Gráfico Potência Ativa e Reativa (Execução {exec_num})")
         
-        #! Debug aqui Caminho do arquivo HTML
-        html_file = path_foler_output / f"potencia_caso_.html"
+        # Procura arquivos em src/output com padrões conhecidos
+        candidates = [
+            path_foler_output / f"potencia_exec_{exec_num}.html",
+            path_foler_output / f"potencia_{num_configs}_{exec_num}.html",
+            path_foler_output / f"potencia_execucao_{num_configs}_{exec_num}.html",
+            path_foler_output / f"potencia_caso_{exec_num}.html",
+        ]
+        if config_num is not None:
+            candidates[:0] = [
+                path_foler_output / f"potencia_config{config_num}_exec{exec_num}.html",
+                path_foler_output / f"potencia_caso_config{config_num}_exec{exec_num}.html",
+            ]
+        html_file = next((p for p in candidates if p.exists()), None)
+        if html_file is None:
+            # fallback: qualquer html que contenha o número da execução
+            pattern = f"*config{config_num}*exec{exec_num}*.html" if config_num is not None else f"*{exec_num}*.html"
+            matches = sorted(
+                path_foler_output.glob(pattern),
+                key=lambda p: p.stat().st_mtime,
+                reverse=True,
+            )
+            # prioriza arquivos que contenham 'potencia'
+            potencia_matches = [p for p in matches if 'potencia' in p.stem.lower()]
+            html_file = potencia_matches[0] if potencia_matches else (matches[0] if matches else None)
         
-        if html_file.exists(): 
+        if html_file and html_file.exists(): 
             try:
                 with open(html_file, 'r', encoding='utf-8') as f:
                     html_content = f.read()
                     st.components.v1.html(html_content, height=500, scrolling=True)
+                    st.caption(f"Arquivo: {html_file.name}")
                     
             except Exception as error:
                 st.warning("Erro ao renderizar o grafico", error)
         else:
-            st.warning(f"Arquivo HTML não encontrado para a execução {exec_num}.")
+            st.info(f"Gráfico de potência ativa/reativa não disponível para a Execução {exec_num}. "
+                    "Gere o HTML correspondente em src/output ou finalize a implementação desta etapa.")
 
 class GraficoRCEComponent:
     """Componente para exibir o gráfico de convergência."""
     
     @staticmethod
-    def render(exec_num, num_configs = 1):
+    def render(exec_num, num_configs = 1, config_num: int | None = None):
         """Exibe os gráficos de convergência na página principal."""
         st.header(f"📉 Gráfico RCE: F(x,y) = Generations x Fitness (Execução {exec_num})")
         
-        #! Debug aqui Caminho do arquivo HTML
-        html_file = path_foler_output / f"grafico_execucao_{num_configs}_{exec_num}.html"
+        # Procura arquivos em src/output com padrões conhecidos
+        candidates = [
+            path_foler_output / f"grafico_execucao_{num_configs}_{exec_num}.html",
+            path_foler_output / f"grafico_execucao_{exec_num}.html",
+            path_foler_output / f"grafico_{num_configs}_{exec_num}.html",
+            path_foler_output / f"grafico_exec_{exec_num}.html",
+        ]
+        if config_num is not None:
+            candidates[:0] = [
+                path_foler_output / f"grafico_execucao_config{config_num}_exec{exec_num}.html",
+                path_foler_output / f"grafico_config{config_num}_exec{exec_num}.html",
+            ]
+        html_file = next((p for p in candidates if p.exists()), None)
+        if html_file is None:
+            # fallback: qualquer html que contenha o número da execução
+            pattern = f"*config{config_num}*exec{exec_num}*.html" if config_num is not None else f"*{exec_num}*.html"
+            matches = sorted(
+                path_foler_output.glob(pattern),
+                key=lambda p: p.stat().st_mtime,
+                reverse=True,
+            )
+            # prioriza arquivos que contenham 'grafico' no nome
+            graf_matches = [p for p in matches if 'grafico' in p.stem.lower()]
+            html_file = graf_matches[0] if graf_matches else (matches[0] if matches else None)
         
-        if html_file.exists(): 
+        if html_file and html_file.exists(): 
             try:
                 with open(html_file, 'r', encoding='utf-8') as f:
                     html_content = f.read()
                     st.components.v1.html(html_content, height=500, scrolling=True)
+                    st.caption(f"Arquivo: {html_file.name}")
                     
                 # st.link_button(
                 #                     label="Baixar Gráfico",

@@ -148,7 +148,7 @@ def time_line_from_solution_variables(agendamento_df, contingencia_df, exec_data
 # Função para exibir a página de agendamento de rede elétrica
 def AgendamentoRedePage(key_prefix: str = "", selected_exec: int | None = None, solution_vars: list | None = None):
 
-    st.title("Agendamento de Intervenções de Redes Elétricas")
+    st.subheader("Agendamento de Intervenções de Redes Elétricas")
     st.write("Esta página exibe os agendamentos de rede elétrica e suas contingências, além de uma timeline interativa com as sugestões de agendamento.")
 
     # Carregar dados
@@ -370,13 +370,12 @@ def AgendamentoRedePage(key_prefix: str = "", selected_exec: int | None = None, 
     #st.dataframe(execution_df)
 
     # Renderiza a timeline apenas para a execução selecionada (unificado com a seleção externa)
-    st.markdown("---")
-    st.subheader(f"Solução/Timeline - Execução {selected_exec_int}")
+    #st.subheader(f"Solução/Timeline - Execução {selected_exec_int}")
     # Diagnóstico leve para verificar sincronização
     try:
         st.caption(
             f"[diag] key_prefix={key_prefix} | shared_key={session_key_exec} | selected_exec={selected_exec_int} | execs={sorted(execution_df['execution'].unique().tolist())} | resolved_exec={int(exec_data['execution'])} | override={override_applied}"
         )
-    except Exception:
-        pass
+    except Exception as e:
+        st.error("Erro ao exibir diagnóstico.", e)
     time_line_from_solution_variables(agendamento_df, contingencia_df, exec_data, key_prefix=key_prefix)

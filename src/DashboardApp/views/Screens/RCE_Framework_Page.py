@@ -79,8 +79,8 @@ class FrameworkRCEDashboard:
             self.menu_lateral.render()
             self.header()
 
-            if st.sidebar.button("Consultar Parâmetros do AG"):
-                self.show_config_parameters()
+            #if st.sidebar.button("Consultar Parâmetros do AG"):
+            #    self.show_config_parameters()
 
             if not self.executions:
                 st.info("Nenhuma execução encontrada. Execute o framework para gerar resultados.")
@@ -105,15 +105,15 @@ class FrameworkRCEDashboard:
                         try:
                             available_execs[int(cfg)] = execs_list
                         except Exception:
-                            pass
+                            st.error(f"Erro ao converter config {cfg} para int.")
                         try:
                             available_execs[str(cfg)] = execs_list
                         except Exception:
-                            pass
+                            st.error(f"Erro ao converter config {cfg} para str.")
                     st.session_state['available_execs_by_config'] = available_execs
                     st.session_state['df_consolidado'] = df_consolidado
-                except Exception:
-                    pass
+                except Exception as e:
+                    st.error(f"Erro ao processar resultados consolidados: {e}")
                 ConsolidatedResultsComponent.display_and_download(df_consolidado)
 
             self.render_execution_tabs()
@@ -148,7 +148,7 @@ class FrameworkRCEDashboard:
             )
             UseState.set_state("lock_all_configs", is_locked_global)
 
-        st.markdown("---")
+        #st.markdown("---")
 
         config_keys = list(self.executions.keys())
         config_tabs = st.tabs([f"Config {key}" for key in config_keys])
@@ -180,6 +180,12 @@ class FrameworkRCEDashboard:
         
         UseState.initialize_state(locked_component_key, component_options[0])
         UseState.initialize_state(locked_exec_key, exec_numbers[0])
+        # Se o estado persistido tiver uma execução indisponível, ajusta para a primeira disponível
+        try:
+            if UseState.get_state(locked_exec_key) not in exec_numbers:
+                UseState.set_state(locked_exec_key, exec_numbers[0])
+        except Exception:
+            UseState.set_state(locked_exec_key, exec_numbers[0])
 
         col1, col2 = st.columns(2)
         with col1:
@@ -188,12 +194,17 @@ class FrameworkRCEDashboard:
                 key=f"select_comp_{config_num}")
             UseState.set_state(locked_component_key, selected_component)
         with col2:
+            # Garante que o índice exista; se não, usa 0
+            try:
+                idx_exec = exec_numbers.index(UseState.get_state(locked_exec_key))
+            except ValueError:
+                idx_exec = 0
             selected_exec = st.selectbox("Selecione a Execução", exec_numbers,
-                index=exec_numbers.index(UseState.get_state(locked_exec_key)),
+                index=idx_exec,
                 key=f"select_exec_{config_num}")
             UseState.set_state(locked_exec_key, selected_exec)
             
-        st.markdown("---")
+        #st.markdown("---")
         st.info(f"Mostrando **{selected_component}** para a **Execução {selected_exec}** da **Configuração {config_num}**")
 
         dados = self.utils.load_execution_data(config_num, selected_exec)
@@ -242,8 +253,19 @@ class FrameworkRCEDashboard:
                 )
                 
             elif component_name == "Gráfico":
-                GraficoRCEComponent.render(exec_num)
-                GraficoPotenciaAtivaReativaComponent.render(exec_num, 1)
+                # Verifica se a execução selecionada existe no consolidado
+                available_map = st.session_state.get('available_execs_by_config', {})
+                available_execs = (
+                    available_map.get(config_num)
+                    or available_map.get(str(config_num))
+                    or available_map.get(int(config_num) if isinstance(config_num, (str, bytes)) and str(config_num).isdigit() else None)
+                    or []
+                )
+                if available_execs and exec_num not in available_execs:
+                    st.warning(f"Gráficos não disponíveis para a Execução {exec_num}. Disponíveis: {available_execs}")
+                    return
+                GraficoRCEComponent.render(exec_num, config_num=config_num)
+                GraficoPotenciaAtivaReativaComponent.render(exec_num, 1, config_num=config_num)
                 
             elif component_name == "Estatísticas":
                 StatisticsTableComponent.render(data)
