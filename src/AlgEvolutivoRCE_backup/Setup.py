@@ -47,10 +47,10 @@ params = {
  
 class Setup:
     """_summary_: 
-    
-        
+    Classe que usa DEAP e cria as configurações do algoritmo evolutivo para resolver problemas de otimização usando os parametros de AG com suas variaveis de decisão e sua função objetivo.
 
-        _returns_:
+    _returns_: 
+    Retorna um objeto Setup que pode ser usado para criar um algoritmo evolutivo.
     """
     def __init__(self, params, fitness_function, tamanho_hash = 0 ):
 
@@ -106,17 +106,27 @@ class Setup:
                     offspring = func(*args, **kargs)
                     for child in offspring:
                         for i in range(len(child)):
+                            # Ensure we don't go out of bounds for decision_variables
+                            var_type = None
+                            if i < len(self.decision_variables):
+                                var_type = type(self.decision_variables[i])
+                            
+                            # Apply bounds
                             if child[i] > max:
                                 child[i] = max
                             elif child[i] < min:
                                 child[i] = min
-
-                            if type(self.decision_variables[i]) is int:
-                                child[i] = int(child[i])
-
-                            elif type(self.decision_variables[i]) is float:
-                                child[i] = float(child[i])
-
+                            
+                            # Apply type conversion based on decision_variables type
+                            if var_type is not None:
+                                if var_type is int:
+                                    child[i] = int(round(child[i]))
+                                elif var_type is float:
+                                    child[i] = float(child[i])
+                            else:
+                                # Default to int if decision_variables is shorter than child
+                                child[i] = int(round(child[i]))
+                    
                     return offspring
                 return wrapper
             return decorator

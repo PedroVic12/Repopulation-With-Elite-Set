@@ -331,10 +331,48 @@ class ConfigTab(QWidget):
         return widget_group
 
     def update_summary(self, _=None):
-        # Apenas LÊ o options.json atual para cálculo do resumo.
-        # Não persiste alterações aqui para evitar sobrescrever options.json durante a edição.
-        options = self.config_manager.load_json(OPTIONS_FILE) or {}
-        arrays = [v for k, v in options.items() if k in VARYING_KEYS and isinstance(v, list) and len(v) > 0]
+        # Mapeia os nomes dos parâmetros na UI para as chaves reais
+        param_mapping = {
+            "MUTAÇÃO (%)": "MUTACAO",
+            "CROSSOVER (%)": "CROSSOVER",
+            "NÚMERO DE GERAÇÕES (INT)": "NUM_GENERATIONS",
+            "TAMANHO DA POPULAÇÃO (INT)": "POP_SIZE"
+        }
+        
+        # Inicializa dicionário para armazenar os valores variáveis atuais
+        current_varying = {}
+        
+        # Verifica cada parâmetro na UI para ver se está em modo variável
+        for display_name, param_info in self.param_widgets.items():
+            param_key = param_mapping.get(display_name)
+            if not param_key:
+                continue
+                
+            # Verifica se está em modo variável
+            if param_info["mode"].checkedButton() and param_info["mode"].checkedButton().text() == "Variável":
+                # Coleta valores não vazios dos campos variáveis
+                values = []
+                for var_input in param_info["variable"]:
+                    if var_input.text().strip():
+                        try:
+                            value = float(var_input.text()) if not param_info["is_int"] else int(var_input.text())
+                            values.append(value)
+                        except ValueError:
+                            pass
+                
+                # Remove duplicatas e ordena
+                if values:
+                    values = sorted(list(dict.fromkeys(values)))
+                    current_varying[param_key] = values
+        
+        # Se não há parâmetros variáveis na UI, verifica se há no options.json
+        if not current_varying:
+            options = self.config_manager.load_json(OPTIONS_FILE) or {}
+            current_varying = {k: v for k, v in options.items() 
+                             if k in VARYING_KEYS and isinstance(v, list) and len(v) > 0}
+        
+        # Calcula o total de combinações únicas
+        arrays = list(current_varying.values()) if current_varying else []
         total_combinations = reduce(operator.mul, [len(v) for v in arrays], 1) if arrays else 1
         total_execucoes = total_combinations * self.runs_per_config_spin.value()
 
