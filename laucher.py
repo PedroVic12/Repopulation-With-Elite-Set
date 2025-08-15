@@ -331,10 +331,9 @@ class ConfigTab(QWidget):
         return widget_group
 
     def update_summary(self, _=None):
-        # Garante options.json limpo e, então, lê arrays variáveis (exclui repeticoes_por_config)
-        self.config_manager.options = self.config_manager.load_json(OPTIONS_FILE) or {}
-        self.config_manager.clean_options()
-        options = self.config_manager.options
+        # Apenas LÊ o options.json atual para cálculo do resumo.
+        # Não persiste alterações aqui para evitar sobrescrever options.json durante a edição.
+        options = self.config_manager.load_json(OPTIONS_FILE) or {}
         arrays = [v for k, v in options.items() if k in VARYING_KEYS and isinstance(v, list) and len(v) > 0]
         total_combinations = reduce(operator.mul, [len(v) for v in arrays], 1) if arrays else 1
         total_execucoes = total_combinations * self.runs_per_config_spin.value()
@@ -346,6 +345,7 @@ class ConfigTab(QWidget):
         try:
             # Lê base (params) e opções (arrays + repeticoes)
             base_params = self.config_manager.load_json(PARAMS_FILE) or {}
+            # Carrega o options.json atual SEM limpar/sobrescrever
             options = self.config_manager.load_json(OPTIONS_FILE) or {}
             runs_per_config = self.runs_per_config_spin.value()
 
@@ -646,14 +646,33 @@ class ParamsAGTab(QWidget):
         shadow.setColor(QColor(0, 0, 0, 60))
         card.setGraphicsEffect(shadow)
 
-        # Container para centralizar horizontalmente e limitar largura
-        # Centralização horizontal
+        # Botões ao lado direito da Tabela de AG
+        actions_column = QVBoxLayout()
+        self.reload_btn = QPushButton("🔄 Recarregar")
+        self.save_btn = QPushButton("💾 Salvar")
+        self.reload_btn.clicked.connect(self.reload)
+        self.save_btn.clicked.connect(self.save)
+        # Estilo/tamanho dos botões (emojis maiores via fonte)
+        btn_style = "font-size: 13px; padding: 8px 12px; min-width: 180px;"
+        self.reload_btn.setStyleSheet(btn_style)
+        self.save_btn.setStyleSheet(btn_style)
+        # Centralização vertical: stretch antes e depois
+        actions_column.addStretch(1)
+        actions_column.addWidget(self.reload_btn)
+        actions_column.addWidget(self.save_btn)
+        actions_column.addStretch(1)
+
+        # Linha com Tabela (esquerda) e Botões (direita)
         container = QHBoxLayout()
         container.setContentsMargins(0, 0, 0, 0)
         container.addStretch(1)
         card.setMinimumWidth(900)
         card.setMaximumWidth(1200)
-        container.addWidget(card)
+        container.addWidget(card, stretch=10)
+        container.addSpacing(16)
+        container.addLayout(actions_column, stretch=0)
+        # Garantir alinhamento vertical central da coluna de ações
+        container.setAlignment(actions_column, Qt.AlignVCenter)
         container.addStretch(1)
 
         # Centralização vertical com stretches
@@ -709,36 +728,34 @@ class ParamsAGTab(QWidget):
         code_shadow.setColor(QColor(0, 0, 0, 60))
         code_card.setGraphicsEffect(code_shadow)
 
-        # Centralizar code_card
-        code_container = QHBoxLayout()
-        code_container.setContentsMargins(0, 0, 0, 0)
-        code_container.addStretch(1)
-        code_card.setMinimumWidth(800)
-        code_card.setMaximumWidth(1200)
-        code_container.addWidget(code_card)
-        code_container.addStretch(1)
-        layout.addLayout(code_container)
-
-        # Ações do editor de código
-        code_actions = QHBoxLayout()
+        # Botões ao lado direito do Editor de Código
+        code_actions_column = QVBoxLayout()
         self.code_reload_btn = QPushButton("🔄 Recarregar Código")
         self.code_save_btn = QPushButton("💾 Salvar Código")
         self.code_reload_btn.clicked.connect(self.reload_code)
         self.code_save_btn.clicked.connect(self.save_code)
-        code_actions.addStretch()
-        code_actions.addWidget(self.code_reload_btn)
-        code_actions.addWidget(self.code_save_btn)
-        layout.addLayout(code_actions)
+        # Estilo/tamanho dos botões do editor
+        code_btn_style = "font-size: 13px; padding: 8px 12px; min-width: 200px;"
+        self.code_reload_btn.setStyleSheet(code_btn_style)
+        self.code_save_btn.setStyleSheet(code_btn_style)
+        # Centralização vertical: stretch antes e depois
+        code_actions_column.addStretch(1)
+        code_actions_column.addWidget(self.code_reload_btn)
+        code_actions_column.addWidget(self.code_save_btn)
+        code_actions_column.addStretch(1)
 
-        actions = QHBoxLayout()
-        self.reload_btn = QPushButton("🔄 Recarregar")
-        self.save_btn = QPushButton("💾 Salvar")
-        self.reload_btn.clicked.connect(self.reload)
-        self.save_btn.clicked.connect(self.save)
-        actions.addStretch()
-        actions.addWidget(self.reload_btn)
-        actions.addWidget(self.save_btn)
-        layout.addLayout(actions)
+        # Linha com Editor (esquerda) e Botões (direita)
+        code_row = QHBoxLayout()
+        code_row.setContentsMargins(0, 0, 0, 0)
+        code_row.addStretch(1)
+        code_card.setMinimumWidth(800)
+        code_card.setMaximumWidth(1200)
+        code_row.addWidget(code_card, stretch=10)
+        code_row.addSpacing(16)
+        code_row.addLayout(code_actions_column, stretch=0)
+        code_row.setAlignment(code_actions_column, Qt.AlignVCenter)
+        code_row.addStretch(1)
+        layout.addLayout(code_row)
 
         self.reload()
         self.reload_code()
