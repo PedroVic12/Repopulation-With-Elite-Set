@@ -122,6 +122,12 @@ class ConfigTab(QWidget):
     def create_ag_params(self, layout):
         ag_group = QGroupBox("Parâmetros do Algoritmo Genético")
         ag_layout = QGridLayout(ag_group)
+
+        # espaçamento entre os widgets
+        ag_layout.setHorizontalSpacing(16)
+        ag_layout.setVerticalSpacing(16)
+
+        # criação dos widgets dos parâmetros de configuração
         params_to_render = {
             "MUTACAO": self.config_manager.params.get("MUTACAO", 0.1),
             "CROSSOVER": self.config_manager.params.get("CROSSOVER", 0.8),
@@ -173,20 +179,39 @@ class ConfigTab(QWidget):
         else:
             fixed_input.setValidator(QDoubleValidator(0.0, 1.0, 5))
         fixed_input.setText(str(default_value))
+        # aumentar tamanho das caixas
+        fixed_font = fixed_input.font()
+        fixed_font.setPointSize(max(fixed_font.pointSize(), 11))
+        fixed_input.setFont(fixed_font)
+        fixed_input.setMinimumWidth(140)
+        fixed_input.setFixedHeight(34)
 
         variable_inputs_widget = QWidget()
-        variable_layout = QHBoxLayout(variable_inputs_widget)
-        variable_layout.setContentsMargins(0,0,0,0)
+        # layout 2x2 para as 4 entradas de variação
+        from PySide6.QtWidgets import QGridLayout as _QGridLayout
+        variable_layout = _QGridLayout(variable_inputs_widget)
+        variable_layout.setContentsMargins(0, 0, 0, 0)
+        variable_layout.setHorizontalSpacing(8)
+        variable_layout.setVerticalSpacing(6)
         variable_inputs = []
         for i in range(4):
             input_field = QLineEdit()
             input_field.setPlaceholderText(f"V{i+1}")
-            input_field.setText(str(default_value)) # Preenche com o valor padrão
+            input_field.setText(str(default_value))  # Preenche com o valor padrão
             if is_int:
                 input_field.setValidator(QIntValidator(1, 100000))
             else:
                 input_field.setValidator(QDoubleValidator(0.0, 1.0, 5))
-            variable_layout.addWidget(input_field)
+            # aumentar tamanho das caixas
+            f = input_field.font()
+            f.setPointSize(max(f.pointSize(), 11))
+            input_field.setFont(f)
+            input_field.setMinimumWidth(90)
+            input_field.setFixedHeight(32)
+            # posicionar em 2x2
+            r = i // 2
+            c = i % 2
+            variable_layout.addWidget(input_field, r, c)
             variable_inputs.append(input_field)
         variable_inputs_widget.setVisible(False)
 
