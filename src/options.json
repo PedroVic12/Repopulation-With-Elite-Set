@@ -1,5 +1,8 @@
 {
-    "repeticoes_por_config": 3,
+    "repeticoes_por_config": 2,
+    "NUM_GENERATIONS": [
+        40
+    ],
     "POP_SIZE": [
         5
     ],
@@ -8,9 +11,6 @@
         80.0,
         70.0,
         60.0
-    ],
-    "NUM_GENERATIONS": [
-        40
     ],
     "CROSSOVER": [
         0.95
