@@ -1,7 +1,7 @@
 
 
 # --- Componentes da Interface de Usuário ---
-from components.dash_rce_components import ConsolidatedResultsComponent, CardSolutions, GraficoPotenciaAtivaReativaComponent, StatisticsTableComponent, GraficoRCEComponent
+from ..components.dash_rce_components import ConsolidatedResultsComponent, CardSolutions, GraficoPotenciaAtivaReativaComponent, StatisticsTableComponent, GraficoRCEComponent
 from .AgendamentoRedePage import AgendamentoRedePage
 
 #backend
@@ -89,9 +89,13 @@ class FrameworkRCEDashboard:
             config_controller = ConfigController()
             all_params = config_controller.repository.get_all_configs()
 
-            # Call render method without arguments (it's a static method that doesn't take parameters)
-            ConsolidatedResultsComponent.render()
-            # The render method handles display internally, no need for additional processing
+            # Consolida resultados e exibe, passando all_params exigido pelo componente
+            df_consolidado, cons_warnings = ConsolidatedResultsComponent.render(all_params)
+            if cons_warnings:
+                for w in cons_warnings:
+                    st.warning(w)
+            if df_consolidado is not None:
+                ConsolidatedResultsComponent.display_and_download(df_consolidado)
 
             self.render_execution_tabs()
             
