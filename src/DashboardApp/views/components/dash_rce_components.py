@@ -63,20 +63,32 @@ class ConsolidatedResultsComponent:
                 warnings.append(f"Erro ao ler o arquivo de dados {data_file.name}: {e}")
                 continue
 
+            # Normaliza estrutura: alguns arquivos podem salvar lista em vez de dict
+            if isinstance(exec_data, dict):
+                data_dict = exec_data
+            elif isinstance(exec_data, list):
+                # tenta pegar o primeiro item se for lista de dicts
+                data_dict = exec_data[0] if exec_data and isinstance(exec_data[0], dict) else {}
+                if not isinstance(data_dict, dict):
+                    warnings.append(f"Formato de dados inesperado em {data_file.name} (lista não suportada).")
+            else:
+                warnings.append(f"Formato de dados inesperado em {data_file.name}: {type(exec_data).__name__}")
+                data_dict = {}
+
             # Usa os parâmetros já carregados pela página principal
             params_data = all_params.get(config_num, {})
             if not params_data:
                  warnings.append(f"Arquivo de parâmetros não encontrado para a Configuração {config_num}")
 
             # Extrair e montar os dados
-            execution_time_str = str(exec_data.get("execution_time", "0"))
+            execution_time_str = str(data_dict.get("execution_time", "0"))
             cleaned_time = re.sub(r'[^\d.]', '', execution_time_str)
 
             all_results.append({
                 "Config": config_num,
                 "Exec": exec_num,
-                "Melhor Fitness": exec_data.get("best_fitness"),
-                "Melhor Geração": exec_data.get("best_gen_idx"),
+                "Melhor Fitness": data_dict.get("best_fitness"),
+                "Melhor Geração": data_dict.get("best_gen_idx"),
                 "Tempo de Execução (s)": float(cleaned_time) if cleaned_time else 0.0,
                 "Caso IEEE": params_data.get("ieee_case", "N/A"),
                 "MUTACAO": params_data.get("MUTACAO"),

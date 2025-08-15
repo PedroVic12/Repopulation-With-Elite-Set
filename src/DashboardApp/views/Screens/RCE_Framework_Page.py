@@ -95,6 +95,25 @@ class FrameworkRCEDashboard:
                 for w in cons_warnings:
                     st.warning(w)
             if df_consolidado is not None:
+                # guarda no estado os execs realmente disponíveis por configuração
+                try:
+                    available_execs = {}
+                    for cfg in sorted(df_consolidado['Config'].unique()):
+                        execs_list = sorted(df_consolidado[df_consolidado['Config'] == cfg]['Exec'].unique().tolist())
+                        # guarda com múltiplas chaves para evitar mismatch de tipos (int/str)
+                        available_execs[cfg] = execs_list
+                        try:
+                            available_execs[int(cfg)] = execs_list
+                        except Exception:
+                            pass
+                        try:
+                            available_execs[str(cfg)] = execs_list
+                        except Exception:
+                            pass
+                    st.session_state['available_execs_by_config'] = available_execs
+                    st.session_state['df_consolidado'] = df_consolidado
+                except Exception:
+                    pass
                 ConsolidatedResultsComponent.display_and_download(df_consolidado)
 
             self.render_execution_tabs()
@@ -137,7 +156,17 @@ class FrameworkRCEDashboard:
         for i, config_tab in enumerate(config_tabs):
             with config_tab:
                 config_num = config_keys[i]
-                exec_numbers = self.executions[config_num]
+                # Se existir um conjunto de execs consolidado para essa config, usa ele para evitar inconsistências
+                available_map = st.session_state.get('available_execs_by_config', {})
+                exec_numbers = (
+                    available_map.get(config_num)
+                    or available_map.get(str(config_num))
+                    or available_map.get(int(config_num) if isinstance(config_num, (str, bytes)) and str(config_num).isdigit() else None)
+                    or self.executions[config_num]
+                )
+                if not exec_numbers:
+                    st.info("Nenhuma execução consolidada disponível para esta configuração.")
+                    continue
                 
                 if is_locked_global:
                     self.render_locked_view(config_num, exec_numbers)
