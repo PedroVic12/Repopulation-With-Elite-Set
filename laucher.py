@@ -1,3 +1,26 @@
+"""
+Launcher Desktop App (PySide6)
+--------------------------------
+Este aplicativo desktop organiza a configuração e execução do framework RCE, e
+exibe um dashboard/console. É construído com PySide6 (Qt para Python).
+
+Como o PySide6 estrutura a UI neste app:
+- QApplication: processo/loop de eventos da aplicação.
+- QMainWindow (LauncherWindow): janela principal com barra de status e conteúdo central.
+- QTabWidget: organiza abas para Configuração/Execução, Parâmetros AG e Dashboard/Logs.
+- Widgets e layouts (QWidget, QGroupBox, QVBoxLayout, QGridLayout, etc.) compõem a tela.
+- QScrollArea envolve o conteúdo principal para permitir rolagem quando a UI crescer.
+
+Fluxo principal do app:
+1) ConfigManager carrega/salva params.json e options.json e normaliza as opções variáveis.
+2) ConfigTab permite ajustar parâmetros de AG e preparar execuções (gera combinações e chama ExecutionTab).
+3) ParamsAGTab edita parâmetros base e arrays variáveis, e inclui um editor de código Python
+   para a função de fitness (src/fitness_function_user.py).
+4) ExecutionTab executa o script do framework em thread separada (QThread) e mostra logs e progresso.
+5) LauncherWindow junta tudo em abas e aplica um tema via STYLESHEET.
+
+Observação: este arquivo prioriza comentários explicativos para facilitar manutenção e onboarding.
+"""
 import sys
 import os
 import json
@@ -12,8 +35,9 @@ from itertools import product
 from PySide6.QtWidgets import (
     QApplication, QMainWindow, QPushButton, QVBoxLayout, QWidget, QLabel,
     QHBoxLayout, QTextEdit, QProgressBar, QTabWidget, QGroupBox, QSpinBox,
-    QDoubleSpinBox, QCheckBox, QLineEdit, QComboBox, QMessageBox, QRadioButton,
-    QButtonGroup, QGridLayout, QTableWidget, QTableWidgetItem
+    QLineEdit,  QMessageBox, QRadioButton,
+    QButtonGroup, QGridLayout, QTableWidget, QTableWidgetItem, QPlainTextEdit,
+    QScrollArea
 )
 from PySide6.QtCore import Qt, QThread, Signal, QTimer
 from PySide6.QtGui import QFont, QIcon, QIntValidator, QDoubleValidator
@@ -40,6 +64,14 @@ from style import STYLESHEET
 VARYING_KEYS = {"MUTACAO", "CROSSOVER", "NUM_GENERATIONS", "POP_SIZE"}
 
 class ConfigManager:
+    """Gerencia leitura/escrita dos JSON de configuração e normalização de opções.
+
+    Responsabilidades:
+    - Carregar params.json e options.json ao iniciar.
+    - Persistir alterações com json.dump (indent=4 para legibilidade).
+    - clean_options(): manter somente chaves variáveis permitidas em options.json,
+      deduplicar arrays e preservar 'repeticoes_por_config'.
+    """
     def __init__(self):
         self.params = self.load_json(PARAMS_FILE)
         self.options = self.load_json(OPTIONS_FILE)
@@ -88,6 +120,12 @@ class ConfigManager:
             print(f"Erro ao normalizar options.json: {e}")
 
 class ExecutionThread(QThread):
+    """Executa o framework em subprocesso dentro de uma QThread.
+
+    - Emite sinais de log (log_updated) conforme o stdout do processo é lido.
+    - Emite execution_finished ao término, indicando sucesso/erro.
+    - Permite interrupção graciosa via stop() (terminate do subprocesso).
+    """
     log_updated = Signal(str)
     execution_finished = Signal(bool, str)
 
@@ -98,6 +136,7 @@ class ExecutionThread(QThread):
         self.process = None
 
     def run(self):
+        """Inicia o subprocesso do framework e encaminha logs para a UI."""
         try:
             cmd = [sys.executable, str(self.script_path)] + self.args
             self.log_updated.emit(f"Executando: {' '.join(cmd)}")
@@ -116,11 +155,20 @@ class ExecutionThread(QThread):
             self.execution_finished.emit(False, str(e))
 
     def stop(self):
+        """Termina o subprocesso em execução e informa via log."""
         if self.process:
             self.process.terminate()
             self.log_updated.emit("Processo de execução terminado pelo usuário.")
 
 class ConfigTab(QWidget):
+    """Aba de Configuração e Execução rápida.
+
+    Funções principais:
+    - Ajustar execuções por configuração.
+    - Configurar parâmetros AG base (MUTACAO, CROSSOVER, NUM_GENERATIONS, POP_SIZE).
+    - Resumo de total de execuções.
+    - Disparar a execução (gera combinações e sinaliza ExecutionTab).
+    """
     execution_requested = Signal(list, int)
 
     def __init__(self, config_manager):
@@ -131,6 +179,7 @@ class ConfigTab(QWidget):
         self.update_summary()
 
     def init_ui(self):
+        """Monta a UI da aba com grupos de configurações e botão de execução."""
         self.setObjectName("ParamsAGTabRoot")
         self.setStyleSheet(
             """
@@ -145,6 +194,7 @@ class ConfigTab(QWidget):
         layout.addStretch()
 
     def create_general_settings(self, layout):
+        """Cria controles de configurações gerais (quantidade de execuções por config)."""
         general_group = QGroupBox("Configurações Gerais")
         general_layout = QVBoxLayout(general_group)
         self.runs_per_config_spin = QSpinBox()
@@ -156,19 +206,22 @@ class ConfigTab(QWidget):
         layout.addWidget(general_group)
 
     def create_ag_params(self, layout):
+        """Cria widgets para parâmetros principais do AG em um grid responsivo."""
         ag_group = QGroupBox("Parâmetros do Algoritmo Genético")
         ag_layout = QGridLayout(ag_group)
-
-        # Nesta aba (Configuração), mostramos APENAS os 4 parâmetros usados na lógica fixo/variável
-        base = self.config_manager.load_json(PARAMS_FILE) or {}
-        params_to_render = {k: base.get(k) for k in ("MUTACAO", "CROSSOVER", "NUM_GENERATIONS", "POP_SIZE") if k in base}
-        row, col = 0, 0
 
         # espaçamento entre os widgets
         ag_layout.setHorizontalSpacing(16)
         ag_layout.setVerticalSpacing(16)
 
-        # Loop para criar os widgets dos parâmetros alvo
+        # criação dos widgets dos parâmetros de configuração
+        params_to_render = {
+            "MUTACAO": self.config_manager.params.get("MUTACAO", 0.1),
+            "CROSSOVER": self.config_manager.params.get("CROSSOVER", 0.8),
+            "NUM_GENERATIONS": self.config_manager.params.get("NUM_GENERATIONS", 100),
+            "POP_SIZE": self.config_manager.params.get("POP_SIZE", 50),
+        }
+        row, col = 0, 0
         for name, default_val in params_to_render.items():
             param_widget = self._create_param_widget(name, default_val)
             ag_layout.addWidget(param_widget, row, col)
@@ -178,6 +231,7 @@ class ConfigTab(QWidget):
         layout.addWidget(ag_group)
 
     def create_summary(self, layout):
+        """Mostra um resumo dinâmico: configs únicas e total de execuções."""
         summary_group = QGroupBox("Resumo da Execução")
         summary_layout = QHBoxLayout(summary_group)
         self.unique_configs_label = QLabel("Configurações Únicas: 1")
@@ -187,6 +241,7 @@ class ConfigTab(QWidget):
         layout.addWidget(summary_group)
 
     def create_run_button(self, layout):
+        """Botão para salvar e executar o framework com os parâmetros atuais."""
         self.run_button = QPushButton("💾 Salvar e Executar")
         self.run_button.setObjectName("run_button")
         self.run_button.clicked.connect(self.prepare_and_run)
@@ -345,6 +400,7 @@ class JsonEditor(QWidget):
         self.init_ui()
 
     def init_ui(self):
+        """Constroi a tabela, cartões e editor de código com layout e estilos."""
         layout = QVBoxLayout(self)
         group = QGroupBox(self.title)
         v = QVBoxLayout(group)
@@ -446,6 +502,7 @@ class JsonEditor(QWidget):
         return parsed
 
     def save(self):
+        """Lê os valores da tabela e salva nos JSON correspondentes."""
         try:
             current = self.config_manager.load_json(self.file_path)
             if not isinstance(current, dict):
@@ -472,6 +529,14 @@ class JsonEditor(QWidget):
             QMessageBox.critical(self, "Erro", f"Erro ao salvar: {e}")
 
 class ParamsAGTab(QWidget):
+    """Aba para editar todos os parâmetros em tabela e o código da função de fitness.
+
+    Recursos:
+    - Tabela única de parâmetros base (params.json) com estilos de destaque.
+    - Salvamento inteligente que separa base (params.json) e variações (options.json).
+    - Editor de código Python (QPlainTextEdit) com tema escuro para editar
+      src/fitness_function_user.py (carregar/salvar com botões dedicados).
+    """
     def __init__(self, config_manager: 'ConfigManager'):
         super().__init__()
         self.config_manager = config_manager
@@ -486,7 +551,7 @@ class ParamsAGTab(QWidget):
         self.table = QTableWidget()
         # Visual moderno e centrado
         self.table.setColumnCount(2)
-        self.table.setHorizontalHeaderLabels(["Parâmetro", "Valor Base (params.json)"])
+        self.table.setHorizontalHeaderLabels(["Parâmetro AG", "Valor"])
         from PySide6.QtWidgets import QAbstractItemView, QFrame, QGraphicsDropShadowEffect, QSizePolicy
         from PySide6.QtCore import Qt
         from PySide6.QtWidgets import QHeaderView
@@ -510,16 +575,49 @@ class ParamsAGTab(QWidget):
         header_font = self.table.horizontalHeader().font()
         header_font.setPointSize(max(header_font.pointSize(), 12))
         self.table.horizontalHeader().setFont(header_font)
-        self.table.setStyleSheet(
-            """
-            QTableWidget { background: #f5f6f8; alternate-background-color: #eef1f5; font-size: 13pt; }
-            QHeaderView::section { background: #4a5568; color: #ffffff; padding: 14px 12px; border: none; }
-            QTableWidget::item { padding: 10px 12px; }
-            QTableWidget::item:selected { background: #dde7f7; color: #111; }
-            QTableWidget QLineEdit { background: transparent; border: none; border-bottom: 2px solid #c9d1dc; padding: 6px 6px; font-size: 13pt; }
-            QTableWidget QLineEdit:focus { border-bottom: 2px solid #4a90e2; }
-            """
-        )
+        self.table.setStyleSheet("""
+        QTableWidget {
+            background-color: #7a7a7a;
+            alternate-background-color: #2d2d2e;
+            gridline-color: #c9d1dc;
+            font-size: 12pt;
+            selection-background-color: #adb9cc;
+            selection-color: #111;
+        }
+
+        QHeaderView::section {
+            background-color: #0e22b5;
+            color: #ffffff;
+            padding: 4px 8px;
+            border: none;
+            font-size: 12pt;
+        }
+
+        QTableWidget::item {
+            padding: 4px 8px;
+            border: none;
+        }
+
+        /* Editar célula (QLineEdit interno) */
+        QTableWidget QLineEdit {
+            background-color: #f9f9f9;  /* Fundo visível */
+            color: #111;                /* Texto escuro para contraste */
+            border: none;
+            border-bottom: 2px solid #c9d1dc;
+            padding: 4px 8px;
+            font-size: 12pt;
+        }
+
+        QTableWidget QLineEdit:focus {
+            border-bottom: 2px solid #4a90e2;
+            background-color: #6087e0;
+            color: #111;
+        }
+
+        QTableWidget QLineEdit:hover {
+            background-color: #6087e0;
+        }
+        """)
 
         # Card wrapper centralizado com sombra
         card = QFrame(self)
@@ -536,7 +634,6 @@ class ParamsAGTab(QWidget):
         shadow = QGraphicsDropShadowEffect(self)
         shadow.setBlurRadius(22)
         shadow.setOffset(0, 6)
-        # sombra suave
         from PySide6.QtGui import QColor
         shadow.setColor(QColor(0, 0, 0, 60))
         card.setGraphicsEffect(shadow)
@@ -556,6 +653,75 @@ class ParamsAGTab(QWidget):
         layout.addLayout(container)
         layout.addStretch(1)
 
+        # ==========================
+        # Editor de Código (Python)
+        # ==========================
+        code_title = QLabel("Função de Fitness (Python)")
+        code_title.setStyleSheet("font-weight: 600; font-size: 14pt;")
+        layout.addWidget(code_title)
+
+        code_card = QFrame(self)
+        code_card.setObjectName("codeCard")
+        code_card.setStyleSheet(
+            """
+            #codeCard { background: #ffffff; border: 1px solid #e6e6e6; border-radius: 12px; }
+            """
+        )
+        code_layout = QVBoxLayout(code_card)
+        code_layout.setContentsMargins(16, 16, 16, 16)
+
+        self.code_editor = QPlainTextEdit()
+        # Aparência do editor
+        editor_font = QFont("Courier New")
+        editor_font.setStyleHint(QFont.Monospace)
+        editor_font.setPointSize(11)
+        self.code_editor.setFont(editor_font)
+        self.code_editor.setTabStopDistance(4 * self.code_editor.fontMetrics().horizontalAdvance(' '))
+        self.code_editor.setLineWrapMode(QPlainTextEdit.NoWrap)
+        self.code_editor.setMinimumHeight(340)
+        # Tema escuro para melhor contraste
+        self.code_editor.setStyleSheet(
+            """
+            QPlainTextEdit {
+                background-color: #1e1e1e;
+                color: #eaeaea;
+                border: 1px solid #3a3a3a;
+                selection-background-color: #264f78;
+                selection-color: #ffffff;
+            }
+            """
+        )
+
+        code_layout.addWidget(self.code_editor)
+
+        code_shadow = QGraphicsDropShadowEffect(self)
+        code_shadow.setBlurRadius(22)
+        code_shadow.setOffset(0, 6)
+        from PySide6.QtGui import QColor
+        code_shadow.setColor(QColor(0, 0, 0, 60))
+        code_card.setGraphicsEffect(code_shadow)
+
+        # Centralizar code_card
+        code_container = QHBoxLayout()
+        code_container.setContentsMargins(0, 0, 0, 0)
+        code_container.addStretch(1)
+        code_card.setMinimumWidth(800)
+        code_card.setMaximumWidth(1200)
+        code_container.addWidget(code_card)
+        code_container.addStretch(1)
+        layout.addLayout(code_container)
+
+        # Ações do editor de código
+        code_actions = QHBoxLayout()
+        self.code_reload_btn = QPushButton("🔄 Recarregar Código")
+        self.code_save_btn = QPushButton("💾 Salvar Código")
+        self.code_reload_btn.clicked.connect(self.reload_code)
+        self.code_save_btn.clicked.connect(self.save_code)
+        code_actions.addStretch()
+        code_actions.addWidget(self.code_reload_btn)
+        code_actions.addWidget(self.code_save_btn)
+        layout.addLayout(code_actions)
+
         actions = QHBoxLayout()
         self.reload_btn = QPushButton("🔄 Recarregar")
         self.save_btn = QPushButton("💾 Salvar")
@@ -567,8 +733,10 @@ class ParamsAGTab(QWidget):
         layout.addLayout(actions)
 
         self.reload()
+        self.reload_code()
 
     def reload(self):
+        """Recarrega params.json e options.json e repopula a tabela."""
         self.params = self.config_manager.load_json(PARAMS_FILE) or {}
         self.options = self.config_manager.load_json(OPTIONS_FILE) or {}
         self.types = {k: type(v) for k, v in self.params.items()}
@@ -706,7 +874,57 @@ class ParamsAGTab(QWidget):
         except Exception as e:
             QMessageBox.critical(self, "Erro", f"Erro ao salvar parâmetros: {e}")
 
+    # ------------------------------
+    # Editor de Código: load/save
+    # ------------------------------
+    def _fitness_file_path(self) -> Path:
+        return SRC_DIR / "fitness_function_user.py"
+
+    def reload_code(self):
+        """Carrega (ou inicializa com template) o arquivo de função de fitness."""
+        try:
+            path = self._fitness_file_path()
+            if path.exists():
+                with open(path, 'r', encoding='utf-8') as f:
+                    self.code_editor.setPlainText(f.read())
+            else:
+                # Template inicial
+                template = (
+                    "\"\"\"\n"
+                    "Arquivo de função de fitness do usuário.\n"
+                    "Implemente a função evaluate(individual, data) -> float\n"
+                    "\"\"\"\n\n"
+                    "def evaluate(individual, data=None):\n"
+                    "    \"\"\"\n"
+                    "    individual: sequência de variáveis de decisão\n"
+                    "    data: dados auxiliares (opcional)\n"
+                    "    retorne um float com o fitness (quanto menor/melhor ou maior/melhor, conforme seu problema).\n"
+                    "    \"\"\"\n"
+                    "    # TODO: implemente sua lógica aqui\n"
+                    "    return 0.0\n"
+                )
+                self.code_editor.setPlainText(template)
+        except Exception as e:
+            QMessageBox.critical(self, "Erro", f"Erro ao carregar código: {e}")
+
+    def save_code(self):
+        """Salva o conteúdo do editor no arquivo de função de fitness do usuário."""
+        try:
+            path = self._fitness_file_path()
+            path.parent.mkdir(parents=True, exist_ok=True)
+            with open(path, 'w', encoding='utf-8') as f:
+                f.write(self.code_editor.toPlainText())
+            QMessageBox.information(self, "Sucesso", f"Código salvo em: {path}")
+        except Exception as e:
+            QMessageBox.critical(self, "Erro", f"Erro ao salvar código: {e}")
+
 class ExecutionTab(QWidget):
+    """Aba de execução e logs do framework.
+
+    - Exibe barra de progresso, logs em tempo real e estado da execução.
+    - Recebe lotes de configurações e executa sequencialmente via ExecutionThread.
+    - Permite interromper a bateria de testes.
+    """
     def __init__(self, config_manager):
         super().__init__()
         self.config_manager = config_manager
@@ -754,19 +972,29 @@ class ExecutionTab(QWidget):
         layout.addWidget(QLabel("Log de Execução:"))
         layout.addWidget(self.log_text)
 
-    def start_executions(self, configurations, runs_per_config):
-        if not RUN_FRAMEWORK_SCRIPT.exists():
-            QMessageBox.critical(self, "Erro", f"Script não encontrado: {RUN_FRAMEWORK_SCRIPT}")
+    def start_executions(self, configs, runs_per_config):
+        """Prepara e inicia a bateria de execuções, atualizando a UI."""
+        try:
+            # Verifica existência do script do framework
+            if not RUN_FRAMEWORK_SCRIPT.exists():
+                QMessageBox.critical(self, "Erro", f"Script não encontrado: {RUN_FRAMEWORK_SCRIPT}")
+                return
+
+            # Inicializa estado de execução
+            self.configurations = configs
+            self.runs_per_config = runs_per_config
+            self.total_runs = len(self.configurations) * self.runs_per_config
+            self.current_run_number = 0
+
+            # Limpa e informa log inicial
+            self.log_text.clear()
+            self.append_log(
+                f"Iniciando bateria de testes com {len(self.configurations)} configs e {self.runs_per_config} repetições."
+            )
+            self.append_log(f"Total de execuções: {self.total_runs}")
+        except Exception as e:
+            QMessageBox.critical(self, "Erro", f"Falha ao preparar execuções: {e}")
             return
-        
-        self.configurations = configurations
-        self.runs_per_config = runs_per_config
-        self.total_runs = len(self.configurations) * self.runs_per_config
-        self.current_run_number = 0
-        
-        self.log_text.clear()
-        self.append_log(f"Iniciando bateria de testes com {len(self.configurations)} configs e {self.runs_per_config} repetições.")
-        self.append_log(f"Total de execuções: {self.total_runs}")
 
         self.stop_btn.setEnabled(True)
         self.progress_bar.setVisible(True)
@@ -840,6 +1068,7 @@ class ExecutionTab(QWidget):
         self.log_text.ensureCursorVisible()
 
     def on_all_executions_finished(self, success, message):
+        """Feedback final após concluir/interromper a bateria de execuções."""
         self.stop_btn.setEnabled(False)
         self.progress_bar.setValue(self.progress_bar.maximum())
         self.current_config_label.setText(f"Finalizado. {message}")
@@ -852,18 +1081,29 @@ class ExecutionTab(QWidget):
                 QMessageBox.critical(self, "Erro", f"A bateria de testes terminou com erro: {message}")
 
 class LauncherWindow(QMainWindow):
+    """Janela principal da aplicação com abas e rolagem.
+
+    - Envolve o conteúdo em QScrollArea para suportar telas menores.
+    - Cria as abas: Configuração/Execução, Parâmetros AG e Dashboard/Logs.
+    - Aplica estilos via STYLESHEET e mostra status bar.
+    """
     def __init__(self):
         super().__init__()
         self.config_manager = ConfigManager()
         self.init_ui()
 
     def init_ui(self):
+        """Configura janela, scroll e chama construtores de header e tabs."""
         self.setWindowTitle("RCE Framework Launcher - Otimizado")
         #self.setMinimumSize(1200, 700)
         
-        central_widget = QWidget()
-        self.setCentralWidget(central_widget)
-        main_layout = QVBoxLayout(central_widget)
+        # Usa QScrollArea para permitir scroll vertical em telas menores
+        scroll = QScrollArea()
+        scroll.setWidgetResizable(True)
+        content = QWidget()
+        main_layout = QVBoxLayout(content)
+        scroll.setWidget(content)
+        self.setCentralWidget(scroll)
         
         self.create_header(main_layout)
         self.create_tabs(main_layout)
@@ -871,6 +1111,7 @@ class LauncherWindow(QMainWindow):
         self.statusBar().showMessage("Pronto.")
 
     def create_header(self, layout):
+        """Cria títulos principais do app (nome e subtítulo)."""
         title = QLabel("Repopulation-With-Elite-Set Framework")
         title.setObjectName("title")
         title.setAlignment(Qt.AlignmentFlag.AlignCenter)
@@ -882,14 +1123,18 @@ class LauncherWindow(QMainWindow):
         layout.addWidget(subtitle)
 
     def create_tabs(self, layout):
+        """Instancia as abas e conecta sinais entre ConfigTab e ExecutionTab."""
         tab_widget = QTabWidget()
+
+        # Componentes
         self.config_tab = ConfigTab(self.config_manager)
         self.execution_tab = ExecutionTab(self.config_manager)
         self.params_ag_tab = ParamsAGTab(self.config_manager)
         
+        # Configurações e Execução em TABS
         tab_widget.addTab(self.config_tab, "⚙️ Configuração e Execução")
-        tab_widget.addTab(self.execution_tab, "📊 Dashboard e Logs")
         tab_widget.addTab(self.params_ag_tab, "Parametros AG")
+        tab_widget.addTab(self.execution_tab, "📊 Dashboard e Logs")
         
         layout.addWidget(tab_widget)
 
@@ -900,7 +1145,15 @@ class LauncherWindow(QMainWindow):
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)
+    
+    # Aplica estilos globais em arquivo separado
     app.setStyleSheet(STYLESHEET)
+    
+    # Cria a janela principal
     window = LauncherWindow()
-    window.show()
+
+    # Abre sempre maximizado
+    window.showMaximized()
+
+    # Executa a aplicação
     sys.exit(app.exec())
