@@ -318,6 +318,11 @@ class FrameworkRCEDashboard:
             exec_tabs_dict = self.get_exec_tabs_dict()
             self.ContainerTabs(exec_tabs_dict)
             
+            # Seção extra: exibir o dashboard HTML externo da rede IEEE
+            st.markdown("---")
+            st.subheader("🕸️ Rede IEEE (HTML embutido)")
+            rede_template_view()  # Lê o arquivo plot_rede_IEEE_template_dashboard.html ao lado desta tela
+            
         except Exception as e:
             st.error(f"Ocorreu um erro ao carregar os dados da execução: {e}")
             
