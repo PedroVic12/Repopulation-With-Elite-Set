@@ -216,7 +216,7 @@ class CardSolutions:
         # Formatar fitness
         import math
         if isinstance(best_fitness, (int, float)) and not math.isnan(best_fitness):
-            best_fitness_str = f"{best_fitness:.6f}"
+            best_fitness_str = f"{best_fitness:.2f}"
             fitness_color = success_color
         else:
             best_fitness_str = "N/A"
@@ -262,7 +262,7 @@ class CardSolutions:
                 # Formatação condicional baseada no valor
                 var_style = f"color: {success_color}; font-weight: 500;" if var != 0 else "color: #888;"
                 try:
-                    var_val = f"{float(var):.6f}"
+                    var_val = f"{float(var):.2f}"
                 except Exception:
                     var_val = str(var)
                 vars_html += f"""
@@ -333,23 +333,29 @@ class CardSolutions:
             <div class="card-header">📊 Resumo da Melhor Solução</div>
             
             <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; margin-bottom: 16px;">
+                
+                
+                
                 <div class="metric-card">
                     <div class="metric-label">Melhor Geração</div>
                     <div class="metric-value" style="color: #4a90e2;">{best_gen_idx}</div>
                 </div>
+
+                <div style="margin-top: 16px;">
+                    Resultados dos melhores horários de desligamento de linhas em Rede - IEEE 14
+                    {vars_html}
+                </div>
+
                 <div class="metric-card">
                     <div class="metric-label">Melhor Fitness</div>
                     <div class="metric-value" style="color: {fitness_color};">{best_fitness_str}</div>
                 </div>
-            </div>
+            </div>  
             
-            <div style="margin-top: 16px;">
-                <div style="font-weight: 600; margin-bottom: 8px; color: {text_color};">Variáveis de Decisão:</div>
-                {vars_html}
-            </div>
+
             
             <div class="execution-info">
-                Execução: {exec_num} • {datetime.now().strftime('%d/%m/%Y %H:%M')}
+                Execução realizada em: {exec_num} • {datetime.now().strftime('%d/%m/%Y %H:%M')}
             </div>
         </div>
         """

@@ -129,7 +129,8 @@ def funcao_objetivo_IEEE14(individuo, setupobj, _debug: bool = False, return_tim
         for t_idx, cenario in enumerate(matriz_cenarios):
             perfil = cenario[0]
             estado_ramos = cenario[1:]
-            hora_atual = (min_inicio + t_idx) % 24
+            # Hora do dia alinhada ao índice do slot (0..23)
+            hora_atual = t_idx % 24
 
             # 4) Ajustar carregamento para o perfil do cenário
             rede.ajustar_cargas(perfil)

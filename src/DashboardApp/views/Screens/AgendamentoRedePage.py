@@ -130,9 +130,10 @@ def time_line_from_solution_variables(agendamento_df, contingencia_df, exec_data
             ]
 
             # Dados relacionados às contingências
-            related_contingencies = contingencia_df[
-                (contingencia_df["from"] <= start_hour) & (contingencia_df["to"] >= end_hour)
-            ]
+            # OBS: 'from' e 'to' em contingencia_df representam barras (nós), não horários.
+            # Portanto, não faz sentido filtrá-las por hora. Exibimos todas ou filtramos
+            # por ramos afetados caso haja mapeamento de (from,to) -> ramo em agendamento.
+            related_contingencies = contingencia_df.copy()
 
             # Exibir os detalhes
             st.subheader("Detalhes do Intervalo Selecionado")
