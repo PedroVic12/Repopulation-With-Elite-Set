@@ -211,29 +211,69 @@ class Setup:
     def avaliarFitnessIndividuos(self, pop):
         fitnesses = []  # To store fitness values for each individual
         for ind in pop:
-            fitness = self.toolbox.evaluate(list(ind), self) # Assuming this calls funcao_objetivo_IEEE14
-            ind.fitness.values = (fitness,)
-            fitnesses.append(fitness)  # Add fitness value to the list
+            # Evaluate the individual using the registered fitness function
+            fitness_values = self.toolbox.evaluate(ind)
+            
+            # Ensure fitness_values is a tuple
+            if not isinstance(fitness_values, tuple):
+                fitness_values = (float(fitness_values),)
+            
+            # Assign the fitness values to the individual
+            ind.fitness.values = fitness_values
+            
+            # Store the first fitness value (assuming single-objective optimization)
+            fitnesses.append(fitness_values[0])
+            
+            # Debug output
+            print(f"Assigned fitness {fitness_values} to individual {ind}")
+            
         return fitnesses
-        #print("\nFitness individuos validados!!! ")
 
 
     def checkDecisionVariablesAndFitnessFunction(
         self, fitness_function, individual
     ):
-            self.__fitness_function = fitness_function
+        self.__fitness_function = fitness_function
+        
+        # Create a closure that captures the setup instance
+        setup = self
+        
+        # Define the fitness function with proper closure
+        def fitness_func(individual):
+            try:
+                if setup.funcao_objetivo:
+                    # If the function is a benchmark function, only pass the individual
+                    if setup.funcao_objetivo.__name__ in ['rastrigin', 'rosenbrock_benchmark', 'esfera_benchmark']:
+                        result = setup.funcao_objetivo(individual)
+                    else:
+                        # Otherwise, pass both individual and setup
+                        result = setup.funcao_objetivo(individual, setup)
+                else:
+                    result = setup.rastrigin(individual)
+                
+                # Ensure we return a flat tuple of numbers
+                if isinstance(result, (int, float)):
+                    return (float(result),)  # Single value as a 1-tuple
+                elif isinstance(result, (list, tuple)):
+                    # If result is already a tuple/list, ensure it's flat
+                    flat_result = []
+                    for x in result:
+                        if isinstance(x, (list, tuple)):
+                            flat_result.extend(float(y) for y in x)
+                        else:
+                            flat_result.append(float(x))
+                    return tuple(flat_result)
+                else:
+                    return (float(result),)  # Fallback to single value
+            except Exception as e:
+                print(f"Error in fitness_func: {e}")
+                print(f"Individual: {individual}")
+                print(f"Function: {setup.funcao_objetivo.__name__ if setup.funcao_objetivo else 'rastrigin'}")
+                return (float('inf'),)  # Return worst possible fitness on error
 
-            # Criando o esqueleto de uma funcao objetivo com uma variavel de decisao
-            def fitness_func(individual,self):
-                return (
-                    self.funcao_objetivo(individual,self)
-                    if self.funcao_objetivo
-                    else self.rastrigin(individual)
-                )
-
-            #! Registrar a função de fitness no toolbox
-            print("\n[DEBUG] Dados do problema = ", self.decision_variables, self.__fitness_function)
-            self.toolbox.register("evaluate", fitness_func)
+        # Register the fitness function with the toolbox
+        print("\n[DEBUG] Dados do problema = ", self.decision_variables, self.__fitness_function)
+        self.toolbox.register("evaluate", fitness_func)
 
 
 

@@ -54,26 +54,45 @@ class AlgoritimoEvolutivoRCE:
         self.fitness_function  = lambda x: 0
 
     def registrarDados(self, generation):
+        try:
+            # Calculate statistics across the entire population
+            fitness_values = []
+            for ind in self.POPULATION:
+                if ind.fitness.valid and hasattr(ind.fitness, 'values') and ind.fitness.values:
+                    try:
+                        fitness_values.append(float(ind.fitness.values[0]))
+                    except (ValueError, TypeError, IndexError) as e:
+                        print(f"Warning: Could not get fitness value for individual {ind}: {e}")
+            
+            # Calculate statistics
+            if not fitness_values:  # If no valid fitness values, use default values
+                avg_fitness = float('inf')
+                std_dev = 0.0
+            else:
+                avg_fitness = np.mean(fitness_values)
+                std_dev = np.std(fitness_values) if len(fitness_values) > 1 else 0.0
+            
+            # Get the best individual from the Hall of Fame
+            best_individual = self.hof[0] if len(self.hof) > 0 else None
+            
+            # Prepare the data dictionary
+            self.data = {
+                "Generations": generation + 1,
+                "Variaveis de Decisão": best_individual if best_individual else "N/A",
+                "Evaluations": getattr(self.setup, 'evaluations', 0),
+                "Ind Valido": best_individual.fitness.valid if best_individual else False,
+                "Best Fitness": float(best_individual.fitness.values[0]) if best_individual and best_individual.fitness.valid else float('inf'),
+                "Media": float(avg_fitness),
+                "Desvio Padrao": float(std_dev),
+            }
 
-        # Registrar estatísticas e melhores soluções
-        for ind in self.POPULATION:
-            avg_fitness_per_generation = np.mean(ind.fitness.values)
-            std_deviation = np.std(ind.fitness.values)
-
-        #! PEgandos os dados e colocando no df
-        self.data = {
-            "Generations": generation + 2,
-            "Variaveis de Decisão": self.hof[0],
-            "Evaluations": self.setup.evaluations,
-            "Ind Valido": self.hof[0].fitness.valid,
-            "Best Fitness": self.hof[0].fitness.values,
-            "Media": avg_fitness_per_generation,
-            "Desvio Padrao": std_deviation,
-        }
-
-        self.best_individual_array.append(self.data)
-
-        self.visualizarPopAtual(generation, [avg_fitness_per_generation, std_deviation])
+            self.best_individual_array.append(self.data)
+            self.visualizarPopAtual(generation, [avg_fitness, std_dev])
+            
+        except Exception as e:
+            print(f"Error in registrarDados: {e}")
+            import traceback
+            traceback.print_exc()
 
     def checkClonesInPop(self, ind, new_pop):
         is_clone = False
@@ -320,11 +339,26 @@ class AlgoritimoEvolutivoRCE:
         return self.pop_RCE
 
     def calculateFitnessGeneration(self, new_pop):
-        # Calculando o fitness para geração
         for ind in new_pop:
             if not ind.fitness.valid:
-                fitness_value = self.setup.toolbox.evaluate(ind,self.setup)
-                ind.fitness.values = (fitness_value,)
+                try:
+                    # Call the evaluate function with just the individual
+                    fitness = self.setup.toolbox.evaluate(ind)
+                    
+                    # Ensure we have a tuple of numbers
+                    if isinstance(fitness, (int, float)):
+                        fitness = (float(fitness),)
+                    elif isinstance(fitness, (list, tuple)):
+                        fitness = tuple(float(x) for x in fitness)
+                    else:
+                        fitness = (float(fitness),)
+                        
+                    # Assign the fitness value to the individual
+                    ind.fitness.values = fitness
+                except Exception as e:
+                    print(f"Error evaluating individual in calculateFitnessGeneration: {e}")
+                    # Assign a very bad fitness value to this individual
+                    ind.fitness.values = (float('inf'),)
 
     # def _avaliarFitnessIndividuos(self, pop):
     #     """Avaliar o fitness dos indivíduos da população atual."""
@@ -368,11 +402,25 @@ class AlgoritimoEvolutivoRCE:
 
             #! Evaluate each individual separately
             for ind in invalid_ind:
-                # call the 'funcao_objetivo_IEEE14' using the current individual attributes
-                fitness = self.setup.toolbox.evaluate(ind, self.setup)
-
-                # Assign the fitness value to the individual
-                ind.fitness.values = (fitness,)
+                try:
+                    # Call the evaluate function with just the individual
+                    # The setup parameter is already bound in the evaluate_wrapper
+                    fitness = self.setup.toolbox.evaluate(ind)
+                    
+                    # Ensure we have a tuple of numbers
+                    if isinstance(fitness, (int, float)):
+                        fitness = (float(fitness),)
+                    elif isinstance(fitness, (list, tuple)):
+                        fitness = tuple(float(x) for x in fitness)
+                    else:
+                        fitness = (float(fitness),)
+                        
+                    # Assign the fitness value to the individual
+                    ind.fitness.values = fitness
+                except Exception as e:
+                    print(f"Error evaluating individual {ind}: {e}")
+                    # Assign a very bad fitness value to this individual
+                    ind.fitness.values = (float('inf'),)
 
             # # faz um map dos valores de fitness de cada individuo
             # fitnesses = map(self.setup.toolbox.evaluate, invalid_ind)
@@ -415,18 +463,38 @@ class AlgoritimoEvolutivoRCE:
         return population[num_pop], self.logbook, self.hof[0]
 
     def visualizarPopAtual(self, geracaoAtual, stats):
-
-        for i in range(len(self.POPULATION)):
-            datasetIndividuals = {
-                "Generations": geracaoAtual + 1,
-                "index": i,
-                "Variaveis de Decisão": self.POPULATION[i],
-                "Fitness": self.POPULATION[i].fitness.values,
-                "Media": stats[0],
-                "Desvio Padrao": stats[1],
-                "RCE": " - ",
-            }
-            self.allIndividualValuesArray.append(datasetIndividuals)
+        """Atualiza as informações de visualização da população atual.
+        
+        Args:
+            geracaoAtual (int): Número da geração atual
+            stats (tuple): Tupla contendo (média, desvio_padrao) dos valores de fitness
+        """
+        try:
+            for i, ind in enumerate(self.POPULATION):
+                # Get fitness value safely, default to infinity if not valid
+                fitness_value = float('inf')
+                if ind.fitness.valid and hasattr(ind.fitness, 'values') and ind.fitness.values:
+                    fitness_value = ind.fitness.values[0]  # Get first fitness value (single-objective)
+                
+                dataset_individual = {
+                    "Generations": geracaoAtual + 1,
+                    "index": i,
+                    "Variaveis de Decisão": ind,
+                    "Fitness": fitness_value,
+                    "Media": stats[0] if stats and len(stats) > 0 else float('inf'),
+                    "Desvio Padrao": stats[1] if stats and len(stats) > 1 else 0.0,
+                    "RCE": " - ",
+                    "Valido": ind.fitness.valid
+                }
+                self.allIndividualValuesArray.append(dataset_individual)
+                
+                # Debug output for the first few individuals
+                if i < 3:  # Only show first 3 for brevity
+                    print(f"Ind {i}: {ind} -> Fitness: {fitness_value} (Valid: {ind.fitness.valid})")
+                    
+        except Exception as e:
+            print(f"Error in visualizarPopAtual: {e}")
+            # Log the error but don't crash the application
 
     def cout(self, msg):
         print(

@@ -4,6 +4,7 @@ Implemente a função evaluate(individual) -> float
 """
 
 import math
+import os
 
 def evaluate(individual):
     """

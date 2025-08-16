@@ -1158,7 +1158,6 @@ class LauncherWindow(QMainWindow):
     def init_ui(self):
         """Configura janela, scroll e chama construtores de header e tabs."""
         self.setWindowTitle("RCE Framework Launcher - Otimizado")
-        #self.setMinimumSize(1200, 700)
         
         # Usa QScrollArea para permitir scroll vertical em telas menores
         scroll = QScrollArea()

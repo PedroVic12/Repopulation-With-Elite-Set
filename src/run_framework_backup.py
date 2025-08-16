@@ -1,5 +1,3 @@
-import argparse
-
 # -*- coding: utf-8 -#
 # Import RCE Framework
 from AlgEvolutivoRCE_backup.Setup import Setup
@@ -104,7 +102,7 @@ def run_framework_single_execution(config_num=1, exec_num=1):
     consulta_hashtable()
 
 
-    alg = AlgoritimoEvolutivoRCE(setup, DEBUG = True)
+    alg = AlgoritimoEvolutivoRCE(setup, DEBUG = False)
 
     # Loop Algoritmo Evolutivo podendo receber a função objetivo e as variaveis do problema
     pop_with_repopulation, logbook_with_repopulation, best_variables = alg.run(
@@ -158,16 +156,51 @@ def export_all_configs_to_json(parametros):
     st.success(f"{len(configs)} configurações exportadas para config.json!")
 
 def convert_values_to_int(params):
-    """Converte os valores de um dicionário para int, exceto para as chaves especificadas."""
+    """
+    Converts dictionary values to appropriate types:
+    - Float for specified keys
+    - Preserves lists as-is
+    - Converts other numeric values to int
+    - Handles string representations of lists
+    """
     float_keys = {"MUTACAO", "CROSSOVER", "PORCENTAGEM"}
+    array_keys = {"ARRAY_VAR", "LIMITE_VAR"}
+    
     for key, value in params.items():
-        if key.upper() in float_keys:
-            #print(key,value)
-            params[key] = float(value)
-        elif isinstance(value, list):
-            print(f"Valor da chave {key} é uma lista, não será convertido para int.")
+        key_upper = key.upper()
+        
+        # Handle float values
+        if key_upper in float_keys:
+            try:
+                if isinstance(value, str):
+                    params[key] = float(value)
+                else:
+                    params[key] = float(value)  # Convert to float if not already
+            except (ValueError, TypeError):
+                print(f"Warning: Could not convert {key} to float. Keeping original value: {value}")
+        
+        # Handle array values
+        elif key_upper in array_keys or (isinstance(value, str) and value.startswith('[') and value.endswith(']')):
+            try:
+                if isinstance(value, str):
+                    # Safely evaluate string representation of list
+                    import ast
+                    params[key] = ast.literal_eval(value)
+                # If it's already a list, keep it as is
+                elif isinstance(value, (list, tuple)):
+                    params[key] = list(value)
+            except (ValueError, SyntaxError) as e:
+                print(f"Warning: Could not parse array for {key}. Error: {e}")
+        
+        # Convert other numeric values to int
         else:
-            params[key] = int(value)
+            try:
+                if value is not None and str(value).strip():
+                    params[key] = int(float(value))  # Convert to float first to handle string floats
+            except (ValueError, TypeError):
+                print(f"Warning: Could not convert {key} to int. Keeping original value: {value}")
+    
+    return params
     return params
 
 
@@ -290,7 +323,8 @@ def run_framework_many_executions(function_bechmarking = False, config_num=1, ex
                 hash_excel = pd.read_excel("hash_table.xlsx")
 
                 if not hash_excel.empty and not hash_excel.isnull().values.any():
-                    print(hash_excel.head())
+                    
+                    #print(hash_excel.head())
 
                     setup.tabela_hash = hash_excel['Fitness'].to_dict()
                     neg_one_count = list(setup.tabela_hash.values()).count(-1)
@@ -314,7 +348,7 @@ def run_framework_many_executions(function_bechmarking = False, config_num=1, ex
 
     
     # Usando o algoritimo Genetico do DEAP
-    alg = AlgoritimoEvolutivoRCE(setup, DEBUG = False)
+    alg = AlgoritimoEvolutivoRCE(setup, DEBUG = True)
 
     # Run the utility function to load many executions
     all_results = {}
@@ -345,18 +379,6 @@ def run_framework_many_executions(function_bechmarking = False, config_num=1, ex
 
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description='Executa o framework RCE.')
-    parser.add_argument('--config_num', type=int, default=1, help='Número da configuração')
-    parser.add_argument('--exec_num', type=int, default=1, help='Número da execução')
-    args = parser.parse_args()
-
-    options = load_params(f"{BASE_DIR}/options.json")
-    #export_all_configs_to_json(options)
-
-    # Check if the user wants to run multiple executions or a single execution
-    if options.get("key", True):
-        print("Running multiple executions...")
-        run_framework_many_executions(function_bechmarking=False, config_num=args.config_num, exec_num=args.exec_num)
-    else:
-        print("Running a single execution...")
-        run_framework_single_execution(config_num=args.config_num, exec_num=args.exec_num)
+    print("Starting execution with benchmark function...")
+    # Run with a simple benchmark function first
+    run_framework_many_executions(function_bechmarking=False)

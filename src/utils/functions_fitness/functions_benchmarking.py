@@ -1,14 +1,8 @@
 
 import math
 import numpy as np
-from RedeEletrica_backup.rede_eletrica import RedeEletricaPandaPower
-import pandas as pd
 
-
-
-
-
-# funções Benchmakrin
+# funções Benchmarking
 def evaluate(individual):
 	"""Função objetivo do problema """
 	a = sum(individual)
@@ -17,13 +11,14 @@ def evaluate(individual):
 
 
 def rastrigin(individual ):
-        rastrigin = 10 * len(individual)
+    """Calcula o valor da função Rastrigin para uma única variável."""
+    rastrigin = 10 * len(individual)
 
-        for i in range(len(individual)):
-            rastrigin += individual[i] * individual[i] - 10 * (
-                math.cos(2 * np.pi * individual[i])
-            )
-        return rastrigin
+    for i in range(len(individual)):
+        rastrigin += individual[i] * individual[i] - 10 * (
+            math.cos(2 * np.pi * individual[i])
+        )
+    return rastrigin
 
 def rosenbrock_benchmark(individual):
     """Calcula o valor da função Rosenbrock para uma única variável."""
