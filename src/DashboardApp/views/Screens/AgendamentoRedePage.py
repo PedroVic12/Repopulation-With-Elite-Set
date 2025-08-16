@@ -2,6 +2,7 @@ import streamlit as st
 from streamlit_timeline import st_timeline
 import pandas as pd
 import pathlib
+import json
 import numpy as np
 
 output_xlsx_file = pathlib.Path(__file__).resolve().parent.parent.parent.parent /  "output" / "results_consolidados.xlsx" # Importando o caminho do diretório de configuração
@@ -171,6 +172,33 @@ def AgendamentoRedePage(key_prefix: str = "", selected_exec: int | None = None, 
         st.warning(f"Erro ao carregar do Excel: {e}. Usando dados hardcoded com 5 execucões.")
         execution_df = carregar_dados_execucao()
 
+    # Carregar cache leve salvo pelo run_framework_backup.py (última execução)
+    try:
+        cache_path = output_xlsx_file.parent / "streamlit_cache_exec.json"
+        if cache_path.exists():
+            cache = json.loads(cache_path.read_text(encoding="utf-8"))
+            # Normaliza tipos
+            cache_exec = int(cache.get("execution", 0))
+            cache_vars = cache.get("solution_variables", [])
+            if isinstance(cache_vars, str):
+                try:
+                    import ast
+                    cache_vars = ast.literal_eval(cache_vars)
+                except Exception:
+                    cache_vars = []
+            # Se execução do cache não está no consolidado, adiciona uma linha virtual
+            if cache_exec and (cache_exec not in execution_df['execution'].tolist()):
+                cache_row = {
+                    'execution': cache_exec,
+                    'solution_variables': cache_vars,
+                    'best_fitness': cache.get('best_fitness'),
+                    'best_generations': cache.get('best_generations'),
+                    'execution_time': cache.get('execution_time'),
+                }
+                execution_df = pd.concat([execution_df, pd.DataFrame([cache_row])], ignore_index=True)
+    except Exception as e:
+        st.caption(f"[diag] Falha ao ler cache Streamlit: {e}")
+
     # Exibir tabelas editáveis
     with st.expander("Editar Agendamentos e Contingências", expanded=False):
         st.subheader("Tabela de Agendamentos")
@@ -249,8 +277,30 @@ def AgendamentoRedePage(key_prefix: str = "", selected_exec: int | None = None, 
                 f"Execução {selected_exec_int} não encontrada no consolidado. Renderizando timeline com as variáveis fornecidas pela aba de Soluções. Disponíveis no consolidado: {sorted(execution_df['execution'].unique().tolist())}"
             )
         else:
-            st.error(f"Execução selecionada {selected_exec_int} não encontrada nas execuções disponíveis: {sorted(execution_df['execution'].unique().tolist())}")
-            return
+            # Última tentativa: usar cache se existir a execução solicitada
+            try:
+                cache_path = output_xlsx_file.parent / "streamlit_cache_exec.json"
+                if cache_path.exists():
+                    cache = json.loads(cache_path.read_text(encoding="utf-8"))
+                    if int(cache.get('execution', 0)) == selected_exec_int:
+                        exec_data = pd.Series({
+                            'execution': selected_exec_int,
+                            'solution_variables': cache.get('solution_variables', []),
+                            'best_fitness': cache.get('best_fitness'),
+                            'best_generations': cache.get('best_generations'),
+                            'execution_time': cache.get('execution_time'),
+                        })
+                        override_applied = True
+                        st.info("Usando dados do cache da última execução para renderizar a timeline.")
+                    else:
+                        st.error(f"Execução selecionada {selected_exec_int} não encontrada nas execuções disponíveis: {sorted(execution_df['execution'].unique().tolist())}")
+                        return
+                else:
+                    st.error(f"Execução selecionada {selected_exec_int} não encontrada nas execuções disponíveis: {sorted(execution_df['execution'].unique().tolist())}")
+                    return
+            except Exception:
+                st.error(f"Execução selecionada {selected_exec_int} não encontrada nas execuções disponíveis: {sorted(execution_df['execution'].unique().tolist())}")
+                return
     else:
         exec_data = execution_df.loc[mask].iloc[0]
 

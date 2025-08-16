@@ -1,16 +1,28 @@
-# File: Repopulation-With-Elite-Set/lib/domain/models/utils/functions_fitness/function_IEEE_14_contigencias.py
+# File: Repopulation-With-Elite-Set/lib/domain/models/utils/functions_fitness/simulate_func_objetivo_IEEE14.py
 
 import os
 import sys
-import json
+import pathlib
 import pandas as pd
 import matplotlib.pyplot as plt  # Import matplotlib
 import io
 import base64
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..')))
-from RedeEletrica.rede_eletrica import RedeEletricaPandaPower
-from AlgEvolutivoRCE.Setup import Setup
+"""
+Este módulo pode ser executado como script para debug. Para garantir que os
+imports funcionem fora do ambiente do framework, adicionamos dinamicamente o
+diretório 'src' ao sys.path quando necessário.
+"""
+# Garante que /src esteja no sys.path (arquivo atual: /src/utils/functions_fitness/...)
+_THIS_DIR = pathlib.Path(__file__).resolve().parent
+_SRC_DIR = _THIS_DIR.parent.parent
+if str(_SRC_DIR) not in sys.path:
+    sys.path.insert(0, str(_SRC_DIR))
+
+from RedeEletrica_backup.rede_eletrica import RedeEletricaPandaPower
+
+from AlgEvolutivoRCE_backup.Setup import Setup
 
 
 #! TODO -> (10/07/25) Função implementada em Março mas precisa de paralelismo para ficar mais eficiente e melhor uso da hash table

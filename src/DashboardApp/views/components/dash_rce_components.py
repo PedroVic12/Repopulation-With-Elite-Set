@@ -238,43 +238,35 @@ class CardSolutions:
             </div>
         """
 
-        # Adicionar tabela de variáveis de decisão
+        # !Tabela Card Soluções de Variáveis de Decisão
+        # !Tabela Card Soluções de Variáveis de Decisão (modo horizontal)
         vars_html = ""
         if isinstance(best_vars, (list, tuple)) and best_vars:
-            vars_html += "<h4>Variáveis de Decisão</h4>"
-            vars_html += "<div style='max-height: 300px; overflow-y: auto;'>"
-            vars_html += "<table class='var-table'>"
-            vars_html += """
-                <thead>
-                    <tr>
-                        <th>Índice</th>
-                        <th>Valor</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr style='background-color: #2c3e50; color: white;'>
-                        <th style='padding: 10px; text-align: left; border-bottom: 1px solid #ddd;'>Variável</th>
-                        <th style='padding: 10px; text-align: right; border-bottom: 1px solid #ddd;'>Valor</th>
-                    </tr>
-            """
-            
-            for i, var in enumerate(best_vars, 1):
-                # Formatação condicional baseada no valor
+            vars_html += "<h4 style='margin-top: 20px;'>Variáveis de Decisão</h4>"
+            vars_html += "<div style='overflow-x: auto;'>"
+            vars_html += "<table class='var-table' style='width: 100%; border-collapse: collapse;'>"
+
+            # Cabeçalho com VAR 1, VAR 2, ...
+            vars_html += "<thead><tr>"
+            for i in range(1, len(best_vars) + 1):
+                vars_html += f"<th style='padding: 10px; text-align: center; border-bottom: 1px solid {border_color};'>VAR {i}</th>"
+            vars_html += "</tr></thead>"
+
+            # Linha com os valores
+            vars_html += "<tbody><tr>"
+            for var in best_vars:
                 var_style = f"color: {success_color}; font-weight: 500;" if var != 0 else "color: #888;"
                 try:
                     var_val = f"{float(var):.2f}"
                 except Exception:
                     var_val = str(var)
-                vars_html += f"""
-                    <tr style='border-bottom: 1px solid {border_color};'>
-                        <td style='padding: 8px 12px;'>VAR {i}</td>
-                        <td style='padding: 8px 12px; text-align: right; {var_style}'>{var_val}</td>
-                    </tr>
-                """
-            
-            vars_html += "</tbody></table></div>"
+                vars_html += f"<td style='padding: 8px 12px; text-align: center; {var_style}'>{var_val}</td>"
+            vars_html += "</tr></tbody>"
+
+            vars_html += "</table></div>"
         else:
             vars_html = "<p style='color: #888; text-align: center;'>Nenhuma variável encontrada</p>"
+
 
         # HTML para o card principal
         card_html = f"""

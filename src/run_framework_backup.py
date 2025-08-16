@@ -372,6 +372,33 @@ def run_framework_many_executions(function_bechmarking = False, config_num=1, ex
         with pd.ExcelWriter(f"{FOLDER_NAME}/results_consolidados.xlsx") as writer:
             consolidated_df.to_excel(writer, sheet_name="Consolidated Results", index=False)
         print(f"Resultados consolidados salvos em {FOLDER_NAME}/results_consolidados.xlsx")
+
+        # Também salva o último resultado em um cache leve para o Streamlit consumir diretamente
+        try:
+            import json
+            from pathlib import Path
+            cache_path = Path(FOLDER_NAME) / "streamlit_cache_exec.json"
+            last_row = consolidated_df.iloc[-1].to_dict()
+            # Campos esperados na página do Streamlit
+            cache_payload = {
+                "execution": int(last_row.get("execution", 1)),
+                "solution_variables": last_row.get("solution_variables", []),
+                "best_fitness": last_row.get("best_fitness", None),
+                "best_generations": last_row.get("best_generations", None),
+                "execution_time": last_row.get("execution_time", None),
+                "config_num": int(last_row.get("config_num", 1)),
+            }
+            # Se solution_variables vier como string, tenta converter
+            if isinstance(cache_payload["solution_variables"], str):
+                try:
+                    import ast
+                    cache_payload["solution_variables"] = ast.literal_eval(cache_payload["solution_variables"]) 
+                except Exception:
+                    pass
+            cache_path.write_text(json.dumps(cache_payload, ensure_ascii=False, indent=2), encoding="utf-8")
+            print(f"Cache Streamlit salvo em {cache_path}")
+        except Exception as e:
+            print(f"Aviso: falha ao salvar cache do Streamlit: {e}")
     else:
         print("Nenhum resultado para consolidar.")
 
