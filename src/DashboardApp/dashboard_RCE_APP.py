@@ -75,9 +75,6 @@ class App:
 if __name__ == "__main__":
     app = App()  # Initialize app config and styling
     try:
-        # Obter parâmetros de URL
-        #query_params = st.experimental_get_query_params()
-
         # Passando a pagina que desejo exibir
         pagina_selecionada = FrameworkRCEDashboard(options_main_file).run
         app.run(pagina_selecionada)
@@ -85,4 +82,4 @@ if __name__ == "__main__":
     except Exception as e:
         print(e)
     finally:
-        print("Aplicativo Streamlit carregado!")
+        print("App Streamlit State atualizado!")
