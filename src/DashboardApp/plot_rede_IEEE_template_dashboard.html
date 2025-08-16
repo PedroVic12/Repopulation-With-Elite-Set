@@ -1,0 +1,531 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard Elétrico - Sistema de Potência</title>
+    <script src="https://cdn.plot.ly/plotly-3.0.1.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: #333;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            color: #2c3e50;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .header p {
+            font-size: 1.1rem;
+            color: #7f8c8d;
+            font-weight: 300;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .stat-card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            padding: 25px;
+            text-align: center;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            transition: all 0.3s ease;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.15);
+        }
+
+        .stat-card .icon {
+            font-size: 2.5rem;
+            margin-bottom: 15px;
+            display: block;
+        }
+
+        .stat-card .value {
+            font-size: 2.2rem;
+            font-weight: bold;
+            margin-bottom: 8px;
+            color: #2c3e50;
+        }
+
+        .stat-card .label {
+            font-size: 0.9rem;
+            color: #7f8c8d;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .chart-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 30px;
+        }
+
+        .chart-container {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 25px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+        }
+
+        .chart-title {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: #2c3e50;
+            margin-bottom: 20px;
+            text-align: center;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #ecf0f1;
+        }
+
+        .chart {
+            width: 100%;
+            height: 500px;
+            border-radius: 10px;
+        }
+
+        .network-chart {
+            height: 600px;
+        }
+
+        .dual-chart-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+        }
+
+        @media (max-width: 768px) {
+            .dual-chart-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .header h1 {
+                font-size: 2rem;
+            }
+            
+            .stats-grid {
+                grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            }
+        }
+
+        .loading {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 400px;
+            font-size: 1.2rem;
+            color: #7f8c8d;
+        }
+
+        .status-indicator {
+            display: inline-block;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            margin-right: 8px;
+        }
+
+        .status-ok { background-color: #27ae60; }
+        .status-warning { background-color: #f39c12; }
+        .status-critical { background-color: #e74c3c; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>⚡ Dashboard Sistema Elétrico</h1>
+            <p>Monitoramento em tempo real do sistema de potência</p>
+        </div>
+
+        <div class="stats-grid">
+            <div class="stat-card">
+                <span class="icon">🏭</span>
+                <div class="value">14</div>
+                <div class="label">Barras do Sistema</div>
+            </div>
+            <div class="stat-card">
+                <span class="icon">⚡</span>
+                <div class="value">15</div>
+                <div class="label">Linhas de Transmissão</div>
+            </div>
+            <div class="stat-card">
+                <span class="icon">🔄</span>
+                <div class="value">5</div>
+                <div class="label">Transformadores</div>
+            </div>
+            <div class="stat-card">
+                <span class="icon">📊</span>
+                <div class="value" id="systemStatus">
+                    <span class="status-indicator status-ok"></span>Normal
+                </div>
+                <div class="label">Status do Sistema</div>
+            </div>
+        </div>
+
+        <div class="chart-grid">
+            <div class="chart-container">
+                <div class="chart-title">🔌 Diagrama Unifilar do Sistema</div>
+                <div id="networkChart" class="chart network-chart"></div>
+            </div>
+
+            <div class="dual-chart-grid">
+                <div class="chart-container">
+                    <div class="chart-title">📈 Potências do Sistema</div>
+                    <div id="powerChart" class="chart"></div>
+                </div>
+                <div class="chart-container">
+                    <div class="chart-title">⚡ Perfil de Tensões</div>
+                    <div id="voltageChart" class="chart"></div>
+                </div>
+            </div>
+
+            <div class="chart-container">
+                <div class="chart-title">🔄 Correntes Elétricas</div>
+                <div id="currentChart" class="chart"></div>
+            </div>
+
+
+        </div>
+
+        <div class = "footer">
+             <h1>Relatório de Resultados Elétricos</h1>
+            <div>                        
+                <script type="text/javascript">window.PlotlyConfig = {MathJaxConfig: 'local'};</script>
+                <script charset="utf-8" src="https://cdn.plot.ly/plotly-3.0.1.min.js"></script>                <div id="c8c40f92-f672-4086-9034-c88db67f312a" class="plotly-graph-div" style="height:673.8864109644103px; width:700.0px;"></div>            <script type="text/javascript">                window.PLOTLYENV=window.PLOTLYENV || {};                                if (document.getElementById("c8c40f92-f672-4086-9034-c88db67f312a")) {                    Plotly.newPlot(                        "c8c40f92-f672-4086-9034-c88db67f312a",                        [{"hoverinfo":"text","legendgroup":"lines","line":{"color":"rgb(0.0,0.0,141.13636363636363)","dash":"solid","width":2},"mode":"lines","name":"lines","showlegend":true,"text":"None\u003cbr \u002f\u003eI = 1.508 %\u003cbr \u002f\u003eI_from = 0.638 kA\u003cbr \u002f\u003eI_to = 0.635 kA\u003cbr \u002f\u003e","x":[1.96739499,2.47269011,2.97798523],"y":[-0.96101987,-1.001154055,-1.04128824],"type":"scatter"},{"hoverinfo":"text","legendgroup":"lines","line":{"color":"rgb(0.0,0.0,132.04545454545453)","dash":"solid","width":2},"mode":"lines","name":"lines","showlegend":false,"text":"None\u003cbr \u002f\u003eI = 0.721 %\u003cbr \u002f\u003eI_from = 0.305 kA\u003cbr \u002f\u003eI_to = 0.305 kA\u003cbr \u002f\u003e","x":[1.96739499,2.3305508550000003,2.69370672],"y":[-0.96101987,-0.52845136,-0.09588285],"type":"scatter"},{"hoverinfo":"text","legendgroup":"lines","line":{"color":"rgb(0.0,0.0,132.04545454545453)","dash":"solid","width":2},"mode":"lines","name":"lines","showlegend":false,"text":"None\u003cbr \u002f\u003eI = 0.709 %\u003cbr \u002f\u003eI_from = 0.3 kA\u003cbr \u002f\u003eI_to = 0.3 kA\u003cbr \u002f\u003e","x":[2.97798523,3.3793228849999997,3.78066054],"y":[-1.04128824,-1.323987105,-1.60668597],"type":"scatter"},{"hoverinfo":"text","legendgroup":"lines","line":{"color":"rgb(0.0,0.0,132.04545454545453)","dash":"solid","width":2},"mode":"lines","name":"lines","showlegend":false,"text":"None\u003cbr \u002f\u003eI = 0.543 %\u003cbr \u002f\u003eI_from = 0.23 kA\u003cbr \u002f\u003eI_to = 0.229 kA\u003cbr \u002f\u003e","x":[2.97798523,3.4058598599999996,3.83373449],"y":[-1.04128824,-0.7663769850000001,-0.49146573],"type":"scatter"},{"hoverinfo":"text","legendgroup":"lines","line":{"color":"rgb(0.0,0.0,132.04545454545453)","dash":"solid","width":2},"mode":"lines","name":"lines","showlegend":false,"text":"None\u003cbr \u002f\u003eI = 0.403 %\u003cbr \u002f\u003eI_from = 0.17 kA\u003cbr \u002f\u003eI_to = 0.171 kA\u003cbr \u002f\u003e","x":[2.97798523,2.835845975,2.69370672],"y":[-1.04128824,-0.568585545,-0.09588285],"type":"scatter"},{"hoverinfo":"text","legendgroup":"lines","line":{"color":"rgb(0.0,0.0,127.5)","dash":"solid","width":2},"mode":"lines","name":"lines","showlegend":false,"text":"None\u003cbr \u002f\u003eI = 0.24 %\u003cbr \u002f\u003eI_from = 0.1 kA\u003cbr \u002f\u003eI_to = 0.101 kA\u003cbr \u002f\u003e","x":[3.78066054,3.807197515,3.83373449],"y":[-1.60668597,-1.04907585,-0.49146573],"type":"scatter"},{"hoverinfo":"text","legendgroup":"lines","line":{"color":"rgb(0.0,0.0,132.04545454545453)","dash":"solid","width":2},"mode":"lines","name":"lines","showlegend":false,"text":"None\u003cbr \u002f\u003eI = 0.627 %\u003cbr \u002f\u003eI_from = 0.265 kA\u003cbr \u002f\u003eI_to = 0.265 kA\u003cbr \u002f\u003e","x":[3.83373449,3.263720605,2.69370672],"y":[-0.49146573,-0.29367429,-0.09588285],"type":"scatter"},{"hoverinfo":"text","legendgroup":"lines","line":{"color":"rgb(0.0,0.0,127.5)","dash":"solid","width":2},"mode":"lines","name":"lines","showlegend":false,"text":"None\u003cbr \u002f\u003eI = 0.077 %\u003cbr \u002f\u003eI_from = 21.194 kA\u003cbr \u002f\u003eI_to = 21.194 kA\u003cbr \u002f\u003e","x":[2.53211802,2.18440089,1.83668376],"y":[1.20561564,1.147311075,1.08900651],"type":"scatter"},{"hoverinfo":"text","legendgroup":"lines","line":{"color":"rgb(0.0,0.0,127.5)","dash":"solid","width":2},"mode":"lines","name":"lines","showlegend":false,"text":"None\u003cbr \u002f\u003eI = 0.077 %\u003cbr \u002f\u003eI_from = 21.216 kA\u003cbr \u002f\u003eI_to = 21.216 kA\u003cbr \u002f\u003e","x":[2.53211802,2.43461733,2.33711664],"y":[1.20561564,1.75738934,2.30916304],"type":"scatter"},{"hoverinfo":"text","legendgroup":"lines","line":{"color":"rgb(0.0,0.0,127.5)","dash":"solid","width":2},"mode":"lines","name":"lines","showlegend":false,"text":"None\u003cbr \u002f\u003eI = 0.181 %\u003cbr \u002f\u003eI_from = 49.701 kA\u003cbr \u002f\u003eI_to = 49.701 kA\u003cbr \u002f\u003e","x":[2.53211802,2.92080515,3.30949228],"y":[1.20561564,1.66179797,2.1179803],"type":"scatter"},{"hoverinfo":"text","legendgroup":"lines","line":{"color":"rgb(0.0,0.0,127.5)","dash":"solid","width":2},"mode":"lines","name":"lines","showlegend":false,"text":"None\u003cbr \u002f\u003eI = 0.064 %\u003cbr \u002f\u003eI_from = 17.659 kA\u003cbr \u002f\u003eI_to = 17.659 kA\u003cbr \u002f\u003e","x":[4.2749488,3.77362775,3.2723067],"y":[0.53353799,0.74776146,0.96198493],"type":"scatter"},{"hoverinfo":"text","legendgroup":"lines","line":{"color":"rgb(0.0,0.0,127.5)","dash":"solid","width":2},"mode":"lines","name":"lines","showlegend":false,"text":"None\u003cbr \u002f\u003eI = 0.097 %\u003cbr \u002f\u003eI_from = 26.534 kA\u003cbr \u002f\u003eI_to = 26.534 kA\u003cbr \u002f\u003e","x":[4.2749488,4.335577045,4.39620529],"y":[0.53353799,1.10914807,1.68475815],"type":"scatter"},{"hoverinfo":"text","legendgroup":"lines","line":{"color":"rgb(0.0,0.0,127.5)","dash":"solid","width":2},"mode":"lines","name":"lines","showlegend":false,"text":"None\u003cbr \u002f\u003eI = 0.04 %\u003cbr \u002f\u003eI_from = 10.869 kA\u003cbr \u002f\u003eI_to = 10.869 kA\u003cbr \u002f\u003e","x":[3.2723067,2.55449523,1.83668376],"y":[0.96198493,1.0254957199999999,1.08900651],"type":"scatter"},{"hoverinfo":"text","legendgroup":"lines","line":{"color":"rgb(0.0,0.0,127.5)","dash":"solid","width":2},"mode":"lines","name":"lines","showlegend":false,"text":"None\u003cbr \u002f\u003eI = 0.017 %\u003cbr \u002f\u003eI_from = 4.687 kA\u003cbr \u002f\u003eI_to = 4.687 kA\u003cbr \u002f\u003e","x":[2.33711664,2.82330446,3.30949228],"y":[2.30916304,2.2135716700000003,2.1179803],"type":"scatter"},{"hoverinfo":"text","legendgroup":"lines","line":{"color":"rgb(0.0,0.0,127.5)","dash":"solid","width":2},"mode":"lines","name":"lines","showlegend":false,"text":"None\u003cbr \u002f\u003eI = 0.057 %\u003cbr \u002f\u003eI_from = 15.613 kA\u003cbr \u002f\u003eI_to = 15.613 kA\u003cbr \u002f\u003e","x":[3.30949228,3.852848785,4.39620529],"y":[2.1179803,1.901369225,1.68475815],"type":"scatter"},{"hoverinfo":"text","legendgroup":"lines","marker":{"color":"rgb(128, 128, 128)","size":1,"symbol":"circle"},"mode":"markers","name":"edge_center","showlegend":false,"text":["None\u003cbr \u002f\u003eI = 1.508 %\u003cbr \u002f\u003eI_from = 0.638 kA\u003cbr \u002f\u003eI_to = 0.635 kA\u003cbr \u002f\u003e","None\u003cbr \u002f\u003eI = 0.721 %\u003cbr \u002f\u003eI_from = 0.305 kA\u003cbr \u002f\u003eI_to = 0.305 kA\u003cbr \u002f\u003e","None\u003cbr \u002f\u003eI = 0.709 %\u003cbr \u002f\u003eI_from = 0.3 kA\u003cbr \u002f\u003eI_to = 0.3 kA\u003cbr \u002f\u003e","None\u003cbr \u002f\u003eI = 0.543 %\u003cbr \u002f\u003eI_from = 0.23 kA\u003cbr \u002f\u003eI_to = 0.229 kA\u003cbr \u002f\u003e","None\u003cbr \u002f\u003eI = 0.403 %\u003cbr \u002f\u003eI_from = 0.17 kA\u003cbr \u002f\u003eI_to = 0.171 kA\u003cbr \u002f\u003e","None\u003cbr \u002f\u003eI = 0.24 %\u003cbr \u002f\u003eI_from = 0.1 kA\u003cbr \u002f\u003eI_to = 0.101 kA\u003cbr \u002f\u003e","None\u003cbr \u002f\u003eI = 0.627 %\u003cbr \u002f\u003eI_from = 0.265 kA\u003cbr \u002f\u003eI_to = 0.265 kA\u003cbr \u002f\u003e","None\u003cbr \u002f\u003eI = 0.077 %\u003cbr \u002f\u003eI_from = 21.194 kA\u003cbr \u002f\u003eI_to = 21.194 kA\u003cbr \u002f\u003e","None\u003cbr \u002f\u003eI = 0.077 %\u003cbr \u002f\u003eI_from = 21.216 kA\u003cbr \u002f\u003eI_to = 21.216 kA\u003cbr \u002f\u003e","None\u003cbr \u002f\u003eI = 0.181 %\u003cbr \u002f\u003eI_from = 49.701 kA\u003cbr \u002f\u003eI_to = 49.701 kA\u003cbr \u002f\u003e","None\u003cbr \u002f\u003eI = 0.064 %\u003cbr \u002f\u003eI_from = 17.659 kA\u003cbr \u002f\u003eI_to = 17.659 kA\u003cbr \u002f\u003e","None\u003cbr \u002f\u003eI = 0.097 %\u003cbr \u002f\u003eI_from = 26.534 kA\u003cbr \u002f\u003eI_to = 26.534 kA\u003cbr \u002f\u003e","None\u003cbr \u002f\u003eI = 0.04 %\u003cbr \u002f\u003eI_from = 10.869 kA\u003cbr \u002f\u003eI_to = 10.869 kA\u003cbr \u002f\u003e","None\u003cbr \u002f\u003eI = 0.017 %\u003cbr \u002f\u003eI_from = 4.687 kA\u003cbr \u002f\u003eI_to = 4.687 kA\u003cbr \u002f\u003e","None\u003cbr \u002f\u003eI = 0.057 %\u003cbr \u002f\u003eI_from = 15.613 kA\u003cbr \u002f\u003eI_to = 15.613 kA\u003cbr \u002f\u003e"],"x":[2.47269011],"y":[-1.001154055],"type":"scatter"},{"hoverinfo":"text","legendgroup":"2W transformers","line":{"color":"rgb(0.0,0.0,127.5)","width":3.0},"mode":"lines","name":"2W transformers","showlegend":true,"text":"None\u003cbr \u002f\u003eI = 0.295 %\u003cbr \u002f\u003eI_hv = 0.125 kA\u003cbr \u002f\u003eI_lv = 1.177 kA\u003cbr \u002f\u003e","x":[3.83373449,4.352937575,4.87214066],"y":[-0.49146573,-0.380380505,-0.26929528],"type":"scatter"},{"hoverinfo":"text","legendgroup":"2W transformers","line":{"color":"rgb(0.0,0.0,127.5)","width":3.0},"mode":"lines","name":"2W transformers","showlegend":false,"text":"None\u003cbr \u002f\u003eI = 0.16 %\u003cbr \u002f\u003eI_hv = 0.068 kA\u003cbr \u002f\u003eI_lv = 42.513 kA\u003cbr \u002f\u003e","x":[3.83373449,4.054341645,4.2749488],"y":[-0.49146573,0.021036130000000014,0.53353799],"type":"scatter"},{"hoverinfo":"text","legendgroup":"2W transformers","line":{"color":"rgb(0.0,0.0,132.04545454545453)","width":3.0},"mode":"lines","name":"2W transformers","showlegend":false,"text":"None\u003cbr \u002f\u003eI = 0.454 %\u003cbr \u002f\u003eI_hv = 0.192 kA\u003cbr \u002f\u003eI_lv = 116.259 kA\u003cbr \u002f\u003e","x":[2.69370672,2.61291237,2.53211802],"y":[-0.09588285,0.554866395,1.20561564],"type":"scatter"},{"hoverinfo":"text","legendgroup":"2W transformers","line":{"color":"rgb(0.0,0.0,127.5)","width":3.0},"mode":"lines","name":"2W transformers","showlegend":false,"text":"None\u003cbr \u002f\u003eI = 0.163 %\u003cbr \u002f\u003eI_hv = 0.667 kA\u003cbr \u002f\u003eI_lv = 0.778 kA\u003cbr \u002f\u003e","x":[4.87214066,5.388207715,5.90427477],"y":[-0.26929528,-0.404755115,-0.54021495],"type":"scatter"},{"hoverinfo":"text","legendgroup":"2W transformers","line":{"color":"rgb(0.0,0.0,127.5)","width":3.0},"mode":"lines","name":"2W transformers","showlegend":false,"text":"None\u003cbr \u002f\u003eI = 0.273 %\u003cbr \u002f\u003eI_hv = 1.114 kA\u003cbr \u002f\u003eI_lv = 74.949 kA\u003cbr \u002f\u003e","x":[4.87214066,4.57354473,4.2749488],"y":[-0.26929528,0.132121355,0.53353799],"type":"scatter"},{"hoverinfo":"text","legendgroup":"2W transformers","marker":{"color":"rgb(0.0,0.0,127.5)","size":1,"symbol":"circle"},"mode":"markers","name":"edge_center","showlegend":false,"text":["None\u003cbr \u002f\u003eI = 0.295 %\u003cbr \u002f\u003eI_hv = 0.125 kA\u003cbr \u002f\u003eI_lv = 1.177 kA\u003cbr \u002f\u003e","None\u003cbr \u002f\u003eI = 0.16 %\u003cbr \u002f\u003eI_hv = 0.068 kA\u003cbr \u002f\u003eI_lv = 42.513 kA\u003cbr \u002f\u003e","None\u003cbr \u002f\u003eI = 0.454 %\u003cbr \u002f\u003eI_hv = 0.192 kA\u003cbr \u002f\u003eI_lv = 116.259 kA\u003cbr \u002f\u003e","None\u003cbr \u002f\u003eI = 0.163 %\u003cbr \u002f\u003eI_hv = 0.667 kA\u003cbr \u002f\u003eI_lv = 0.778 kA\u003cbr \u002f\u003e","None\u003cbr \u002f\u003eI = 0.273 %\u003cbr \u002f\u003eI_hv = 1.114 kA\u003cbr \u002f\u003eI_lv = 74.949 kA\u003cbr \u002f\u003e"],"x":[4.352937575],"y":[-0.380380505],"type":"scatter"},{"hoverinfo":"text","marker":{"color":"rgb(128, 128, 128)","size":20,"symbol":"square"},"mode":"markers","name":"external_grid","text":[1],"x":[1.96739499],"y":[-0.96101987],"type":"scatter"},{"hoverinfo":"text","marker":{"cmax":1.1,"cmin":0.9,"color":{"dtype":"f8","bdata":"9ihcj8L18D+4HoXrUbjwPypcj8L1KPA\u002fNZqrO2FI8D8EPtzD7U\u002fwPyCF61G4HvE\u002fhwrC5\u002fv78D9xPQrXo3DxP5NW76gY5fA\u002f88EPQdXQ8D\u002f2DkHPFunwP\u002fa8IGcN4vA\u002fralFDl3O8D8dsjfZh5HwPw=="},"colorbar":{"thickness":10,"title":{"side":"right","text":"Bus Voltage [pu]"},"x":1.0},"colorscale":[[0.0,"rgb(0,0,131)"],[0.2,"rgb(0,60,170)"],[0.4,"rgb(5,255,255)"],[0.6,"rgb(255,255,0)"],[0.8,"rgb(250,0,0)"],[1.0,"rgb(128,0,0)"]],"size":10,"symbol":"circle"},"mode":"markers","name":"buses","text":["1\u003cbr \u002f\u003eV_m = 1.06 pu\u003cbr \u002f\u003eV_m = 143.1 kV\u003cbr \u002f\u003eV_a = 0.0 deg","2\u003cbr \u002f\u003eV_m = 1.045 pu\u003cbr \u002f\u003eV_m = 141.075 kV\u003cbr \u002f\u003eV_a = -4.983 deg","3\u003cbr \u002f\u003eV_m = 1.01 pu\u003cbr \u002f\u003eV_m = 136.35 kV\u003cbr \u002f\u003eV_a = -12.725 deg","4\u003cbr \u002f\u003eV_m = 1.018 pu\u003cbr \u002f\u003eV_m = 137.386 kV\u003cbr \u002f\u003eV_a = -10.313 deg","5\u003cbr \u002f\u003eV_m = 1.02 pu\u003cbr \u002f\u003eV_m = 137.634 kV\u003cbr \u002f\u003eV_a = -8.774 deg","6\u003cbr \u002f\u003eV_m = 1.07 pu\u003cbr \u002f\u003eV_m = 0.225 kV\u003cbr \u002f\u003eV_a = -14.221 deg","7\u003cbr \u002f\u003eV_m = 1.062 pu\u003cbr \u002f\u003eV_m = 14.861 kV\u003cbr \u002f\u003eV_a = -13.36 deg","8\u003cbr \u002f\u003eV_m = 1.09 pu\u003cbr \u002f\u003eV_m = 13.08 kV\u003cbr \u002f\u003eV_a = -13.36 deg","9\u003cbr \u002f\u003eV_m = 1.056 pu\u003cbr \u002f\u003eV_m = 0.222 kV\u003cbr \u002f\u003eV_a = -14.939 deg","10\u003cbr \u002f\u003eV_m = 1.051 pu\u003cbr \u002f\u003eV_m = 0.221 kV\u003cbr \u002f\u003eV_a = -15.097 deg","11\u003cbr \u002f\u003eV_m = 1.057 pu\u003cbr \u002f\u003eV_m = 0.222 kV\u003cbr \u002f\u003eV_a = -14.791 deg","12\u003cbr \u002f\u003eV_m = 1.055 pu\u003cbr \u002f\u003eV_m = 0.222 kV\u003cbr \u002f\u003eV_a = -15.076 deg","13\u003cbr \u002f\u003eV_m = 1.05 pu\u003cbr \u002f\u003eV_m = 0.221 kV\u003cbr \u002f\u003eV_a = -15.156 deg","14\u003cbr \u002f\u003eV_m = 1.036 pu\u003cbr \u002f\u003eV_m = 0.217 kV\u003cbr \u002f\u003eV_a = -16.034 deg"],"x":[1.96739499,2.97798523,3.78066054,3.83373449,2.69370672,2.53211802,4.87214066,5.90427477,4.2749488,3.2723067,1.83668376,2.33711664,3.30949228,4.39620529],"y":[-0.96101987,-1.04128824,-1.60668597,-0.49146573,-0.09588285,1.20561564,-0.26929528,-0.54021495,0.53353799,0.96198493,1.08900651,2.30916304,2.1179803,1.68475815],"type":"scatter"}],                        {"autosize":true,"hovermode":"closest","legend":{"itemsizing":"constant"},"margin":{"b":5,"l":5,"r":5,"t":5},"showlegend":false,"title":{"font":{"size":16}},"xaxis":{"showgrid":false,"showticklabels":false,"zeroline":false},"yaxis":{"showgrid":false,"showticklabels":false,"zeroline":false},"template":{"data":{"histogram2dcontour":[{"type":"histogram2dcontour","colorbar":{"outlinewidth":0,"ticks":""},"colorscale":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]]}],"choropleth":[{"type":"choropleth","colorbar":{"outlinewidth":0,"ticks":""}}],"histogram2d":[{"type":"histogram2d","colorbar":{"outlinewidth":0,"ticks":""},"colorscale":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]]}],"heatmap":[{"type":"heatmap","colorbar":{"outlinewidth":0,"ticks":""},"colorscale":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]]}],"contourcarpet":[{"type":"contourcarpet","colorbar":{"outlinewidth":0,"ticks":""}}],"contour":[{"type":"contour","colorbar":{"outlinewidth":0,"ticks":""},"colorscale":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]]}],"surface":[{"type":"surface","colorbar":{"outlinewidth":0,"ticks":""},"colorscale":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]]}],"mesh3d":[{"type":"mesh3d","colorbar":{"outlinewidth":0,"ticks":""}}],"scatter":[{"fillpattern":{"fillmode":"overlay","size":10,"solidity":0.2},"type":"scatter"}],"parcoords":[{"type":"parcoords","line":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"scatterpolargl":[{"type":"scatterpolargl","marker":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"bar":[{"error_x":{"color":"#2a3f5f"},"error_y":{"color":"#2a3f5f"},"marker":{"line":{"color":"#E5ECF6","width":0.5},"pattern":{"fillmode":"overlay","size":10,"solidity":0.2}},"type":"bar"}],"scattergeo":[{"type":"scattergeo","marker":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"scatterpolar":[{"type":"scatterpolar","marker":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"histogram":[{"marker":{"pattern":{"fillmode":"overlay","size":10,"solidity":0.2}},"type":"histogram"}],"scattergl":[{"type":"scattergl","marker":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"scatter3d":[{"type":"scatter3d","line":{"colorbar":{"outlinewidth":0,"ticks":""}},"marker":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"scattermap":[{"type":"scattermap","marker":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"scattermapbox":[{"type":"scattermapbox","marker":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"scatterternary":[{"type":"scatterternary","marker":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"scattercarpet":[{"type":"scattercarpet","marker":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"carpet":[{"aaxis":{"endlinecolor":"#2a3f5f","gridcolor":"white","linecolor":"white","minorgridcolor":"white","startlinecolor":"#2a3f5f"},"baxis":{"endlinecolor":"#2a3f5f","gridcolor":"white","linecolor":"white","minorgridcolor":"white","startlinecolor":"#2a3f5f"},"type":"carpet"}],"table":[{"cells":{"fill":{"color":"#EBF0F8"},"line":{"color":"white"}},"header":{"fill":{"color":"#C8D4E3"},"line":{"color":"white"}},"type":"table"}],"barpolar":[{"marker":{"line":{"color":"#E5ECF6","width":0.5},"pattern":{"fillmode":"overlay","size":10,"solidity":0.2}},"type":"barpolar"}],"pie":[{"automargin":true,"type":"pie"}]},"layout":{"autotypenumbers":"strict","colorway":["#636efa","#EF553B","#00cc96","#ab63fa","#FFA15A","#19d3f3","#FF6692","#B6E880","#FF97FF","#FECB52"],"font":{"color":"#2a3f5f"},"hovermode":"closest","hoverlabel":{"align":"left"},"paper_bgcolor":"white","plot_bgcolor":"#E5ECF6","polar":{"bgcolor":"#E5ECF6","angularaxis":{"gridcolor":"white","linecolor":"white","ticks":""},"radialaxis":{"gridcolor":"white","linecolor":"white","ticks":""}},"ternary":{"bgcolor":"#E5ECF6","aaxis":{"gridcolor":"white","linecolor":"white","ticks":""},"baxis":{"gridcolor":"white","linecolor":"white","ticks":""},"caxis":{"gridcolor":"white","linecolor":"white","ticks":""}},"coloraxis":{"colorbar":{"outlinewidth":0,"ticks":""}},"colorscale":{"sequential":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]],"sequentialminus":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]],"diverging":[[0,"#8e0152"],[0.1,"#c51b7d"],[0.2,"#de77ae"],[0.3,"#f1b6da"],[0.4,"#fde0ef"],[0.5,"#f7f7f7"],[0.6,"#e6f5d0"],[0.7,"#b8e186"],[0.8,"#7fbc41"],[0.9,"#4d9221"],[1,"#276419"]]},"xaxis":{"gridcolor":"white","linecolor":"white","ticks":"","title":{"standoff":15},"zerolinecolor":"white","automargin":true,"zerolinewidth":2},"yaxis":{"gridcolor":"white","linecolor":"white","ticks":"","title":{"standoff":15},"zerolinecolor":"white","automargin":true,"zerolinewidth":2},"scene":{"xaxis":{"backgroundcolor":"#E5ECF6","gridcolor":"white","linecolor":"white","showbackground":true,"ticks":"","zerolinecolor":"white","gridwidth":2},"yaxis":{"backgroundcolor":"#E5ECF6","gridcolor":"white","linecolor":"white","showbackground":true,"ticks":"","zerolinecolor":"white","gridwidth":2},"zaxis":{"backgroundcolor":"#E5ECF6","gridcolor":"white","linecolor":"white","showbackground":true,"ticks":"","zerolinecolor":"white","gridwidth":2}},"shapedefaults":{"line":{"color":"#2a3f5f"}},"annotationdefaults":{"arrowcolor":"#2a3f5f","arrowhead":0,"arrowwidth":1},"geo":{"bgcolor":"white","landcolor":"#E5ECF6","subunitcolor":"white","showland":true,"showlakes":true,"lakecolor":"white"},"title":{"x":0.05},"mapbox":{"style":"light"}}},"width":700.0,"height":673.8864109644103},                        {"responsive": true}                    )                };            </script>        </div><div>                        <script type="text/javascript">window.PlotlyConfig = {MathJaxConfig: 'local'};</script>
+                <script charset="utf-8" src="https://cdn.plot.ly/plotly-3.0.1.min.js"></script>                <div id="08ec9db6-175c-4364-bd6b-fae447d360ed" class="plotly-graph-div" style="height:100%; width:100%;"></div>            <script type="text/javascript">                window.PLOTLYENV=window.PLOTLYENV || {};                                if (document.getElementById("08ec9db6-175c-4364-bd6b-fae447d360ed")) {                    Plotly.newPlot(                        "08ec9db6-175c-4364-bd6b-fae447d360ed",                        [{"mode":"lines","name":"P Linhas (MW)","x":{"dtype":"i1","bdata":"AAECAwQFBgcICQoLDA0O"},"y":{"dtype":"f8","bdata":"3Maio0CcY0BMmIYYquBSQCoGi380T1JAgePf29QQTEDT82tVE8JEQHmtdPwiSTfA9FQm5UCUTsByqflwwWkdQFoHbMDuJB9AvLxgaXu\u002fMUC+LbmDA+kUQI\u002fZRp1O2iJANo\u002fEGVdIDsDb5+P0\u002f9P5P9e416tNkxZA"},"type":"scatter"},{"mode":"lines","name":"Q Linhas (MVAr)","x":{"dtype":"i1","bdata":"AAECAwQFBgcICQoLDA0O"},"y":{"dtype":"f8","bdata":"4h\u002flqH9nNMCk+lOYBdcOQPAjSq9LewxA2d79ODzO+L8V424\u002faLzyP0uk7mt45BFAuI5OZbSlL0DXr7FA2XsMQOB3Hwv+BgRAOuBF8MXdHEAAl7moZeAQQJq3ZvNK4QxAYUK6N0zX+b932yX5biDoP7sPg35s9Ps\u002f"},"type":"scatter"},{"mode":"lines","name":"P Trafos (MW)","x":{"dtype":"i1","bdata":"AAECAwQ="},"y":{"dtype":"f8","bdata":"baVeMf0SPEBM4zL+ahQwQMR2dFQtC0ZAdgg3xxeaAj29Cl0x\u002fRI8QA=="},"type":"scatter"},{"mode":"lines","name":"Q Trafos (MVAr)","x":{"dtype":"i1","bdata":"AAECAwQ="},"y":{"dtype":"f8","bdata":"rvw2pbRcI8Bw8\u002f5J+13bv3r\u002fvfH88ChABGdvb7gpMcDyCX4PYR0XQA=="},"type":"scatter"},{"mode":"lines","name":"P Cargas (MW)","x":{"dtype":"i1","bdata":"AAECAwQFBgcICQo="},"y":{"dtype":"f8","bdata":"MzMzMzOzNUDNzMzMzIxXQGZmZmZm5kdAZmZmZmZmHkBmZmZmZmYmQAAAAAAAgD1AAAAAAAAAIkAAAAAAAAAMQGZmZmZmZhhAAAAAAAAAK0DNzMzMzMwtQA=="},"type":"scatter"},{"mode":"lines","name":"Q Cargas (MVAr)","x":{"dtype":"i1","bdata":"AAECAwQFBgcICQo="},"y":{"dtype":"f8","bdata":"ZmZmZmZmKUAAAAAAAAAzQDMzMzMzMw\u002fAmpmZmZmZ+T8AAAAAAAAeQJqZmZmZmTBAMzMzMzMzF0DNzMzMzMz8P5qZmZmZmfk\u002fMzMzMzMzF0AAAAAAAAAUQA=="},"type":"scatter"}],                        {"template":{"data":{"histogram2dcontour":[{"type":"histogram2dcontour","colorbar":{"outlinewidth":0,"ticks":""},"colorscale":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]]}],"choropleth":[{"type":"choropleth","colorbar":{"outlinewidth":0,"ticks":""}}],"histogram2d":[{"type":"histogram2d","colorbar":{"outlinewidth":0,"ticks":""},"colorscale":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]]}],"heatmap":[{"type":"heatmap","colorbar":{"outlinewidth":0,"ticks":""},"colorscale":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]]}],"contourcarpet":[{"type":"contourcarpet","colorbar":{"outlinewidth":0,"ticks":""}}],"contour":[{"type":"contour","colorbar":{"outlinewidth":0,"ticks":""},"colorscale":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]]}],"surface":[{"type":"surface","colorbar":{"outlinewidth":0,"ticks":""},"colorscale":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]]}],"mesh3d":[{"type":"mesh3d","colorbar":{"outlinewidth":0,"ticks":""}}],"scatter":[{"fillpattern":{"fillmode":"overlay","size":10,"solidity":0.2},"type":"scatter"}],"parcoords":[{"type":"parcoords","line":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"scatterpolargl":[{"type":"scatterpolargl","marker":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"bar":[{"error_x":{"color":"#2a3f5f"},"error_y":{"color":"#2a3f5f"},"marker":{"line":{"color":"#E5ECF6","width":0.5},"pattern":{"fillmode":"overlay","size":10,"solidity":0.2}},"type":"bar"}],"scattergeo":[{"type":"scattergeo","marker":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"scatterpolar":[{"type":"scatterpolar","marker":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"histogram":[{"marker":{"pattern":{"fillmode":"overlay","size":10,"solidity":0.2}},"type":"histogram"}],"scattergl":[{"type":"scattergl","marker":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"scatter3d":[{"type":"scatter3d","line":{"colorbar":{"outlinewidth":0,"ticks":""}},"marker":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"scattermap":[{"type":"scattermap","marker":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"scattermapbox":[{"type":"scattermapbox","marker":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"scatterternary":[{"type":"scatterternary","marker":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"scattercarpet":[{"type":"scattercarpet","marker":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"carpet":[{"aaxis":{"endlinecolor":"#2a3f5f","gridcolor":"white","linecolor":"white","minorgridcolor":"white","startlinecolor":"#2a3f5f"},"baxis":{"endlinecolor":"#2a3f5f","gridcolor":"white","linecolor":"white","minorgridcolor":"white","startlinecolor":"#2a3f5f"},"type":"carpet"}],"table":[{"cells":{"fill":{"color":"#EBF0F8"},"line":{"color":"white"}},"header":{"fill":{"color":"#C8D4E3"},"line":{"color":"white"}},"type":"table"}],"barpolar":[{"marker":{"line":{"color":"#E5ECF6","width":0.5},"pattern":{"fillmode":"overlay","size":10,"solidity":0.2}},"type":"barpolar"}],"pie":[{"automargin":true,"type":"pie"}]},"layout":{"autotypenumbers":"strict","colorway":["#636efa","#EF553B","#00cc96","#ab63fa","#FFA15A","#19d3f3","#FF6692","#B6E880","#FF97FF","#FECB52"],"font":{"color":"#2a3f5f"},"hovermode":"closest","hoverlabel":{"align":"left"},"paper_bgcolor":"white","plot_bgcolor":"#E5ECF6","polar":{"bgcolor":"#E5ECF6","angularaxis":{"gridcolor":"white","linecolor":"white","ticks":""},"radialaxis":{"gridcolor":"white","linecolor":"white","ticks":""}},"ternary":{"bgcolor":"#E5ECF6","aaxis":{"gridcolor":"white","linecolor":"white","ticks":""},"baxis":{"gridcolor":"white","linecolor":"white","ticks":""},"caxis":{"gridcolor":"white","linecolor":"white","ticks":""}},"coloraxis":{"colorbar":{"outlinewidth":0,"ticks":""}},"colorscale":{"sequential":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]],"sequentialminus":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]],"diverging":[[0,"#8e0152"],[0.1,"#c51b7d"],[0.2,"#de77ae"],[0.3,"#f1b6da"],[0.4,"#fde0ef"],[0.5,"#f7f7f7"],[0.6,"#e6f5d0"],[0.7,"#b8e186"],[0.8,"#7fbc41"],[0.9,"#4d9221"],[1,"#276419"]]},"xaxis":{"gridcolor":"white","linecolor":"white","ticks":"","title":{"standoff":15},"zerolinecolor":"white","automargin":true,"zerolinewidth":2},"yaxis":{"gridcolor":"white","linecolor":"white","ticks":"","title":{"standoff":15},"zerolinecolor":"white","automargin":true,"zerolinewidth":2},"scene":{"xaxis":{"backgroundcolor":"#E5ECF6","gridcolor":"white","linecolor":"white","showbackground":true,"ticks":"","zerolinecolor":"white","gridwidth":2},"yaxis":{"backgroundcolor":"#E5ECF6","gridcolor":"white","linecolor":"white","showbackground":true,"ticks":"","zerolinecolor":"white","gridwidth":2},"zaxis":{"backgroundcolor":"#E5ECF6","gridcolor":"white","linecolor":"white","showbackground":true,"ticks":"","zerolinecolor":"white","gridwidth":2}},"shapedefaults":{"line":{"color":"#2a3f5f"}},"annotationdefaults":{"arrowcolor":"#2a3f5f","arrowhead":0,"arrowwidth":1},"geo":{"bgcolor":"white","landcolor":"#E5ECF6","subunitcolor":"white","showland":true,"showlakes":true,"lakecolor":"white"},"title":{"x":0.05},"mapbox":{"style":"light"}}},"xaxis":{"anchor":"y","domain":[0.0,1.0],"title":{"text":"Índice"}},"yaxis":{"anchor":"x","domain":[0.0,1.0],"title":{"text":"Potência"}},"annotations":[{"font":{"size":16},"showarrow":false,"text":"Potências Ativa e Reativa","x":0.5,"xanchor":"center","xref":"paper","y":1.0,"yanchor":"bottom","yref":"paper"}],"title":{"text":"Gráfico de Potências"}},                        {"responsive": true}                    )                };            </script>        </div><div>                        <script type="text/javascript">window.PlotlyConfig = {MathJaxConfig: 'local'};</script>
+                <script charset="utf-8" src="https://cdn.plot.ly/plotly-3.0.1.min.js"></script>                <div id="fa7f7c17-ca4b-45b7-b529-be5dc8e179ad" class="plotly-graph-div" style="height:100%; width:100%;"></div>            <script type="text/javascript">                window.PLOTLYENV=window.PLOTLYENV || {};                                if (document.getElementById("fa7f7c17-ca4b-45b7-b529-be5dc8e179ad")) {                    Plotly.newPlot(                        "fa7f7c17-ca4b-45b7-b529-be5dc8e179ad",                        [{"mode":"lines","name":"Tensão Barras","x":{"dtype":"i1","bdata":"AAECAwQFBgcICQoLDA0="},"y":{"dtype":"f8","bdata":"9ihcj8L18D+4HoXrUbjwPypcj8L1KPA\u002fNZqrO2FI8D8EPtzD7U\u002fwPyCF61G4HvE\u002fhwrC5\u002fv78D9xPQrXo3DxP5NW76gY5fA\u002f88EPQdXQ8D\u002f2DkHPFunwP\u002fa8IGcN4vA\u002fralFDl3O8D8dsjfZh5HwPw=="},"type":"scatter"},{"mode":"lines","name":"Tensão Linhas","x":{"dtype":"i1","bdata":"AAECAwQFBgcICQoLDA0O"},"y":{"dtype":"f8","bdata":"9ihcj8L18D\u002f2KFyPwvXwP7gehetRuPA\u002fuB6F61G48D+4HoXrUbjwPypcj8L1KPA\u002fNZqrO2FI8D8ghetRuB7xPyCF61G4HvE\u002fIIXrUbge8T+TVu+oGOXwP5NW76gY5fA\u002f88EPQdXQ8D\u002f2vCBnDeLwP62pRQ5dzvA\u002f"},"type":"scatter"}],                        {"template":{"data":{"histogram2dcontour":[{"type":"histogram2dcontour","colorbar":{"outlinewidth":0,"ticks":""},"colorscale":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]]}],"choropleth":[{"type":"choropleth","colorbar":{"outlinewidth":0,"ticks":""}}],"histogram2d":[{"type":"histogram2d","colorbar":{"outlinewidth":0,"ticks":""},"colorscale":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]]}],"heatmap":[{"type":"heatmap","colorbar":{"outlinewidth":0,"ticks":""},"colorscale":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]]}],"contourcarpet":[{"type":"contourcarpet","colorbar":{"outlinewidth":0,"ticks":""}}],"contour":[{"type":"contour","colorbar":{"outlinewidth":0,"ticks":""},"colorscale":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]]}],"surface":[{"type":"surface","colorbar":{"outlinewidth":0,"ticks":""},"colorscale":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]]}],"mesh3d":[{"type":"mesh3d","colorbar":{"outlinewidth":0,"ticks":""}}],"scatter":[{"fillpattern":{"fillmode":"overlay","size":10,"solidity":0.2},"type":"scatter"}],"parcoords":[{"type":"parcoords","line":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"scatterpolargl":[{"type":"scatterpolargl","marker":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"bar":[{"error_x":{"color":"#2a3f5f"},"error_y":{"color":"#2a3f5f"},"marker":{"line":{"color":"#E5ECF6","width":0.5},"pattern":{"fillmode":"overlay","size":10,"solidity":0.2}},"type":"bar"}],"scattergeo":[{"type":"scattergeo","marker":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"scatterpolar":[{"type":"scatterpolar","marker":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"histogram":[{"marker":{"pattern":{"fillmode":"overlay","size":10,"solidity":0.2}},"type":"histogram"}],"scattergl":[{"type":"scattergl","marker":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"scatter3d":[{"type":"scatter3d","line":{"colorbar":{"outlinewidth":0,"ticks":""}},"marker":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"scattermap":[{"type":"scattermap","marker":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"scattermapbox":[{"type":"scattermapbox","marker":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"scatterternary":[{"type":"scatterternary","marker":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"scattercarpet":[{"type":"scattercarpet","marker":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"carpet":[{"aaxis":{"endlinecolor":"#2a3f5f","gridcolor":"white","linecolor":"white","minorgridcolor":"white","startlinecolor":"#2a3f5f"},"baxis":{"endlinecolor":"#2a3f5f","gridcolor":"white","linecolor":"white","minorgridcolor":"white","startlinecolor":"#2a3f5f"},"type":"carpet"}],"table":[{"cells":{"fill":{"color":"#EBF0F8"},"line":{"color":"white"}},"header":{"fill":{"color":"#C8D4E3"},"line":{"color":"white"}},"type":"table"}],"barpolar":[{"marker":{"line":{"color":"#E5ECF6","width":0.5},"pattern":{"fillmode":"overlay","size":10,"solidity":0.2}},"type":"barpolar"}],"pie":[{"automargin":true,"type":"pie"}]},"layout":{"autotypenumbers":"strict","colorway":["#636efa","#EF553B","#00cc96","#ab63fa","#FFA15A","#19d3f3","#FF6692","#B6E880","#FF97FF","#FECB52"],"font":{"color":"#2a3f5f"},"hovermode":"closest","hoverlabel":{"align":"left"},"paper_bgcolor":"white","plot_bgcolor":"#E5ECF6","polar":{"bgcolor":"#E5ECF6","angularaxis":{"gridcolor":"white","linecolor":"white","ticks":""},"radialaxis":{"gridcolor":"white","linecolor":"white","ticks":""}},"ternary":{"bgcolor":"#E5ECF6","aaxis":{"gridcolor":"white","linecolor":"white","ticks":""},"baxis":{"gridcolor":"white","linecolor":"white","ticks":""},"caxis":{"gridcolor":"white","linecolor":"white","ticks":""}},"coloraxis":{"colorbar":{"outlinewidth":0,"ticks":""}},"colorscale":{"sequential":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]],"sequentialminus":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]],"diverging":[[0,"#8e0152"],[0.1,"#c51b7d"],[0.2,"#de77ae"],[0.3,"#f1b6da"],[0.4,"#fde0ef"],[0.5,"#f7f7f7"],[0.6,"#e6f5d0"],[0.7,"#b8e186"],[0.8,"#7fbc41"],[0.9,"#4d9221"],[1,"#276419"]]},"xaxis":{"gridcolor":"white","linecolor":"white","ticks":"","title":{"standoff":15},"zerolinecolor":"white","automargin":true,"zerolinewidth":2},"yaxis":{"gridcolor":"white","linecolor":"white","ticks":"","title":{"standoff":15},"zerolinecolor":"white","automargin":true,"zerolinewidth":2},"scene":{"xaxis":{"backgroundcolor":"#E5ECF6","gridcolor":"white","linecolor":"white","showbackground":true,"ticks":"","zerolinecolor":"white","gridwidth":2},"yaxis":{"backgroundcolor":"#E5ECF6","gridcolor":"white","linecolor":"white","showbackground":true,"ticks":"","zerolinecolor":"white","gridwidth":2},"zaxis":{"backgroundcolor":"#E5ECF6","gridcolor":"white","linecolor":"white","showbackground":true,"ticks":"","zerolinecolor":"white","gridwidth":2}},"shapedefaults":{"line":{"color":"#2a3f5f"}},"annotationdefaults":{"arrowcolor":"#2a3f5f","arrowhead":0,"arrowwidth":1},"geo":{"bgcolor":"white","landcolor":"#E5ECF6","subunitcolor":"white","showland":true,"showlakes":true,"lakecolor":"white"},"title":{"x":0.05},"mapbox":{"style":"light"}}},"xaxis":{"anchor":"y","domain":[0.0,1.0],"title":{"text":"Índice"}},"yaxis":{"anchor":"x","domain":[0.0,1.0],"title":{"text":"Tensão (pu)"}},"annotations":[{"font":{"size":16},"showarrow":false,"text":"Tensões em pu","x":0.5,"xanchor":"center","xref":"paper","y":1.0,"yanchor":"bottom","yref":"paper"}],"title":{"text":"Gráfico de Tensões"}},                        {"responsive": true}                    )                };            </script>        </div><div>                        <script type="text/javascript">window.PlotlyConfig = {MathJaxConfig: 'local'};</script>
+                <script charset="utf-8" src="https://cdn.plot.ly/plotly-3.0.1.min.js"></script>                <div id="b5ffe76a-9df8-4f8d-98e8-668188ebb5b0" class="plotly-graph-div" style="height:100%; width:100%;"></div>            <script type="text/javascript">                window.PLOTLYENV=window.PLOTLYENV || {};                                if (document.getElementById("b5ffe76a-9df8-4f8d-98e8-668188ebb5b0")) {                    Plotly.newPlot(                        "b5ffe76a-9df8-4f8d-98e8-668188ebb5b0",                        [{"name":"Corrente Linhas (kA)","x":{"dtype":"i1","bdata":"AAECAwQFBgcICQoLDA0O"},"y":{"dtype":"f8","bdata":"zlBLc95s5D8MksB\u002fH4rTP+6xLfjyONM\u002ffD7cJUlqzT\u002fCKB5q3NXFP7JGktOl+rk\u002fKYKGF4v90D8qzRRqoTE1QOTdg+hoNzVAbWRCf7\u002fZSEDVS8cXsqgxQJ\u002fCfBC3iDpAj2g81gy9JUAhTa7PMr8SQK6Y1nGuOS9A"},"type":"bar"},{"name":"Corrente Trafos (kA)","x":{"dtype":"i1","bdata":"AAECAwQ="},"y":{"dtype":"f8","bdata":"RckYm6\u002fyvz\u002fEDqOIE06xP7ZVyTLSmcg\u002f8z+ZPS1W5T\u002ffw6l1AtHxPw=="},"type":"bar"}],                        {"template":{"data":{"histogram2dcontour":[{"type":"histogram2dcontour","colorbar":{"outlinewidth":0,"ticks":""},"colorscale":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]]}],"choropleth":[{"type":"choropleth","colorbar":{"outlinewidth":0,"ticks":""}}],"histogram2d":[{"type":"histogram2d","colorbar":{"outlinewidth":0,"ticks":""},"colorscale":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]]}],"heatmap":[{"type":"heatmap","colorbar":{"outlinewidth":0,"ticks":""},"colorscale":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]]}],"contourcarpet":[{"type":"contourcarpet","colorbar":{"outlinewidth":0,"ticks":""}}],"contour":[{"type":"contour","colorbar":{"outlinewidth":0,"ticks":""},"colorscale":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]]}],"surface":[{"type":"surface","colorbar":{"outlinewidth":0,"ticks":""},"colorscale":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]]}],"mesh3d":[{"type":"mesh3d","colorbar":{"outlinewidth":0,"ticks":""}}],"scatter":[{"fillpattern":{"fillmode":"overlay","size":10,"solidity":0.2},"type":"scatter"}],"parcoords":[{"type":"parcoords","line":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"scatterpolargl":[{"type":"scatterpolargl","marker":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"bar":[{"error_x":{"color":"#2a3f5f"},"error_y":{"color":"#2a3f5f"},"marker":{"line":{"color":"#E5ECF6","width":0.5},"pattern":{"fillmode":"overlay","size":10,"solidity":0.2}},"type":"bar"}],"scattergeo":[{"type":"scattergeo","marker":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"scatterpolar":[{"type":"scatterpolar","marker":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"histogram":[{"marker":{"pattern":{"fillmode":"overlay","size":10,"solidity":0.2}},"type":"histogram"}],"scattergl":[{"type":"scattergl","marker":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"scatter3d":[{"type":"scatter3d","line":{"colorbar":{"outlinewidth":0,"ticks":""}},"marker":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"scattermap":[{"type":"scattermap","marker":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"scattermapbox":[{"type":"scattermapbox","marker":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"scatterternary":[{"type":"scatterternary","marker":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"scattercarpet":[{"type":"scattercarpet","marker":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"carpet":[{"aaxis":{"endlinecolor":"#2a3f5f","gridcolor":"white","linecolor":"white","minorgridcolor":"white","startlinecolor":"#2a3f5f"},"baxis":{"endlinecolor":"#2a3f5f","gridcolor":"white","linecolor":"white","minorgridcolor":"white","startlinecolor":"#2a3f5f"},"type":"carpet"}],"table":[{"cells":{"fill":{"color":"#EBF0F8"},"line":{"color":"white"}},"header":{"fill":{"color":"#C8D4E3"},"line":{"color":"white"}},"type":"table"}],"barpolar":[{"marker":{"line":{"color":"#E5ECF6","width":0.5},"pattern":{"fillmode":"overlay","size":10,"solidity":0.2}},"type":"barpolar"}],"pie":[{"automargin":true,"type":"pie"}]},"layout":{"autotypenumbers":"strict","colorway":["#636efa","#EF553B","#00cc96","#ab63fa","#FFA15A","#19d3f3","#FF6692","#B6E880","#FF97FF","#FECB52"],"font":{"color":"#2a3f5f"},"hovermode":"closest","hoverlabel":{"align":"left"},"paper_bgcolor":"white","plot_bgcolor":"#E5ECF6","polar":{"bgcolor":"#E5ECF6","angularaxis":{"gridcolor":"white","linecolor":"white","ticks":""},"radialaxis":{"gridcolor":"white","linecolor":"white","ticks":""}},"ternary":{"bgcolor":"#E5ECF6","aaxis":{"gridcolor":"white","linecolor":"white","ticks":""},"baxis":{"gridcolor":"white","linecolor":"white","ticks":""},"caxis":{"gridcolor":"white","linecolor":"white","ticks":""}},"coloraxis":{"colorbar":{"outlinewidth":0,"ticks":""}},"colorscale":{"sequential":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]],"sequentialminus":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]],"diverging":[[0,"#8e0152"],[0.1,"#c51b7d"],[0.2,"#de77ae"],[0.3,"#f1b6da"],[0.4,"#fde0ef"],[0.5,"#f7f7f7"],[0.6,"#e6f5d0"],[0.7,"#b8e186"],[0.8,"#7fbc41"],[0.9,"#4d9221"],[1,"#276419"]]},"xaxis":{"gridcolor":"white","linecolor":"white","ticks":"","title":{"standoff":15},"zerolinecolor":"white","automargin":true,"zerolinewidth":2},"yaxis":{"gridcolor":"white","linecolor":"white","ticks":"","title":{"standoff":15},"zerolinecolor":"white","automargin":true,"zerolinewidth":2},"scene":{"xaxis":{"backgroundcolor":"#E5ECF6","gridcolor":"white","linecolor":"white","showbackground":true,"ticks":"","zerolinecolor":"white","gridwidth":2},"yaxis":{"backgroundcolor":"#E5ECF6","gridcolor":"white","linecolor":"white","showbackground":true,"ticks":"","zerolinecolor":"white","gridwidth":2},"zaxis":{"backgroundcolor":"#E5ECF6","gridcolor":"white","linecolor":"white","showbackground":true,"ticks":"","zerolinecolor":"white","gridwidth":2}},"shapedefaults":{"line":{"color":"#2a3f5f"}},"annotationdefaults":{"arrowcolor":"#2a3f5f","arrowhead":0,"arrowwidth":1},"geo":{"bgcolor":"white","landcolor":"#E5ECF6","subunitcolor":"white","showland":true,"showlakes":true,"lakecolor":"white"},"title":{"x":0.05},"mapbox":{"style":"light"}}},"xaxis":{"anchor":"y","domain":[0.0,1.0],"title":{"text":"Índice"}},"yaxis":{"anchor":"x","domain":[0.0,1.0],"title":{"text":"Corrente (kA)"}},"annotations":[{"font":{"size":16},"showarrow":false,"text":"Correntes Elétricas","x":0.5,"xanchor":"center","xref":"paper","y":1.0,"yanchor":"bottom","yref":"paper"}],"title":{"text":"Gráfico de Correntes"}},                        {"responsive": true}                    )                };            </script>        
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Dados extraídos do arquivo original
+        const networkData = [
+            // Linhas
+            {
+                hoverinfo: "text",
+                legendgroup: "lines",
+                line: {color: "rgb(0.0,0.0,141.13636363636363)", dash: "solid", width: 2},
+                mode: "lines",
+                name: "Linhas de Transmissão",
+                showlegend: true,
+                text: "Linha 1<br/>I = 1.508 %<br/>I_from = 0.638 kA<br/>I_to = 0.635 kA",
+                x: [1.96739499, 2.47269011, 2.97798523],
+                y: [-0.96101987, -1.001154055, -1.04128824],
+                type: "scatter"
+            },
+            // Transformadores
+            {
+                hoverinfo: "text",
+                legendgroup: "2W transformers",
+                line: {color: "rgb(0.0,0.0,127.5)", width: 3.0},
+                mode: "lines",
+                name: "Transformadores",
+                showlegend: true,
+                text: "Trafo 1<br/>I = 0.295 %<br/>I_hv = 0.125 kA<br/>I_lv = 1.177 kA",
+                x: [3.83373449, 4.352937575, 4.87214066],
+                y: [-0.49146573, -0.380380505, -0.26929528],
+                type: "scatter"
+            },
+            // Barras
+            {
+                hoverinfo: "text",
+                marker: {
+                    color: [1.06, 1.045, 1.01, 1.018, 1.02, 1.07, 1.062, 1.09, 1.056, 1.051, 1.057, 1.055, 1.05, 1.036],
+                    cmax: 1.1,
+                    cmin: 0.9,
+                    colorbar: {thickness: 10, title: {side: "right", text: "Tensão (pu)"}, x: 1.0},
+                    colorscale: [[0.0,"rgb(0,0,131)"],[0.2,"rgb(0,60,170)"],[0.4,"rgb(5,255,255)"],[0.6,"rgb(255,255,0)"],[0.8,"rgb(250,0,0)"],[1.0,"rgb(128,0,0)"]],
+                    size: 15,
+                    symbol: "circle"
+                },
+                mode: "markers",
+                name: "Barras",
+                text: [
+                    "Barra 1<br/>V = 1.06 pu<br/>V = 143.1 kV<br/>Ângulo = 0.0°",
+                    "Barra 2<br/>V = 1.045 pu<br/>V = 141.075 kV<br/>Ângulo = -4.983°",
+                    "Barra 3<br/>V = 1.01 pu<br/>V = 136.35 kV<br/>Ângulo = -12.725°",
+                    "Barra 4<br/>V = 1.018 pu<br/>V = 137.386 kV<br/>Ângulo = -10.313°",
+                    "Barra 5<br/>V = 1.02 pu<br/>V = 137.634 kV<br/>Ângulo = -8.774°",
+                    "Barra 6<br/>V = 1.07 pu<br/>V = 0.225 kV<br/>Ângulo = -14.221°",
+                    "Barra 7<br/>V = 1.062 pu<br/>V = 14.861 kV<br/>Ângulo = -13.36°",
+                    "Barra 8<br/>V = 1.09 pu<br/>V = 13.08 kV<br/>Ângulo = -13.36°",
+                    "Barra 9<br/>V = 1.056 pu<br/>V = 0.222 kV<br/>Ângulo = -14.939°",
+                    "Barra 10<br/>V = 1.051 pu<br/>V = 0.221 kV<br/>Ângulo = -15.097°",
+                    "Barra 11<br/>V = 1.057 pu<br/>V = 0.222 kV<br/>Ângulo = -14.791°",
+                    "Barra 12<br/>V = 1.055 pu<br/>V = 0.222 kV<br/>Ângulo = -15.076°",
+                    "Barra 13<br/>V = 1.05 pu<br/>V = 0.221 kV<br/>Ângulo = -15.156°",
+                    "Barra 14<br/>V = 1.036 pu<br/>V = 0.217 kV<br/>Ângulo = -16.034°",
+                    
+                ],
+                x: [1.96739499, 2.97798523, 3.78066054, 3.83373449, 2.69370672, 2.53211802, 4.87214066, 5.90427477, 4.2749488, 3.2723067, 1.83668376, 2.33711664, 3.30949228, 4.39620529],
+                y: [-0.96101987, -1.04128824, -1.60668597, -0.49146573, -0.09588285, 1.20561564, -0.26929528, -0.54021495, 0.53353799, 0.96198493, 1.08900651, 2.30916304, 2.1179803, 1.68475815],
+                type: "scatter"
+            }
+        ];
+
+        const powerData = [
+            {
+                mode: "lines+markers",
+                name: "P Linhas (MW)",
+                x: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14],
+                y: [21.93, 18.36, 18.12, 13.83, 10.23, 6.03, 5.31, 2.85, 2.28, 3.36, 3.48, 1.44, 0.57, 0.96],
+                type: "scatter",
+                line: {color: '#1f77b4', width: 3}
+            },
+            {
+                mode: "lines+markers",
+                name: "Q Linhas (MVAr)",
+                x: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14],
+                y: [-11.28, 2.64, 2.73, -0.96, 0.57, 3.18, -5.88, 2.16, 2.46, 3.24, 2.52, 2.64, 0.96, 0.12],
+                type: "scatter",
+                line: {color: '#ff7f0e', width: 3}
+            },
+            {
+                mode: "lines+markers",
+                name: "P Trafos (MW)",
+                x: [1, 2, 3, 4, 5],
+                y: [4.8, 12.6, 44.7, -4.8, 4.8],
+                type: "scatter",
+                line: {color: '#2ca02c', width: 3}
+            },
+            {
+                mode: "lines+markers",
+                name: "Q Trafos (MVAr)",
+                x: [1, 2, 3, 4, 5],
+                y: [-9.48, -1.98, 10.8, -12.72, 5.76],
+                type: "scatter",
+                line: {color: '#d62728', width: 3}
+            }
+        ];
+
+        const voltageData = [
+            {
+                mode: "lines+markers",
+                name: "Tensão Barras",
+                x: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14],
+                y: [1.06, 1.045, 1.01, 1.018, 1.02, 1.07, 1.062, 1.09, 1.056, 1.051, 1.057, 1.055, 1.05, 1.036],
+                type: "scatter",
+                line: {color: '#9467bd', width: 4},
+                marker: {size: 8}
+            }
+        ];
+
+        const currentData = [
+            {
+                name: "Corrente Linhas (kA)",
+                x: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15],
+                y: [0.637, 0.305, 0.3, 0.229, 0.171, 0.101, 0.265, 21.194, 21.216, 49.701, 17.659, 26.534, 10.869, 4.687, 15.613],
+                type: "bar",
+                marker: {color: '#17becf'}
+            },
+            {
+                name: "Corrente Trafos (kA)",
+                x: [1, 2, 3, 4, 5],
+                y: [0.125, 0.068, 0.192, 0.667, 1.114],
+                type: "bar",
+                marker: {color: '#bcbd22'}
+            }
+        ];
+
+        // Configurações dos layouts
+        const networkLayout = {
+            title: {
+                text: 'Diagrama Unifilar do Sistema Elétrico',
+                font: {size: 18, color: '#2c3e50'}
+            },
+            xaxis: {
+                showgrid: false,
+                showticklabels: false,
+                zeroline: false
+            },
+            yaxis: {
+                showgrid: false,
+                showticklabels: false,
+                zeroline: false
+            },
+            showlegend: true,
+            legend: {
+                x: 0,
+                y: 1,
+                bgcolor: 'rgba(255,255,255,0.8)'
+            },
+            plot_bgcolor: 'rgba(0,0,0,0)',
+            paper_bgcolor: 'rgba(0,0,0,0)',
+            margin: {l: 50, r: 50, t: 50, b: 50}
+        };
+
+        const powerLayout = {
+            title: {
+                text: 'Potências Ativa e Reativa',
+                font: {size: 16, color: '#2c3e50'}
+            },
+            xaxis: {
+                title: 'Elemento',
+                gridcolor: 'rgba(128,128,128,0.2)'
+            },
+            yaxis: {
+                title: 'Potência (MW/MVAr)',
+                gridcolor: 'rgba(128,128,128,0.2)'
+            },
+            plot_bgcolor: 'rgba(0,0,0,0)',
+            paper_bgcolor: 'rgba(0,0,0,0)',
+            showlegend: true,
+            legend: {
+                x: 0,
+                y: 1,
+                bgcolor: 'rgba(255,255,255,0.8)'
+            }
+        };
+
+        const voltageLayout = {
+            title: {
+                text: 'Perfil de Tensões do Sistema',
+                font: {size: 16, color: '#2c3e50'}
+            },
+            xaxis: {
+                title: 'Barra',
+                gridcolor: 'rgba(128,128,128,0.2)'
+            },
+            yaxis: {
+                title: 'Tensão (pu)',
+                range: [0.95, 1.1],
+                gridcolor: 'rgba(128,128,128,0.2)'
+            },
+            plot_bgcolor: 'rgba(0,0,0,0)',
+            paper_bgcolor: 'rgba(0,0,0,0)',
+            shapes: [
+                {
+                    type: 'line',
+                    x0: 0, x1: 15,
+                    y0: 0.95, y1: 0.95,
+                    line: {color: 'red', width: 2, dash: 'dash'}
+                },
+                {
+                    type: 'line',
+                    x0: 0, x1: 15,
+                    y0: 1.05, y1: 1.05,
+                    line: {color: 'red', width: 2, dash: 'dash'}
+                }
+            ]
+        };
+
+        const currentLayout = {
+            title: {
+                text: 'Correntes Elétricas do Sistema',
+                font: {size: 16, color: '#2c3e50'}
+            },
+            xaxis: {
+                title: 'Elemento',
+                gridcolor: 'rgba(128,128,128,0.2)'
+            },
+            yaxis: {
+                title: 'Corrente (kA)',
+                gridcolor: 'rgba(128,128,128,0.2)'
+            },
+            plot_bgcolor: 'rgba(0,0,0,0)',
+            paper_bgcolor: 'rgba(0,0,0,0)',
+            showlegend: true,
+            legend: {
+                x: 0,
+                y: 1,
+                bgcolor: 'rgba(255,255,255,0.8)'
+            }
+        };
+
+        // Configurações responsivas
+        const config = {
+            responsive: true,
+            displayModeBar: true,
+            modeBarButtonsToRemove: ['pan2d', 'lasso2d', 'select2d'],
+            displaylogo: false
+        };
+
+        // Renderizar gráficos
+        function renderCharts() {
+            Plotly.newPlot('networkChart', networkData, networkLayout, config);
+            Plotly.newPlot('powerChart', powerData, powerLayout, config);
+            Plotly.newPlot('voltageChart', voltageData, voltageLayout, config);
+            Plotly.newPlot('currentChart', currentData, currentLayout, config);
+        }
+
+        // Função para atualizar status do sistema
+        function updateSystemStatus() {
+            const voltages = [1.06, 1.045, 1.01, 1.018, 1.02, 1.07, 1.062, 1.09, 1.056, 1.051, 1.057, 1.055, 1.05, 1.036];
+            const minVoltage = Math.min(...voltages);
+            const maxVoltage = Math.max(...voltages);
+            
+            const statusElement = document.getElementById('systemStatus');
+            
+            if (minVoltage >= 0.95 && maxVoltage <= 1.05) {
+                statusElement.innerHTML = '<span class="status-indicator status-ok"></span>Normal';
+            } else if (minVoltage >= 0.9 && maxVoltage <= 1.1) {
+                statusElement.innerHTML = '<span class="status-indicator status-warning"></span>Atenção';
+            } else {
+                statusElement.innerHTML = '<span class="status-indicator status-critical"></span>Crítico';
+            }
+        }
+
+        // Inicializar dashboard
+        document.addEventListener('DOMContentLoaded', function() {
+            renderCharts();
+            updateSystemStatus();
+            
+            // Atualizar gráficos quando a janela for redimensionada
+            window.addEventListener('resize', function() {
+                setTimeout(() => {
+                    Plotly.Plots.resize('networkChart');
+                    Plotly.Plots.resize('powerChart');
+                    Plotly.Plots.resize('voltageChart');
+                    Plotly.Plots.resize('currentChart');
+                }, 100);
+            });
+        });
+
+        // Simular atualizações em tempo real (opcional)
+        setInterval(() => {
+            // Aqui você pode adicionar lógica para atualizar dados em tempo real
+            console.log('Dashboard atualizado:', new Date().toLocaleTimeString());
+        }, 30000);
+    </script>
+</body>
+</html>

@@ -4,21 +4,65 @@
 from functools import reduce
 import json
 import operator
-from views.components_backeup.dash_rce_components import ConsolidatedResultsComponent, CardSolutions, StatisticsTableComponent, GraficoRCEComponent
+import sys
+import os
+
+# Ajusta o path para permitir execução isolada via `streamlit run` deste arquivo
+CURRENT_DIR = os.path.dirname(__file__)
+PARENT_DIR = os.path.abspath(os.path.join(CURRENT_DIR, '.'))
+SRC_DIR = os.path.abspath(os.path.join(CURRENT_DIR, '..'))
+if PARENT_DIR not in sys.path:
+    sys.path.append(PARENT_DIR)
+if SRC_DIR not in sys.path:
+    sys.path.append(SRC_DIR)
+
+from views.components.dash_rce_components import (
+    ConsolidatedResultsComponent,
+    CardSolutions,
+    StatisticsTableComponent,
+    GraficoRCEComponent,
+)
 
 
 #backend
-from controllers.Utils import Controller,FOLDER_NAME, Utils, PARAMETROS_JSON
-import os
+from controllers.Utils import Controller, FOLDER_NAME, Utils, PARAMETROS_JSON
+from controllers.ConfigRepository import ConfigRepository
 
 # Frontend
 import streamlit as st
+import streamlit.components.v1 as components
 import pandas as pd
 import json
 import time
 import threading
 import pathlib
 
+
+
+def rede_template_view(html_path: str | None = None, height: int = 1200):
+    """Renderiza o template HTML da rede IEEE dentro do Streamlit.
+
+    Args:
+        html_path: Caminho absoluto/relativo para o arquivo HTML. Se None, usa o arquivo padrão ao lado desta tela.
+        height: Altura do iframe em pixels.
+    """
+    # Caminho padrão: src/DashboardApp/plot_rede_IEEE_template_dashboard.html
+    if html_path is None:
+        html_path = os.path.join(CURRENT_DIR, "plot_rede_IEEE_template_dashboard.html")
+
+    try:
+        with open(html_path, "r", encoding="utf-8") as f:
+            html_content = f.read()
+    except FileNotFoundError:
+        st.error(f"Arquivo HTML não encontrado: {os.path.abspath(html_path)}")
+        st.info("Crie o arquivo ou informe um caminho válido em rede_template_view(html_path=...)")
+        return
+    except Exception as e:
+        st.error(f"Erro ao ler o arquivo HTML: {e}")
+        return
+
+    # Renderiza o HTML completo (com Plotly CDN incluído no próprio arquivo)
+    components.html(html_content, height=height, scrolling=True)
 
 
 # Configuração da barra lateral
@@ -65,7 +109,12 @@ class FrameworkRCEDashboard:
     def __init__(self, options = None):
         self.controller = Controller()
         self.utils = Utils()
-        self.execution_numbers = self.controller.execution_numbers
+        # Mapa de execuções: {config_num: [exec_nums]}
+        try:
+            executions_map, _warnings = self.utils.find_available_executions()
+        except Exception:
+            executions_map = {}
+        self.executions_map = executions_map
         self.menu_lateral = DrawerSideBar()
   
         # Initialize options from parameter or use default
@@ -75,17 +124,17 @@ class FrameworkRCEDashboard:
 
         # Inicializa os estados necessários
         UseState.initialize_state("selected_execution", None)
-        UseState.initialize_state("active_tab", 0)
+        # Guarda o par selecionado (config, exec)
+        UseState.initialize_state("selected_pair", None)
         UseState.initialize_state("saved_configurations", {})
         if 'user_config' not in st.session_state:
             # Usa uma cópia da configuração padrão para o estado da sessão
             st.session_state.user_config = self.options
 
 
-    def handle_tab_change(self, tab_index: int, execution_number: int):
-        """Gerencia mudanças de aba e atualiza o estado."""
-        UseState.set_state("active_tab", tab_index)
-        UseState.set_state("selected_execution", execution_number)
+    def handle_tab_change(self, config_num: int, exec_num: int):
+        """Atualiza o par (config, exec) selecionado."""
+        UseState.set_state("selected_pair", (config_num, exec_num))
 
 
     def init_css(self):
@@ -223,12 +272,23 @@ class FrameworkRCEDashboard:
 
     def run(self):
         try:
-            # Carrega os dados da execução ativa
-            active_tab = UseState.get_state("active_tab")
-            if active_tab is not None:
-                dados = self.utils.load_execution_data(active_tab + 1, debug=False)
-                saved_config = UseState.get_state("saved_configurations", {})
+            # Define um par padrão (config, exec) se houver execuções disponíveis
+            selected_pair = UseState.get_state("selected_pair")
+            if selected_pair is None:
+                first_pair = None
+                for cfg, execs in self.executions_map.items():
+                    if execs:
+                        first_pair = (cfg, execs[0])
+                        break
+                if first_pair is not None:
+                    UseState.set_state("selected_pair", first_pair)
+                    selected_pair = first_pair
 
+            # Carrega os dados do par selecionado
+            if selected_pair is not None:
+                cfg_num, exec_num = selected_pair
+                dados = self.utils.load_execution_data(cfg_num, exec_num, debug=False)
+                _saved_config = UseState.get_state("saved_configurations", {})
             else:
                 dados = None
                     
@@ -242,7 +302,14 @@ class FrameworkRCEDashboard:
 
             if dados:
                 # Renderiza os resultados consolidados
-                ConsolidatedResultsComponent.render()
+                # Carrega todos os parâmetros por configuração para consolidar
+                repo = ConfigRepository(pathlib.Path(FOLDER_NAME))
+                all_params = repo.get_all_configs()
+                df_consolidado, warnings = ConsolidatedResultsComponent.render(all_params)
+                if df_consolidado is not None:
+                    ConsolidatedResultsComponent.display_and_download(df_consolidado)
+                for w in (warnings or []):
+                    st.warning(w)
             else:
                 # Renderiza componente default para "sem execução"
                 st.info("Nenhum dado encontrado ainda. Execute uma simulação para visualizar os resultados.")
@@ -257,16 +324,28 @@ class FrameworkRCEDashboard:
             # Agrupa os dados das execuções e os lambdas dos componentes em uma função separada
     def get_exec_tabs_dict(self):
         exec_tabs_dict = {}
-        for exec_num in self.execution_numbers:
-            dados_exec = self.utils.load_execution_data(exec_num, debug=False)
-            if dados_exec:
-                exec_tabs_dict[f"Execução {exec_num}"] = {
-                    "Soluções": lambda de=dados_exec, en=exec_num: CardSolutions.render(de, en, debug=False),
-                    "Gráfico": lambda en=exec_num: GraficoRCEComponent.render(en),
-                    "Estatísticas": lambda de=dados_exec: StatisticsTableComponent.render(de)
-                }
-            else:
-                exec_tabs_dict[f"Execução {exec_num}"] = {"Erro": "Não foi encontrado nenhum conjunto de dados"}
+        # Cria uma aba para cada par (config, exec)
+        for cfg_num, exec_list in self.executions_map.items():
+            for exec_num in exec_list:
+                label = f"Config {cfg_num} - Exec {exec_num}"
+                dados_exec = self.utils.load_execution_data(cfg_num, exec_num, debug=False)
+                # Normaliza estruturas salvas como lista para um dicionário compatível
+                if isinstance(dados_exec, list):
+                    if dados_exec and isinstance(dados_exec[0], dict):
+                        dados_exec_norm = dados_exec[0]
+                    else:
+                        dados_exec_norm = {}
+                else:
+                    dados_exec_norm = dados_exec or {}
+
+                if dados_exec_norm:
+                    exec_tabs_dict[label] = {
+                        "Soluções": lambda de=dados_exec_norm, en=exec_num: CardSolutions.render(de, en, debug=False),
+                        "Gráfico": lambda en=exec_num: GraficoRCEComponent.render(en),
+                        "Estatísticas": lambda de=dados_exec_norm: StatisticsTableComponent.render(de),
+                    }
+                else:
+                    exec_tabs_dict[label] = {"Erro": "Não foi encontrado nenhum conjunto de dados"}
         return exec_tabs_dict
 
     # Função separada para renderizar o container de tabs
@@ -875,3 +954,19 @@ class FrameworkRCEDashboard:
         st.markdown("---")
 
 
+
+if __name__ == "__main__":
+    # Configuração básica da página quando executado isoladamente
+    st.set_page_config(
+        page_title="RCE - Tela Isolada",
+        page_icon="⚡",
+        layout="wide",
+        initial_sidebar_state="expanded",
+    )
+
+    # Inicializa e executa a tela
+    try:
+        app = FrameworkRCEDashboard(options=PARAMETROS_JSON)
+        app.run()
+    except Exception as e:
+        st.exception(e)
