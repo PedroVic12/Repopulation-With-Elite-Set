@@ -182,11 +182,64 @@ class ConvergenceGraphComponent:
 
 
 class ConsolidatedResultsComponent:
-    """Componente para exibir os resultados consolidados."""
+    """Componente para exibir e filtrar resultados consolidados."""
+    
+    @staticmethod
+    def _apply_filters(df, filters):
+        """Aplica os filtros ao DataFrame."""
+        filtered_df = df.copy()
+        for column, (min_val, max_val) in filters.items():
+            if column in filtered_df.columns:
+                if pd.api.types.is_numeric_dtype(filtered_df[column]):
+                    filtered_df = filtered_df[(filtered_df[column] >= min_val) & 
+                                           (filtered_df[column] <= max_val)]
+                else:
+                    filtered_df = filtered_df[filtered_df[column].astype(str).str.contains(str(min_val), case=False)]
+        return filtered_df
+    
+    @staticmethod
+    def _create_sidebar_filters(df):
+        """Cria os controles de filtro na barra lateral."""
+        filters = {}
+        
+        with st.sidebar.expander("🔍 Filtros de Resultados"):
+            st.subheader("Filtrar por Coluna")
+            
+            for column in df.columns:
+                if pd.api.types.is_numeric_dtype(df[column]):
+                    # Para colunas numéricas, cria um slider
+                    min_val = float(df[column].min())
+                    max_val = float(df[column].max())
+                    
+                    # Evita valores iguais para min e max
+                    step = max((max_val - min_val) / 100, 0.01) if max_val > min_val else 0.01
+                    
+                    values = st.slider(
+                        f"{column}:",
+                        min_value=min_val,
+                        max_value=max_val,
+                        value=(min_val, max_val),
+                        step=step,
+                        help=f"Filtrar por valores entre {min_val:.2f} e {max_val:.2f}"
+                    )
+                    filters[column] = values
+                else:
+                    # Para colunas de texto, cria uma caixa de pesquisa
+                    unique_vals = df[column].dropna().unique()
+                    if len(unique_vals) > 0:
+                        search_term = st.text_input(
+                            f"Pesquisar em {column}:",
+                            "",
+                            help=f"Digite para filtrar {column}"
+                        )
+                        if search_term:
+                            filters[column] = (search_term, None)
+        
+        return filters
     
     @staticmethod
     def render():
-        """Verifica e exibe a seção de resultados consolidados."""
+        """Verifica e exibe a seção de resultados consolidados com filtros."""
         # Nome base do arquivo
         consolidated_excel_filename = "results_consolidados.xlsx"
         # Caminho completo para o arquivo
@@ -194,25 +247,66 @@ class ConsolidatedResultsComponent:
 
         # Verifica a existência usando o caminho completo
         if os.path.exists(consolidated_excel_path):
-            st.markdown("---")
-            st.header("Resultados Consolidados Gerais de todas as execuções")
             try:
                 # Lê o excel usando o caminho completo
                 df_consolidado = pd.read_excel(consolidated_excel_path)
-                st.dataframe(df_consolidado)
-                # Abre o arquivo usando o caminho completo para o botão de download
-                with open(consolidated_excel_path, "rb") as fp:
+                
+                # Cria os filtros na barra lateral
+                filters = ConsolidatedResultsComponent._create_sidebar_filters(df_consolidado)
+                
+                # Aplica os filtros
+                filtered_df = ConsolidatedResultsComponent._apply_filters(df_consolidado, filters)
+                
+                # Exibe estatísticas dos resultados
+                st.markdown("---")
+                st.header("📊 Resultados Consolidados")
+                
+                # Métricas principais
+                col1, col2, col3 = st.columns(3)
+                with col1:
+                    st.metric("Total de Execuções", len(df_consolidado))
+                with col2:
+                    st.metric("Execuções Filtradas", len(filtered_df))
+                with col3:
+                    if 'fitness' in filtered_df.columns:
+                        st.metric("Melhor Fitness", f"{filtered_df['fitness'].max():.4f}")
+                
+                # Exibe a tabela com os dados filtrados
+                st.dataframe(
+                    filtered_df,
+                    use_container_width=True,
+                    height=600,
+                    hide_index=True
+                )
+                
+                # Botão de download
+                with st.expander("📥 Opções de Exportação"):
+                    output = io.BytesIO()
+                    with pd.ExcelWriter(output, engine='xlsxwriter') as writer:
+                        filtered_df.to_excel(writer, index=False, sheet_name='Resultados Filtrados')
+                    
                     st.download_button(
-                        label="Baixar Resultados Consolidados (Excel)",
-                        data=fp,
-                        # Usa o nome base do arquivo para o download
-                        file_name=consolidated_excel_filename,
+                        label="Baixar Resultados Filtrados (Excel)",
+                        data=output.getvalue(),
+                        file_name="resultados_filtrados.xlsx",
                         mime="application/vnd.ms-excel"
                     )
+                    
+                    # Botão para baixar o arquivo original completo
+                    with open(consolidated_excel_path, "rb") as fp:
+                        st.download_button(
+                            label="Baixar Resultados Completos (Excel)",
+                            data=fp,
+                            file_name=consolidated_excel_filename,
+                            mime="application/vnd.ms-excel"
+                        )
+                
             except Exception as e:
-                st.error(f"Erro ao ler o arquivo consolidado {consolidated_excel_path}: {e}")
+                st.error(f"Erro ao processar o arquivo consolidado: {e}")
+                st.exception(e)
         else:
-            st.info(f"Arquivo de resultados consolidados ({consolidated_excel_path}) não encontrado.")
+            st.warning(f"⚠️ Arquivo de resultados consolidados não encontrado em: {consolidated_excel_path}")
+            st.info("Execute o framework para gerar os resultados consolidados.")
 
 
 

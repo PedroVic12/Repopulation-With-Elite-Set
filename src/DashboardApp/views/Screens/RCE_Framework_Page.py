@@ -70,17 +70,76 @@ class FrameworkRCEDashboard:
         if 'user_config' not in st.session_state:
             st.session_state.user_config = self.options
 
+        if "dados" not in st.session_state:
+            st.session_state.dados = None
+
+        if "resultados_AG" not in st.session_state:
+            st.session_state.resultados_AG = None
+
+            
+
 
     def init_css(self):
         st.markdown("""...""", unsafe_allow_html=True) # CSS omitido para brevidade
+
+    def _create_timeline(self, execution_data):
+        """Create an interactive timeline of solutions with branch disconnections."""
+        if not execution_data or 'solutions' not in execution_data:
+            return None
+            
+        timeline_data = []
+        for sol in execution_data['solutions']:
+            if not sol.get('disconnected_branches'):
+                continue
+                
+            for branch in sol['disconnected_branches']:
+                timeline_data.append({
+                    'time': sol.get('timestamp', 0),
+                    'branch': f"Ramo {branch}",
+                    'status': 'Desligado',
+                    'fitness': sol.get('fitness', 0)
+                })
+        
+        if not timeline_data:
+            return None
+            
+        return pd.DataFrame(timeline_data)
+
+    def _display_timeline_filter(self, df):
+        """Display interactive timeline with filtering options."""
+        st.sidebar.subheader("Filtros")
+        
+        # Time range filter
+        min_time = int(df['time'].min())
+        max_time = int(df['time'].max())
+        time_range = st.sidebar.slider(
+            "Intervalo de Tempo",
+            min_value=min_time,
+            max_value=max_time,
+            value=(min_time, max_time)
+        )
+        
+        # Branch filter
+        all_branches = sorted(df['branch'].unique())
+        selected_branches = st.sidebar.multiselect(
+            "Ramos",
+            options=all_branches,
+            default=all_branches
+        )
+        
+        # Apply filters
+        filtered_df = df[
+            (df['time'] >= time_range[0]) & 
+            (df['time'] <= time_range[1]) &
+            (df['branch'].isin(selected_branches))
+        ]
+        
+        return filtered_df
 
     def run(self):
         try:
             self.menu_lateral.render()
             self.header()
-
-            #if st.sidebar.button("Consultar Parâmetros do AG"):
-            #    self.show_config_parameters()
 
             if not self.executions:
                 st.info("Nenhuma execução encontrada. Execute o framework para gerar resultados.")
@@ -88,6 +147,42 @@ class FrameworkRCEDashboard:
 
             config_controller = ConfigController()
             all_params = config_controller.repository.get_all_configs()
+            
+            # Load execution data if not already loaded
+            if 'execution_data' not in st.session_state:
+                st.session_state.execution_data = self.controller.load_execution_data()
+            
+            # Create and display timeline if data is available
+            timeline_df = self._create_timeline(st.session_state.execution_data)
+            if timeline_df is not None:
+                st.subheader("Linha do Tempo de Soluções")
+                filtered_timeline = self._display_timeline_filter(timeline_df)
+                
+                # Display timeline
+                if not filtered_timeline.empty:
+                    st.vega_lite_chart(filtered_timeline, {
+                        'mark': {'type': 'circle', 'tooltip': True},
+                        'encoding': {
+                            'x': {'field': 'time', 'type': 'quantitative', 'title': 'Tempo'},
+                            'y': {'field': 'branch', 'type': 'nominal', 'title': 'Ramo'},
+                            'size': {'field': 'fitness', 'type': 'quantitative', 'title': 'Fitness'},
+                            'color': {'field': 'status', 'type': 'nominal', 'title': 'Status'}
+                        }
+                    })
+                    
+                    # Show selected point details
+                    if st.checkbox("Mostrar detalhes da solução"):
+                        selected_time = st.slider(
+                            "Selecione um ponto no tempo",
+                            min_value=int(filtered_timeline['time'].min()),
+                            max_value=int(filtered_timeline['time'].max()),
+                            value=int(filtered_timeline['time'].iloc[0])
+                        )
+                        
+                        selected_solution = filtered_timeline[
+                            filtered_timeline['time'] == selected_time
+                        ]
+                        st.dataframe(selected_solution)
 
             # Consolida resultados e exibe, passando all_params exigido pelo componente
             df_consolidado, cons_warnings = ConsolidatedResultsComponent.render(all_params)
