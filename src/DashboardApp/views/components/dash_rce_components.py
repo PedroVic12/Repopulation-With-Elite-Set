@@ -2,6 +2,7 @@
 import pickle
 import pathlib
 import streamlit as st
+import streamlit.components.v1 as components
 import os
 import pandas as pd
 import numpy as np
@@ -236,13 +237,14 @@ class CardSolutions:
                 </div>
             </div>
         """
-        
+
         # Adicionar tabela de variáveis de decisão
+        vars_html = ""
         if isinstance(best_vars, (list, tuple)) and best_vars:
-            html_content += "<h4>Variáveis de Decisão</h4>"
-            html_content += "<div style='max-height: 300px; overflow-y: auto;'>"
-            html_content += "<table class='var-table'>"
-            html_content += """
+            vars_html += "<h4>Variáveis de Decisão</h4>"
+            vars_html += "<div style='max-height: 300px; overflow-y: auto;'>"
+            vars_html += "<table class='var-table'>"
+            vars_html += """
                 <thead>
                     <tr>
                         <th>Índice</th>
@@ -254,17 +256,19 @@ class CardSolutions:
                         <th style='padding: 10px; text-align: left; border-bottom: 1px solid #ddd;'>Variável</th>
                         <th style='padding: 10px; text-align: right; border-bottom: 1px solid #ddd;'>Valor</th>
                     </tr>
-                </thead>
-                <tbody>
             """
             
             for i, var in enumerate(best_vars, 1):
                 # Formatação condicional baseada no valor
                 var_style = f"color: {success_color}; font-weight: 500;" if var != 0 else "color: #888;"
+                try:
+                    var_val = f"{float(var):.6f}"
+                except Exception:
+                    var_val = str(var)
                 vars_html += f"""
                     <tr style='border-bottom: 1px solid {border_color};'>
                         <td style='padding: 8px 12px;'>VAR {i}</td>
-                        <td style='padding: 8px 12px; text-align: right; {var_style}'>{var:.6f}</td>
+                        <td style='padding: 8px 12px; text-align: right; {var_style}'>{var_val}</td>
                     </tr>
                 """
             
@@ -350,7 +354,10 @@ class CardSolutions:
         </div>
         """
         
-        st.markdown(card_html, unsafe_allow_html=True)
+        # Renderiza como HTML bruto para garantir que o card seja exibido corretamente
+        approx_height = 320 + (len(best_vars) if isinstance(best_vars, (list, tuple)) else 0) * 28
+        approx_height = max(approx_height, 380)
+        components.html(card_html, height=approx_height, scrolling=True)
         
         # Adiciona um pequeno espaço entre os cards
         st.markdown("<div style='margin-bottom: 20px;'></div>", unsafe_allow_html=True)

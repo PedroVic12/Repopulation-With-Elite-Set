@@ -2,6 +2,7 @@
 
 import os
 import sys
+import json
 import pandas as pd
 import matplotlib.pyplot as plt  # Import matplotlib
 import io
@@ -13,7 +14,7 @@ from AlgEvolutivoRCE.Setup import Setup
 
 
 #! TODO -> (10/07/25) Função implementada em Março mas precisa de paralelismo para ficar mais eficiente e melhor uso da hash table
-def funcao_objetivo_IEEE14(individuo, setupobj, _debug = False):
+def funcao_objetivo_IEEE14(individuo, setupobj, _debug: bool = False, return_timeline: bool = False):
     
     """    
     # Esta função avalia o agendamento de desligamentos e contingências na rede elétrica, calculando o fitness baseado em violações de tensões e carregamentos.
@@ -69,6 +70,7 @@ def funcao_objetivo_IEEE14(individuo, setupobj, _debug = False):
 
     violacoes_total = []
     violacoes_hash_table = {}
+    timeline_events: list[dict] = []  # coleta eventos de desligamento por slot/horário
 
     # Generate hash key values
     #! Variáveis de Calculo  de otimização para achar o fitness de cada cenario
@@ -90,11 +92,44 @@ def funcao_objetivo_IEEE14(individuo, setupobj, _debug = False):
             hs=18, he=24
         )
 
+    # Helpers para mapear horário e ramos desligados por hora
+    min_inicio = int(agendamento_df['inicio'].min()) if not agendamento_df.empty else 0
+
+    def ramos_desligados_no_horario(hora_atual: int) -> list[tuple[int,int]]:
+        desligados: list[tuple[int,int]] = []
+        for _, row in agendamento_df.iterrows():
+            try:
+                h0 = int(row['inicio'])
+                dur = int(row['duracao'])
+                fim = (h0 + dur) % 24
+                ramo = row.get('ramo')
+                if isinstance(ramo, (list, tuple)) and len(ramo) == 2:
+                    ramo_pair = (int(ramo[0]), int(ramo[1]))
+                else:
+                    # Se vier como id, mantemos como está
+                    ramo_pair = ramo
+
+                # janela correta considerando ciclo 24h
+                if dur >= 24:
+                    in_window = True
+                elif h0 + dur < 24:
+                    in_window = (hora_atual >= h0) and (hora_atual < h0 + dur)
+                else:
+                    # janela cruza meia-noite
+                    in_window = (hora_atual >= h0) or (hora_atual < fim)
+
+                if in_window:
+                    desligados.append(ramo_pair)
+            except Exception:
+                continue
+        return desligados
+
     try:
         # 3) Processar cada cenário da matriz de cenários
-        for cenario in matriz_cenarios:
+        for t_idx, cenario in enumerate(matriz_cenarios):
             perfil = cenario[0]
             estado_ramos = cenario[1:]
+            hora_atual = (min_inicio + t_idx) % 24
 
             # 4) Ajustar carregamento para o perfil do cenário
             rede.ajustar_cargas(perfil)
@@ -118,8 +153,11 @@ def funcao_objetivo_IEEE14(individuo, setupobj, _debug = False):
                     #5)  Ligar todos os ramos antes de aplicar mudanças
                     rede.religar_todos_os_ramos_agendamento()
 
-                    # 6) Fazendo os deligamentos com base na tabela em .xlsx e nos cenários calculados
-                    rede.desligar_elementos_agendamento(estado_ramos)
+                    # 6) Desligamentos por agendamento com base nas variáveis de decisão (horário atual)
+                    desligados_agendamento = ramos_desligados_no_horario(hora_atual)
+                    # Fallback para "estado_ramos" se não houver mapeamento
+                    desligar_lista = desligados_agendamento if desligados_agendamento else estado_ramos
+                    rede.desligar_elementos_agendamento(desligar_lista)
 
                     # 7) Identifica ramos afetados pela contingência
                     ramo_contingencia = list(contingencia_df.loc[contingencia_df['contingencia'] == contingencia_atual, ['from', 'to']].values[0])
@@ -127,6 +165,20 @@ def funcao_objetivo_IEEE14(individuo, setupobj, _debug = False):
 
                     # 8) Desliga os ramos afetados
                     rede.desligar_contingencia(ramo_contingencia)
+
+                    # 8.1) Registrar evento de timeline (ramos desligados neste slot)
+                    if return_timeline:
+                        try:
+                            # Normaliza estruturas em listas simples de pares para HTML/JSON
+                            desligados_cont = [tuple(ramo_contingencia)]
+                            timeline_events.append({
+                                "time": hora_atual,  # hora real (0-23)
+                                "perfil": perfil,
+                                "desligados": [tuple(x) if isinstance(x, (list, tuple)) else x for x in (list(desligados_agendamento) + desligados_cont)],
+                                "tipo": "ambos"
+                            })
+                        except Exception:
+                            pass
 
                     # 9) Executar fluxo de potência para o cenário com contingência
                     if rede.executar_fluxo_de_potencia():                            
@@ -166,12 +218,14 @@ def funcao_objetivo_IEEE14(individuo, setupobj, _debug = False):
         # 12) Calcular fitness final com somatorio das vioações com pesos de todos os cenarios
         fitness_final = sum(violacoes_total)
         rede.log(f"\nFitness do agendamento = {fitness_final:.2f}\n", level = "success")
+        if return_timeline:
+            return fitness_final, timeline_events
         return fitness_final
 
     except Exception as e:
         print(f"\nErro ao calcular a função objetivo: {e}")
 
-def generate_chart(data, chart_type='bar'):
+def generate_chart(data, chart_type: str = 'bar'):
     """
     Generates a chart of the specified type from the given data.
 
@@ -218,7 +272,7 @@ def generate_chart(data, chart_type='bar'):
         print(f"Error generating chart: {e}")
         return None
 
-def simulate_IEEE_14_cenario(chart_type='bar'):
+def simulate_IEEE_14_cenario(chart_type: str = 'bar'):
     """
     Simulates an IEEE 14 scenario and generates a chart of the fitness values.
 
@@ -263,7 +317,8 @@ def simulate_IEEE_14_cenario(chart_type='bar'):
         fitness = funcao_objetivo_IEEE14(
             individuo=horarios,
             setupobj= setup_obj,
-            _debug = True
+            _debug = True,
+            return_timeline=False
         )
         fitness_values.append(fitness)
 
@@ -298,5 +353,70 @@ def simulate_IEEE_14_cenario(chart_type='bar'):
     else:
         print("Failed to generate chart.")
     
-# Example usage
-simulate_IEEE_14_cenario(chart_type='bar')  # You can change 'bar' to 'line' or 'pie'
+def load_agendamento_from_json(path: str) -> pd.DataFrame:
+    """Carrega agendamento a partir de JSON. Espera chave 'agendamento' com itens contendo
+    'ramo' (par [from,to] ou id), 'inicio' ("HH:MM" ou int) e 'duracao' (int).
+    """
+    with open(path, 'r', encoding='utf-8') as f:
+        data = json.load(f)
+    df = pd.DataFrame(data.get('agendamento', []))
+    if 'inicio' in df.columns:
+        df['inicio'] = df['inicio'].apply(lambda x: int(str(x).split(':')[0]) if isinstance(x, str) else int(x))
+    return df
+
+
+def load_agendamento_from_excel(path: str, sheet_name: str | None = None) -> pd.DataFrame:
+    """Carrega agendamento a partir de Excel, normalizando 'inicio' para hora inteira."""
+    df = pd.read_excel(path, sheet_name=sheet_name)
+    if 'inicio' in df.columns:
+        df['inicio'] = df['inicio'].apply(lambda x: int(str(x).split(':')[0]) if isinstance(x, str) else int(x))
+    return df
+
+
+def build_timeline_html(timeline_events: list[dict]) -> str:
+    """Gera HTML simples e interativo para a timeline de desligamentos.
+    Cada bloco representa um slot/horário; clique para expandir detalhes.
+    """
+    # Agrupa por time
+    slots: dict[int, list[dict]] = {}
+    for ev in timeline_events:
+        slots.setdefault(int(ev.get('time', 0)), []).append(ev)
+
+    blocks = []
+    for t in sorted(slots.keys()):
+        items = slots[t]
+        detalhes = []
+        for ev in items:
+            desligados = ev.get('desligados', [])
+            tipo = ev.get('tipo', 'desconhecido')
+            perfil = ev.get('perfil', '-')
+            lista = ', '.join([f"({a},{b})" if isinstance(x, (list, tuple)) and len(x) == 2 and (a:=x[0]) is not None and (b:=x[1]) is not None else str(x) for x in desligados])
+            detalhes.append(f"<li><b>Tipo:</b> {tipo} • <b>Perfil:</b> {perfil} • <b>Ramos:</b> {lista}</li>")
+        detalhes_html = '<ul style="margin:6px 0 0 18px">' + ''.join(detalhes) + '</ul>'
+        block = f"""
+        <div class=\"tl-block\" onclick=\"this.classList.toggle('open')\">
+            <div class=\"tl-hour\">Hora/Slot {t}</div>
+            <div class=\"tl-details\">{detalhes_html}</div>
+        </div>
+        """
+        blocks.append(block)
+
+    style = """
+    <style>
+      .timeline{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px}
+      .tl-block{border:1px solid #475569;background:#0f172a;color:#e2e8f0;border-radius:10px;padding:10px;cursor:pointer}
+      .tl-block .tl-hour{font-weight:700;color:#38bdf8}
+      .tl-block .tl-details{display:none;margin-top:6px;font-size:0.92em}
+      .tl-block.open .tl-details{display:block}
+    </style>
+    """
+    html = f"""
+    {style}
+    <div class=\"timeline\">{''.join(blocks)}</div>
+    """
+    return html
+
+
+# Example usage (desativado por padrão)
+if __name__ == "__main__":
+    simulate_IEEE_14_cenario(chart_type='bar')  # 'bar' | 'line' | 'pie'

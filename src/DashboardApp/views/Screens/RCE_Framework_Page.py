@@ -400,13 +400,29 @@ class FrameworkRCEDashboard:
             elif component_name == "Gráfico":
                 # Verifica se a execução selecionada existe no consolidado
                 available_map = st.session_state.get('available_execs_by_config', {})
-                available_execs = (
+                available_execs_raw = (
                     available_map.get(config_num)
                     or available_map.get(str(config_num))
                     or available_map.get(int(config_num) if isinstance(config_num, (str, bytes)) and str(config_num).isdigit() else None)
                     or []
                 )
-                if available_execs and exec_num not in available_execs:
+                # Normaliza tipos para evitar mismatch entre str/int nas listas
+                try:
+                    available_execs = [int(x) for x in available_execs_raw]
+                except Exception:
+                    # Fallback: mantém valores válidos convertidos
+                    available_execs = []
+                    for x in available_execs_raw:
+                        try:
+                            available_execs.append(int(x))
+                        except Exception:
+                            pass
+                # Compara usando versão inteira quando possível
+                try:
+                    exec_num_int = int(exec_num)
+                except Exception:
+                    exec_num_int = exec_num
+                if available_execs and exec_num_int not in available_execs:
                     st.warning(f"Gráficos não disponíveis para a Execução {exec_num}. Disponíveis: {available_execs}")
                     return
                 GraficoRCEComponent.render(exec_num, config_num=config_num)
