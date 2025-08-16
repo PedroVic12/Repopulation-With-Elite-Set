@@ -719,85 +719,7 @@ class ParamsAGTab(QWidget):
         layout.addLayout(container)
         layout.addStretch(1)
 
-        # ==========================
-        # Editor de Código (Python)
-        # ==========================
-        code_title = QLabel("Função de Fitness (Python)")
-        code_title.setStyleSheet("font-weight: 600; font-size: 14pt;")
-        layout.addWidget(code_title)
-
-        code_card = QFrame(self)
-        code_card.setObjectName("codeCard")
-        code_card.setStyleSheet(
-            """
-            #codeCard { background: #ffffff; border: 1px solid #e6e6e6; border-radius: 12px; }
-            """
-        )
-        code_layout = QVBoxLayout(code_card)
-        code_layout.setContentsMargins(16, 16, 16, 16)
-
-        self.code_editor = QPlainTextEdit()
-        # Aparência do editor
-        editor_font = QFont("Courier New")
-        editor_font.setStyleHint(QFont.Monospace)
-        editor_font.setPointSize(11)
-        self.code_editor.setFont(editor_font)
-        self.code_editor.setTabStopDistance(4 * self.code_editor.fontMetrics().horizontalAdvance(' '))
-        self.code_editor.setLineWrapMode(QPlainTextEdit.NoWrap)
-        self.code_editor.setMinimumHeight(340)
-        # Tema escuro para melhor contraste
-        self.code_editor.setStyleSheet(
-            """
-            QPlainTextEdit {
-                background-color: #1e1e1e;
-                color: #eaeaea;
-                border: 1px solid #3a3a3a;
-                selection-background-color: #264f78;
-                selection-color: #ffffff;
-            }
-            """
-        )
-
-        code_layout.addWidget(self.code_editor)
-
-        code_shadow = QGraphicsDropShadowEffect(self)
-        code_shadow.setBlurRadius(22)
-        code_shadow.setOffset(0, 6)
-        from PySide6.QtGui import QColor
-        code_shadow.setColor(QColor(0, 0, 0, 60))
-        code_card.setGraphicsEffect(code_shadow)
-
-        # Botões ao lado direito do Editor de Código
-        code_actions_column = QVBoxLayout()
-        self.code_reload_btn = QPushButton("🔄 Recarregar Código")
-        self.code_save_btn = QPushButton("💾 Salvar Código")
-        self.code_reload_btn.clicked.connect(self.reload_code)
-        self.code_save_btn.clicked.connect(self.save_code)
-        # Estilo/tamanho dos botões do editor
-        code_btn_style = "font-size: 13px; padding: 8px 12px; min-width: 200px;"
-        self.code_reload_btn.setStyleSheet(code_btn_style)
-        self.code_save_btn.setStyleSheet(code_btn_style)
-        # Centralização vertical: stretch antes e depois
-        code_actions_column.addStretch(1)
-        code_actions_column.addWidget(self.code_reload_btn)
-        code_actions_column.addWidget(self.code_save_btn)
-        code_actions_column.addStretch(1)
-
-        # Linha com Editor (esquerda) e Botões (direita)
-        code_row = QHBoxLayout()
-        code_row.setContentsMargins(0, 0, 0, 0)
-        code_row.addStretch(1)
-        code_card.setMinimumWidth(800)
-        code_card.setMaximumWidth(1200)
-        code_row.addWidget(code_card, stretch=10)
-        code_row.addSpacing(16)
-        code_row.addLayout(code_actions_column, stretch=0)
-        code_row.setAlignment(code_actions_column, Qt.AlignVCenter)
-        code_row.addStretch(1)
-        layout.addLayout(code_row)
-
-        self.reload()
-        self.reload_code()
+       
 
     def reload(self):
         """Recarrega params.json e options.json e repopula a tabela."""
@@ -1000,7 +922,10 @@ class ExecutionTab(QWidget):
         # Controle de saída
         self.output_base_dir = SRC_DIR / "output"
         self._pre_run_snapshot = {}
-        self._current_dest_dir = None
+        self._current_dest_dir = None  # não usado mais (mantido por compatibilidade)
+        self._current_config_index = None
+        self._current_repetition = None
+        self._consolidated_cache_path = self.output_base_dir / "_consolidated_cache.parquet"
         self.init_ui()
 
     def init_ui(self):
@@ -1081,6 +1006,8 @@ class ExecutionTab(QWidget):
 
         config_index = self.current_run_number // self.runs_per_config
         repetition = (self.current_run_number % self.runs_per_config) + 1
+        self._current_config_index = config_index + 1
+        self._current_repetition = repetition
         current_config = self.configurations[config_index]
         
         config_str = ", ".join([f"{k}: {v}" for k, v in current_config.items()])
@@ -1102,11 +1029,8 @@ class ExecutionTab(QWidget):
              self.on_all_executions_finished(False, "Erro de arquivo.")
              return
 
-        # Snapshot dos arquivos atuais e diretório de destino único para esta execução
+        # Snapshot dos arquivos atuais (não moveremos mais para subpastas)
         self._pre_run_snapshot = self._list_output_files()
-        timestamp = time.strftime('%Y%m%d_%H%M%S')
-        self._current_dest_dir = self.output_base_dir / f"config_{config_index + 1}" / f"exec_{repetition}_{timestamp}"
-        self._current_dest_dir.mkdir(parents=True, exist_ok=True)
 
         args = ["--config_num", str(config_index + 1), "--exec_num", str(repetition)]
         self.execution_thread = ExecutionThread(RUN_FRAMEWORK_SCRIPT, args)
@@ -1118,7 +1042,7 @@ class ExecutionTab(QWidget):
         self.append_log(f"Finalizada execução {self.current_run_number + 1}. Sucesso: {success}. {message}")
         if not success:
             self.append_log(f"❌ Erro na execução, pulando para a próxima.")
-        # Coleta e move apenas novos/alterados arquivos para a pasta destino
+        # Pós-processa arquivos novos/alterados (sem mover). Atualiza consolidação.
         try:
             self._collect_and_move_outputs()
         except Exception as e:
@@ -1193,8 +1117,6 @@ class ExecutionTab(QWidget):
         return files
 
     def _collect_and_move_outputs(self):
-        if self._current_dest_dir is None:
-            return
         after = self._list_output_files()
         # identifica novos ou modificados
         candidates = []
@@ -1202,19 +1124,79 @@ class ExecutionTab(QWidget):
             prev_mtime = self._pre_run_snapshot.get(path_str)
             if prev_mtime is None or mtime > prev_mtime:
                 candidates.append(Path(path_str))
-        # Evita mover os params_config e pastas destino de execuções
-        for src in candidates:
+        # Atualiza o arquivo consolidado, se um resultado da execução foi gerado
+        try:
+            # Procura por um arquivo de resultados recém-gerado chamado 'results_consolidados.xlsx'
+            new_results = None
+            for p in candidates:
+                if p.name.lower() == 'results_consolidados.xlsx':
+                    new_results = p
+                    break
+            if new_results is not None and self._current_config_index is not None and self._current_repetition is not None:
+                self._update_consolidated_results(new_results, self._current_config_index, self._current_repetition)
+        except Exception as e:
+            self.append_log(f"Aviso: falha ao atualizar consolidação: {e}")
+
+    def _update_consolidated_results(self, new_results_path: Path, config_index: int, repetition: int):
+        """Acumula resultados em um único results_consolidados.xlsx na raiz de output.
+        - Lê o arquivo recém-gerado (primeira planilha) e adiciona colunas de identificação.
+        - Concatena ao acumulado existente (se houver) e salva de volta como results_consolidados.xlsx.
+        """
+        try:
+            import pandas as pd
+        except Exception as e:
+            self.append_log(f"Pandas não disponível para consolidar resultados: {e}")
+            return
+
+        try:
+            # Lê dados do novo resultado
+            df_new = pd.read_excel(new_results_path)
+            # adiciona identificadores de execução
+            df_new['config'] = config_index
+            df_new['exec'] = repetition
+        except Exception as e:
+            self.append_log(f"Não foi possível ler o novo resultado '{new_results_path.name}': {e}")
+            return
+
+        master_path = self.output_base_dir / 'results_consolidados.xlsx'
+        # Preferimos manter um cache separado para não depender do arquivo que o framework pode sobrescrever
+        if self._consolidated_cache_path.exists():
             try:
-                # Pula diretórios (os.walk só lista arquivos) e destinos
-                if self._current_dest_dir in src.parents:
-                    continue
-                # Garante árvore de destino preservando nome do arquivo
-                dst = self._current_dest_dir / src.name
-                # Se arquivo ainda está na raiz de output, move
-                if src.exists():
-                    shutil.move(str(src), str(dst))
+                df_master = pd.read_parquet(self._consolidated_cache_path)
             except Exception as e:
-                self.append_log(f"Aviso: não foi possível mover {src} -> {dst}: {e}")
+                self.append_log(f"Falha ao ler cache consolidado, será recriado: {e}")
+                df_master = None
+        else:
+            # Fallback: tenta ler o próprio master se existir
+            if master_path.exists():
+                try:
+                    df_master = pd.read_excel(master_path)
+                except Exception as e:
+                    self.append_log(f"Falha ao ler consolidado existente, será recriado: {e}")
+                    df_master = None
+            else:
+                df_master = None
+
+        try:
+            if df_master is not None:
+                df_all = pd.concat([df_master, df_new], ignore_index=True)
+            else:
+                df_all = df_new
+            # Não remover duplicatas para preservar todas as linhas de cada execução
+        except Exception as e:
+            self.append_log(f"Falha ao combinar DataFrames: {e}")
+            return
+
+        try:
+            # Atualiza cache e o arquivo visível
+            try:
+                df_all.to_parquet(self._consolidated_cache_path, index=False)
+            except Exception:
+                pass
+            df_all.to_excel(master_path, index=False)
+            self.append_log(f"Consolidado atualizado: {master_path.name} (config {config_index}, exec {repetition})")
+        except Exception as e:
+            self.append_log(f"Falha ao salvar consolidado: {e}")
 
 class LauncherWindow(QMainWindow):
     """Janela principal da aplicação com abas e rolagem.
