@@ -27,6 +27,7 @@ import json
 import subprocess
 import threading
 import time
+import shutil
 from pathlib import Path
 from functools import reduce
 import operator
@@ -382,7 +383,7 @@ class ConfigTab(QWidget):
     def prepare_and_run(self):
         try:
             # Lê base (params) e opções (arrays + repeticoes)
-            base_params = self.config_manager.load_json(PARAMS_FILE) or {}
+            base_params = self.config_manager.load_json(PARAMS_FILE)
             # Carrega o options.json atual SEM limpar/sobrescrever
             options = self.config_manager.load_json(OPTIONS_FILE) or {}
             runs_per_config = self.runs_per_config_spin.value()
@@ -906,7 +907,7 @@ class ParamsAGTab(QWidget):
                         QMessageBox.warning(self, "Lista inválida", f"Parâmetro '{key}' lista: {e}")
                         return
                     if parsed_list:
-                        # remover duplicados preservando ordem
+                        # remover duplicatas preservando ordem
                         seen = set()
                         dedup = []
                         for x in parsed_list:
@@ -996,6 +997,10 @@ class ExecutionTab(QWidget):
         self.runs_per_config = 0
         self.current_run_number = 0
         self.total_runs = 0
+        # Controle de saída
+        self.output_base_dir = SRC_DIR / "output"
+        self._pre_run_snapshot = {}
+        self._current_dest_dir = None
         self.init_ui()
 
     def init_ui(self):
@@ -1055,6 +1060,9 @@ class ExecutionTab(QWidget):
                 f"Iniciando bateria de testes com {len(self.configurations)} configs e {self.runs_per_config} repetições."
             )
             self.append_log(f"Total de execuções: {self.total_runs}")
+
+            # Limpa diretório de saída antes de iniciar
+            self._cleanup_output_dir()
         except Exception as e:
             QMessageBox.critical(self, "Erro", f"Falha ao preparar execuções: {e}")
             return
@@ -1077,8 +1085,8 @@ class ExecutionTab(QWidget):
         
         config_str = ", ".join([f"{k}: {v}" for k, v in current_config.items()])
         self.current_config_label.setText(f"Execução {self.current_run_number + 1}/{self.total_runs} (Rep. {repetition}) | {config_str}")
-        self.append_log("-" * 20)
-        self.append_log(f"Iniciando Config {config_index + 1}, Execução {repetition}: {config_str}")
+        self.append_log("-" * 200)
+        self.append_log(f"\n\nIniciando Config {config_index + 1}, Execução {repetition}: {config_str}")
 
         base_params = self.config_manager.load_json(PARAMS_FILE)
         base_params.update(current_config)
@@ -1094,6 +1102,12 @@ class ExecutionTab(QWidget):
              self.on_all_executions_finished(False, "Erro de arquivo.")
              return
 
+        # Snapshot dos arquivos atuais e diretório de destino único para esta execução
+        self._pre_run_snapshot = self._list_output_files()
+        timestamp = time.strftime('%Y%m%d_%H%M%S')
+        self._current_dest_dir = self.output_base_dir / f"config_{config_index + 1}" / f"exec_{repetition}_{timestamp}"
+        self._current_dest_dir.mkdir(parents=True, exist_ok=True)
+
         args = ["--config_num", str(config_index + 1), "--exec_num", str(repetition)]
         self.execution_thread = ExecutionThread(RUN_FRAMEWORK_SCRIPT, args)
         self.execution_thread.log_updated.connect(self.append_log)
@@ -1104,6 +1118,11 @@ class ExecutionTab(QWidget):
         self.append_log(f"Finalizada execução {self.current_run_number + 1}. Sucesso: {success}. {message}")
         if not success:
             self.append_log(f"❌ Erro na execução, pulando para a próxima.")
+        # Coleta e move apenas novos/alterados arquivos para a pasta destino
+        try:
+            self._collect_and_move_outputs()
+        except Exception as e:
+            self.append_log(f"Aviso: falha ao organizar arquivos de saída: {e}")
         
         self.current_run_number += 1
         self.progress_bar.setValue(self.current_run_number)
@@ -1142,6 +1161,60 @@ class ExecutionTab(QWidget):
             self.append_log(f"❌ {message}")
             if "Interrompido" not in message:
                 QMessageBox.critical(self, "Erro", f"A bateria de testes terminou com erro: {message}")
+
+    # ===== Helpers de saída =====
+    def _cleanup_output_dir(self):
+        try:
+            self.output_base_dir.mkdir(parents=True, exist_ok=True)
+            # remove tudo dentro de output, mas mantém a pasta
+            for entry in self.output_base_dir.iterdir():
+                try:
+                    if entry.is_file() or entry.is_symlink():
+                        entry.unlink(missing_ok=True)
+                    elif entry.is_dir():
+                        shutil.rmtree(entry)
+                except Exception as e:
+                    self.append_log(f"Aviso: não foi possível remover {entry}: {e}")
+            self.append_log("Diretório de saída limpo.")
+        except Exception as e:
+            self.append_log(f"Falha ao limpar diretório de saída: {e}")
+
+    def _list_output_files(self):
+        files = {}
+        if not self.output_base_dir.exists():
+            return files
+        for root, _, filenames in os.walk(self.output_base_dir):
+            for name in filenames:
+                path = Path(root) / name
+                try:
+                    files[str(path)] = os.path.getmtime(path)
+                except Exception:
+                    pass
+        return files
+
+    def _collect_and_move_outputs(self):
+        if self._current_dest_dir is None:
+            return
+        after = self._list_output_files()
+        # identifica novos ou modificados
+        candidates = []
+        for path_str, mtime in after.items():
+            prev_mtime = self._pre_run_snapshot.get(path_str)
+            if prev_mtime is None or mtime > prev_mtime:
+                candidates.append(Path(path_str))
+        # Evita mover os params_config e pastas destino de execuções
+        for src in candidates:
+            try:
+                # Pula diretórios (os.walk só lista arquivos) e destinos
+                if self._current_dest_dir in src.parents:
+                    continue
+                # Garante árvore de destino preservando nome do arquivo
+                dst = self._current_dest_dir / src.name
+                # Se arquivo ainda está na raiz de output, move
+                if src.exists():
+                    shutil.move(str(src), str(dst))
+            except Exception as e:
+                self.append_log(f"Aviso: não foi possível mover {src} -> {dst}: {e}")
 
 class LauncherWindow(QMainWindow):
     """Janela principal da aplicação com abas e rolagem.

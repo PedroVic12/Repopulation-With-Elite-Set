@@ -18,8 +18,8 @@
         ],
         "MUTACAO": 0.92,
         "CROSSOVER": 0.5,
-        "NUM_GENERATIONS": 50,
-        "POP_SIZE": 50,
+        "NUM_GENERATIONS": 20,
+        "POP_SIZE": 10,
         "repeticoes_por_config": 7,
         "key": true
     }
