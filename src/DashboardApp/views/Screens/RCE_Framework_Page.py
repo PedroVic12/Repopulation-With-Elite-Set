@@ -2,6 +2,7 @@
 
 # --- Componentes da Interface de Usuário ---
 from ..components.dash_rce_components import ConsolidatedResultsComponent, CardSolutions, GraficoPotenciaAtivaReativaComponent, StatisticsTableComponent, GraficoRCEComponent
+from ..components.side_bar_widget import load_execution_data
 from .AgendamentoRedePage import AgendamentoRedePage
 
 #backend
@@ -57,12 +58,18 @@ class UseState:
 
 # --- Classe Principal do Aplicativo ---
 class FrameworkRCEDashboard:
-    def __init__(self, options = None):
+    def __init__(self, options=None):
         self.controller = Controller()
         self.utils = Utils()
+        
+        # Get available executions (returns dict of {config_num: [exec_nums]}, warnings)
         self.executions, self.warnings = self.utils.find_available_executions()
         self.menu_lateral = DrawerSideBar(self.warnings)
-  
+        
+        # Store the first config and its first execution as default
+        self.current_config = next(iter(self.executions.keys()), None) if self.executions else None
+        self.current_execution = self.executions[self.current_config][0] if self.current_config and self.executions[self.current_config] else None
+        
         self.options = options 
         self.init_css()
 
@@ -75,8 +82,18 @@ class FrameworkRCEDashboard:
 
         if "resultados_AG" not in st.session_state:
             st.session_state.resultados_AG = None
-
             
+        # Store execution data in session state
+        if 'execution_data' not in st.session_state and self.current_config and self.current_execution:
+            try:
+                st.session_state.execution_data = self.utils.load_execution_data(
+                    self.current_config, 
+                    self.current_execution
+                )
+            except Exception as e:
+                st.error(f"Erro ao carregar dados da execução: {str(e)}")
+
+
 
 
     def init_css(self):
@@ -148,24 +165,57 @@ class FrameworkRCEDashboard:
             config_controller = ConfigController()
             all_params = config_controller.repository.get_all_configs()
             
-            # Load execution data if not already loaded
-            if 'execution_data' not in st.session_state:
-                st.session_state.execution_data = self.controller.load_execution_data()
-            
-            # Create and display timeline if data is available
-            timeline_df = self._create_timeline(st.session_state.execution_data)
-            if timeline_df is not None:
-                st.subheader("Linha do Tempo de Soluções")
-                filtered_timeline = self._display_timeline_filter(timeline_df)
+            # Show configuration and execution selectors
+            with st.sidebar.expander("🔧 Configuração e Execução", expanded=True):
+                # Configuration selector
+                config_options = list(self.executions.keys())
+                selected_config = st.selectbox(
+                    "Selecione a configuração:",
+                    config_options,
+                    index=0,
+                    format_func=lambda x: f"Configuração {x}"
+                )
                 
-                # Display timeline
-                if not filtered_timeline.empty:
-                    st.vega_lite_chart(filtered_timeline, {
-                        'mark': {'type': 'circle', 'tooltip': True},
-                        'encoding': {
-                            'x': {'field': 'time', 'type': 'quantitative', 'title': 'Tempo'},
-                            'y': {'field': 'branch', 'type': 'nominal', 'title': 'Ramo'},
-                            'size': {'field': 'fitness', 'type': 'quantitative', 'title': 'Fitness'},
+                # Execution selector for the selected configuration
+                if selected_config in self.executions and self.executions[selected_config]:
+                    exec_options = self.executions[selected_config]
+                    selected_exec = st.selectbox(
+                        "Selecione a execução:",
+                        exec_options,
+                        index=0,
+                        format_func=lambda x: f"Execução {x}"
+                    )
+                    
+                    # Load button
+                    if st.button("Carregar Dados"):
+                        with st.spinner("Carregando dados da execução..."):
+                            try:
+                                data, fig = self.utils.load_execution_data(selected_config, selected_exec)
+                                st.session_state.execution_data = data
+                                if fig is not None:
+                                    st.session_state.execution_figure = fig
+                                st.rerun()
+                            except Exception as e:
+                                st.error(f"Erro ao carregar execução: {str(e)}")
+                else:
+                    st.warning("Nenhuma execução disponível para esta configuração.")
+            
+            # Display execution data if available
+            if 'execution_data' in st.session_state and st.session_state.execution_data:
+                # Create and display timeline if data is available
+                timeline_df = self._create_timeline(st.session_state.execution_data)
+                if timeline_df is not None:
+                    st.subheader("Linha do Tempo de Soluções")
+                    filtered_timeline = self._display_timeline_filter(timeline_df)
+                    
+                    # Display timeline
+                    if not filtered_timeline.empty:
+                        st.vega_lite_chart(filtered_timeline, {
+                            'mark': {'type': 'circle', 'tooltip': True},
+                            'encoding': {
+                                'x': {'field': 'time', 'type': 'quantitative', 'title': 'Tempo'},
+                                'y': {'field': 'branch', 'type': 'nominal', 'title': 'Ramo'},
+                                'size': {'field': 'fitness', 'type': 'quantitative', 'title': 'Fitness'},
                             'color': {'field': 'status', 'type': 'nominal', 'title': 'Status'}
                         }
                     })
@@ -371,7 +421,10 @@ class FrameworkRCEDashboard:
     def header(self):
         st.markdown("---")
         st.title("⚡ Dashboard Repopulation-With-Elite-Set RCE ⚡")
-        st.subheader("Version 15.2.5 - 08/08/2025")
+        st.subheader("Version 15.7.5 - 16/08/2025")
+        st.subheader("Artigo Cientifico PIBIC - 28/08/2025")
+        st.subheader("Desenvolvido por Pedro Victor Veras e Rainer Zanghi em um projeto PIBIC pela UFF - 2024/2025")
+        st.subheader("Apresentação e Resumo UFF - 06/09/2025")
         st.markdown("---")
 
     def footer(self):

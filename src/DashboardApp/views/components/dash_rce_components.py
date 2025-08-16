@@ -8,6 +8,7 @@ import numpy as np
 import sys
 import io
 import re
+from datetime import datetime
 
 
 #! TODO SABER PEGAR IMPORT TUDO DE CONTROLLER E UTILS
@@ -146,96 +147,151 @@ class ConsolidatedResultsComponent:
 
 
 class CardSolutions:
-    """Componente para exibir o resumo da melhor solução."""
+    """Componente para exibir o resumo da melhor solução com suporte a dark mode."""
 
     @staticmethod
     def render(data, exec_num, debug=False):
-        """Exibe o cabeçalho e o resumo da melhor solução."""
-        st.subheader(f"Resultados da Execução: {exec_num}")
-        #st.warning("Resultados da melhor geração da solução encontrada esta acumulando ao longo das execuções. Para ver os resultados de cada execução, acesse a a planilha em 'outpout/resultados_consolidados.xlsx'.")
+        """Exibe o cabeçalho e o resumo da melhor solução com suporte a dark mode."""
+        # Verifica se o tema atual é dark
+        is_dark = st.get_option('theme.base') == 'dark' if hasattr(st, 'get_option') else False
+        
+        # Cores baseadas no tema
+        bg_color = "#1e1e1e" if is_dark else "#ffffff"
+        card_bg = "#2d2d2d" if is_dark else "#f8f9fa"
+        text_color = "#ffffff" if is_dark else "#333333"
+        border_color = "#444" if is_dark else "#e0e0e0"
+        success_color = "#4caf50"  # Verde para resultados
+        
+        st.subheader(f"📊 Resultados da Execução: {exec_num}")
 
         if debug:
-            st.write(data)
+            st.json(data)
 
         # Obter os dados necessários
         best_gen_idx = data.get('best_gen_idx', 'N/A')
         best_fitness = data.get('best_fitness', float('nan'))
         best_vars = data.get('best_vars', [])
-
-        # Criar tabela de variáveis de decisão
-        if isinstance(best_vars, (list, tuple)) and len(best_vars) > 0:
-            best_vars_table = pd.DataFrame(
-                {"Valor": best_vars},
-                index=[f"VAR {i+1}" for i in range(len(best_vars))]
-            ).T.to_html(classes='dataframe', border=2, justify='center', index_names=True, index=True)
-        else:
-            best_vars_table = "<p>Nenhuma variável encontrada.</p>"
-
-      
-
-        # Safely format best_fitness
+        
+        # Formatar fitness
         import math
         if isinstance(best_fitness, (int, float)) and not math.isnan(best_fitness):
-            best_fitness_str = f"{best_fitness:.2f}"
+            best_fitness_str = f"{best_fitness:.6f}"
+            fitness_color = success_color
         else:
-            best_fitness_str = str(best_fitness)
-            
-            
-                            # Monta uma tabela HTML com as informações em uma única linha
-        card_html_table = f"""
-            <div style="
-            border: 2px solid #e6e6e6; 
-            border-radius: 15px; 
-            background-color: #9c9c9c;
-            padding: 16px;
-            margin-bottom: 10px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            ">
-            <h3 style="color: #1f2db4; text-align: center;">Resumo da Melhor Solução</h3>
-            <table style="width: 100%; border-collapse: collapse; background: #f7f7f7;">
-                <tr>
-                <th style="padding: 8px; border: 1px solid #ccc;">Melhor Geração</th>
-                <th style="padding: 8px; border: 1px solid #ccc;">Melhor Fitness</th>
-                <th style="padding: 8px; border: 1px solid #ccc;">Variáveis de Decisão</th>
-                </tr>
-                <tr>
-                <td style="padding: 8px; border: 1px solid #ccc; text-align: center;">{best_gen_idx}</td>
-                <td style="padding: 8px; border: 1px solid #ccc; text-align: center;">{best_fitness_str}</td>
-                <td style="padding: 8px; border: 1px solid #ccc;">{best_vars_table}</td>
-                </tr>
-            </table>
-            </div>
+            best_fitness_str = "N/A"
+            fitness_color = "#f44336"  # Vermelho para valores inválidos
+
+        # Criar tabela de variáveis de decisão
+        vars_html = ""
+        if isinstance(best_vars, (list, tuple)) and best_vars:
+            vars_html = "<div style='max-height: 300px; overflow-y: auto;'>"
+            vars_html += "<table style='width: 100%; border-collapse: collapse;'>"
+            vars_html += """
+                <thead>
+                    <tr style='background-color: #2c3e50; color: white;'>
+                        <th style='padding: 10px; text-align: left; border-bottom: 1px solid #ddd;'>Variável</th>
+                        <th style='padding: 10px; text-align: right; border-bottom: 1px solid #ddd;'>Valor</th>
+                    </tr>
+                </thead>
+                <tbody>
             """
-    
             
+            for i, var in enumerate(best_vars, 1):
+                # Formatação condicional baseada no valor
+                var_style = f"color: {success_color}; font-weight: 500;" if var != 0 else "color: #888;"
+                vars_html += f"""
+                    <tr style='border-bottom: 1px solid {border_color};'>
+                        <td style='padding: 8px 12px;'>VAR {i}</td>
+                        <td style='padding: 8px 12px; text-align: right; {var_style}'>{var:.6f}</td>
+                    </tr>
+                """
             
+            vars_html += "</tbody></table></div>"
+        else:
+            vars_html = "<p style='color: #888; text-align: center;'>Nenhuma variável encontrada</p>"
+
+        # HTML para o card principal
+        card_html = f"""
+        <style>
+            .card {{
+                border-radius: 12px;
+                background-color: {card_bg};
+                border: 1px solid {border_color};
+                padding: 16px;
+                margin-bottom: 16px;
+                box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+                color: {text_color};
+                transition: transform 0.2s, box-shadow 0.2s;
+            }}
+            .card:hover {{
+                transform: translateY(-2px);
+                box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            }}
+            .card-header {{
+                font-size: 1.2em;
+                font-weight: 600;
+                margin-bottom: 16px;
+                color: #4a90e2;
+                border-bottom: 1px solid {border_color};
+                padding-bottom: 8px;
+            }}
+            .metric-card {{
+                background: {card_bg};
+                border-radius: 10px;
+                padding: 16px;
+                text-align: center;
+                border: 1px solid {border_color};
+            }}
+            .metric-label {{
+                font-size: 0.9em;
+                color: {text_color};
+                opacity: 0.8;
+                margin-bottom: 6px;
+            }}
+            .metric-value {{
+                font-size: 1.8em;
+                font-weight: 700;
+                color: {success_color};
+            }}
+            .execution-info {{
+                font-size: 0.9em;
+                color: {text_color};
+                opacity: 0.8;
+                margin-top: 12px;
+                padding-top: 12px;
+                border-top: 1px dashed {border_color};
+            }}
+        </style>
+
+        <div class="card">
+            <div class="card-header">📊 Resumo da Melhor Solução</div>
             
-        st.markdown(
-            f"""
-            <div style="display: flex; gap: 16px; align-items: stretch;">
-              <div style="flex:1; border: 1px solid #e6e6e6; border-radius: 12px; background-color: #f7f7f7; padding: 14px;">
-                <h3 style="color: #1f2db4; text-align: center; margin-top: 0;">Resumo da Melhor Solução</h3>
-                <div style="display:flex; justify-content: space-around;">
-                  <div style="text-align:center;">
-                    <div style="font-size: 13px; color:#555;">Melhor Geração</div>
-                    <div style="font-size: 22px; font-weight: 600;">{best_gen_idx}</div>
-                  </div>
-                  <div style="text-align:center;">
-                    <div style="font-size: 13px; color:#555;">Melhor Fitness</div>
-                    <div style="font-size: 22px; font-weight: 600;">{best_fitness_str}</div>
-                  </div>
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; margin-bottom: 16px;">
+                <div class="metric-card">
+                    <div class="metric-label">Melhor Geração</div>
+                    <div class="metric-value" style="color: #4a90e2;">{best_gen_idx}</div>
                 </div>
-              </div>
-              <div style="flex:1; border: 1px solid #e6e6e6; border-radius: 12px; background-color: #f7f7f7; padding: 14px;">
-                <h3 style="color: #1f2db4; text-align: center; margin-top: 0;">Variáveis de Decisão</h3>
-                {best_vars_table}
-              </div>
+                <div class="metric-card">
+                    <div class="metric-label">Melhor Fitness</div>
+                    <div class="metric-value" style="color: {fitness_color};">{best_fitness_str}</div>
+                </div>
             </div>
-            """,
-            unsafe_allow_html=True
-        )
+            
+            <div style="margin-top: 16px;">
+                <div style="font-weight: 600; margin-bottom: 8px; color: {text_color};">Variáveis de Decisão:</div>
+                {vars_html}
+            </div>
+            
+            <div class="execution-info">
+                Execução: {exec_num} • {datetime.now().strftime('%d/%m/%Y %H:%M')}
+            </div>
+        </div>
+        """
+        
+        st.markdown(card_html, unsafe_allow_html=True)
+        
+        # Adiciona um pequeno espaço entre os cards
+        st.markdown("<div style='margin-bottom: 20px;'></div>", unsafe_allow_html=True)
 
 
 
