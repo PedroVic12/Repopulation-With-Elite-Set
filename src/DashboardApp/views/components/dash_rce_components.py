@@ -324,7 +324,7 @@ class CardSolutions:
         <div class="card">
             <div class="card-header">📊 Resumo da Melhor Solução</div>
             
-            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; margin-bottom: 16px;">
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(100px, 1fr)); gap: 8px; margin-bottom: 2px;">
                 
                 
                 
@@ -358,7 +358,7 @@ class CardSolutions:
         components.html(card_html, height=approx_height, scrolling=True)
         
         # Adiciona um pequeno espaço entre os cards
-        st.markdown("<div style='margin-bottom: 20px;'></div>", unsafe_allow_html=True)
+        st.markdown("<div style='margin-bottom: 2px;'></div>", unsafe_allow_html=True)
 
 
 

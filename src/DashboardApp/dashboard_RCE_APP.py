@@ -48,7 +48,7 @@ def DrawerSideBar():
 
 
 
-import streamlit as st
+ 
 
 # --- Main Application Class ---
 class App:
@@ -80,6 +80,4 @@ if __name__ == "__main__":
         app.run(pagina_selecionada)
 
     except Exception as e:
-        print(e)
-    finally:
-        print("App Streamlit State atualizado!")
+        st.exception(e)

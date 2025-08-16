@@ -52,7 +52,7 @@ def select_execution(execution_numbers):
 
 class Controller:
     def __init__(self):
-        print("Setting up the controller...")
+        st.info("Setting up the controller...")
 
         self.execution_numbers = find_available_executions()
         

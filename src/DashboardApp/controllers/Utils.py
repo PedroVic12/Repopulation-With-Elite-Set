@@ -57,11 +57,11 @@ class Utils:
                 os.remove(file_path)
                 #print(f"Arquivo {file_path} removido com sucesso.")
                 
-            print(f"Todos os arquivos na pasta {data_file_selected} foram removidos com sucesso.")
+            st.success(f"Todos os arquivos na pasta {data_file_selected} foram removidos com sucesso.")
 
         except Exception as e:
 
-            print(f"Erro ao remover arquivo {file_path}: {e}")
+            st.error(f"Erro ao remover arquivo {file_path}: {e}")
 
     def get_html_content_from_folder(self, folder_path_str: str) -> dict:
         """
@@ -79,7 +79,7 @@ class Utils:
         files = []
 
         if not folder_path.is_dir():
-            print(f"Erro: O caminho '{folder_path_str}' não é um diretório válido ou não existe.")
+            st.error(f"Erro: O caminho '{folder_path_str}' não é um diretório válido ou não existe.")
             return files
 
         for html_file in folder_path.glob("*.html"):
@@ -90,10 +90,10 @@ class Utils:
                 files.append(html_file.name)
 
             except Exception as e:
-                print(f"Erro ao ler o arquivo {html_file.name}: {e}")
+                st.error(f"Erro ao ler o arquivo {html_file.name}: {e}")
         
         if not files:
-            print(f"Nenhum arquivo HTML encontrado em '{folder_path_str}'.")
+            st.info(f"Nenhum arquivo HTML encontrado em '{folder_path_str}'.")
 
         return files
 
@@ -107,7 +107,7 @@ class Utils:
             with open(data_file_selected, "rb") as f:
                 data = pickle.load(f)
         except Exception as e:
-            print(f"Erro ao carregar o arquivo .pkl: {e}")
+            st.error(f"Erro ao carregar o arquivo .pkl: {e}")
             raise
 
         return data
@@ -169,7 +169,7 @@ class Utils:
             return None
 
         if debug:
-            print(f"[DEBUG] Tentando carregar: {data_file_selected}")
+            st.sidebar.info(f"[DEBUG] Tentando carregar: {data_file_selected}")
 
         try:
             with open(data_file_selected, "rb") as f:
@@ -244,7 +244,7 @@ class Controller:
                 except Exception as e:
                     st.warning(f"Erro ao apagar arquivo {file_path}: {e}")
 
-        print("Controller configurado com sucesso.")
+        st.info("Controller configurado com sucesso.")
 
     def set_state(self, key, default_value):
         """Gerencia o estado no st.session_state."""
@@ -286,7 +286,7 @@ def run_utils_test():
     utils = Utils()
 
     files = utils.get_html_content_from_folder(FOLDER_NAME)
-    print("Arquivos HTML encontrados na pasta:", files)
-    print("Caminho da pasta de saída:", FOLDER_NAME)
+    st.write("Arquivos HTML encontrados na pasta:", files)
+    st.write("Caminho da pasta de saída:", FOLDER_NAME)
 
 #run_utils_test()

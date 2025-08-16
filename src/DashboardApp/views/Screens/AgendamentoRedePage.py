@@ -219,18 +219,7 @@ def AgendamentoRedePage(key_prefix: str = "", selected_exec: int | None = None, 
             key=f"{key_prefix}_contingencia_editor",
         )
 
-    # st.subheader("Tabela de Agendamentos")
-    # edited_agendamento_df = st.data_editor(
-    #     agendamento_df,
-    #     use_container_width=True,
-    #     num_rows="dynamic",
-    #     column_config={},
-    # )
 
-    #st.subheader("Tabela de Contingências")
-    #edited_contingencia_df = st.data_editor(contingencia_df, use_container_width=True, num_rows="dynamic")
-
-    # Seleção de execução: centralizada por parâmetro
     # Construir uma chave de sessão compartilhada por configuração (não por execução)
     shared_prefix = key_prefix.split("_exec")[0] if "_exec" in key_prefix else key_prefix
     session_key_exec = f"{shared_prefix}_exec_select"
@@ -408,21 +397,7 @@ def AgendamentoRedePage(key_prefix: str = "", selected_exec: int | None = None, 
                             st.error(f"Erro ao carregar a população final: {e}")
                             st.write("População final não disponível.")
                             
-                            
-        
-    # Mostra toda a tabela de execuções primeiro
-    #st.subheader("Tabela de Horários de Agendamento")
-    #st.dataframe(execution_df)
 
-    # (removido) Abas por execução — agora a seleção é centralizada via selected_exec/selectbox
-
-    # Mostra toda a tabela de execuções primeiro
-    #st.subheader("Tabela de Horários de Agendamento")
-    #st.dataframe(execution_df)
-
-    # Renderiza a timeline apenas para a execução selecionada (unificado com a seleção externa)
-    #st.subheader(f"Solução/Timeline - Execução {selected_exec_int}")
-    # Diagnóstico leve para verificar sincronização
     try:
         st.caption(
             f"[diag] key_prefix={key_prefix} | shared_key={session_key_exec} | selected_exec={selected_exec_int} | execs={sorted(execution_df['execution'].unique().tolist())} | resolved_exec={int(exec_data['execution'])} | override={override_applied}"

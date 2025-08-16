@@ -153,9 +153,40 @@ class FrameworkRCEDashboard:
         
         return filtered_df
 
+    def table_agendamento(self):
+        from AgendamentoRedePage import entrada_de_dados
+
+        st.write("Esta página exibe os agendamentos de rede elétrica e suas contingências, além de uma timeline interativa com as sugestões de agendamento.")
+
+        # Carregar dados
+        agendamento_df, contingencia_df = entrada_de_dados()
+
+        # Exibir tabelas editáveis
+        with st.expander("Editar Agendamentos e Contingências", expanded=False):
+                st.subheader("Tabela de Agendamentos")
+                edited_agendamento_df = st.data_editor(
+                    agendamento_df,
+                    use_container_width=True,
+                    num_rows="dynamic",
+                    column_config={},
+                    key=f"{key_prefix}_agendamento_editor",
+                )
+                st.markdown("---")
+                st.info("Edite os agendamentos e contingências conforme necessário. As alterações serão salvas automaticamente.")
+                st.subheader("Tabela de Contingências")
+                edited_contingencia_df = st.data_editor(
+                    contingencia_df,
+                    use_container_width=True,
+                    num_rows="dynamic",
+                    key=f"{key_prefix}_contingencia_editor",
+                )
+
     def run(self):
         try:
             self.menu_lateral.render()
+
+            #! TODO -> PVRV - 16/08/25 ver uma forma de colocar os horarios de agendamentos de IEEE 14,30 e 118 por aqui e rodar a otimização AG
+            #self.table_agendamento()
             self.header()
 
             if not self.executions:
