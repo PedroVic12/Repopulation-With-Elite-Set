@@ -462,8 +462,8 @@ class JsonEditor(QWidget):
         v.addWidget(self.fields_widget)
 
         buttons_layout = QHBoxLayout()
-        self.reload_btn = QPushButton("🔄 Recarregar")
-        self.save_btn = QPushButton("💾 Salvar")
+        self.reload_btn = QPushButton("🔄 Recarregar arquivo params.json")
+        self.save_btn = QPushButton("💾 Salvar configuração AG")
         self.reload_btn.clicked.connect(self.reload)
         self.save_btn.clicked.connect(self.save)
         buttons_layout.addStretch()
@@ -687,8 +687,8 @@ class ParamsAGTab(QWidget):
 
         # Botões ao lado direito da Tabela de AG
         actions_column = QVBoxLayout()
-        self.reload_btn = QPushButton("🔄 Recarregar")
-        self.save_btn = QPushButton("💾 Salvar")
+        self.reload_btn = QPushButton("🔄 Recarregar arquivo params.json")
+        self.save_btn = QPushButton("💾 Salvar configuração AG")
         self.reload_btn.clicked.connect(self.reload)
         self.save_btn.clicked.connect(self.save)
         # Estilo/tamanho dos botões (emojis maiores via fonte)
@@ -745,14 +745,33 @@ class ParamsAGTab(QWidget):
         if 'repeticoes_por_config' in self.options:
             cleaned_options['repeticoes_por_config'] = self.options['repeticoes_por_config']
         cleaned_options.update(arrays)
+
+
+        # Fatiamento do dict 
+
+        #print("Parametros AG escolhidos:")
+        #print(self.params)
+
+        teste = False    
+        if teste:
+            params_json_table = dict(list(self.params.items())[:-4]) 
+            print("\n\nParametros AG escolhidos (sem os 4 ultimos):")
+            print(params_json_table)
+        else:
+            params_json_table = self.params
+
+
         # salva apenas se mudou algo
         if cleaned_options != {k: v for k, v in self.options.items() if (k in arrays or k == 'repeticoes_por_config')}:
             self.config_manager.save_json(cleaned_options, OPTIONS_FILE)
 
-        # Mostrar apenas parâmetros que NÃO estão variando
-        keys = [k for k in self.params.keys() if k not in arrays]
 
+        # Mostrar apenas parâmetros que NÃO estão variando
+        keys = [k for k in params_json_table.keys() if k not in arrays]
+
+        # Atualiza a tabela com os parâmetros que não estão variando
         self.table.setRowCount(len(keys))
+
         for r, key in enumerate(keys):
             # coluna 0: nome
             name_item = QTableWidgetItem(key)
@@ -760,7 +779,7 @@ class ParamsAGTab(QWidget):
             self.table.setItem(r, 0, name_item)
 
             # coluna 1: valor base
-            base_val = self.params.get(key, "")
+            base_val = params_json_table.get(key, "")
             self.table.setItem(r, 1, QTableWidgetItem(str(base_val)))
 
     def _cast_value(self, key, text):
@@ -820,23 +839,8 @@ class ParamsAGTab(QWidget):
                     QMessageBox.warning(self, "Valor inválido", f"Parâmetro '{key}': {e}")
                     return
 
-                # listas: somente para chaves permitidas variáveis
-                if key in VARYING_KEYS:
-                    elem_type = type(self.params.get(key, 0.0)) if key in self.params else float
-                    try:
-                        parsed_list = self._parse_list(list_text, elem_type)
-                    except Exception as e:
-                        QMessageBox.warning(self, "Lista inválida", f"Parâmetro '{key}' lista: {e}")
-                        return
-                    if parsed_list:
-                        # remover duplicatas preservando ordem
-                        seen = set()
-                        dedup = []
-                        for x in parsed_list:
-                            if x not in seen:
-                                seen.add(x)
-                                dedup.append(x)
-                        new_arrays[key] = dedup
+                # Não editar listas (VARYING_KEYS) aqui: a tabela não possui coluna de edição de listas.
+                # Preservaremos as listas existentes em options.json ao salvar.
 
             # salvar params.json
             if not self.config_manager.save_json(new_params, PARAMS_FILE):
@@ -847,8 +851,8 @@ class ParamsAGTab(QWidget):
             out_options = {}
             if 'repeticoes_por_config' in self.options:
                 out_options['repeticoes_por_config'] = self.options['repeticoes_por_config']
-            # Apenas chaves em VARYING_KEYS
-            out_options.update({k: v for k, v in new_arrays.items() if k in VARYING_KEYS})
+            # Apenas chaves em VARYING_KEYS: preservar arrays existentes (sem edição por esta tela)
+            out_options.update({k: v for k, v in self.options.items() if k in VARYING_KEYS and isinstance(v, list)})
             if not self.config_manager.save_json(out_options, OPTIONS_FILE):
                 QMessageBox.critical(self, "Erro", f"Falha ao salvar {OPTIONS_FILE.name}")
                 return
@@ -1039,7 +1043,7 @@ class ExecutionTab(QWidget):
         self.execution_thread.start()
 
     def on_single_execution_finished(self, success, message):
-        self.append_log(f"Finalizada execução {self.current_run_number + 1}. Sucesso: {success}. {message}")
+        self.append_log(f"\n\nFinalizada execução {self.current_run_number + 1}. Sucesso: {success}. {message}")
         if not success:
             self.append_log(f"❌ Erro na execução, pulando para a próxima.")
         # Pós-processa arquivos novos/alterados (sem mover). Atualiza consolidação.
@@ -1059,7 +1063,7 @@ class ExecutionTab(QWidget):
             return
         try:
             subprocess.Popen(["streamlit", "run", str(DASHBOARD_SCRIPT), "--server.port", "8501"], cwd=BASE_DIR)
-            self.append_log("Dashboard iniciado em http://localhost:8501")
+            self.append_log("\n\nDashboard iniciado em http://localhost:8501")
         except Exception as e:
             self.append_log(f"Erro ao iniciar dashboard: {e}")
 
@@ -1158,7 +1162,8 @@ class ExecutionTab(QWidget):
             self.append_log(f"Não foi possível ler o novo resultado '{new_results_path.name}': {e}")
             return
 
-        master_path = self.output_base_dir / 'results_consolidados.xlsx'
+        # NÃO sobrescrever o arquivo original da execução. Vamos manter um MASTER separado.
+        master_path = self.output_base_dir / 'results_consolidados_master.xlsx'
         # Preferimos manter um cache separado para não depender do arquivo que o framework pode sobrescrever
         if self._consolidated_cache_path.exists():
             try:
@@ -1194,7 +1199,7 @@ class ExecutionTab(QWidget):
             except Exception:
                 pass
             df_all.to_excel(master_path, index=False)
-            self.append_log(f"Consolidado atualizado: {master_path.name} (config {config_index}, exec {repetition})")
+            self.append_log(f"Consolidado MASTER atualizado: {master_path.name} (config {config_index}, exec {repetition})")
         except Exception as e:
             self.append_log(f"Falha ao salvar consolidado: {e}")
 
