@@ -4,15 +4,15 @@ import pandas as pd
 import streamlit as st
 
 # Import RCE Framework
-from AlgEvolutivoRCE.Setup import Setup, params
-from AlgEvolutivoRCE.alg_evolutivo_rce import AlgoritimoEvolutivoRCE
-from AlgEvolutivoRCE.Dashboard import DashboardApp
+from AlgEvolutivoRCE_backup.Setup import Setup, params
+from AlgEvolutivoRCE_backup.alg_evolutivo_rce import AlgoritimoEvolutivoRCE
+from AlgEvolutivoRCE_backup.Dashboard import DashboardApp
 from utils.functions_fitness.functions_benchmarking import rosenbrock_benchmark,esfera_benchmark,rastrigin, evaluate
-from RedeEletrica.rede_eletrica import RedeEletricaPandaPower
+from RedeEletrica_backup.rede_eletrica import RedeEletricaPandaPower
 
 
 # Utils 
-from config import FOLDER_NAME, options_main_file
+from config_backup import FOLDER_NAME, options_main_file
 import json
 import pathlib
 import time
@@ -35,6 +35,8 @@ rede = RedeEletricaPandaPower(network_name, debug=True)
 net = rede.net
 exibir_tabelas = False
 
+#! OBJETIVO DESSE SCRIPT
+
 # Aumentar o estresse na rede significa que mais linhas se tornam críticas,
 # o que é bom para fins de demonstração da análise de contingência.
 
@@ -53,6 +55,22 @@ net.gen.loc[1, 'p_mw'] = 100
 net.gen.loc[2, 'p_mw'] = 100
 net.gen.loc[3, 'slack'] = True
 
+print("1) Primeira etapa:")
+print("Realizar um despacho simples de geradores maximizando os três primeiros geradores e definindo o quarto como slack.")
+
+net_list = []
+net_list.append([
+    net.gen.loc[0, 'p_mw'] = 120,
+    net.gen.loc[1, 'p_mw'] = 100,
+    net.gen.loc[2, 'p_mw'] = 100,
+    net.gen.loc[3, 'slack'] = True,    
+    ])
+print(net_list)
+
+
+
+print("Executando PowerFlow PandaPower")
+#! Todo -> Refatorar com a classse RedeModelo com RedeELetricaSmartGridPandaPower
 # Executar o Fluxo de Potência na condição base
 pp.runpp(net, numba=False)
 print("Fluxo de Potencia executado!")
@@ -61,6 +79,7 @@ print("Fluxo de Potencia executado!")
 gen_mw_total = net.res_gen['p_mw'].sum()
 imports_mw_total = net.res_ext_grid['p_mw'].sum()
 
+print("\n\nRESULTADOS")
 print('Geração total em MW:', gen_mw_total + imports_mw_total)
 print('Geração total importada em MW:', imports_mw_total)
 print('Geração total local em MW:', gen_mw_total)
@@ -125,8 +144,12 @@ def realizar_analise_contingencia(rede, vmax=1.05, vmin=0.95, line_loading_max=1
     """
     linhas = rede.line.index
     indices_linhas_criticas = []
+    
+    print("Realizando analise de contigenicias com condições iniciais")
+    print(rede,vmax,vmin,line_loading_max)
 
     print("\nRealizando análise de contingência para as linhas...")
+    print("Linhas da rede eletrica salva em Array",linhas)
     for l in linhas:
         # Temporariamente desativar a linha (simulando a contingência)
         rede.line.loc[l, 'in_service'] = False
@@ -137,14 +160,15 @@ def realizar_analise_contingencia(rede, vmax=1.05, vmin=0.95, line_loading_max=1
             # Verificar violações (limites de tensão e carregamento de linha)
             if rede.res_bus.vm_pu.max() > vmax or rede.res_bus.vm_pu.min() < vmin or rede.res_line.loading_percent.max() > line_loading_max:
                 indices_linhas_criticas.append(l)
+                print("Linha critica detectada - ", l)
 
         except pp.LoadflowNotConverged:
-            print(f"Fluxo de potência não convergiu para a contingência da linha {l}. Considerada crítica.")
+            print(f"\n\n\nFluxo de potência não convergiu para a contingência da linha {l}. Considerada crítica.")
             indices_linhas_criticas.append(l)
         except Exception as e:
-            print(f"Ocorreu um erro durante o fluxo de potência para a contingência da linha {l}: {e}")
+            print(f"\n\n\n\nOcorreu um erro! durante o fluxo de potência para a contingência da linha {l}: {e}")
             # Dependendo dos requisitos da sua análise, você pode querer tratar outros erros como críticos
-            # indices_linhas_criticas.append(l)
+            indices_linhas_criticas.append(l)
         finally:
             # Sempre retornar a linha ao serviço
             rede.line.loc[l, 'in_service'] = True
@@ -172,7 +196,17 @@ def plotar_rede_com_status(rede, indices_linhas_criticas):
 
     trafo_color = ['green' if status else 'gray' for status in rede.trafo.in_service] if not rede.trafo.empty else None
 
-
+    parametrod_rede_default = """         
+            ext_grid_size=3.0,
+            line_width=2.0,
+            bus_size=3,
+            trafo_size=4,
+            switch_size = 4,
+            bus_dc_size = 4
+            
+            """
+            
+    print("Usando parametros default:",parametrod_rede_default)
 
     ax = ppl.simple_plot(
         rede,
