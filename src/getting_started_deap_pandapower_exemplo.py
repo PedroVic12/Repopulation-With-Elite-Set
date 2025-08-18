@@ -60,10 +60,12 @@ print("Realizar um despacho simples de geradores maximizando os três primeiros 
 
 net_list = []
 net_list.append([
-    net.gen.loc[0, 'p_mw'] = 120,
-    net.gen.loc[1, 'p_mw'] = 100,
-    net.gen.loc[2, 'p_mw'] = 100,
-    net.gen.loc[3, 'slack'] = True,    
+    
+    net.gen.loc[0, 'p_mw'] == 120,
+    
+    net.gen.loc[1, 'p_mw'] == 100,
+    net.gen.loc[2, 'p_mw'] == 100,
+    net.gen.loc[3, 'slack'] == True,    
     ])
 print(net_list)
 
