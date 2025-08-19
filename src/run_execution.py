@@ -84,6 +84,18 @@ def run_framework_many_executions(function_bechmarking=False, config_num=1, exec
     alg = AlgoritimoEvolutivoRCE(setup, DEBUG=False)
     print("Algoritmo Evolutivo iniciado.")
 
+    # Loop principal do Algoritmo Evolutivo
+    pop_with_repopulation, logbook_with_repopulation, best_variables = alg.run(RCE=True)
+    print("\n\nEvolução concluída  - 100%")
+    print(f"Best variables", best_variables)
+    
+    
+    # # Resultados
+    x, y, z, fig = alg.dashboard.visualize(
+        logbook_with_repopulation, pop_with_repopulation,
+        config_num=config_num, execution_num=exec_num
+    )
+
     all_results = {}
     load_many_executions(options, setup, alg, config_num=config_num, exec_num=exec_num, all_configs_results=all_results)
 
