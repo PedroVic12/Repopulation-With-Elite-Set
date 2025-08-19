@@ -276,7 +276,7 @@ class CardSolutions:
                 background-color: {card_bg};
                 border: 1px solid {border_color};
                 padding: 16px;
-                margin-bottom: 16px;
+                margin-bottom: 2px;
                 box-shadow: 0 2px 4px rgba(0,0,0,0.1);
                 color: {text_color};
                 transition: transform 0.2s, box-shadow 0.2s;
@@ -353,15 +353,9 @@ class CardSolutions:
         """
         
         # Renderiza como HTML bruto para garantir que o card seja exibido corretamente
-        approx_height = 320 + (len(best_vars) if isinstance(best_vars, (list, tuple)) else 0) * 28
-        approx_height = max(approx_height, 380)
+        approx_height = 150 + (len(best_vars) if isinstance(best_vars, (list, tuple)) else 0) * 28
+        approx_height = max(approx_height, 320)
         components.html(card_html, height=approx_height, scrolling=True)
-        
-        # Adiciona um pequeno espaço entre os cards
-        st.markdown("<div style='margin-bottom: 2px;'></div>", unsafe_allow_html=True)
-
-
-
         st.markdown("---")
 
 class GraficoPotenciaAtivaReativaComponent:
@@ -482,7 +476,7 @@ class GraficoPotenciaAtivaReativaComponent:
                         # Exibe o conteúdo HTML
                         st.components.v1.html(
                             html_content, 
-                            height=600, 
+                            height=900, 
                             scrolling=True
                         )
                         

@@ -57,7 +57,7 @@ class App:
             page_title="UFF RCE WebAPP",
             page_icon="⚡",
             layout="wide",
-            initial_sidebar_state="collapsed"
+           # initial_sidebar_state="collapsed"
         )
 
         st.markdown(Theme, unsafe_allow_html=True)

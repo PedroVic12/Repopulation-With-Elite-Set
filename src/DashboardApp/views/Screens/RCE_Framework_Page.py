@@ -457,7 +457,9 @@ class FrameworkRCEDashboard:
                     st.warning(f"Gráficos não disponíveis para a Execução {exec_num}. Disponíveis: {available_execs}")
                     return
                 GraficoRCEComponent.render(exec_num, config_num=config_num)
-                GraficoPotenciaAtivaReativaComponent.render(exec_num, 1, config_num=config_num)
+
+                #! Grafico de Bode para fluxo de pontencai (MW e MVar)
+                #GraficoPotenciaAtivaReativaComponent.render(exec_num, 1, config_num=config_num)
                 
             elif component_name == "Estatísticas":
                 StatisticsTableComponent.render(data)
