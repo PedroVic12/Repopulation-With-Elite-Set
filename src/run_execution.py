@@ -91,10 +91,10 @@ def run_framework_many_executions(function_bechmarking=False, config_num=1, exec
     
     
     # # Resultados
-    x, y, z, fig = alg.dashboard.visualize(
-        logbook_with_repopulation, pop_with_repopulation,
-        config_num=config_num, execution_num=exec_num
-    )
+    #x, y, z, fig = alg.dashboard.visualize(
+    #    logbook_with_repopulation, pop_with_repopulation,
+    #    config_num=config_num, execution_num=exec_num
+    #)
 
     all_results = {}
     load_many_executions(options, setup, alg, config_num=config_num, exec_num=exec_num, all_configs_results=all_results)
