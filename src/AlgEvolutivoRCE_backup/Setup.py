@@ -86,6 +86,7 @@ class Setup:
 
         #!Criando individuo pelo deap com seus atributos
         creator.create("FitnessMin", base.Fitness, weights=(-1.0,))
+        creator.create("Individual", list, fitness=creator.FitnessMin, rce=str, index=int)
         self.toolbox = base.Toolbox()
 
         #! Parâmetros do algoritmo de Rastrigin
@@ -134,34 +135,21 @@ class Setup:
 
         # No frontend em Streamlit eu quero um editor online do JSON
         if self.decision_variables is not None:
-            for i in range(len(self.decision_variables)):
+            # Apenas um tipo de mutação é registrado por vez, baseado no tipo do primeiro gene.
+            # O DEAP não suporta nativamente múltiplos tipos de mutação no mesmo indivíduo facilmente.
+            first_var_type = type(self.decision_variables[0]) if self.decision_variables else int
 
-                if type(self.decision_variables[i]) is int:
-                    #print("Verificando valores inteiros na variaveis de decisão")
+            if first_var_type is int:
+                self.toolbox.register(
+                    "attribute", random.randint, self.limite[0], self.limite[1]
+                )
+                self.toolbox.register("mutate", tools.mutUniformInt, low=self.limite[0], up=self.limite[1], indpb=1/len(self.decision_variables))
 
-                    creator.create("Individual", list, fitness=creator.FitnessMin,rce=str, index=int)
-
-                    self.toolbox.register(
-                        "attribute", random.randint, self.limite[0], self.limite[1]
-                    )
-
-                    #! Update 25/04
-                    # Mutação para variáveis inteiras
-                    self.toolbox.register("mutate", tools.mutUniformInt, low=self.limite[0], up=self.limite[1], indpb=1/len(self.decision_variables))
-                    #self.toolbox.register("mutate", tools.mutShuffleIndexes, indpb=1/len(self.decision_variables))
-
-                elif type(self.decision_variables[i]) is float:
-                    #print("Verificando valores float na variaveis de decisão")
-
-                    creator.create("Individual",list,fitness=creator.FitnessMin,rce=str, index=int)
-
-                    self.toolbox.register(
-                        "attribute", random.uniform, int(self.limite[0]), int(self.limite[1])
-                    )
-
-                    # Mutação para variáveis float (mantém mutGaussian)
-                    self.toolbox.register("mutate", tools.mutGaussian, mu=0, sigma=1, indpb=0.1)
-
+            elif first_var_type is float:
+                self.toolbox.register(
+                    "attribute", random.uniform, int(self.limite[0]), int(self.limite[1])
+                )
+                self.toolbox.register("mutate", tools.mutGaussian, mu=0, sigma=1, indpb=0.1)
 
         else:
             raise ValueError("No arquivo JSON as variáveis de decisão não pode ser vazia.")

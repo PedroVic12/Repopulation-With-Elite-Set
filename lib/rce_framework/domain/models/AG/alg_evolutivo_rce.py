@@ -3,9 +3,7 @@ from deap import base, creator, tools
 import random
 import pandas as pd
 import pathlib
-from dashboard import DashboardApp
-
-
+from DashboardApp import dashboard_RCE_APP
 
 def get_folder_path():
     BASE_DIR = pathlib.Path(__file__).resolve().parent.parent

@@ -6,7 +6,7 @@ PVRV - 18/06/2025
 
 # Imports principais do framework
 from rce_framework.domain.models.AG.alg_evolutivo_rce import AlgoritimoEvolutivoRCE
-from rce_framework.domain.models.AG.Setup import Setup
+from rce_framework.domain.models.AG.setup import Setup
 
 # Utils
 from config.config import FOLDER_NAME, entrada_de_dados, format_elapsed_time
@@ -22,7 +22,7 @@ from datetime import datetime
 from itertools import product
 
 # Redis
-from redis_controller import RedisController
+from rce_framework.domain.controllers import RedisController
 
 BASE_DIR = pathlib.Path(__file__).resolve().parent
 

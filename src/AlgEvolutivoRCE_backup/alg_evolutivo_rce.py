@@ -15,7 +15,6 @@ def get_folder_path():
 
     # Cria a pasta "output" se ela não existir
     FOLDER_NAME.mkdir(parents=True, exist_ok=True)
-    #print("\nFOLDER_NAME =", FOLDER_NAME)
     return FOLDER_NAME
 
 FOLDER_NAME = get_folder_path()
@@ -457,7 +456,7 @@ class AlgoritimoEvolutivoRCE:
             self.logbook.record(gen=current_generation, **record)
             
             if self.DEBUG:
-                print(f"ALGORITIMO EVOLUTIVO COM AG COM DEAP CONCLUIDO COM SUCESSO! Geração atual = {current_generation}")
+                print(f"\nALGORITIMO EVOLUTIVO COM AG COM DEAP CONCLUIDO COM SUCESSO! Geração atual = {current_generation}")
 
         # Retornar população final, logbook e elite
         return population[num_pop], self.logbook, self.hof[0]
@@ -469,6 +468,9 @@ class AlgoritimoEvolutivoRCE:
             geracaoAtual (int): Número da geração atual
             stats (tuple): Tupla contendo (média, desvio_padrao) dos valores de fitness
         """
+        if self.DEBUG:
+            print(f"\n\nVisualizando população atual da geração {geracaoAtual + 1} com {len(self.POPULATION)} indivíduos.")
+            
         try:
             for i, ind in enumerate(self.POPULATION):
                 # Get fitness value safely, default to infinity if not valid
@@ -489,8 +491,11 @@ class AlgoritimoEvolutivoRCE:
                 self.allIndividualValuesArray.append(dataset_individual)
                 
                 # Debug output for the first few individuals
-                if i < 3:  # Only show first 3 for brevity
+                if self.DEBUG and i < 3:  # Only show first 3 for brevity
+                    print("TOP 3 Individuals in current population:",self.POPULATION)
                     print(f"Ind {i}: {ind} -> Fitness: {fitness_value} (Valid: {ind.fitness.valid})")
+                
+                    
                     
         except Exception as e:
             print(f"Error in visualizarPopAtual: {e}")

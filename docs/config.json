@@ -1,21 +1,12 @@
 {
     "config 1": {
-        "ARRAY_VAR": [
-            14,
-            15,
-            14,
-            18,
-            15
-        ],
+        "ARRAY_VAR": "[14, 15, 14, 18, 15]",
         "CROSSOVER": 0.5,
         "DELTA_MIN": 2,
         "IND_SIZE": 5,
-        "LIMITE_VAR": [
-            0,
-            31
-        ],
-        "MUTACAO": 0.7,
-        "NUM_GENERATIONS": 80,
+        "LIMITE_VAR": "[0, 31]",
+        "MUTACAO": 0.4,
+        "NUM_GENERATIONS": 20,
         "NUM_VAR_DIFERENTES": 1,
         "POP_SIZE": 10,
         "PORCENTAGEM": 0.25,
@@ -24,22 +15,13 @@
         "key": true
     },
     "config 2": {
-        "ARRAY_VAR": [
-            14,
-            15,
-            14,
-            18,
-            15
-        ],
+        "ARRAY_VAR": "[14, 15, 14, 18, 15]",
         "CROSSOVER": 0.5,
         "DELTA_MIN": 2,
         "IND_SIZE": 5,
-        "LIMITE_VAR": [
-            0,
-            31
-        ],
-        "MUTACAO": 0.72,
-        "NUM_GENERATIONS": 80,
+        "LIMITE_VAR": "[0, 31]",
+        "MUTACAO": 0.12,
+        "NUM_GENERATIONS": 20,
         "NUM_VAR_DIFERENTES": 1,
         "POP_SIZE": 10,
         "PORCENTAGEM": 0.25,
@@ -48,22 +30,13 @@
         "key": true
     },
     "config 3": {
-        "ARRAY_VAR": [
-            14,
-            15,
-            14,
-            18,
-            15
-        ],
+        "ARRAY_VAR": "[14, 15, 14, 18, 15]",
         "CROSSOVER": 0.5,
         "DELTA_MIN": 2,
         "IND_SIZE": 5,
-        "LIMITE_VAR": [
-            0,
-            31
-        ],
-        "MUTACAO": 0.5,
-        "NUM_GENERATIONS": 80,
+        "LIMITE_VAR": "[0, 31]",
+        "MUTACAO": 0.25,
+        "NUM_GENERATIONS": 20,
         "NUM_VAR_DIFERENTES": 1,
         "POP_SIZE": 10,
         "PORCENTAGEM": 0.25,
@@ -72,22 +45,13 @@
         "key": true
     },
     "config 4": {
-        "ARRAY_VAR": [
-            14,
-            15,
-            14,
-            18,
-            15
-        ],
+        "ARRAY_VAR": "[14, 15, 14, 18, 15]",
         "CROSSOVER": 0.5,
         "DELTA_MIN": 2,
         "IND_SIZE": 5,
-        "LIMITE_VAR": [
-            0,
-            31
-        ],
-        "MUTACAO": 0.4,
-        "NUM_GENERATIONS": 80,
+        "LIMITE_VAR": "[0, 31]",
+        "MUTACAO": 0.3,
+        "NUM_GENERATIONS": 20,
         "NUM_VAR_DIFERENTES": 1,
         "POP_SIZE": 10,
         "PORCENTAGEM": 0.25,

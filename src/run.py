@@ -32,73 +32,10 @@ params = load_params(f"{BASE_DIR}/params.json")
 # windows
 #params = load_params(r"C:\Users\Pedro Victor R V\Documents\GitHub\Repopulation-With-Elite-Set\src\AlgEvolutivoRCE\params.json")
 
-
-
 ############################# MUltiplas execuções com grupos de parâmetros #############################
-
+#Ex: 4 vezes mutação = 1 config com 3 execuções = 12 no total
 
 import itertools
-
-def export_all_configs_to_json(parametros):
-    # parametros: dict com os 4 parâmetros, cada um sendo uma lista de valores possíveis
-    keys = list(parametros.keys())
-    values = [parametros[k] if isinstance(parametros[k], list) else [parametros[k]] for k in keys]
-    configs = {}
-    for idx, combination in enumerate(itertools.product(*values), 1):
-        config_dict = dict(zip(keys, combination))
-        configs[f"config {idx}"] = config_dict
-    # Salva no arquivo
-    with open("config.json", "w", encoding="utf-8") as f:
-        json.dump(configs, f, indent=4, ensure_ascii=False)
-    st.success(f"{len(configs)} configurações exportadas para config.json!")
-
-def convert_values_to_int(params):
-    """
-    Converts dictionary values to appropriate types:
-    - Float for specified keys
-    - Preserves lists as-is
-    - Converts other numeric values to int
-    - Handles string representations of lists
-    """
-    float_keys = {"MUTACAO", "CROSSOVER", "PORCENTAGEM"}
-    array_keys = {"ARRAY_VAR", "LIMITE_VAR"}
-    
-    for key, value in params.items():
-        key_upper = key.upper()
-        
-        # Handle float values
-        if key_upper in float_keys:
-            try:
-                if isinstance(value, str):
-                    params[key] = float(value)
-                else:
-                    params[key] = float(value)  # Convert to float if not already
-            except (ValueError, TypeError):
-                print(f"Warning: Could not convert {key} to float. Keeping original value: {value}")
-        
-        # Handle array values
-        elif key_upper in array_keys or (isinstance(value, str) and value.startswith('[') and value.endswith(']')):
-            try:
-                if isinstance(value, str):
-                    # Safely evaluate string representation of list
-                    import ast
-                    params[key] = ast.literal_eval(value)
-                # If it's already a list, keep it as is
-                elif isinstance(value, (list, tuple)):
-                    params[key] = list(value)
-            except (ValueError, SyntaxError) as e:
-                print(f"Warning: Could not parse array for {key}. Error: {e}")
-        
-        # Convert other numeric values to int
-        else:
-            try:
-                if value is not None and str(value).strip():
-                    params[key] = int(float(value))  # Convert to float first to handle string floats
-            except (ValueError, TypeError):
-                print(f"Warning: Could not convert {key} to int. Keeping original value: {value}")
-    
-    return params
-
 
 
 def load_many_executions(options, setupobj, algoritmo, config_num=1, exec_num=1, all_configs_results=None):
@@ -150,11 +87,6 @@ def load_many_executions(options, setupobj, algoritmo, config_num=1, exec_num=1,
 
 
 
-
-
-
-
-
 #! PVRV - Função que executa um loop de execuncoes com 2 parametros .json                     
 def run_framework_many_executions(function_bechmarking = False, config_num=1, exec_num=1):
     """Função para executar o framework com múltiplas execuções."""
@@ -162,10 +94,6 @@ def run_framework_many_executions(function_bechmarking = False, config_num=1, ex
     # Load parameters from the JSON file in any configuration of PC
     params = load_params(f"{BASE_DIR}/params.json")
     options = load_params(f"{BASE_DIR}/options.json")
-    
-    # Convert values to int, except for specified float keys
-    #options = convert_values_to_int(options)s
-    params = convert_values_to_int(params)
     
     print(f"\n\nIniciando execução do USER com os parâmetros: {options}")
     
@@ -278,10 +206,5 @@ def run_framework_many_executions(function_bechmarking = False, config_num=1, ex
     else:
         print("Nenhum resultado para consolidar.")
 
-
-
-
 if __name__ == "__main__":
-    print("Starting execution with benchmark function...")
-    # Run with a simple benchmark function first
     run_framework_many_executions(function_bechmarking=False)

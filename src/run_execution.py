@@ -31,20 +31,31 @@ def load_params(file_path):
 
 
 def convert_values_to_int(params):
-    """Converte valores dos parâmetros para int ou float, se aplicável."""
+    """Converte valores dos parâmetros para int, float ou listas, se aplicável."""
     float_keys = {"MUTACAO", "CROSSOVER", "PORCENTAGEM"}
     for key, value in params.items():
+        # Se for uma string que parece uma lista, tenta converter
+        if isinstance(value, str) and value.strip().startswith('['):
+            try:
+                params[key] = json.loads(value)
+                continue # Pula para o próximo item
+            except json.JSONDecodeError:
+                # Se não for um JSON válido, ignora e mantém a string original
+                pass
+        
+        # Lógica original para floats e ints
         try:
             if key.upper() in float_keys:
                 params[key] = float(value)
             else:
                 params[key] = int(float(value))
-        except Exception:
+        except (ValueError, TypeError):
+            # Ignora erros de conversão para valores que não são numéricos (como as listas já convertidas ou outras strings)
             pass
     return params
 
 
-def run_framework_many_executions(function_bechmarking=False, config_num=1, exec_num=1):
+def run_framework_many_executions(function_bechmarking=False):
     """Função principal para executar o framework com múltiplas execuções."""
 
     # 1. Carrega parâmetros base e opções
@@ -64,10 +75,19 @@ def run_framework_many_executions(function_bechmarking=False, config_num=1, exec
     print(f"Total de configurações únicas: {len(combinations)}")
     print(f"Execuções por configuração: {repeticoes}")
 
-    all_results = {}
+    # Cria um diretório de saída com timestamp para evitar sobreposições
+    timestamp = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
+    main_output_dir = BASE_DIR / "output" / f"run_{timestamp}"
+    os.makedirs(main_output_dir, exist_ok=True)
+    print(f"Salvando resultados em: {main_output_dir}")
+
     config_num = 1
     for combo in combinations:
-        for exec_num in range(1, repeticoes+1):
+        # Cria um diretório específico para a configuração
+        config_dir = main_output_dir / f"config_{config_num}"
+        os.makedirs(config_dir, exist_ok=True)
+
+        for exec_num in range(1, repeticoes + 1):
             # Monta params para esta execução
             params = params_base.copy()
             params.update(combo)
@@ -107,29 +127,25 @@ def run_framework_many_executions(function_bechmarking=False, config_num=1, exec
             print("\n\nEvolução concluída  - 100%")
             print(f"Best variables", best_variables)
 
-            # Salva resultados individuais
+            # Salva resultado individual como JSON
             result = {
                 "config_num": config_num,
                 "exec_num": exec_num,
                 "params": params,
                 "best_variables": best_variables,
-                # Adicione outros resultados relevantes aqui
             }
-            all_results.setdefault(config_num, []).append(result)
-        config_num += 1
+            
+            output_path = config_dir / f"exec_{exec_num}_results.json"
+            try:
+                with open(output_path, 'w', encoding='utf-8') as f:
+                    json.dump(result, f, indent=4, ensure_ascii=False)
+                print(f"Resultado salvo em: {output_path}")
+            except Exception as e:
+                print(f"Erro ao salvar resultado para config {config_num}, exec {exec_num}: {e}")
 
-    # 6. Salva resultados consolidados
-    if all_results:
-        df = pd.DataFrame([
-            {**res, "config_num": cfg}
-            for cfg, lista in all_results.items()
-            for res in lista
-        ])
-        output_path = f"{FOLDER_NAME}/results_consolidados.xlsx"
-        df.to_excel(output_path, sheet_name="Consolidated Results", index=False)
-        print(f"Resultados consolidados salvos em {output_path}")
-    else:
-        print("Nenhum resultado para consolidar.")
+        config_num += 1
+    
+    print("\nTodas as execuções foram concluídas.")
 
 
 if __name__ == "__main__":
