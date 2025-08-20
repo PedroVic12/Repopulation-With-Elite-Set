@@ -222,10 +222,10 @@ def run_framework_groups_executions():
 
     # Defina os nomes dos parâmetros variáveis
     param_names = ["MUTACAO", "CROSSOVER", "NUM_GENERATIONS", "POP_SIZE"]
-    param_values = [config[name] for name in param_names]
+    #param_values = [config[name] for name in param_names]
 
     # Gera todas as combinações possíveis dos parâmetros variáveis
-    combinacoes = list(itertools.product(*param_values))
+    combinacoes = list(itertools.product(*param_names))
     repeticoes = config.get('repeticoes_por_config', 1)
     
     print(f"Combinação = {combinacoes} | Repetição = {repeticoes}")
@@ -470,4 +470,5 @@ def run_framework_many_executions(function_bechmarking = False, config_num=1, ex
 if __name__ == "__main__":
     print("Starting execution with benchmark function...")
     # Run with a simple benchmark function first
-    run_framework_many_executions(function_bechmarking=False)
+    #run_framework_many_executions(function_bechmarking=False)
+    run_framework_groups_executions()

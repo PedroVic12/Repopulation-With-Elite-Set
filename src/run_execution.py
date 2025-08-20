@@ -47,59 +47,78 @@ def convert_values_to_int(params):
 def run_framework_many_executions(function_bechmarking=False, config_num=1, exec_num=1):
     """Função principal para executar o framework com múltiplas execuções."""
 
-    # 1. Carrega parâmetros
-    params = load_params(f"{BASE_DIR}/params.json")
+    # 1. Carrega parâmetros base e opções
+    params_base = load_params(f"{BASE_DIR}/params.json")
     options = load_params(f"{BASE_DIR}/options.json")
-    params = convert_values_to_int(params)
+    params_base = convert_values_to_int(params_base)
 
-    print(params)
-    print(f"\n\nIniciando execução com parâmetros: {options}")
+    # 2. Descobre variações e número de execuções
+    varying_keys = [k for k in options if isinstance(options[k], list) and len(options[k]) > 0]
+    varying_values = [options[k] for k in varying_keys]
+    repeticoes = options.get('repeticoes_por_config', 1)
 
-    # 2. Define função objetivo
-    fitness_func = funcao_objetivo_IEEE14 if not function_bechmarking else rastrigin
+    # 3. Gera todas as combinações de parâmetros
+    from itertools import product
+    combinations = [dict(zip(varying_keys, vals)) for vals in product(*varying_values)] if varying_keys else [{}]
 
-    # 3. Instancia Setup
-    setup = Setup(
-        params,
-        fitness_function=fitness_func,
-        tamanho_hash=(
-            entrada_de_dados()["num_contingencias"]
-            * entrada_de_dados()["num_carregamentos"]
-            * (2 ** entrada_de_dados()["num_desligamentos"])
-        )
-    )
-    print("Classe Setup iniciada")
-
-    # 4. Consulta hash_table se existir
-    if os.path.exists("hash_table.xlsx"):
-        try:
-            hash_excel = pd.read_excel("hash_table.xlsx")
-            if not hash_excel.empty:
-                setup.tabela_hash = hash_excel['Fitness'].to_dict()
-                print("Tabela hash carregada com sucesso!")
-        except Exception as e:
-            print(f"Erro ao carregar hash_table.xlsx: {e}")
-
-    # 5. Executa algoritmo
-    alg = AlgoritimoEvolutivoRCE(setup, DEBUG=False)
-    print("Algoritmo Evolutivo iniciado.")
-
-    # Loop principal do Algoritmo Evolutivo
-    pop_with_repopulation, logbook_with_repopulation, best_variables = alg.run(RCE=True)
-    print("\n\nEvolução concluída  - 100%")
-    print(f"Best variables", best_variables)
-    
-    
-    # # Resultados
-    #x, y, z, fig = alg.dashboard.visualize(
-    #    logbook_with_repopulation, pop_with_repopulation,
-    #    config_num=config_num, execution_num=exec_num
-    #)
+    print(f"Total de configurações únicas: {len(combinations)}")
+    print(f"Execuções por configuração: {repeticoes}")
 
     all_results = {}
-    load_many_executions(options, setup, alg, config_num=config_num, exec_num=exec_num, all_configs_results=all_results)
+    config_num = 1
+    for combo in combinations:
+        for exec_num in range(1, repeticoes+1):
+            # Monta params para esta execução
+            params = params_base.copy()
+            params.update(combo)
+            params = convert_values_to_int(params)
 
-    # 6. Salva resultados
+            print(f"\n\nIniciando execução {exec_num}/{repeticoes} da configuração {config_num}: {params}")
+
+            # Define função objetivo
+            fitness_func = funcao_objetivo_IEEE14 if not function_bechmarking else rastrigin
+
+            # Instancia Setup
+            setup = Setup(
+                params,
+                fitness_function=fitness_func,
+                tamanho_hash=(
+                    entrada_de_dados()["num_contingencias"]
+                    * entrada_de_dados()["num_carregamentos"]
+                    * (2 ** entrada_de_dados()["num_desligamentos"])
+                )
+            )
+            print("Classe Setup iniciada")
+
+            # Consulta hash_table se existir
+            if os.path.exists("hash_table.xlsx"):
+                try:
+                    hash_excel = pd.read_excel("hash_table.xlsx")
+                    if not hash_excel.empty:
+                        setup.tabela_hash = hash_excel['Fitness'].to_dict()
+                        print("Tabela hash carregada com sucesso!")
+                except Exception as e:
+                    print(f"Erro ao carregar hash_table.xlsx: {e}")
+
+            # Executa algoritmo
+            alg = AlgoritimoEvolutivoRCE(setup, DEBUG=False)
+            print("Algoritmo Evolutivo iniciado.")
+            pop_with_repopulation, logbook_with_repopulation, best_variables = alg.run(RCE=True)
+            print("\n\nEvolução concluída  - 100%")
+            print(f"Best variables", best_variables)
+
+            # Salva resultados individuais
+            result = {
+                "config_num": config_num,
+                "exec_num": exec_num,
+                "params": params,
+                "best_variables": best_variables,
+                # Adicione outros resultados relevantes aqui
+            }
+            all_results.setdefault(config_num, []).append(result)
+        config_num += 1
+
+    # 6. Salva resultados consolidados
     if all_results:
         df = pd.DataFrame([
             {**res, "config_num": cfg}

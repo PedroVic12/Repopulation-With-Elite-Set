@@ -53,7 +53,7 @@ PARAMS_FILE = SRC_DIR / "params.json"
 OPTIONS_FILE = SRC_DIR / "options.json"
 
 # arquivos de execução do framework e dashboard
-RUN_FRAMEWORK_SCRIPT = SRC_DIR /"run_framework_backup.py" 
+RUN_FRAMEWORK_SCRIPT = SRC_DIR /"run_execution.py" 
 
 #! Script refatorado da pasta lib
 #RUN_FRAMEWORK_SCRIPT = BASE_DIR / "lib" / "rce_framework" / "main.py"
@@ -339,42 +339,44 @@ class ConfigTab(QWidget):
             "NÚMERO DE GERAÇÕES (INT)": "NUM_GENERATIONS",
             "TAMANHO DA POPULAÇÃO (INT)": "POP_SIZE"
         }
-        
-        # Inicializa dicionário para armazenar os valores variáveis atuais
+
         current_varying = {}
-        
-        # Verifica cada parâmetro na UI para ver se está em modo variável
+        # Coleta todos os valores válidos dos campos variáveis
         for display_name, param_info in self.param_widgets.items():
             param_key = param_mapping.get(display_name)
             if not param_key:
                 continue
-                
-            # Verifica se está em modo variável
             if param_info["mode"].checkedButton() and param_info["mode"].checkedButton().text() == "Variável":
-                # Coleta valores não vazios dos campos variáveis
                 values = []
                 for var_input in param_info["variable"]:
-                    if var_input.text().strip():
+                    txt = var_input.text().strip()
+                    if txt != "":
                         try:
-                            value = float(var_input.text()) if not param_info["is_int"] else int(var_input.text())
+                            value = int(txt) if param_info["is_int"] else float(txt)
                             values.append(value)
                         except ValueError:
-                            pass
-                
-                # Remove duplicatas e ordena
-                if values:
-                    values = sorted(list(dict.fromkeys(values)))
-                    current_varying[param_key] = values
-        
+                            continue
+                # Remove duplicatas preservando ordem
+                seen = set()
+                deduped = []
+                for v in values:
+                    if v not in seen:
+                        seen.add(v)
+                        deduped.append(v)
+                if deduped:
+                    current_varying[param_key] = deduped
+
         # Se não há parâmetros variáveis na UI, verifica se há no options.json
         if not current_varying:
             options = self.config_manager.load_json(OPTIONS_FILE) or {}
             current_varying = {k: v for k, v in options.items() 
                              if k in VARYING_KEYS and isinstance(v, list) and len(v) > 0}
-        
+
         # Calcula o total de combinações únicas
         arrays = list(current_varying.values()) if current_varying else []
-        total_combinations = reduce(operator.mul, [len(v) for v in arrays], 1) if arrays else 1
+        total_combinations = 1
+        for arr in arrays:
+            total_combinations *= len(arr)
         total_execucoes = total_combinations * self.runs_per_config_spin.value()
 
         self.unique_configs_label.setText(f"Configurações Únicas: {total_combinations}")
@@ -382,33 +384,52 @@ class ConfigTab(QWidget):
 
     def prepare_and_run(self):
         try:
-            # Lê base (params) e opções (arrays + repeticoes)
+            # Lê base (params)
             base_params = self.config_manager.load_json(PARAMS_FILE)
-            # Carrega o options.json atual SEM limpar/sobrescrever
-            options = self.config_manager.load_json(OPTIONS_FILE) or {}
             runs_per_config = self.runs_per_config_spin.value()
 
-            # garante que repeticoes_por_config esteja salvo em options.json
-            options['repeticoes_por_config'] = runs_per_config
-            # filtra para apenas chaves permitidas e deduplica
-            filtered = {'repeticoes_por_config': options['repeticoes_por_config']}
-            for k in VARYING_KEYS:
-                v = options.get(k)
-                if isinstance(v, list):
+            # Coleta arrays de variação diretamente da interface
+            param_mapping = {
+                "MUTAÇÃO (%)": "MUTACAO",
+                "CROSSOVER (%)": "CROSSOVER",
+                "NÚMERO DE GERAÇÕES (INT)": "NUM_GENERATIONS",
+                "TAMANHO DA POPULAÇÃO (INT)": "POP_SIZE"
+            }
+            arrays = {}
+            for display_name, param_info in self.param_widgets.items():
+                param_key = param_mapping.get(display_name)
+                if not param_key:
+                    continue
+                if param_info["mode"].checkedButton() and param_info["mode"].checkedButton().text() == "Variável":
+                    values = []
+                    for var_input in param_info["variable"]:
+                        txt = var_input.text().strip()
+                        if txt != "":
+                            try:
+                                value = int(txt) if param_info["is_int"] else float(txt)
+                                values.append(value)
+                            except ValueError:
+                                continue
+                    # Remove duplicatas preservando ordem
                     seen = set()
-                    dedup = []
-                    for x in v:
-                        if x not in seen:
-                            seen.add(x)
-                            dedup.append(x)
-                    filtered[k] = dedup
+                    deduped = []
+                    for v in values:
+                        if v not in seen:
+                            seen.add(v)
+                            deduped.append(v)
+                    if deduped:
+                        arrays[param_key] = deduped
+
+            # Salva arrays e repeticoes_por_config em options.json
+            filtered = {'repeticoes_por_config': runs_per_config}
+            filtered.update(arrays)
             if not self.config_manager.save_json(filtered, OPTIONS_FILE):
                 QMessageBox.critical(self, "Erro", f"Falha ao salvar {OPTIONS_FILE.name}")
                 return
 
-            varying = {k: v for k, v in filtered.items() if k != 'repeticoes_por_config' and isinstance(v, list) and len(v) > 0}
-            keys = list(varying.keys())
-            values_lists = list(varying.values())
+            # Gera combinações
+            keys = list(arrays.keys())
+            values_lists = list(arrays.values())
             combinations = [dict(zip(keys, v)) for v in product(*values_lists)] if keys else [{}]
 
             configurations = []
@@ -416,10 +437,12 @@ class ConfigTab(QWidget):
             for idx, combo in enumerate(combinations, start=1):
                 cfg = dict(base_params)
                 cfg.update(combo)
-                cfg['repeticoes_por_config'] = runs_per_config
-                cfg['key'] = True
-                configurations.append(combo)
-                skeleton[f"config {idx}"] = cfg
+                configurations.append(cfg)
+
+                skeleton_cfg = cfg.copy()
+                skeleton_cfg['repeticoes_por_config'] = runs_per_config
+                skeleton_cfg['key'] = True
+                skeleton[f"config {idx}"] = skeleton_cfg
 
             # salva esqueleto em docs/config.json
             try:
@@ -432,7 +455,7 @@ class ConfigTab(QWidget):
 
             msg = f"{len(combinations)} configs únicas serão executadas {runs_per_config} vez(es) cada."
             QMessageBox.information(self, "Pronto para Iniciar", msg)
-            self.execution_requested.emit([dict(base_params, **c) for c in configurations], runs_per_config)
+            self.execution_requested.emit(configurations, runs_per_config)
 
         except Exception as e:
             QMessageBox.critical(self, "Erro", f"Erro ao preparar execução: {e}")
@@ -1019,16 +1042,19 @@ class ExecutionTab(QWidget):
         self.append_log("-" * 200)
         self.append_log(f"\n\nIniciando Config {config_index + 1}, Execução {repetition}: {config_str}")
 
-        base_params = self.config_manager.load_json(PARAMS_FILE)
-        base_params.update(current_config)
-        
-        # Salva uma cópia do params.json para cada configuração
+        # Salva a configuração completa para a execução atual em params.json
+        if not self.config_manager.save_json(current_config, PARAMS_FILE):
+             self.append_log(f"❌ Erro ao salvar o arquivo de parâmetros {PARAMS_FILE}")
+             self.on_all_executions_finished(False, "Erro de arquivo.")
+             return
+
+        # Salva uma cópia de backup dos parâmetros para a configuração atual
         config_params_path = SRC_DIR / f"output/params_config{config_index + 1}.json"
-        if not self.config_manager.save_json(base_params, config_params_path):
+        if not self.config_manager.save_json(current_config, config_params_path):
              self.append_log(f"❌ Erro ao salvar o arquivo de parâmetros de configuração {config_params_path}")
              # Decide se quer parar ou continuar
 
-        if not self.config_manager.save_json(base_params, PARAMS_FILE):
+        if not self.config_manager.save_json(current_config, PARAMS_FILE):
              self.append_log(f"❌ Erro ao salvar o arquivo de parâmetros {PARAMS_FILE}")
              self.on_all_executions_finished(False, "Erro de arquivo.")
              return
