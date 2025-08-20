@@ -14,8 +14,10 @@ from config import configuracoes_execucoes
 #! WARN (04/06/2025) - Usado fora da classes para NAO ter logs no output
 
 # Criando os individuos e uma função e minimização
-#creator.create("FitnessMin", base.Fitness, weights=(-1.0,))
-#creator.create("Individual", list, fitness=creator.FitnessMin, rce=str, index=int)
+if not hasattr(creator, "FitnessMin"):
+    creator.create("FitnessMin", base.Fitness, weights=(-1.0,))
+if not hasattr(creator, "Individual"):
+    creator.create("Individual", list, fitness=creator.FitnessMin, rce=str, index=int)
 
 
 #! O ideal seria importar o arquivo de configuração do projeto de forma global para o App em Streamlit também, mas como o arquivo de configuração está em outro diretório,
@@ -85,7 +87,6 @@ class Setup:
         self.delta = params["DELTA_MIN"]
 
         #!Criando individuo pelo deap com seus atributos
-        creator.create("FitnessMin", base.Fitness, weights=(-1.0,))
         self.toolbox = base.Toolbox()
 
         #! Parâmetros do algoritmo de Rastrigin
@@ -129,8 +130,6 @@ class Setup:
                 if type(self.decision_variables[i]) is int:
                     #print("Verificando valores inteiros na variaveis de decisão")
 
-                    creator.create("Individual", list, fitness=creator.FitnessMin,rce=str, index=int)
-
                     self.toolbox.register(
                         "attribute", random.randint, self.limite[0], self.limite[1]
                     )
@@ -142,8 +141,6 @@ class Setup:
 
                 elif type(self.decision_variables[i]) is float:
                     #print("Verificando valores float na variaveis de decisão")
-
-                    creator.create("Individual",list,fitness=creator.FitnessMin,rce=str, index=int)
 
                     self.toolbox.register(
                         "attribute", random.uniform, int(self.limite[0]), int(self.limite[1])

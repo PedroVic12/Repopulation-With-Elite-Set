@@ -85,8 +85,12 @@ class Setup:
         self.delta = params["DELTA_MIN"]
 
         #!Criando individuo pelo deap com seus atributos
-        creator.create("FitnessMin", base.Fitness, weights=(-1.0,))
-        creator.create("Individual", list, fitness=creator.FitnessMin, rce=str, index=int)
+        # Create FitnessMin and Individual only if they haven't been created before
+        if not hasattr(creator, "FitnessMin"):
+            creator.create("FitnessMin", base.Fitness, weights=(-1.0,))
+        if not hasattr(creator, "Individual"):
+            creator.create("Individual", list, fitness=creator.FitnessMin, rce=str, index=int)
+        
         self.toolbox = base.Toolbox()
 
         #! Parâmetros do algoritmo de Rastrigin

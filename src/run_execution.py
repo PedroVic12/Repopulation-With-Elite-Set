@@ -87,38 +87,45 @@ def run_framework_many_executions(function_bechmarking=False):
         config_dir = main_output_dir / f"config_{config_num}"
         os.makedirs(config_dir, exist_ok=True)
 
-        for exec_num in range(1, repeticoes + 1):
-            # Monta params para esta execução
-            params = params_base.copy()
-            params.update(combo)
-            params = convert_values_to_int(params)
+        # Monta params para esta configuração
+        params = params_base.copy()
+        params.update(combo)
+        params = convert_values_to_int(params)
 
-            print(f"\n\nIniciando execução {exec_num}/{repeticoes} da configuração {config_num}: {params}")
+        # Define função objetivo
+        fitness_func = funcao_objetivo_IEEE14 if not function_bechmarking else rastrigin
 
-            # Define função objetivo
-            fitness_func = funcao_objetivo_IEEE14 if not function_bechmarking else rastrigin
-
-            # Instancia Setup
-            setup = Setup(
-                params,
-                fitness_function=fitness_func,
-                tamanho_hash=(
-                    entrada_de_dados()["num_contingencias"]
-                    * entrada_de_dados()["num_carregamentos"]
-                    * (2 ** entrada_de_dados()["num_desligamentos"])
-                )
+        # Instancia Setup uma vez por configuração
+        print(f"\n\nIniciando configuração {config_num}: {params}")
+        setup = Setup(
+            params,
+            fitness_function=fitness_func,
+            tamanho_hash=(
+                entrada_de_dados()["num_contingencias"]
+                * entrada_de_dados()["num_carregamentos"]
+                * (2 ** entrada_de_dados()["num_desligamentos"])
             )
-            print("Classe Setup iniciada")
+        )
+        print("Classe Setup iniciada para a configuração.")
 
-            # Consulta hash_table se existir
-            if os.path.exists("hash_table.xlsx"):
-                try:
-                    hash_excel = pd.read_excel("hash_table.xlsx")
-                    if not hash_excel.empty:
-                        setup.tabela_hash = hash_excel['Fitness'].to_dict()
-                        print("Tabela hash carregada com sucesso!")
-                except Exception as e:
-                    print(f"Erro ao carregar hash_table.xlsx: {e}")
+        # Consulta hash_table se existir
+        if os.path.exists("hash_table.xlsx"):
+            try:
+                hash_excel = pd.read_excel("hash_table.xlsx")
+                if not hash_excel.empty:
+                    setup.tabela_hash = hash_excel['Fitness'].to_dict()
+                    print("Tabela hash carregada com sucesso!")
+            except Exception as e:
+                print(f"Erro ao carregar hash_table.xlsx: {e}")
+
+        for exec_num in range(1, repeticoes + 1):
+            print(f"\n--- Iniciando execução {exec_num}/{repeticoes} ---")
+
+            # Reseta contadores para a nova execução
+            if hasattr(setup, 'objectiveruns'):
+                setup.objectiveruns = 0
+            if hasattr(setup, 'hashtablereads'):
+                setup.hashtablereads = 0
 
             # Executa algoritmo
             alg = AlgoritimoEvolutivoRCE(setup, DEBUG=False)
