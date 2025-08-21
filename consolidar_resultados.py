@@ -15,16 +15,15 @@ def consolidar_resultados():
     """
     Consolida todos os resultados das execuções em um único DataFrame
     """
-    output_dir = Path(__file__).parent
-    output_dir =  f"{output_dir}/src/output"
+    # Usando caminho relativo ao diretório do script
+    output_dir = Path(__file__).parent / "src" / "output"
     resultados_consolidados = []
 
-    print(output_dir)
-    input("")
-    
+    print(f"Pasta de saída definida como: {output_dir.resolve()}")
+
     # Encontrar todas as pastas de execução
     pastas_run = glob.glob(str(output_dir / "run_*"))
-    
+
     print(f"Encontradas {len(pastas_run)} pastas de execução:")
     
     for pasta_run in pastas_run:
@@ -41,7 +40,7 @@ def consolidar_resultados():
             nome_config = config_path.name
             
             # Encontrar todos os arquivos de resultados
-            resultados = glob.glob(str(config_path / "exec_*_results.json"))
+            resultados = glob.glob(str(config_path / "*_exec_*_results.json"))
             
             for resultado in resultados:
                 try:
@@ -70,6 +69,10 @@ def consolidar_resultados():
                     best_vars = dados.get('best_variables', [])
                     for i, var in enumerate(best_vars):
                         linha_resultado[f'best_var_{i+1}'] = var
+                    
+                    # Extrair fitness e geração
+                    linha_resultado['best_fitness'] = dados.get('best_fitness', 'N/A')
+                    linha_resultado['best_gen_idx'] = dados.get('best_gen_idx', 'N/A')
                     
                     resultados_consolidados.append(linha_resultado)
                     
@@ -104,6 +107,10 @@ def salvar_excel(resultados, output_dir):
     colunas_best = [col for col in df.columns if col.startswith('best_var_')]
     colunas_best.sort()
     colunas_ordenadas.extend(colunas_best)
+    
+    # Fitness e geração
+    colunas_fitness = ['best_fitness', 'best_gen_idx']
+    colunas_ordenadas.extend(colunas_fitness)
     
     # Reordenar DataFrame
     df = df[colunas_ordenadas]
@@ -154,8 +161,8 @@ def main():
         resultados = consolidar_resultados()
         
         if resultados:
-            # Salvar em Excel
-            output_dir = Path(__file__).parent
+            # Salvar em Excel na pasta output
+            output_dir = Path(__file__).parent / "src" / "output"
             arquivo_salvo = salvar_excel(resultados, output_dir)
             
             print(f"\n✅ Consolidação concluída com sucesso!")

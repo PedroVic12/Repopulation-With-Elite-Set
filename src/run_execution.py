@@ -180,6 +180,34 @@ def run_framework_many_executions(function_bechmarking=False):
         config_num += 1
     
     print("\nTodas as execuções foram concluídas.")
+    
+    # Consolidar resultados automaticamente
+    print("\n🔄 Consolidando resultados...")
+    try:
+        import subprocess
+        import sys
+        
+        # Caminho para o script de consolidação
+        consolidar_script = BASE_DIR.parent / "consolidar_resultados.py"
+        
+        if consolidar_script.exists():
+            print(f"Executando consolidação: {consolidar_script}")
+            result = subprocess.run([sys.executable, str(consolidar_script)], 
+                                  capture_output=True, text=True, cwd=str(BASE_DIR.parent))
+            
+            if result.returncode == 0:
+                print("✅ Consolidação executada com sucesso!")
+                if result.stdout:
+                    print("Saída da consolidação:")
+                    print(result.stdout)
+            else:
+                print(f"❌ Erro na consolidação: {result.stderr}")
+        else:
+            print(f"⚠️ Script de consolidação não encontrado em: {consolidar_script}")
+            
+    except Exception as e:
+        print(f"❌ Erro ao executar consolidação: {e}")
+        print("Execute manualmente: python3 consolidar_resultados.py")
 
 
 if __name__ == "__main__":
