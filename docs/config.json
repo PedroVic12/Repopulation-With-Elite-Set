@@ -1,11 +1,20 @@
 {
     "config 1": {
-        "ARRAY_VAR": "[14, 15, 14, 18, 15]",
-        "CROSSOVER": 0.5,
+        "ARRAY_VAR": [
+            14,
+            15,
+            14,
+            18,
+            15
+        ],
+        "CROSSOVER": 0.9,
         "DELTA_MIN": 2,
         "IND_SIZE": 5,
-        "LIMITE_VAR": "[0, 31]",
-        "MUTACAO": 0.13,
+        "LIMITE_VAR": [
+            0,
+            31
+        ],
+        "MUTACAO": 0.88,
         "NUM_GENERATIONS": 20,
         "NUM_VAR_DIFERENTES": 1,
         "POP_SIZE": 10,
@@ -15,26 +24,20 @@
         "key": true
     },
     "config 2": {
-        "ARRAY_VAR": "[14, 15, 14, 18, 15]",
-        "CROSSOVER": 0.5,
+        "ARRAY_VAR": [
+            14,
+            15,
+            14,
+            18,
+            15
+        ],
+        "CROSSOVER": 0.9,
         "DELTA_MIN": 2,
         "IND_SIZE": 5,
-        "LIMITE_VAR": "[0, 31]",
-        "MUTACAO": 0.23,
-        "NUM_GENERATIONS": 20,
-        "NUM_VAR_DIFERENTES": 1,
-        "POP_SIZE": 10,
-        "PORCENTAGEM": 0.25,
-        "RCE_REPOPULATION_GENERATIONS": 50,
-        "repeticoes_por_config": 3,
-        "key": true
-    },
-    "config 3": {
-        "ARRAY_VAR": "[14, 15, 14, 18, 15]",
-        "CROSSOVER": 0.5,
-        "DELTA_MIN": 2,
-        "IND_SIZE": 5,
-        "LIMITE_VAR": "[0, 31]",
+        "LIMITE_VAR": [
+            0,
+            31
+        ],
         "MUTACAO": 0.5,
         "NUM_GENERATIONS": 20,
         "NUM_VAR_DIFERENTES": 1,
@@ -44,13 +47,46 @@
         "repeticoes_por_config": 3,
         "key": true
     },
-    "config 4": {
-        "ARRAY_VAR": "[14, 15, 14, 18, 15]",
-        "CROSSOVER": 0.5,
+    "config 3": {
+        "ARRAY_VAR": [
+            14,
+            15,
+            14,
+            18,
+            15
+        ],
+        "CROSSOVER": 0.9,
         "DELTA_MIN": 2,
         "IND_SIZE": 5,
-        "LIMITE_VAR": "[0, 31]",
-        "MUTACAO": 0.73,
+        "LIMITE_VAR": [
+            0,
+            31
+        ],
+        "MUTACAO": 0.3,
+        "NUM_GENERATIONS": 20,
+        "NUM_VAR_DIFERENTES": 1,
+        "POP_SIZE": 10,
+        "PORCENTAGEM": 0.25,
+        "RCE_REPOPULATION_GENERATIONS": 50,
+        "repeticoes_por_config": 3,
+        "key": true
+    },
+    "config 4": {
+        "ARRAY_VAR": [
+            14,
+            15,
+            14,
+            18,
+            15
+        ],
+        "CROSSOVER": 0.9,
+        "DELTA_MIN": 2,
+        "IND_SIZE": 5,
+        "LIMITE_VAR": [
+            0,
+            31
+        ],
+        "MUTACAO": 0.8,
         "NUM_GENERATIONS": 20,
         "NUM_VAR_DIFERENTES": 1,
         "POP_SIZE": 10,

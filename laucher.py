@@ -43,7 +43,7 @@ from PySide6.QtWidgets import (
 from PySide6.QtCore import Qt, QThread, Signal, QTimer
 from PySide6.QtGui import QFont, QIcon, QIntValidator, QDoubleValidator
 
-# --- CONFIGURAÇÃO ---
+# --- CONFIGURAÇÃO --- 
 # pasta raiz do projeto
 BASE_DIR = Path(__file__).parent
 SRC_DIR = BASE_DIR / "src"
@@ -53,7 +53,7 @@ PARAMS_FILE = SRC_DIR / "params.json"
 OPTIONS_FILE = SRC_DIR / "options.json"
 
 # arquivos de execução do framework e dashboard
-RUN_FRAMEWORK_SCRIPT = SRC_DIR /"run_execution.py" 
+RUN_FRAMEWORK_SCRIPT = SRC_DIR /"run_execution.py"
 
 #! Script refatorado da pasta lib
 #RUN_FRAMEWORK_SCRIPT = BASE_DIR / "lib" / "rce_framework" / "main.py"
@@ -421,8 +421,7 @@ class ConfigTab(QWidget):
                         arrays[param_key] = deduped
 
             # Salva arrays e repeticoes_por_config em options.json
-            filtered = {'repeticoes_por_config': runs_per_config}
-            filtered.update(arrays)
+            filtered = {'repeticoes_por_config': runs_per_config, **arrays}
             if not self.config_manager.save_json(filtered, OPTIONS_FILE):
                 QMessageBox.critical(self, "Erro", f"Falha ao salvar {OPTIONS_FILE.name}")
                 return
@@ -645,7 +644,8 @@ class ParamsAGTab(QWidget):
         header_font = self.table.horizontalHeader().font()
         header_font.setPointSize(max(header_font.pointSize(), 12))
         self.table.horizontalHeader().setFont(header_font)
-        self.table.setStyleSheet("""
+        self.table.setStyleSheet(
+            """
         QTableWidget {
             background-color: #7a7a7a;
             alternate-background-color: #2d2d2e;
@@ -687,7 +687,8 @@ class ParamsAGTab(QWidget):
         QTableWidget QLineEdit:hover {
             background-color: #6087e0;
         }
-        """)
+        """
+        )
 
         # Card wrapper centralizado com sombra
         card = QFrame(self)
@@ -716,7 +717,7 @@ class ParamsAGTab(QWidget):
         self.save_btn = QPushButton("💾 Salvar configuração AG")
         
         #! Altere aqui para diagnosticar a leitura do arquivo params.json na tela
-        self.reload_btn.clicked.connect(self.reload(debug=False))
+        self.reload_btn.clicked.connect(self.reload)
         self.save_btn.clicked.connect(self.save)
         
         # Estilo/tamanho dos botões (emojis maiores via fonte)
@@ -750,7 +751,7 @@ class ParamsAGTab(QWidget):
 
        
 
-    def reload(self, debug = False):
+    def reload(self):
         """Recarrega params.json e options.json e repopula a tabela."""
         self.params = self.config_manager.load_json(PARAMS_FILE) or {}
         self.options = self.config_manager.load_json(OPTIONS_FILE) or {}
@@ -776,15 +777,8 @@ class ParamsAGTab(QWidget):
         cleaned_options.update(arrays)
 
         # Fatiamento do dict 
-        if debug:
-            #print("Parametros AG escolhidos:")
-            #print(self.params)
-            params_json_table = dict(list(self.params.items())[:-4]) 
-            print("\n\nParametros AG escolhidos (sem os 4 ultimos):")
-            print(params_json_table)
-        else:
-            params_json_table = self.params
-
+        params_json_table = dict(list(self.params.items())[:-4]) 
+        
 
         # salva apenas se mudou algo
         if cleaned_options != {k: v for k, v in self.options.items() if (k in arrays or k == 'repeticoes_por_config')}:
@@ -907,19 +901,22 @@ class ParamsAGTab(QWidget):
             else:
                 # Template inicial
                 template = (
-                    "\"\"\"\n"
-                    "Arquivo de função de fitness do usuário.\n"
-                    "Implemente a função evaluate(individual, data) -> float\n"
-                    "\"\"\"\n\n"
-                    "def evaluate(individual, data=None):\n"
-                    "    \"\"\"\n"
-                    "    individual: sequência de variáveis de decisão\n"
-                    "    data: dados auxiliares (opcional)\n"
-                    "    retorne um float com o fitness (quanto menor/melhor ou maior/melhor, conforme seu problema).\n"
-                    "    \"\"\"\n"
-                    "    # TODO: implemente sua lógica aqui\n"
-                    "    return 0.0\n"
+                    """
+                    Arquivo de função de fitness do usuário.
+                    Implemente a função evaluate(individual, data) -> float
+                    """
                 )
+
+                def evaluate(individual, data=None):
+                    """
+                    individual: sequência de variáveis de decisão
+                    data: dados auxiliares (opcional)
+                    retorne um float com o fitness (quanto menor/melhor ou maior/melhor, conforme seu problema).
+                    """
+                    print("Função de otimização de eng eletrica!")
+                    # TODO: implemente sua lógica aqui
+                    return 0.0
+                
                 self.code_editor.setPlainText(template)
         except Exception as e:
             QMessageBox.critical(self, "Erro", f"Erro ao carregar código: {e}")
@@ -1236,7 +1233,7 @@ class ExecutionTab(QWidget):
 class LauncherWindow(QMainWindow):
     """Janela principal da aplicação com abas e rolagem.
 
-    - Envolve o conteúdo em QScrollArea para suportar telas menores.
+    - Envolve o conteúdo em QScrollArea para permitir scroll vertical em telas menores.
     - Cria as abas: Configuração/Execução, Parâmetros AG e Dashboard/Logs.
     - Aplica estilos via STYLESHEET e mostra status bar.
     """

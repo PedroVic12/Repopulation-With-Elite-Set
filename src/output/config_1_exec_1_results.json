@@ -16,7 +16,7 @@
             0,
             31
         ],
-        "MUTACAO": 0.9,
+        "MUTACAO": 0.88,
         "NUM_GENERATIONS": 20,
         "NUM_VAR_DIFERENTES": 1,
         "POP_SIZE": 10,
@@ -24,12 +24,12 @@
         "RCE_REPOPULATION_GENERATIONS": 50
     },
     "best_variables": [
-        5,
-        5,
-        16,
-        16,
-        7
+        23,
+        31,
+        23,
+        23,
+        19
     ],
-    "best_fitness": 50.86900424344032,
+    "best_fitness": 49.13545004407976,
     "best_gen_idx": 19
 }
