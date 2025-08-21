@@ -11,7 +11,6 @@ from datetime import datetime
 import math
 
 # Adiciona o diretório 'components' ao sys.path para importações diretas
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'components')))
 from dash_rce_components import CardSolutions, GraficoPotenciaAtivaReativaComponent, StatisticsTableComponent, GraficoRCEComponent
 from .AgendamentoRedePage import AgendamentoRedePage, entrada_de_dados, time_line_from_solution_variables
 
@@ -28,12 +27,12 @@ def find_available_executions_replacement(output_dir):
     
     output_dir = os.path.abspath(output_dir)
 
-    if not os.path.isdir(output_dir):
-        warnings.append(f"Diretório de output não encontrado: {output_dir}")
+    if not os.path.isdir(output_path):
+        warnings.append(f"Diretório de output não encontrado: {output_path}")
         return executions, warnings
 
-    for run_dir in os.listdir(output_dir):
-        run_path = os.path.join(output_dir, run_dir)
+    for run_dir in os.listdir(output_path):
+        run_path = os.path.join(output_path, run_dir)
         if os.path.isdir(run_path) and run_dir.startswith("run_"):
             for config_dir in os.listdir(run_path):
                 config_path = os.path.join(run_path, config_dir)
@@ -226,6 +225,7 @@ class UseState:
 
 
 # --- Classe Principal do Aplicativo ---
+st.set_page_config(initial_sidebar_state="collapsed")
 
 class FrameworkRCEDashboard:
     def __init__(self, options=None):

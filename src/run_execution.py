@@ -157,11 +157,16 @@ def run_framework_many_executions(function_bechmarking=False):
                 print(f"Erro ao salvar dados de visualização para config {config_num}, exec {exec_num}: {e}")
 
             # Salva resultado individual como JSON
+            best_fitness = best_individual.fitness.values[0] if best_individual.fitness.valid else float('inf')
+            best_gen_idx = logbook_with_repopulation.select("gen")[-1] if logbook_with_repopulation else 'N/A'
+
             result = {
                 "config_num": config_num,
                 "exec_num": exec_num,
                 "params": params,
                 "best_variables": best_variables,
+                "best_fitness": best_fitness,
+                "best_gen_idx": best_gen_idx
             }
             
             output_path = config_dir / f"config_{config_num}_exec_{exec_num}_results.json"

@@ -16,7 +16,11 @@ def consolidar_resultados():
     Consolida todos os resultados das execuções em um único DataFrame
     """
     output_dir = Path(__file__).parent
+    output_dir =  f"{output_dir}/src/output"
     resultados_consolidados = []
+
+    print(output_dir)
+    input("")
     
     # Encontrar todas as pastas de execução
     pastas_run = glob.glob(str(output_dir / "run_*"))
