@@ -13,3 +13,8 @@ call pip install -r requirements.txt --break-system-packages
 
 echo Instalação concluída. 
 
+cd ..
+
+pwd
+
+echo Iniciando o laucher desktop...
