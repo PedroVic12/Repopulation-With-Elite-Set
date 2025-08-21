@@ -7,6 +7,7 @@ PVRV - 18/06/2025
 # Imports principais do framework
 from AlgEvolutivoRCE_backup.Setup import Setup
 from AlgEvolutivoRCE_backup.alg_evolutivo_rce import AlgoritimoEvolutivoRCE
+from RedeEletrica_backup.rede_eletrica import RedeEletricaPandaPower
 
 # Utils
 from config_backup import FOLDER_NAME, entrada_de_dados, format_elapsed_time, load_many_executions
@@ -134,6 +135,22 @@ def run_framework_many_executions(function_bechmarking=False):
             print("\n\nEvolução concluída  - 100%")
             print(f"Best variables", best_variables)
 
+            # Gera o HTML com os resultados da execução
+            html_output_path = config_dir / f"config_{config_num}_exec_{exec_num}_results.html"
+            try:
+                funcao_objetivo_IEEE14(best_variables, setup, _debug=False, plot_only_path=str(html_output_path))
+                print(f"Relatório HTML salvo em: {html_output_path}")
+            except Exception as e:
+                print(f"Erro ao gerar relatório HTML para config {config_num}, exec {exec_num}: {e}")
+
+            # Gera o HTML com os resultados da execução
+            html_output_path = config_dir / f"config_{config_num}_exec_{exec_num}_results.html"
+            try:
+                funcao_objetivo_IEEE14(best_variables, setup, _debug=False, plot_only_path=str(html_output_path))
+                print(f"Relatório HTML salvo em: {html_output_path}")
+            except Exception as e:
+                print(f"Erro ao gerar relatório HTML para config {config_num}, exec {exec_num}: {e}")
+
             # Salva resultado individual como JSON
             result = {
                 "config_num": config_num,
@@ -142,7 +159,7 @@ def run_framework_many_executions(function_bechmarking=False):
                 "best_variables": best_variables,
             }
             
-            output_path = config_dir / f"exec_{exec_num}_results.json"
+            output_path = config_dir / f"config_{config_num}_exec_{exec_num}_results.json"
             try:
                 with open(output_path, 'w', encoding='utf-8') as f:
                     json.dump(result, f, indent=4, ensure_ascii=False)

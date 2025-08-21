@@ -83,6 +83,8 @@ class Setup:
         self.NUM_VAR_DIF = params["NUM_VAR_DIFERENTES"]
         self.porcentagem = params["PORCENTAGEM"]
         self.delta = params["DELTA_MIN"]
+        self.rede = None
+        self.rede = None
 
         #!Criando individuo pelo deap com seus atributos
         # Create FitnessMin and Individual only if they haven't been created before

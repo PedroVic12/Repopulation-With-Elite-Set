@@ -29,10 +29,11 @@ path_foler_output = get_folder_path()
 
 
 class ConsolidatedResultsComponent:
+    def __init__(self):
+        pass
     """Componente para exibir os resultados consolidados."""
-
-    @staticmethod
-    def render(all_params: dict):
+    
+    def render(self, all_params: dict):
         """Coleta, consolida e exibe os resultados de todas as execuções."""
         st.header("✅ Resultados Consolidados Gerais")
 
@@ -99,6 +100,8 @@ class ConsolidatedResultsComponent:
                 "POP_SIZE": params_data.get("POP_SIZE"),
             })
 
+        all_results = pd.read_excel(get_folder_path() / "resultados_consolidados.xlsx")
+
         if not all_results:
             st.warning("Nenhum dado de execução pôde ser consolidado.")
             return
@@ -109,8 +112,7 @@ class ConsolidatedResultsComponent:
         # Devolve o DataFrame e os avisos para a página principal renderizar
         return df_consolidado, warnings
 
-    @staticmethod
-    def display_and_download(df_consolidado):
+    def display_and_download(self, df_consolidado):
         """Exibe o DataFrame e o botão de download."""
         
         # Define e aplica a ordem correta das colunas
