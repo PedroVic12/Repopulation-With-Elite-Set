@@ -213,59 +213,61 @@ class FrameworkRCEDashboard:
         return exec_tabs_dict
 
     # Função separada para renderizar o container de tabs
-    def ContainerTabs(self,exec_tabs_dict):
+    def ContainerTabs(self, exec_tabs_dict):
         with st.container():
             # Inicializa estados para o sistema de bloqueio de tabs
-            UseState.initialize_state("tab_locked", False)
-            UseState.initialize_state("locked_tab_index", 0)
-            
+            UseState.initialize_state("locked_main_tab_key", None)
+
             # Header com controles
             col1, col2 = st.columns([3, 1])
             with col1:
                 st.subheader("🔄 Seleção da Execução (NEW)")
             with col2:
                 # Toggle para bloquear/desbloquear tab
-                tab_locked = UseState.get_state("tab_locked", False)
-                lock_icon = "🔒" if tab_locked else "🔓"
-                new_lock_state = st.toggle(f"{lock_icon} Fixar Aba", value=tab_locked, key="tab_lock_toggle")
-                UseState.set_state("tab_locked", new_lock_state)
-            
-            main_tabs = st.tabs(list(exec_tabs_dict.keys()))
-            for i, (main_tab, main_key) in enumerate(zip(main_tabs, exec_tabs_dict.keys())):
-                with main_tab:
-                    sub_dict = exec_tabs_dict[main_key]
-                    if isinstance(sub_dict, dict):
-                        # Se a aba está bloqueada, mostra apenas a aba selecionada
-                        if UseState.get_state("tab_locked", False):
-                            locked_tab_index = UseState.get_state("locked_tab_index", 0)
-                            sub_keys = list(sub_dict.keys())
-                            
-                            # Seletor para escolher qual aba fixar
-                            col_select, col_info = st.columns([2, 1])
-                            with col_select:
-                                selected_tab_name = st.selectbox(
-                                    "Aba Fixada:", 
-                                    sub_keys, 
-                                    index=locked_tab_index,
-                                    key=f"locked_tab_selector_{i}"
-                                )
-                                UseState.set_state("locked_tab_index", sub_keys.index(selected_tab_name))
-                            
-                            with col_info:
-                                st.info(f"🔒 Fixado em: **{selected_tab_name}**")
-                            
-                            # Renderiza apenas o conteúdo da aba selecionada
-                            st.markdown("---")
-                            content = sub_dict[selected_tab_name]
+                locked_main_tab_key = UseState.get_state("locked_main_tab_key")
+                lock_icon = "🔒" if locked_main_tab_key else "🔓"
+                
+                # Se uma aba estiver fixada, o toggle desativa a fixação
+                if locked_main_tab_key:
+                    if st.button(f"{lock_icon} Desfixar Aba"):
+                        UseState.set_state("locked_main_tab_key", None)
+                        st.rerun()
+                else:
+                    # Se nenhuma aba estiver fixada, o toggle não faz nada diretamente
+                    st.write("") # Placeholder
+
+            # Se uma aba principal estiver fixada
+            if locked_main_tab_key:
+                st.info(f"🔒 Execução Fixada: **{locked_main_tab_key}**")
+                
+                # Renderiza apenas a aba principal fixada
+                sub_dict = exec_tabs_dict[locked_main_tab_key]
+                if isinstance(sub_dict, dict):
+                    sub_tabs = st.tabs(list(sub_dict.keys()))
+                    for sub_tab, sub_key in zip(sub_tabs, sub_dict.keys()):
+                        with sub_tab:
+                            content = sub_dict[sub_key]
                             if callable(content):
                                 try:
                                     content()
                                 except Exception as e:
-                                    st.error(f"Erro ao renderizar '{selected_tab_name}': {e}")
+                                    st.error(f"Erro ao renderizar '{sub_key}': {e}")
                             else:
                                 st.write(content)
-                        else:
-                            # Modo normal com todas as tabs
+                else:
+                    st.write(sub_dict)
+            else:
+                # Renderiza todas as abas principais
+                main_tabs = st.tabs(list(exec_tabs_dict.keys()))
+                for i, (main_tab, main_key) in enumerate(zip(main_tabs, exec_tabs_dict.keys())):
+                    with main_tab:
+                        # Botão para fixar a aba principal
+                        if st.button(f"📌 Fixar {main_key}", key=f"pin_button_{i}"):
+                            UseState.set_state("locked_main_tab_key", main_key)
+                            st.rerun()
+
+                        sub_dict = exec_tabs_dict[main_key]
+                        if isinstance(sub_dict, dict):
                             sub_tabs = st.tabs(list(sub_dict.keys()))
                             for j, (sub_tab, sub_key) in enumerate(zip(sub_tabs, sub_dict.keys())):
                                 with sub_tab:
@@ -277,11 +279,11 @@ class FrameworkRCEDashboard:
                                             st.error(f"Erro ao renderizar '{sub_key}': {e}")
                                     else:
                                         st.write(content)
-                    else:
-                        st.write(sub_dict)
-            
-            # Footer apenas na última execução
-            if not UseState.get_state("tab_locked", False):
+                        else:
+                            st.write(sub_dict)
+
+            # Footer apenas se nenhuma aba estiver fixada
+            if not UseState.get_state("locked_main_tab_key"):
                 self.footer()
 
 

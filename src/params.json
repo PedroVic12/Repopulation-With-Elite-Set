@@ -6,14 +6,14 @@
         18,
         15
     ],
-    "CROSSOVER": 0.5,
+    "CROSSOVER": 0.9,
     "DELTA_MIN": 2,
     "IND_SIZE": 5,
     "LIMITE_VAR": [
         0,
         31
     ],
-    "MUTACAO": 0.73,
+    "MUTACAO": 0.9,
     "NUM_GENERATIONS": 20,
     "NUM_VAR_DIFERENTES": 1,
     "POP_SIZE": 10,

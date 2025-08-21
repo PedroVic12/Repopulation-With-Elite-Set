@@ -144,8 +144,7 @@ class ConsolidatedResultsComponent:
             st.warning("Nenhum dado de execução pôde ser consolidado.")
             return None, warnings
 
-        df_consolidado = pd.read_excel(os.path.join(output_path, "resultados_consolidados.xlsx"))
-        #df_consolidado = pd.DataFrame(all_results)
+        df_consolidado = pd.DataFrame(all_results)
         return df_consolidado, warnings
 
     @staticmethod
@@ -200,15 +199,6 @@ def entrada_de_dados():
 
     return agendamento_df, contingencia_df
 
-# Função para carregar os dados de execução (mock)
-def carregar_dados_execucao():
-    return pd.DataFrame([
-        {"execution": 1, "solution_variables": [3, 11, 1, 18, 31], "best_fitness": 931.7123616, "best_generations": 1, "execution_time": "15.06 segundos"},
-        {"execution": 2, "solution_variables": [30, 1, 14, 30, 9], "best_fitness": 649.9070763, "best_generations": 6, "execution_time": "6.46 segundos"},
-        {"execution": 3, "solution_variables": [30, 17, 30, 30, 9], "best_fitness": 570.334047, "best_generations": 11, "execution_time": "5.64 segundos"},
-        {"execution": 4, "solution_variables": [30, 25, 30, 30, 9], "best_fitness": 479.358067, "best_generations": 15, "execution_time": "6.23 segundos"},
-        {"execution": 5, "solution_variables": [30, 25, 30, 30, 9], "best_fitness": 479.358067, "best_generations": 15, "execution_time": "5.60 segundos"},
-    ])
 
 # Função para criar a timeline a partir das variáveis de solução
 from streamlit_timeline import st_timeline
@@ -395,7 +385,13 @@ class FrameworkRCEDashboard:
             config_controller = ConfigController()
             all_params = config_controller.repository.get_all_configs()
             
+            print("DEBUG - All Params:", all_params)
+            
             df_consolidado, cons_warnings = ConsolidatedResultsComponent.render(all_params)
+            
+            #df_consolidado = pd.read_excel(os.path.join("/home/pedrov12/Documentos/GitHub/Repopulation-With-Elite-Set/src/output", "resultados_consolidados.xlsx"))
+
+            
             if cons_warnings:
                 for w in cons_warnings:
                     st.warning(w)

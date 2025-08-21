@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """
-Execução do framework RCE com configuração de várias execuções e variações de parâmetros.
-PVRV - 18/06/2025
+Execução de UMA ÚNICA configuração do framework RCE.
+Este script é chamado pelo laucher.py para cada configuração a ser executada.
 """
 
 # Imports principais do framework
@@ -20,10 +20,11 @@ import pathlib
 import pandas as pd
 import numpy as np
 import os
+import argparse
 from datetime import datetime
 
-
 BASE_DIR = pathlib.Path(__file__).resolve().parent
+OUTPUT_DIR = BASE_DIR / "output"
 
 
 def load_params(file_path):
@@ -35,185 +36,108 @@ def load_params(file_path):
 def convert_values_to_int(params):
     """Converte valores dos parâmetros para int, float ou listas, se aplicável."""
     float_keys = {"MUTACAO", "CROSSOVER", "PORCENTAGEM"}
+    list_keys = {"ARRAY_VAR", "LIMITE_VAR"}
     for key, value in params.items():
-        # Se for uma string que parece uma lista, tenta converter
         if isinstance(value, str) and value.strip().startswith('['):
             try:
                 params[key] = json.loads(value)
-                continue # Pula para o próximo item
+                continue
             except json.JSONDecodeError:
-                # Se não for um JSON válido, ignora e mantém a string original
                 pass
-        
-        # Lógica original para floats e ints
+        if key.upper() in list_keys or isinstance(value, (list, dict)):
+            continue
         try:
             if key.upper() in float_keys:
                 params[key] = float(value)
             else:
                 params[key] = int(float(value))
         except (ValueError, TypeError):
-            # Ignora erros de conversão para valores que não são numéricos (como as listas já convertidas ou outras strings)
             pass
     return params
 
 
-def run_framework_many_executions(function_bechmarking=False):
-    print("Função principal para executar o framework com múltiplas execuções.")
+def run_single_execution(function_bechmarking=False):
+    """
+    Executa uma única configuração, lendo os parâmetros de `params.json`.
+    Os resultados são salvos no diretório de saída principal.
+    """
+    print("--- Iniciando execução de configuração única ---")
 
-    # 1. Carrega parâmetros base e opções
-    params_base = load_params(f"{BASE_DIR}/params.json")
-    options = load_params(f"{BASE_DIR}/options.json")
-    params_base = convert_values_to_int(params_base)
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--config_num", default=1, type=int)
+    parser.add_argument("--exec_num", default=1, type=int)
+    args = parser.parse_args()
+    config_num = args.config_num
+    exec_num = args.exec_num
 
-    # 2. Descobre variações e número de execuções
-    varying_keys = [k for k in options if isinstance(options[k], list) and len(options[k]) > 0]
-    varying_values = [options[k] for k in varying_keys]
-    repeticoes = options.get('repeticoes_por_config', 1)
+    # 1. Carrega a configuração atual que o laucher salvou
+    params = load_params(BASE_DIR / "params.json")
+    params = convert_values_to_int(params)
 
-    # 3. Gera todas as combinações de parâmetros
-    from itertools import product
-    combinations = [dict(zip(varying_keys, vals)) for vals in product(*varying_values)] if varying_keys else [{}]
+    # Garante que o diretório de saída principal exista
+    os.makedirs(OUTPUT_DIR, exist_ok=True)
+    print(f"Salvando resultados em: {OUTPUT_DIR}")
 
-    print(f"Total de configurações únicas: {len(combinations)}")
-    print(f"Execuções por configuração: {repeticoes}")
+    # Define função objetivo
+    fitness_func = funcao_objetivo_IEEE14 if not function_bechmarking else rastrigin
 
-    # Cria um diretório de saída com timestamp para evitar sobreposições
-    timestamp = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
-    main_output_dir = BASE_DIR / "output" / f"run_{timestamp}"
-    os.makedirs(main_output_dir, exist_ok=True)
-    print(f"Salvando resultados em: {main_output_dir}")
-
-    config_num = 1
-    for combo in combinations:
-        # Cria um diretório específico para a configuração
-        config_dir = main_output_dir / f"config_{config_num}"
-        os.makedirs(config_dir, exist_ok=True)
-
-        # Monta params para esta configuração
-        params = params_base.copy()
-        params.update(combo)
-        params = convert_values_to_int(params)
-
-        # Define função objetivo
-        fitness_func = funcao_objetivo_IEEE14 if not function_bechmarking else rastrigin
-
-        # Instancia Setup uma vez por configuração
-        print(f"\n\nIniciando configuração {config_num}: {params}")
-        setup = Setup(
-            params,
-            fitness_function=fitness_func,
-            tamanho_hash=(
-                entrada_de_dados()["num_contingencias"]
-                * entrada_de_dados()["num_carregamentos"]
-                * (2 ** entrada_de_dados()["num_desligamentos"])
-            )
+    # Instancia Setup
+    print(f"Executando Config {config_num}, Repetição {exec_num}: {params}")
+    setup = Setup(
+        params,
+        fitness_function=fitness_func,
+        tamanho_hash=(
+            entrada_de_dados()["num_contingencias"]
+            * entrada_de_dados()["num_carregamentos"]
+            * (2 ** entrada_de_dados()["num_desligamentos"])
         )
-        print("Classe Setup iniciada para a configuração.")
+    )
+    print("Classe Setup iniciada.")
 
-        # Consulta hash_table se existir
-        if os.path.exists("hash_table.xlsx"):
-            try:
-                hash_excel = pd.read_excel("hash_table.xlsx")
-                if not hash_excel.empty:
-                    setup.tabela_hash = hash_excel['Fitness'].to_dict()
-                    print("Tabela hash carregada com sucesso!")
-            except Exception as e:
-                print(f"Erro ao carregar hash_table.xlsx: {e}")
+    # Consulta hash_table se existir
+    hash_table_path = BASE_DIR / "hash_table.xlsx"
+    if hash_table_path.exists():
+        try:
+            hash_excel = pd.read_excel(hash_table_path)
+            if not hash_excel.empty:
+                setup.tabela_hash = hash_excel['Fitness'].to_dict()
+                print("Tabela hash carregada com sucesso!")
+        except Exception as e:
+            print(f"Erro ao carregar {hash_table_path}: {e}")
 
-        for exec_num in range(1, repeticoes + 1):
-            print(f"\n--- Iniciando execução {exec_num}/{repeticoes} ---")
+    # Executa algoritmo
+    alg = AlgoritimoEvolutivoRCE(setup, DEBUG=False)
+    print("Algoritmo Evolutivo iniciado.")
+    pop_with_repopulation, logbook_with_repopulation, best_individual, all_individual_values = alg.run(RCE=True)
+    print("Evolução concluída.")
 
-            # Reseta contadores para a nova execução
-            if hasattr(setup, 'objectiveruns'):
-                setup.objectiveruns = 0
-            if hasattr(setup, 'hashtablereads'):
-                setup.hashtablereads = 0
+    # Salva resultados
+    best_variables = list(best_individual)
+    best_fitness = best_individual.fitness.values[0] if best_individual.fitness.valid else float('inf')
+    best_gen_idx = logbook_with_repopulation.select("gen")[-1] if logbook_with_repopulation else 'N/A'
 
-            # Executa algoritmo
-            alg = AlgoritimoEvolutivoRCE(setup, DEBUG=False)
-            print("Algoritmo Evolutivo iniciado.")
-            pop_with_repopulation, logbook_with_repopulation, best_individual, all_individual_values = alg.run(RCE=True)
-            print("\n\nEvolução concluída  - 100%")
-
-            alg.dashboard.visualize(
-                logbook_with_repopulation,
-                pop_with_repopulation,
-            )
-
-            best_variables = list(best_individual)
-
-            # Salva os dados de visualização
-            vis_output_path = config_dir / f"config_{config_num}_exec_{exec_num}_visualization.json"
-            try:
-                # Convert individuals to lists for JSON serialization
-                for item in all_individual_values:
-                    if 'Variaveis de Decisão' in item and hasattr(item['Variaveis de Decisão'], 'tolist'):
-                        item['Variaveis de Decisão'] = item['Variaveis de Decisão'].tolist()
-                    elif isinstance(item['Variaveis de Decisão'], np.ndarray):
-                        item['Variaveis de Decisão'] = item['Variaveis de Decisão'].tolist()
-                    elif not isinstance(item['Variaveis de Decisão'], (list, str)):
-                        item['Variaveis de Decisão'] = list(item['Variaveis de Decisão'])
-
-
-                with open(vis_output_path, 'w', encoding='utf-8') as f:
-                    json.dump(all_individual_values, f, indent=4, ensure_ascii=False)
-                print(f"Dados de visualização salvos em: {vis_output_path}")
-            except Exception as e:
-                print(f"Erro ao salvar dados de visualização para config {config_num}, exec {exec_num}: {e}")
-
-            # Salva resultado individual como JSON
-            best_fitness = best_individual.fitness.values[0] if best_individual.fitness.valid else float('inf')
-            best_gen_idx = logbook_with_repopulation.select("gen")[-1] if logbook_with_repopulation else 'N/A'
-
-            result = {
-                "config_num": config_num,
-                "exec_num": exec_num,
-                "params": params,
-                "best_variables": best_variables,
-                "best_fitness": best_fitness,
-                "best_gen_idx": best_gen_idx
-            }
-            
-            output_path = config_dir / f"config_{config_num}_exec_{exec_num}_results.json"
-            try:
-                with open(output_path, 'w', encoding='utf-8') as f:
-                    json.dump(result, f, indent=4, ensure_ascii=False)
-                print(f"Resultado salvo em: {output_path}")
-            except Exception as e:
-                print(f"Erro ao salvar resultado para config {config_num}, exec {exec_num}: {e}")
-
-        config_num += 1
+    result = {
+        "config_num": config_num,
+        "exec_num": exec_num,
+        "params": params,
+        "best_variables": best_variables,
+        "best_fitness": best_fitness,
+        "best_gen_idx": best_gen_idx
+    }
     
-    print("\nTodas as execuções foram concluídas.")
-    
-    # Consolidar resultados automaticamente
-    print("\n🔄 Consolidando resultados...")
+    # Salva o resultado desta execução em um arquivo JSON nomeado de forma única
+    # para que o consolidador possa encontrá-lo.
+    result_filename = f"config_{config_num}_exec_{exec_num}_results.json"
+    output_path = OUTPUT_DIR / result_filename
     try:
-        import subprocess
-        import sys
-        
-        # Caminho para o script de consolidação
-        consolidar_script = BASE_DIR.parent / "consolidar_resultados.py"
-        
-        if consolidar_script.exists():
-            print(f"Executando consolidação: {consolidar_script}")
-            result = subprocess.run([sys.executable, str(consolidar_script)], 
-                                  capture_output=True, text=True, cwd=str(BASE_DIR.parent))
-            
-            if result.returncode == 0:
-                print("✅ Consolidação executada com sucesso!")
-                if result.stdout:
-                    print("Saída da consolidação:")
-                    print(result.stdout)
-            else:
-                print(f"❌ Erro na consolidação: {result.stderr}")
-        else:
-            print(f"⚠️ Script de consolidação não encontrado em: {consolidar_script}")
-            
+        with open(output_path, 'w', encoding='utf-8') as f:
+            json.dump(result, f, indent=4, ensure_ascii=False)
+        print(f"Resultado salvo em: {output_path}")
     except Exception as e:
-        print(f"❌ Erro ao executar consolidação: {e}")
-        print("Execute manualmente: python3 consolidar_resultados.py")
+        print(f"Erro ao salvar resultado: {e}")
+
+    print("--- Execução de configuração única finalizada ---")
 
 
 if __name__ == "__main__":
-    run_framework_many_executions(function_bechmarking=False)
+    run_single_execution(function_bechmarking=False)
