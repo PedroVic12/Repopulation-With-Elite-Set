@@ -144,7 +144,8 @@ class ConsolidatedResultsComponent:
             st.warning("Nenhum dado de execução pôde ser consolidado.")
             return None, warnings
 
-        df_consolidado = pd.DataFrame(all_results)
+        df_consolidado = pd.read_excel(os.path.join(output_path, "resultados_consolidados.xlsx"))
+        #df_consolidado = pd.DataFrame(all_results)
         return df_consolidado, warnings
 
     @staticmethod
@@ -359,7 +360,6 @@ class UseState:
 
 
 # --- Classe Principal do Aplicativo ---
-st.set_page_config(initial_sidebar_state="collapsed")
 
 class FrameworkRCEDashboard:
     def __init__(self, options=None):
