@@ -42,7 +42,7 @@ class ConsolidatedResultsComponent:
         warnings = []
 
         # 1. Encontrar todos os arquivos de dados .pkl
-        data_files = sorted(output_path.glob("dashboard_data_config*_exec*.pkl"))
+        data_files = sorted(output_path.glob("dashboard_data_config*_exec*.json"))
 
         if not data_files:
             st.info("Nenhum arquivo de resultado de execução (.pkl) foi encontrado.")
@@ -112,7 +112,8 @@ class ConsolidatedResultsComponent:
         # Devolve o DataFrame e os avisos para a página principal renderizar
         return df_consolidado, warnings
 
-    def display_and_download(self, df_consolidado):
+    @staticmethod
+    def display_and_download(df_consolidado):
         """Exibe o DataFrame e o botão de download."""
         
         # Define e aplica a ordem correta das colunas

@@ -4,6 +4,7 @@ from views.pages.themes import Theme
 from views.Screens.RCE_Framework_Page import FrameworkRCEDashboard
 
 import sys
+
 import os
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
@@ -57,7 +58,7 @@ class App:
             page_title="UFF RCE WebAPP",
             page_icon="⚡",
             layout="wide",
-           # initial_sidebar_state="collapsed"
+           initial_sidebar_state="collapsed"
         )
 
         st.markdown(Theme, unsafe_allow_html=True)

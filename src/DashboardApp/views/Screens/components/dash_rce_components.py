@@ -33,7 +33,7 @@ class ConsolidatedResultsComponent:
     """Componente para exibir os resultados consolidados."""    
 
     @staticmethod
-    def render():
+    def render(all_params):
         """Verifica e exibe a seção de resultados consolidados."""
 
         # Nome base do arquivo

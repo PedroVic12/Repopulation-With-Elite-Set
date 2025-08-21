@@ -466,7 +466,7 @@ class AlgoritimoEvolutivoRCE:
                 print(f"\nALGORITIMO EVOLUTIVO COM AG COM DEAP CONCLUIDO COM SUCESSO! Geração atual = {current_generation}")
 
         # Retornar população final, logbook e elite
-        return population[num_pop], self.logbook, self.hof[0]
+        return population[num_pop], self.logbook, self.hof[0], self.allIndividualValuesArray
 
     def visualizarPopAtual(self, geracaoAtual, stats):
         """Atualiza as informações de visualização da população atual.

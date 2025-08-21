@@ -11,7 +11,7 @@ from AlgEvolutivoRCE_backup.Setup import Setup
 
 
 #! TODO -> (10/07/25) Função implementada em Março mas precisa de paralelismo para ficar mais eficiente e melhor uso da hash table
-def funcao_objetivo_IEEE14(individuo, setupobj, _debug = False, plot_only_path=None):
+def funcao_objetivo_IEEE14(individuo, setupobj, _debug = False):
     
     """    
     # Esta função avalia o agendamento de desligamentos e contingências na rede elétrica, calculando o fitness baseado em violações de tensões e carregamentos.
@@ -164,9 +164,6 @@ def funcao_objetivo_IEEE14(individuo, setupobj, _debug = False, plot_only_path=N
         # 12) Calcular fitness final com somatorio das vioações com pesos de todos os cenarios
         fitness_final = sum(violacoes_total)
         rede.log(f"\nFitness do agendamento = {fitness_final:.2f}\n", level = "success")
-
-        if plot_only_path:
-            rede.plot_all_results_to_html(output_file=plot_only_path)
 
         return fitness_final
 

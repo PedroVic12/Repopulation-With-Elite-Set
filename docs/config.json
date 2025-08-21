@@ -5,13 +5,13 @@
         "DELTA_MIN": 2,
         "IND_SIZE": 5,
         "LIMITE_VAR": "[0, 31]",
-        "MUTACAO": 0.4,
+        "MUTACAO": 0.13,
         "NUM_GENERATIONS": 20,
         "NUM_VAR_DIFERENTES": 1,
         "POP_SIZE": 10,
         "PORCENTAGEM": 0.25,
         "RCE_REPOPULATION_GENERATIONS": 50,
-        "repeticoes_por_config": 3,
+        "repeticoes_por_config": 5,
         "key": true
     },
     "config 2": {
@@ -26,7 +26,7 @@
         "POP_SIZE": 10,
         "PORCENTAGEM": 0.25,
         "RCE_REPOPULATION_GENERATIONS": 50,
-        "repeticoes_por_config": 3,
+        "repeticoes_por_config": 5,
         "key": true
     },
     "config 3": {
@@ -35,28 +35,13 @@
         "DELTA_MIN": 2,
         "IND_SIZE": 5,
         "LIMITE_VAR": "[0, 31]",
-        "MUTACAO": 0.25,
+        "MUTACAO": 0.17,
         "NUM_GENERATIONS": 20,
         "NUM_VAR_DIFERENTES": 1,
         "POP_SIZE": 10,
         "PORCENTAGEM": 0.25,
         "RCE_REPOPULATION_GENERATIONS": 50,
-        "repeticoes_por_config": 3,
-        "key": true
-    },
-    "config 4": {
-        "ARRAY_VAR": "[14, 15, 14, 18, 15]",
-        "CROSSOVER": 0.5,
-        "DELTA_MIN": 2,
-        "IND_SIZE": 5,
-        "LIMITE_VAR": "[0, 31]",
-        "MUTACAO": 0.3,
-        "NUM_GENERATIONS": 20,
-        "NUM_VAR_DIFERENTES": 1,
-        "POP_SIZE": 10,
-        "PORCENTAGEM": 0.25,
-        "RCE_REPOPULATION_GENERATIONS": 50,
-        "repeticoes_por_config": 3,
+        "repeticoes_por_config": 5,
         "key": true
     }
 }

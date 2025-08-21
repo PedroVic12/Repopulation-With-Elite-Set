@@ -18,6 +18,7 @@ from utils.functions_fitness.function_IEEE_14_contigencias import funcao_objetiv
 import json
 import pathlib
 import pandas as pd
+import numpy as np
 import os
 from datetime import datetime
 
@@ -131,25 +132,29 @@ def run_framework_many_executions(function_bechmarking=False):
             # Executa algoritmo
             alg = AlgoritimoEvolutivoRCE(setup, DEBUG=False)
             print("Algoritmo Evolutivo iniciado.")
-            pop_with_repopulation, logbook_with_repopulation, best_variables = alg.run(RCE=True)
+            pop_with_repopulation, logbook_with_repopulation, best_individual, all_individual_values = alg.run(RCE=True)
             print("\n\nEvolução concluída  - 100%")
+            best_variables = list(best_individual)
             print(f"Best variables", best_variables)
 
-            # Gera o HTML com os resultados da execução
-            html_output_path = config_dir / f"config_{config_num}_exec_{exec_num}_results.html"
+            # Salva os dados de visualização
+            vis_output_path = config_dir / f"config_{config_num}_exec_{exec_num}_visualization.json"
             try:
-                funcao_objetivo_IEEE14(best_variables, setup, _debug=False, plot_only_path=str(html_output_path))
-                print(f"Relatório HTML salvo em: {html_output_path}")
-            except Exception as e:
-                print(f"Erro ao gerar relatório HTML para config {config_num}, exec {exec_num}: {e}")
+                # Convert individuals to lists for JSON serialization
+                for item in all_individual_values:
+                    if 'Variaveis de Decisão' in item and hasattr(item['Variaveis de Decisão'], 'tolist'):
+                        item['Variaveis de Decisão'] = item['Variaveis de Decisão'].tolist()
+                    elif isinstance(item['Variaveis de Decisão'], np.ndarray):
+                        item['Variaveis de Decisão'] = item['Variaveis de Decisão'].tolist()
+                    elif not isinstance(item['Variaveis de Decisão'], (list, str)):
+                        item['Variaveis de Decisão'] = list(item['Variaveis de Decisão'])
 
-            # Gera o HTML com os resultados da execução
-            html_output_path = config_dir / f"config_{config_num}_exec_{exec_num}_results.html"
-            try:
-                funcao_objetivo_IEEE14(best_variables, setup, _debug=False, plot_only_path=str(html_output_path))
-                print(f"Relatório HTML salvo em: {html_output_path}")
+
+                with open(vis_output_path, 'w', encoding='utf-8') as f:
+                    json.dump(all_individual_values, f, indent=4, ensure_ascii=False)
+                print(f"Dados de visualização salvos em: {vis_output_path}")
             except Exception as e:
-                print(f"Erro ao gerar relatório HTML para config {config_num}, exec {exec_num}: {e}")
+                print(f"Erro ao salvar dados de visualização para config {config_num}, exec {exec_num}: {e}")
 
             # Salva resultado individual como JSON
             result = {
