@@ -180,6 +180,131 @@ class ConsolidatedResultsComponent:
         )
         st.markdown("---")
 
+# Função para carregar os dados de agendamento e contingência
+def entrada_de_dados():
+    agendamento_df = pd.DataFrame([
+        {"ramo": [1, 4], "inicio": "14:00", "duracao": 6, "prioridade": 4},
+        {"ramo": [1, 3], "inicio": "15:00", "duracao": 5, "prioridade": 1},
+        {"ramo": [3, 6], "inicio": "14:00", "duracao": 6, "prioridade": 1},
+        {"ramo": [11, 12], "inicio": "18:00", "duracao": 6, "prioridade": 1},
+        {"ramo": [9, 10], "inicio": "15:00", "duracao": 4, "prioridade": 1}
+    ])
+
+    contingencia_df = pd.DataFrame([
+        {"contingencia": 1, "from": 2, "to": 3},
+        {"contingencia": 2, "from": 5, "to": 12},
+        {"contingencia": 3, "from": 12, "to": 13},
+    ])
+
+    return agendamento_df, contingencia_df
+
+# Função para carregar os dados de execução (mock)
+def carregar_dados_execucao():
+    return pd.DataFrame([
+        {"execution": 1, "solution_variables": [3, 11, 1, 18, 31], "best_fitness": 931.7123616, "best_generations": 1, "execution_time": "15.06 segundos"},
+        {"execution": 2, "solution_variables": [30, 1, 14, 30, 9], "best_fitness": 649.9070763, "best_generations": 6, "execution_time": "6.46 segundos"},
+        {"execution": 3, "solution_variables": [30, 17, 30, 30, 9], "best_fitness": 570.334047, "best_generations": 11, "execution_time": "5.64 segundos"},
+        {"execution": 4, "solution_variables": [30, 25, 30, 30, 9], "best_fitness": 479.358067, "best_generations": 15, "execution_time": "6.23 segundos"},
+        {"execution": 5, "solution_variables": [30, 25, 30, 30, 9], "best_fitness": 479.358067, "best_generations": 15, "execution_time": "5.60 segundos"},
+    ])
+
+# Função para criar a timeline a partir das variáveis de solução
+from streamlit_timeline import st_timeline
+
+def time_line_from_solution_variables(agendamento_df, contingencia_df, exec_data, key_prefix: str = ""):
+    st.subheader(f"Timeline de Soluções para a Execução {exec_data['execution']}")
+    solution_variables = sorted(exec_data["solution_variables"])  # Ordenar os horários
+    solution_timeline_items = []
+
+    for j in range(len(solution_variables)):
+        start_hour = solution_variables[j]
+        duration = agendamento_df.iloc[j]["duracao"]  # pega a duração do agendamento correspondente
+        end_hour = start_hour + duration
+
+        day_offset_start = start_hour // 24
+        hour_in_day_start = start_hour % 24
+        day_offset_end = end_hour // 24
+        hour_in_day_end = end_hour % 24
+
+        start_label = f"{hour_in_day_start:02d}h"
+        end_label = f"{hour_in_day_end:02d}h"
+
+        start_time = f"2025-06-{18 + day_offset_start}T{hour_in_day_start:02d}:00:00"
+        end_time = f"2025-06-{18 + day_offset_end}T{hour_in_day_end:02d}:00:00"
+
+        solution_timeline_items.append({
+            "id": f"{exec_data['execution']}-{j}",
+            "content": f"Horário: {start_label} - {end_label} ({duration}h)",
+            "start": start_time,
+            "end": end_time,
+            "title": f"Intervalo: {start_label} - {end_label} ({duration}h)"
+        })
+        
+    last_hour = solution_variables[-1]
+    day_offset_last = last_hour // 24
+    hour_in_day_last = last_hour % 24
+    last_start_time = f"2025-06-{18 + day_offset_last}T{hour_in_day_last:02d}:00:00"
+    last_end_time = f"2025-06-{18 + day_offset_last}T{(hour_in_day_last + 1) % 24:02d}:00:00"
+
+    solution_timeline_items.append({
+        "id": f"{exec_data['execution']}-last",
+        "content": f"Horário: {hour_in_day_last:02d}h",
+        "start": last_start_time,
+        "end": last_end_time,
+        "title": f"Horário: {hour_in_day_last:02d}h"
+    })
+
+    timeline = st_timeline(
+        solution_timeline_items,
+        groups=[],
+        options={
+            "selectable": True,
+            "multiselect": True,
+            "zoomable": True,
+            "verticalScroll": True,
+            "stack": True,
+            "height": 300,
+            "margin": {"axis": 5},
+            "groupHeightMode": "auto",
+            "orientation": {"axis": "top", "item": "top"}
+        },
+        key=f"{key_prefix}_execution_timeline_{exec_data['execution']}"
+    )
+
+    if timeline:
+        selected_id = timeline.get("id", "").split("-")[1]  # Obter o ID do item selecionado no timeline
+        selected_index = int(selected_id) if selected_id.isdigit() else None
+
+        if selected_index is not None and selected_index < len(solution_variables) - 1:
+            start_hour = solution_variables[selected_index]
+            end_hour = solution_variables[selected_index + 1]
+            duration = end_hour - start_hour
+
+            day_offset_start = start_hour // 24
+            hour_in_day_start = start_hour % 24
+            day_offset_end = end_hour // 24
+            hour_in_day_end = end_hour % 24
+
+            start_label = f"{hour_in_day_start:02d}h"
+            end_label = f"{hour_in_day_end:02d}h"
+
+            related_agendamentos = agendamento_df[
+                (agendamento_df["inicio"].apply(lambda x: int(x.split(":")[0])) <= hour_in_day_start) &
+                ((agendamento_df["inicio"].apply(lambda x: int(x.split(":")[0])) + agendamento_df["duracao"]) >= hour_in_day_end)
+            ]
+
+            related_contingencies = contingencia_df.copy()
+
+            st.subheader("Detalhes do Intervalo Selecionado")
+            st.json({
+                "Intervalo": f"{start_label} - {end_label} ({duration}h)",
+                "Agendamentos Relacionados": related_agendamentos.to_dict(orient="records"),
+                "Contingências Relacionadas": related_contingencies.to_dict(orient="records")
+            })
+        else:
+            st.warning("Selecione um intervalo válido no timeline.")
+
+
 # Configuração da barra lateral
 class DrawerSideBar:
     """Classe para gerenciar a barra lateral do aplicativo."""
@@ -224,8 +349,6 @@ class UseState:
         """Define o valor de uma chave no session_state."""
         st.session_state[key] = value
 
-
-# --- Classe Principal do Aplicativo ---
 
 class FrameworkRCEDashboard:
     def __init__(self, options=None):
@@ -421,15 +544,15 @@ class FrameworkRCEDashboard:
                 if data:
                     df = pd.DataFrame(data)
                     if not df.empty:
-                        chart_data = df.rename(columns={'Media': 'Média', 'Desvio Padrao': 'Desvio Padrão'})
+                        chart_data = df.rename(columns={'Media': 'Média', })
                         
                         colors = {
                             'Fitness': '#1f77b4',  # Azul
                             'Média': '#ff7f0e',    # Laranja
-                            'Desvio Padrão': '#2ca02c' # Verde
+                            'Desvio Padrao': '#2ca02c' # Verde
                         }
                         
-                        st.line_chart(chart_data, x="Generations", y=["Fitness", "Média", "Desvio Padrão"], color=[colors[col] for col in ["Fitness", "Média", "Desvio Padrão"]])
+                        st.line_chart(chart_data, x="Generations", y=["Fitness", "Média", "Desvio Padrao"], color=[colors[col] for col in ["Fitness", "Média", "Desvio Padrao"]])
                     else:
                         st.warning("Dados de visualização vazios.")
                 else:

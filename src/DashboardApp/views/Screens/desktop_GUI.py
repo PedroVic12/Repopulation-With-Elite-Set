@@ -1,328 +1,592 @@
-# Salve este código como desktop_app.py e execute.
-# Requer: pip install PySide6
+import streamlit as st
 
+# --- Componentes da Interface de Usuário ---
 import sys
 import os
+import re
+import pandas as pd
+import io
 import json
-import time
-from PySide6.QtWidgets import (
-    QApplication, QMainWindow, QWidget, QVBoxLayout, QHBoxLayout, QGridLayout,
-    QFormLayout, QPushButton, QLabel, QTableWidget, QTableWidgetItem,
-    QSpinBox, QCheckBox, QLineEdit, QSlider, QGroupBox, QHeaderView
-)
-from PySide6.QtCore import QObject, Signal, QThread, Qt
+from datetime import datetime
+import math
 
-# ===================================================================
-# 1. ESTILO (QSS) - Para uma aparência moderna
-# ===================================================================
-STYLE_QSS = """
-QWidget {
-    background-color: #282c34;
-    color: #abb2bf;
-    font-family: "Segoe UI", Arial, sans-serif;
-    font-size: 14px;
-}
-QGroupBox {
-    font-size: 16px;
-    font-weight: bold;
-    color: #98c379; /* Verde */
-    border: 1px solid #3e4451;
-    border-radius: 5px;
-    margin-top: 1ex;
-}
-QGroupBox::title {
-    subcontrol-origin: margin;
-    subcontrol-position: top left;
-    padding: 0 3px;
-    left: 10px;
-}
-QLabel#metric_label {
-    font-size: 14px;
-    color: #abb2bf;
-}
-QLabel#metric_value {
-    font-size: 28px;
-    font-weight: bold;
-    color: #e5c07b; /* Amarelo */
-}
-QPushButton#run_button {
-    background-color: #98c379; /* Verde */
-    color: #282c34;
-    font-size: 16px;
-    font-weight: bold;
-    padding: 12px;
-    border-radius: 5px;
-}
-QPushButton#run_button:hover {
-    background-color: #a9d188;
-}
-QSpinBox, QLineEdit {
-    background-color: #21252b;
-    border: 1px solid #3e4451;
-    border-radius: 4px;
-    padding: 8px;
-    color: #e6e6e6;
-}
-QSlider::groove:horizontal {
-    border: 1px solid #3e4451;
-    height: 4px;
-    background: #3e4451;
-    margin: 2px 0;
-    border-radius: 2px;
-}
-QSlider::handle:horizontal {
-    background: #61afef; /* Azul */
-    border: 1px solid #61afef;
-    width: 18px;
-    margin: -8px 0;
-    border-radius: 9px;
-}
-QTableWidget {
-    background-color: #21252b;
-    border: 1px solid #3e4451;
-    gridline-color: #3e4451;
-}
-QHeaderView::section {
-    background-color: #282c34;
-    color: #98c379;
-    padding: 4px;
-    border: 1px solid #3e4451;
-    font-weight: bold;
-}
-QCheckBox::indicator {
-    width: 20px;
-    height: 20px;
-}
-QCheckBox::indicator:unchecked {
-    image: url(unchecked.png); /* Placeholder - use QSS for real toggles */
-}
-QCheckBox::indicator:checked {
-    image: url(checked.png); /* Placeholder */
-}
-"""
+# Adiciona o diretório 'components' ao sys.path para importações diretas
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'components')))
+from dash_rce_components import CardSolutions, GraficoPotenciaAtivaReativaComponent, StatisticsTableComponent, GraficoRCEComponent
+from .AgendamentoRedePage import AgendamentoRedePage, entrada_de_dados, time_line_from_solution_variables
 
-# ===================================================================
-# 2. MODEL - Gerencia os dados e a lógica de negócio
-# ===================================================================
-class ConfigurationModel(QObject):
-    """Guarda e manipula todos os dados de configuração."""
-    config_updated = Signal()
-    log_message = Signal(str)
-    simulation_finished = Signal(int)
+#backend
+from controllers.Utils import Controller, Utils, ConfigController
 
-    def __init__(self):
-        super().__init__()
-        # Valores padrão
-        self.num_execucoes = 7
-        self.taxa_mutacao_enabled = False
-        self.num_geracoes_enabled = False
-        # ... outros parâmetros
-        self.parametros_rce = {
-            "POP_SIZE": 50,
-            "RCE_POPULATION": 1,
-            "NUM_GER_FERENTES": 1,
-            "PORCENTAGEM": 0.1,
-            "DELTA_MIN": 0.2
-        }
+# Frontend
 
-    def set_num_execucoes(self, value):
-        self.num_execucoes = value
-        self.log_message.emit(f"Número de execuções alterado para: {value}")
-        self.config_updated.emit()
+print("Loading RCE_Framework_Page.py")
 
-    def get_total_execucoes(self):
-        # Lógica mais complexa pode ser adicionada aqui
-        # com base nos parâmetros AG habilitados.
-        return self.num_execucoes
+def find_available_executions_replacement(output_dir):
+    executions = {}
+    warnings = []
+    
+    output_dir = os.path.abspath(output_dir)
 
-    def run_simulation(self):
-        """
-        Método que será executado em uma thread separada.
-        Aqui entra a sua lógica pesada com DEAP e Pandapower.
-        """
-        self.log_message.emit("Iniciando simulação...")
+    if not os.path.isdir(output_dir):
+        warnings.append(f"Diretório de output não encontrado: {output_dir}")
+        return executions, warnings
+
+    for run_dir in os.listdir(output_dir):
+        run_path = os.path.join(output_dir, run_dir)
+        if os.path.isdir(run_path) and run_dir.startswith("run_"):
+            for config_dir in os.listdir(run_path):
+                config_path = os.path.join(run_path, config_dir)
+                if os.path.isdir(config_path) and config_dir.startswith("config_"):
+                    config_num_match = re.search(r'config_(\d+)', config_dir)
+                    if not config_num_match:
+                        continue
+                    config_num = int(config_num_match.group(1))
+                    
+                    if config_num not in executions:
+                        executions[config_num] = []
+
+                    for result_file in os.listdir(config_path):
+                        if result_file.endswith("_results.json"):
+                            exec_num_match = re.search(r'exec_(\d+)_results.json', result_file)
+                            if exec_num_match:
+                                exec_num = int(exec_num_match.group(1))
+                                if exec_num not in executions[config_num]:
+                                    executions[config_num].append(exec_num)
+    for config_num in executions:
+        executions[config_num].sort()
+        
+    return executions, warnings
+
+def load_data_for_component(config_num, exec_num, data_type):
+    output_path = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..', '..', 'output'))
+    
+    run_dirs = [d for d in os.listdir(output_path) if d.startswith("run_") and os.path.isdir(os.path.join(output_path, d))]
+    run_dirs.sort(reverse=True)
+
+    if not run_dirs:
+        return None, None
+
+    file_suffix = "results.json" if data_type == "results" else "visualization.json"
+
+    for run_dir in run_dirs:
+        file_path = os.path.join(run_dir, f"config_{config_num}", f"config_{config_num}_exec_{exec_num}_{file_suffix}")
+        full_path = os.path.join(output_path, file_path)
+        
+        if os.path.exists(full_path):
+            try:
+                with open(full_path, 'r') as f:
+                    data = json.load(f)
+                return data, None
+            except Exception as e:
+                st.error(f"Erro ao carregar o arquivo de dados {full_path}: {e}")
+                return None, None
+    
+    return None, None
+
+class ConsolidatedResultsComponent:
+    """Componente para exibir os resultados consolidados."""
+    
+    @staticmethod
+    def render(all_params: dict):
+        """Coleta, consolida e exibe os resultados de todas as execuções."""
+        st.header("✅ Resultados Consolidados Gerais")
+
+        output_path = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..', '..', 'output'))
+        all_results = []
+        warnings = []
+
+        run_dirs = [d for d in os.listdir(output_path) if d.startswith("run_") and os.path.isdir(os.path.join(output_path, d))]
+
+        if not run_dirs:
+            st.info("Nenhum diretório de execução (run_*) foi encontrado.")
+            return None, []
+
+        for run_dir in run_dirs:
+            run_path = os.path.join(output_path, run_dir)
+            for config_dir in os.listdir(run_path):
+                if config_dir.startswith("config_"):
+                    config_path = os.path.join(run_path, config_dir)
+                    for result_file in os.listdir(config_path):
+                        if result_file.endswith("_results.json"):
+                            match = re.search(r"config_(\d+)_exec_(\d+)_results.json", result_file)
+                            if not match:
+                                warnings.append(f"Nome de arquivo inválido, não foi possível processar: {result_file}")
+                                continue
+                            
+                            config_num = int(match.group(1))
+                            exec_num = int(match.group(2))
+
+                            try:
+                                with open(os.path.join(config_path, result_file), "r") as f:
+                                    exec_data = json.load(f)
+                                
+                                params_data = all_params.get(config_num, {})
+                                
+                                all_results.append({
+                                    "Config": config_num,
+                                    "Exec": exec_num,
+                                    "Melhor Fitness": exec_data.get("best_fitness"),
+                                    "Melhor Geração": exec_data.get("best_gen_idx"),
+                                    "Tempo de Execução (s)": exec_data.get("execution_time", 0.0),
+                                    "Caso IEEE": params_data.get("ieee_case", "N/A"),
+                                    "MUTACAO": params_data.get("MUTACAO"),
+                                    "CROSSOVER": params_data.get("CROSSOVER"),
+                                    "NUM_GENERATIONS": params_data.get("NUM_GENERATIONS"),
+                                    "POP_SIZE": params_data.get("POP_SIZE"),
+                                })
+                            except Exception as e:
+                                warnings.append(f"Erro ao ler o arquivo de dados {result_file}: {e}")
+                                continue
+        
+        if not all_results:
+            st.warning("Nenhum dado de execução pôde ser consolidado.")
+            return None, warnings
+
+        df_consolidado = pd.DataFrame(all_results)
+        return df_consolidado, warnings
+
+    @staticmethod
+    def display_and_download(df_consolidado):
+        """Exibe o DataFrame e o botão de download."""
+        
+        column_order = [
+            "Config", "Exec", "MUTACAO", "CROSSOVER", 
+            "NUM_GENERATIONS", "POP_SIZE", "Melhor Fitness", "Melhor Geração", 
+            "Tempo de Execução (s)"
+        ]
+        existing_columns = [col for col in column_order if col in df_consolidado.columns]
+        df_display = df_consolidado[existing_columns]
+        
+        st.dataframe(df_display)
+
+        if "Tempo de Execução (s)" in df_display.columns and df_display["Tempo de Execução (s)"].sum() > 0:
+            total_time = df_display["Tempo de Execução (s)"].sum()
+            mean_time = df_display["Tempo de Execução (s)"].mean()
+            
+            col1, col2 = st.columns(2)
+            col1.metric("Tempo Total de Execução", f"{total_time:.2f} s")
+            col2.metric("Tempo Médio por Execução", f"{mean_time:.2f} s")
+
+        output = io.BytesIO()
+        with pd.ExcelWriter(output, engine='xlsxwriter') as writer:
+            df_display.to_excel(writer, index=False, sheet_name='Resultados Consolidados')
+        
+        st.download_button(
+            label="📥 Baixar Resultados Consolidados (XLSX)",
+            data=output.getvalue(),
+            file_name="resultados_consolidados_geral.xlsx",
+            mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+        )
+        st.markdown("---")
+
+# Função para carregar os dados de agendamento e contingência
+def entrada_de_dados():
+    agendamento_df = pd.DataFrame([
+        {"ramo": [1, 4], "inicio": "14:00", "duracao": 6, "prioridade": 4},
+        {"ramo": [1, 3], "inicio": "15:00", "duracao": 5, "prioridade": 1},
+        {"ramo": [3, 6], "inicio": "14:00", "duracao": 6, "prioridade": 1},
+        {"ramo": [11, 12], "inicio": "18:00", "duracao": 6, "prioridade": 1},
+        {"ramo": [9, 10], "inicio": "15:00", "duracao": 4, "prioridade": 1}
+    ])
+
+    contingencia_df = pd.DataFrame([
+        {"contingencia": 1, "from": 2, "to": 3},
+        {"contingencia": 2, "from": 5, "to": 12},
+        {"contingencia": 3, "from": 12, "to": 13},
+    ])
+
+    return agendamento_df, contingencia_df
+
+# Função para carregar os dados de execução (mock)
+def carregar_dados_execucao():
+    return pd.DataFrame([
+        {"execution": 1, "solution_variables": [3, 11, 1, 18, 31], "best_fitness": 931.7123616, "best_generations": 1, "execution_time": "15.06 segundos"},
+        {"execution": 2, "solution_variables": [30, 1, 14, 30, 9], "best_fitness": 649.9070763, "best_generations": 6, "execution_time": "6.46 segundos"},
+        {"execution": 3, "solution_variables": [30, 17, 30, 30, 9], "best_fitness": 570.334047, "best_generations": 11, "execution_time": "5.64 segundos"},
+        {"execution": 4, "solution_variables": [30, 25, 30, 30, 9], "best_fitness": 479.358067, "best_generations": 15, "execution_time": "6.23 segundos"},
+        {"execution": 5, "solution_variables": [30, 25, 30, 30, 9], "best_fitness": 479.358067, "best_generations": 15, "execution_time": "5.60 segundos"},
+    ])
+
+# Função para criar a timeline a partir das variáveis de solução
+from streamlit_timeline import st_timeline
+
+def time_line_from_solution_variables(agendamento_df, contingencia_df, exec_data, key_prefix: str = ""):
+    st.subheader(f"Timeline de Soluções para a Execução {exec_data['execution']}")
+    solution_variables = sorted(exec_data["solution_variables"])  # Ordenar os horários
+    solution_timeline_items = []
+
+    for j in range(len(solution_variables)):
+        start_hour = solution_variables[j]
+        duration = agendamento_df.iloc[j]["duracao"]  # pega a duração do agendamento correspondente
+        end_hour = start_hour + duration
+
+        day_offset_start = start_hour // 24
+        hour_in_day_start = start_hour % 24
+        day_offset_end = end_hour // 24
+        hour_in_day_end = end_hour % 24
+
+        start_label = f"{hour_in_day_start:02d}h"
+        end_label = f"{hour_in_day_end:02d}h{'*'' if day_offset_end > day_offset_start else ''}"
+
+        start_time = f"2025-06-{18 + day_offset_start}T{hour_in_day_start:02d}:00:00"
+        end_time = f"2025-06-{18 + day_offset_end}T{hour_in_day_end:02d}:00:00"
+
+        solution_timeline_items.append({
+            "id": f"{exec_data['execution']}-{j}",
+            "content": f"Horário: {start_label} - {end_label} ({duration}h)",
+            "start": start_time,
+            "end": end_time,
+            "title": f"Intervalo: {start_label} - {end_label} ({duration}h)"
+        })
+        
+    last_hour = solution_variables[-1]
+    day_offset_last = last_hour // 24
+    hour_in_day_last = last_hour % 24
+    last_start_time = f"2025-06-{18 + day_offset_last}T{hour_in_day_last:02d}:00:00"
+    last_end_time = f"2025-06-{18 + day_offset_last}T{(hour_in_day_last + 1) % 24:02d}:00:00"
+
+    solution_timeline_items.append({
+        "id": f"{exec_data['execution']}-last",
+        "content": f"Horário: {hour_in_day_last:02d}h",
+        "start": last_start_time,
+        "end": last_end_time,
+        "title": f"Horário: {hour_in_day_last:02d}h"
+    })
+
+    timeline = st_timeline(
+        solution_timeline_items,
+        groups=[],
+        options={
+            "selectable": True,
+            "multiselect": True,
+            "zoomable": True,
+            "verticalScroll": True,
+            "stack": True,
+            "height": 300,
+            "margin": {"axis": 5},
+            "groupHeightMode": "auto",
+            "orientation": {"axis": "top", "item": "top"}
+        },
+        key=f"{key_prefix}_execution_timeline_{exec_data['execution']}"
+    )
+
+    if timeline:
+        selected_id = timeline.get("id", "").split("-")[1]  # Obter o ID do item selecionado no timeline
+        selected_index = int(selected_id) if selected_id.isdigit() else None
+
+        if selected_index is not None and selected_index < len(solution_variables) - 1:
+            start_hour = solution_variables[selected_index]
+            end_hour = solution_variables[selected_index + 1]
+            duration = end_hour - start_hour
+
+            day_offset_start = start_hour // 24
+            hour_in_day_start = start_hour % 24
+            day_offset_end = end_hour // 24
+            hour_in_day_end = end_hour % 24
+
+            start_label = f"{hour_in_day_start:02d}h"
+            end_label = f"{hour_in_day_end:02d}h{'*'' if day_offset_end > day_offset_start else ''}"
+
+            related_agendamentos = agendamento_df[
+                (agendamento_df["inicio"].apply(lambda x: int(x.split(":")[0])) <= hour_in_day_start) &
+                ((agendamento_df["inicio"].apply(lambda x: int(x.split(":")[0])) + agendamento_df["duracao"]) >= hour_in_day_end)
+            ]
+
+            related_contingencies = contingencia_df.copy()
+
+            st.subheader("Detalhes do Intervalo Selecionado")
+            st.json({
+                "Intervalo": f"{start_label} - {end_label} ({duration}h)",
+                "Agendamentos Relacionados": related_agendamentos.to_dict(orient="records"),
+                "Contingências Relacionadas": related_contingencies.to_dict(orient="records")
+            })
+        else:
+            st.warning("Selecione um intervalo válido no timeline.")
+
+
+# Configuração da barra lateral
+class DrawerSideBar:
+    """Classe para gerenciar a barra lateral do aplicativo."""
+
+    def __init__(self, warnings=None):
+        """Inicializa a barra lateral."""
+        self.st = st
+        self.warnings = warnings or []
+
+    def render(self):
+        """Renderiza a barra lateral."""
+        self.st.sidebar.title("Painel de Controle")
+        if st.sidebar.button("Atualizar a tela"):
+            st.session_state.clear()
+            st.rerun()
+        
+        if self.warnings:
+            with st.sidebar.expander("⚠️ Avisos de Execução", expanded=True):
+                for warning in self.warnings:
+                    st.warning(warning)
+
+        self.st.sidebar.markdown("---")  # Separador visual
+
+
+## Controlador de Gerenciamento de Estado
+class UseState:
+    """Classe para gerenciar o estado do Streamlit."""
+
+    @staticmethod
+    def initialize_state(key, default_value):
+        """Inicializa uma chave no session_state com um valor padrão."""
+        if key not in st.session_state:
+            st.session_state[key] = default_value
+
+    @staticmethod
+    def get_state(key, default_value=None):
+        """Obtém o valor de uma chave no session_state."""
+        return st.session_state.get(key, default_value)
+
+    @staticmethod
+    def set_state(key, value):
+        """Define o valor de uma chave no session_state."""
+        st.session_state[key] = value
+
+
+# --- Classe Principal do Aplicativo ---
+st.set_page_config(initial_sidebar_state="collapsed")
+
+class FrameworkRCEDashboard:
+    def __init__(self, options=None):
+        self.controller = Controller()
+        self.utils = Utils()
+        
+        output_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', '..', 'output')
+        self.executions, self.warnings = find_available_executions_replacement(output_path)
+        self.menu_lateral = DrawerSideBar(self.warnings)
+        
+        self.options = options 
+        self.init_css()
+
+        UseState.initialize_state("saved_configurations", {})
+        if 'user_config' not in st.session_state:
+            st.session_state.user_config = self.options
+
+    def init_css(self):
+        st.markdown("""...""", unsafe_allow_html=True) # CSS omitido para brevidade
+
+    def run(self):
         try:
-            for i in range(self.get_total_execucoes()):
-                self.log_message.emit(f"Executando simulação {i+1}/{self.get_total_execucoes()}...")
-                time.sleep(1) # Simula trabalho pesado
-            self.log_message.emit("Simulação concluída com sucesso!")
-            self.simulation_finished.emit(0) # 0 = sucesso
+            self.menu_lateral.render()
+
+            self.header()
+
+            self.show_config_parameters()
+
+            if not self.executions:
+                st.info("Nenhuma execução encontrada. Execute o framework para gerar resultados.")
+                st.stop()
+
+            config_controller = ConfigController()
+            all_params = config_controller.repository.get_all_configs()
+            
+            df_consolidado, cons_warnings = ConsolidatedResultsComponent.render(all_params)
+            if cons_warnings:
+                for w in cons_warnings:
+                    st.warning(w)
+            if df_consolidado is not None:
+                st.session_state['df_consolidado'] = df_consolidado
+                ConsolidatedResultsComponent.display_and_download(df_consolidado)
+
+                try:
+                    available_execs = {}
+                    for cfg in sorted(df_consolidado['Config'].unique()):
+                        execs_list = sorted(df_consolidado[df_consolidado['Config'] == cfg]['Exec'].unique().tolist())
+                        available_execs[cfg] = execs_list
+                        try:
+                            available_execs[int(cfg)] = execs_list
+                        except Exception:
+                            st.error(f"Erro ao converter config {cfg} para int.")
+                        try:
+                            available_execs[str(cfg)] = execs_list
+                        except Exception:
+                            st.error(f"Erro ao converter config {cfg} para str.")
+                    st.session_state['available_execs_by_config'] = available_execs
+                except Exception as e:
+                    st.error(f"Erro ao processar resultados consolidados: {e}")
+
+            self.render_execution_tabs()
+            
         except Exception as e:
-            self.log_message.emit(f"Erro na simulação: {e}")
-            self.simulation_finished.emit(1) # 1 = erro
+            st.error(f"Ocorreu um erro inesperado no dashboard: {e}")
+            st.exception(e)
 
-# ===================================================================
-# 3. VIEW - A interface gráfica do usuário (UI)
-# ===================================================================
-class MainView(QMainWindow):
-    """Cria e organiza todos os widgets da UI."""
-    run_button_clicked = Signal()
+    def show_config_parameters(self):
+        st.header("Parâmetros de Configuração do AG")
+        config_controller = ConfigController()
+        formatted_configs = config_controller.get_formatted_configs()
 
-    def __init__(self):
-        super().__init__()
-        self.setWindowTitle("Configurador do Framework RCE")
-        self.setGeometry(100, 100, 900, 800)
+        if not formatted_configs:
+            st.warning("Nenhum arquivo de parâmetro de configuração (params_config*.json) foi encontrado.")
+            return
 
-        # Widget central e layout principal
-        main_widget = QWidget()
-        self.setCentralWidget(main_widget)
-        main_layout = QVBoxLayout(main_widget)
+        for config_num, df_params in sorted(formatted_configs.items()):
+            with st.expander(f"Configuração {config_num}"):
+                st.dataframe(df_params)
+            
+    def render_execution_tabs(self):
+        UseState.initialize_state("lock_all_configs", False)
+        top_cols = st.columns([0.8, 0.2])
+        with top_cols[1]:
+            is_locked_global = st.toggle(
+                "🔒 Fixar Aba",
+                key="toggle_all_configs",
+                value=UseState.get_state("lock_all_configs"),
+                help="Fixar a visualização e escolher componente/execução via select boxes."
+            )
+            UseState.set_state("lock_all_configs", is_locked_global)
+
+        config_keys = list(self.executions.keys())
+        config_tabs = st.tabs([f"Config {key}" for key in config_keys])
+
+        for i, config_tab in enumerate(config_tabs):
+            with config_tab:
+                config_num = config_keys[i]
+                available_map = st.session_state.get('available_execs_by_config', {})
+                exec_numbers = (
+                    available_map.get(config_num)
+                    or available_map.get(str(config_num))
+                    or available_map.get(int(config_num) if isinstance(config_num, (str, bytes)) and str(config_num).isdigit() else None)
+                    or self.executions[config_num]
+                )
+                if not exec_numbers:
+                    st.info("Nenhuma execução consolidada disponível para esta configuração.")
+                    continue
+                
+                if is_locked_global:
+                    self.render_locked_view(config_num, exec_numbers)
+                else:
+                    self.render_dynamic_view(config_num, exec_numbers)
+
+    def render_locked_view(self, config_num, exec_numbers):
+        component_options = ["Soluções", "Gráfico de Convergência", "Estatísticas"]
+        locked_component_key = f"locked_component_{config_num}"
+        locked_exec_key = f"locked_exec_{config_num}"
         
-        # Criação dos painéis da UI
-        main_layout.addWidget(self._create_geral_group())
-        main_layout.addWidget(self._create_ag_params_group())
-        main_layout.addWidget(self._create_quantidade_group())
-        main_layout.addWidget(self._create_rce_params_group())
-        main_layout.addStretch() # Empurra tudo para cima
+        UseState.initialize_state(locked_component_key, component_options[0])
+        UseState.initialize_state(locked_exec_key, exec_numbers[0])
+        try:
+            if UseState.get_state(locked_exec_key) not in exec_numbers:
+                UseState.set_state(locked_exec_key, exec_numbers[0])
+        except Exception:
+            UseState.set_state(locked_exec_key, exec_numbers[0])
 
-    def _create_geral_group(self):
-        group_box = QGroupBox("Configurações Gerais")
-        layout = QFormLayout()
-        self.num_execucoes_spinbox = QSpinBox()
-        self.num_execucoes_spinbox.setMinimum(1)
-        self.num_execucoes_spinbox.setMaximum(1000)
-        layout.addRow("Número de Execuções por Configuração:", self.num_execucoes_spinbox)
-        group_box.setLayout(layout)
-        return group_box
+        col1, col2 = st.columns(2)
+        with col1:
+            selected_component = st.selectbox("Selecione o Componente", component_options, 
+                index=component_options.index(UseState.get_state(locked_component_key)),
+                key=f"select_comp_{config_num}")
+            UseState.set_state(locked_component_key, selected_component)
+        with col2:
+            try:
+                idx_exec = exec_numbers.index(UseState.get_state(locked_exec_key))
+            except ValueError:
+                idx_exec = 0
+            selected_exec = st.selectbox("Selecione a Execução", exec_numbers,
+                index=idx_exec,
+                key=f"select_exec_{config_num}")
+            UseState.set_state(locked_exec_key, selected_exec)
+            
+        st.info(f"Mostrando **{selected_component}** para a **Execução {selected_exec}** da **Configuração {config_num}**")
 
-    def _create_ag_params_group(self):
-        group_box = QGroupBox("Parâmetros AG (Algoritmo Genético)")
-        layout = QGridLayout()
-        self.mutacao_check = QCheckBox("Configurar Taxa de Mutação?")
-        self.crossover_check = QCheckBox("Configurar Taxa de Crossover?")
-        self.geracoes_check = QCheckBox("Configurar Número de Gerações?")
-        self.populacao_check = QCheckBox("Configurar Tamanho da População?")
-        layout.addWidget(self.mutacao_check, 0, 0)
-        layout.addWidget(self.crossover_check, 1, 0)
-        layout.addWidget(self.geracoes_check, 0, 1)
-        layout.addWidget(self.populacao_check, 1, 1)
-        group_box.setLayout(layout)
-        return group_box
+        results_data, _ = load_data_for_component(config_num, selected_exec, "results")
+        viz_data, _ = load_data_for_component(config_num, selected_exec, "visualization")
 
-    def _create_quantidade_group(self):
-        group_box = QGroupBox("Quantidade de Execuções Configuradas")
-        layout = QHBoxLayout()
-        # Layout para Configurações Únicas
-        config_layout = QVBoxLayout()
-        config_label = QLabel("Configurações Únicas")
-        config_label.setObjectName("metric_label")
-        self.config_value = QLabel("1")
-        self.config_value.setObjectName("metric_value")
-        config_layout.addWidget(config_label)
-        config_layout.addWidget(self.config_value)
-        # Layout para Total de Execuções
-        total_layout = QVBoxLayout()
-        total_label = QLabel("Total de Execuções")
-        total_label.setObjectName("metric_label")
-        self.total_value = QLabel("7")
-        self.total_value.setObjectName("metric_value")
-        total_layout.addWidget(total_label)
-        total_layout.addWidget(self.total_value)
-        # Botão de Execução
-        self.run_button = QPushButton("Salvar e Executar")
-        self.run_button.setObjectName("run_button")
-        self.run_button.clicked.connect(self.run_button_clicked.emit)
+        if selected_component == "Soluções":
+            self.render_component("Soluções", results_data, config_num, selected_exec)
+        elif selected_component == "Gráfico de Convergência":
+            self.render_component("Gráfico", viz_data, config_num, selected_exec)
+        elif selected_component == "Estatísticas":
+            self.render_component("Estatísticas", viz_data, config_num, selected_exec)
 
-        layout.addLayout(config_layout)
-        layout.addStretch()
-        layout.addLayout(total_layout)
-        layout.addStretch()
-        layout.addWidget(self.run_button)
-        group_box.setLayout(layout)
-        return group_box
+    def render_dynamic_view(self, config_num, exec_numbers):
+        exec_tabs = st.tabs([f"Execução {num}" for num in exec_numbers])
+        for j, exec_tab in enumerate(exec_tabs):
+            with exec_tab:
+                exec_num = exec_numbers[j]
+                
+                component_tabs = st.tabs(["Soluções", "Gráfico de Convergência", "Estatísticas"])
+                with component_tabs[0]:
+                    results_data, _ = load_data_for_component(config_num, exec_num, "results")
+                    self.render_component("Soluções", results_data, config_num, exec_num)
 
-    def _create_rce_params_group(self):
-        group_box = QGroupBox("Parâmetros AG - RCE utilizados em params.json")
-        layout = QVBoxLayout()
-        
-        form_layout = QFormLayout()
-        self.vars_decisao_input = QLineEdit("14, 15, 14, 18, 15")
-        self.limites_slider = QSlider(Qt.Horizontal)
-        self.limites_slider.setRange(0, 50)
-        self.limites_slider.setValue(31)
-        form_layout.addRow("Variáveis de Decisão do Problema:", self.vars_decisao_input)
-        form_layout.addRow("Selecione os limites dos valores:", self.limites_slider)
-        
-        self.params_table = QTableWidget(5, 2)
-        self.params_table.setHorizontalHeaderLabels(["Parâmetro", "Valor"])
-        self.params_table.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
-        
-        layout.addLayout(form_layout)
-        layout.addWidget(self.params_table)
-        group_box.setLayout(layout)
-        return group_box
+                with component_tabs[1]:
+                    viz_data, _ = load_data_for_component(config_num, exec_num, "visualization")
+                    self.render_component("Gráfico", viz_data, config_num, exec_num)
 
-    def update_metrics(self, total_execucoes, configs_unicas):
-        """Atualiza os labels de métricas na UI."""
-        self.total_value.setText(str(total_execucoes))
-        self.config_value.setText(str(configs_unicas))
+                with component_tabs[2]:
+                    viz_data, _ = load_data_for_component(config_num, exec_num, "visualization")
+                    self.render_component("Estatísticas", viz_data, config_num, exec_num)
 
-    def populate_table(self, data):
-        """Preenche a tabela com dados do modelo."""
-        self.params_table.setRowCount(len(data))
-        for row, (key, value) in enumerate(data.items()):
-            self.params_table.setItem(row, 0, QTableWidgetItem(key))
-            self.params_table.setItem(row, 1, QTableWidgetItem(str(value)))
+    def render_component(self, component_name, data, config_num, exec_num):
+        try:
+            if component_name == "Soluções":
+                if data:
+                    st.subheader(f"Melhor Solução Encontrada - Config {config_num} / Exec {exec_num}")
+                    CardSolutions.render(data, exec_num, debug=False)
+                    
+                    # Renderizar Agendamento diretamente para esta aba de execução
+                    agendamento_df, contingencia_df = entrada_de_dados()
+                    exec_data_for_timeline = {
+                        "execution": exec_num,
+                        "solution_variables": data.get("best_variables", [])
+                    }
+                    time_line_from_solution_variables(agendamento_df, contingencia_df, exec_data_for_timeline, key_prefix=f"cfg{config_num}_exec{exec_num}")
+                else:
+                    st.warning(f"Dados de solução não encontrados para Config {config_num} / Exec {exec_num}.")
+                
+            elif component_name == "Gráfico":
+                st.subheader(f"Gráfico de Convergência - Config {config_num} / Exec {exec_num}")
+                if data:
+                    df = pd.DataFrame(data)
+                    if not df.empty:
+                        chart_data = df.rename(columns={'Media': 'Média', 'Desvio Padrao': 'Desvio Padrão'})
+                        
+                        colors = {
+                            'Fitness': '#1f77b4',  # Azul
+                            'Média': '#ff7f0e',    # Laranja
+                            'Desvio Padrao': '#2ca02c' # Verde
+                        }
+                        
+                        st.line_chart(chart_data, x="Generations", y=["Fitness", "Média", "Desvio Padrao"], color=[colors[col] for col in ["Fitness", "Média", "Desvio Padrao"]])
+                    else:
+                        st.warning("Dados de visualização vazios.")
+                else:
+                    st.warning("Dados de visualização não encontrados.")
+                
+            elif component_name == "Estatísticas":
+                st.subheader(f"Estatísticas por Geração - Config {config_num} / Exec {exec_num}")
+                if data:
+                    st.dataframe(pd.DataFrame(data))
+                else:
+                    st.warning("Dados de estatísticas não encontrados.")
+                
+        except Exception as e:
+            st.error(f"Erro ao renderizar '{component_name}' para Config {config_num}/Exec {exec_num}: {e}")
 
-# ===================================================================
-# 4. CONTROLLER - O cérebro que conecta Model e View
-# ===================================================================
-class AppController(QObject):
-    def __init__(self, model, view):
-        super().__init__()
-        self._model = model
-        self._view = view
-        self._thread = None
-        self._connect_signals()
-        self._initial_ui_update()
+    def header(self):
+        st.markdown("---")
+        st.title("⚡ Dashboard Repopulation-With-Elite-Set RCE ⚡")
+        st.subheader("Version 15.7.5 - 16/08/2025")
+        st.subheader("Artigo Cientifico PIBIC - 28/08/2025")
+        st.subheader("Desenvolvido por Pedro Victor Veras e Rainer Zanghi em um projeto PIBIC pela UFF - 2024/2025")
+        st.subheader("Apresentação e Resumo UFF - 06/09/2025")
+        st.markdown("---")
 
-    def _connect_signals(self):
-        """Conecta todos os sinais e slots."""
-        self._view.num_execucoes_spinbox.valueChanged.connect(self._model.set_num_execucoes)
-        self._model.config_updated.connect(self.on_config_updated)
-        self._view.run_button_clicked.connect(self.start_simulation)
-        self._model.simulation_finished.connect(self.on_simulation_finish)
-
-    def _initial_ui_update(self):
-        """Atualiza a UI com os dados iniciais do modelo."""
-        self._view.num_execucoes_spinbox.setValue(self._model.num_execucoes)
-        self._view.update_metrics(self._model.get_total_execucoes(), 1)
-        self._view.populate_table(self._model.parametros_rce)
-
-    def on_config_updated(self):
-        """Chamado quando qualquer configuração no modelo muda."""
-        total = self._model.get_total_execucoes()
-        # A lógica de "configurações únicas" seria mais complexa
-        configs = 1 
-        self._view.update_metrics(total, configs)
-
-    def start_simulation(self):
-        """Inicia a simulação em uma thread separada."""
-        self._view.run_button.setEnabled(False)
-        self._thread = QThread()
-        # Move o modelo para a thread para que a simulação não trave a UI
-        self._model.moveToThread(self._thread)
-        self._thread.started.connect(self._model.run_simulation)
-        self._thread.start()
-
-    def on_simulation_finish(self):
-        """Limpa a thread e reativa a UI."""
-        self._thread.quit()
-        self._thread.wait()
-        self._view.run_button.setEnabled(True)
-
-# ===================================================================
-# 5. PONTO DE ENTRADA DA APLICAÇÃO
-# ===================================================================
-if __name__ == "__main__":
-    app = QApplication(sys.argv)
-    app.setStyleSheet(STYLE_QSS)
-
-    # Cria as instâncias MVC
-    model = ConfigurationModel()
-    view = MainView()
-    controller = AppController(model=model, view=view)
-
-    # Exibe a View e inicia o loop da aplicação
-    view.show()
-    sys.exit(app.exec())
+    def footer(self):
+        st.markdown("---")
+        st.info("Desenvolvido por Pedro Victor Veras e Rainer Zanghi em um projeto PIBIC pela UFF - 2024/2025")
+        st.link_button(
+            url="https://github.com/PedroVic12/Repopulation-With-Elite-Set",
+            label="Visite a Documentação do Projeto nesse link",
+            type="primary",
+            icon="📖",
+        )
+        st.markdown("---")
