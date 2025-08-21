@@ -11,8 +11,9 @@ from datetime import datetime
 import math
 
 # Adiciona o diretório 'components' ao sys.path para importações diretas
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'components')))
-from dash_rce_components import CardSolutions, GraficoPotenciaAtivaReativaComponent, StatisticsTableComponent, GraficoRCEComponent
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+
+from .components.dash_rce_components import CardSolutions, GraficoPotenciaAtivaReativaComponent, StatisticsTableComponent, GraficoRCEComponent
 from .AgendamentoRedePage import AgendamentoRedePage, entrada_de_dados, time_line_from_solution_variables
 
 #backend
@@ -227,7 +228,11 @@ def time_line_from_solution_variables(agendamento_df, contingencia_df, exec_data
         hour_in_day_end = end_hour % 24
 
         start_label = f"{hour_in_day_start:02d}h"
-        end_label = f"{hour_in_day_end:02d}h"
+        # Corrigido o erro de string não finalizada e melhorada a clareza do label
+        if day_offset_end > day_offset_start:
+            end_label = f"{hour_in_day_end:02d}h*"
+        else:
+            end_label = f"{hour_in_day_end:02d}h"
 
         start_time = f"2025-06-{18 + day_offset_start}T{hour_in_day_start:02d}:00:00"
         end_time = f"2025-06-{18 + day_offset_end}T{hour_in_day_end:02d}:00:00"
@@ -286,7 +291,10 @@ def time_line_from_solution_variables(agendamento_df, contingencia_df, exec_data
             hour_in_day_end = end_hour % 24
 
             start_label = f"{hour_in_day_start:02d}h"
-            end_label = f"{hour_in_day_end:02d}h"
+            if day_offset_end > day_offset_start:
+                end_label = f"{hour_in_day_end:02d}h*"
+            else:
+                end_label = f"{hour_in_day_end:02d}h"
 
             related_agendamentos = agendamento_df[
                 (agendamento_df["inicio"].apply(lambda x: int(x.split(":")[0])) <= hour_in_day_start) &
@@ -305,7 +313,7 @@ def time_line_from_solution_variables(agendamento_df, contingencia_df, exec_data
             st.warning("Selecione um intervalo válido no timeline.")
 
 
-# Configuração da barra lateral
+# Configuração da barra lateral     
 class DrawerSideBar:
     """Classe para gerenciar a barra lateral do aplicativo."""
 
@@ -349,6 +357,9 @@ class UseState:
         """Define o valor de uma chave no session_state."""
         st.session_state[key] = value
 
+
+# --- Classe Principal do Aplicativo ---
+st.set_page_config(initial_sidebar_state="collapsed")
 
 class FrameworkRCEDashboard:
     def __init__(self, options=None):
@@ -544,7 +555,7 @@ class FrameworkRCEDashboard:
                 if data:
                     df = pd.DataFrame(data)
                     if not df.empty:
-                        chart_data = df.rename(columns={'Media': 'Média', })
+                        chart_data = df.rename(columns={'Media': 'Média'})
                         
                         colors = {
                             'Fitness': '#1f77b4',  # Azul
@@ -587,3 +598,5 @@ class FrameworkRCEDashboard:
             icon="📖",
         )
         st.markdown("---")
+
+

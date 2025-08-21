@@ -455,15 +455,17 @@ class AlgoritimoEvolutivoRCE:
             record = self.stats.compile(population[num_pop])
             self.logbook.record(gen=current_generation, **record)
 
-            # Log de progresso da geração
-            print(f"  - Geração {current_generation + 1:3d}/{self.setup.NGEN:3d} -> "
+
+            
+            if self.DEBUG:
+                print(f"\nALGORITIMO EVOLUTIVO COM AG COM DEAP. Geração atual = {current_generation}")
+
+                            # Log de progresso da geração
+                print(f"  - Geração {current_generation + 1:3d}/{self.setup.NGEN:3d} -> "
                   f"Min: {record['min']:.4f} | "
                   f"Avg: {record['avg']:.4f} | "
                   f"Max: {record['max']:.4f} | "
                   f"Std: {record['std']:.4f}")
-            
-            if self.DEBUG:
-                print(f"\nALGORITIMO EVOLUTIVO COM AG COM DEAP CONCLUIDO COM SUCESSO! Geração atual = {current_generation}")
 
         # Retornar população final, logbook e elite
         return population[num_pop], self.logbook, self.hof[0], self.allIndividualValuesArray

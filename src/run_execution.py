@@ -58,7 +58,7 @@ def convert_values_to_int(params):
 
 
 def run_framework_many_executions(function_bechmarking=False):
-    """Função principal para executar o framework com múltiplas execuções."""
+    print("Função principal para executar o framework com múltiplas execuções.")
 
     # 1. Carrega parâmetros base e opções
     params_base = load_params(f"{BASE_DIR}/params.json")
@@ -134,8 +134,13 @@ def run_framework_many_executions(function_bechmarking=False):
             print("Algoritmo Evolutivo iniciado.")
             pop_with_repopulation, logbook_with_repopulation, best_individual, all_individual_values = alg.run(RCE=True)
             print("\n\nEvolução concluída  - 100%")
+
+            alg.dashboard.visualize(
+                logbook_with_repopulation,
+                pop_with_repopulation,
+            )
+
             best_variables = list(best_individual)
-            print(f"Best variables", best_variables)
 
             # Salva os dados de visualização
             vis_output_path = config_dir / f"config_{config_num}_exec_{exec_num}_visualization.json"
@@ -211,5 +216,4 @@ def run_framework_many_executions(function_bechmarking=False):
 
 
 if __name__ == "__main__":
-    print("Starting execution with benchmark function...")
     run_framework_many_executions(function_bechmarking=False)
