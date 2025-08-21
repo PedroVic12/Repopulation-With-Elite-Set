@@ -1,7 +1,7 @@
 # Repopulation-With-Elite-Set
  
 ---
-##  EXEMPLO DE USO DO FRAMEWORK DEAP:
+#### FRAMEWORK DESENVOLVIDO PARA FINS ACADEMICOS USANDO ALGORITIMOS GENÉTICOS PARA RESOLVER PROBLEMAS DE OTIMIZAÇÃO EM REDES ELÉTRICAS POR BOLSA CIENTÍFICA PELA UNIVERSIDADE FEDERAL FLUMINENSE (UFF) 
 ---
 
 <table>
@@ -15,6 +15,7 @@
   </tr>
 </table>
 
+## INTRODUÇÃO
 
 EAs são problemas de algoritmos de otimização global inspirados na evolução natural/biológica por seleção natural, como reprodução/recombinação/cruzamento, mutação e seleção, semelhantes à sobrevivência do mais apto na vida real. Isso os torna muito intuitivos de entender. Eles se enquadram no termo mais amplo de Algoritmos Metaheurísticos ou simplesmente Metaheurísticas .
 
@@ -32,16 +33,11 @@ Vamos implementar o Algoritmo Genético e esperamos que os seguintes passos bás
 8)   O indivíduo mais apto é registrado no final de todas as gerações; o mais apto de todos é a solução ótima .
     
    
-    
+## EXEMPLO DE USO
 
+Na pasta compartilhada onde possui três arquivos com extensão jupyter notebook que podem ser abertos diretamente no Google Colab.Para este fim, o usuário deverá seguir os seguintes passos:
 
-
-
-Na pasta compartilhada onde possui três arquivos com extensão jupyter notebook que podem ser abertos diretamente no Google Colab. O Notebook 1 pode ser utilizado para apenas uma execução do AE. Para este fim, o usuário deverá seguir os seguintes passos:
-
-Se voce tiver windoes execute apens o arquivo `instalador.bat` e depois `executar.bat`
-
-1) Crie um arquivo chamado `parameters.json`
+1) Crie um arquivo chamado `params.json` para configurar os parametros AG
 
 ```´py
 array_decisions =  [14,15,14,18,15]
@@ -114,24 +110,45 @@ if __name__ == "__main__":
 
 ```
 
-
-
 4) Para obter resultados e gráficos diferentes, modifique os parâmetros evolutivos do arquivo JSON, salve e execute novamente.
 
 5) É possivel baixar em arquivo .xlsx a população final gerada
 
 6) A versão frontend dos resultados ficam localizados em:
 
-   		/src/DashboardApp/dashboard_rce_app_v9.py
+   		/src/DashboardApp/dashboard_RCE_APP.py
 
 7) Excute o arquivo do frontend
 
 ```py
-streamlit run dashboard_rce_app_v9.py
+streamlit run dashboard_RCE_APP.py
 ```
 
 
 8) A versão esta em desenvolvimento desde 10/04/2025 e segue buscando melhorias e contribuições em outros programadores para construir uma interface em Streamlit e programação funcional para obter um sistema que surporte diferentes execuções com tabelas e graficos dos resultados do algoritimo evolutivo com ou sem a estrategia RCE
+
+
+## UPDATE (21/08/2025)
+
+Foi desenvolvido um arquivo laucher.py onde é utilizado Pyside6(QT) para uma GUI desktop para configuração do algoritimo evolutivo.
+
+From a high-level perspective, the current architecture makes sense:
+
+1) params.json 
+  Stores the base configuration parameters for your algorithm. This is a standard practice for providing default or initial settings.
+
+2) run_execution.py script
+
+Executes your core algorithm, likely using params.json as input. It generates the output, including the JSON results files. You can use de GUI laucher.py for that
+
+3) Folder src/output/
+
+  The designated directory for storing the results of your algorithm executions. This separation of input configurations and output data is good for organization and reproducibility.
+
+4) Dashboard Streamlit with RCE_Framework_Page.py
+ (Streamlit Dashboard): This script reads and visualizes the data from the output/ directory, providing insights into the performance of your algorithm under different configurations.
+
+
 
 ### **Dicas**:
 
@@ -147,16 +164,12 @@ streamlit run dashboard_rce_app_v9.py
 # Documentação da Classe RedeEletricaPandaPower e seu uso na funcao_objetivo_IEEE14
 ---
 
-## Classe RedeEletricaPandaPower
 
 ![image](https://github.com/user-attachments/assets/1291f753-d5c8-44b5-8cc2-460b1a6bd5ca)
 
 **Simulador de Redes Elétricas: Um software para simular o comportamento da rede em diferentes cenários, prevendo falhas e otimizando o fluxo de energia.**
 
-
 Esta classe representa uma rede elétrica usando a biblioteca Pandapower. Ela fornece funcionalidades para carregar redes padrão, validar dados de agendamento e contingência, calcular violações de fitness, ajustar cargas, desligar/religar elementos da rede e executar o fluxo de carga.
-
-
 
 Exemplo de simulação da Rede Eletrica IEEE 14 barras com PandaPower
 <table>
@@ -170,6 +183,7 @@ Exemplo de simulação da Rede Eletrica IEEE 14 barras com PandaPower
 </table>
 
 
+## Classe RedeEletricaPandaPower
 
 ### Atributos
 

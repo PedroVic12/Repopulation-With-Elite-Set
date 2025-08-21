@@ -650,7 +650,7 @@ class ParamsAGTab(QWidget):
             background-color: #7a7a7a;
             alternate-background-color: #2d2d2e;
             gridline-color: #c9d1dc;
-            font-size: 12pt;
+            font-size: 14pt;
             selection-background-color: #adb9cc;
             selection-color: #111;
         }
@@ -660,7 +660,7 @@ class ParamsAGTab(QWidget):
             color: #ffffff;
             padding: 4px 8px;
             border: none;
-            font-size: 12pt;
+            font-size: 14pt;
         }
 
         QTableWidget::item {
@@ -704,7 +704,9 @@ class ParamsAGTab(QWidget):
         shadow = QGraphicsDropShadowEffect(self)
         shadow.setBlurRadius(22)
         shadow.setOffset(0, 6)
+        
         from PySide6.QtGui import QColor
+        
         shadow.setColor(QColor(0, 0, 0, 60))
         card.setGraphicsEffect(shadow)
 
@@ -712,12 +714,16 @@ class ParamsAGTab(QWidget):
         actions_column = QVBoxLayout()
         self.reload_btn = QPushButton("🔄 Recarregar arquivo params.json")
         self.save_btn = QPushButton("💾 Salvar configuração AG")
-        self.reload_btn.clicked.connect(self.reload)
+        
+        #! Altere aqui para diagnosticar a leitura do arquivo params.json na tela
+        self.reload_btn.clicked.connect(self.reload(debug=False))
         self.save_btn.clicked.connect(self.save)
+        
         # Estilo/tamanho dos botões (emojis maiores via fonte)
-        btn_style = "font-size: 13px; padding: 8px 12px; min-width: 180px;"
+        btn_style = "font-size: 20px; padding: 8px 12px; min-width: 180px;"
         self.reload_btn.setStyleSheet(btn_style)
         self.save_btn.setStyleSheet(btn_style)
+        
         # Centralização vertical: stretch antes e depois
         actions_column.addStretch(1)
         actions_column.addWidget(self.reload_btn)
@@ -744,7 +750,7 @@ class ParamsAGTab(QWidget):
 
        
 
-    def reload(self):
+    def reload(self, debug = False):
         """Recarrega params.json e options.json e repopula a tabela."""
         self.params = self.config_manager.load_json(PARAMS_FILE) or {}
         self.options = self.config_manager.load_json(OPTIONS_FILE) or {}
@@ -769,14 +775,10 @@ class ParamsAGTab(QWidget):
             cleaned_options['repeticoes_por_config'] = self.options['repeticoes_por_config']
         cleaned_options.update(arrays)
 
-
         # Fatiamento do dict 
-
-        #print("Parametros AG escolhidos:")
-        #print(self.params)
-
-        teste = False    
-        if teste:
+        if debug:
+            #print("Parametros AG escolhidos:")
+            #print(self.params)
             params_json_table = dict(list(self.params.items())[:-4]) 
             print("\n\nParametros AG escolhidos (sem os 4 ultimos):")
             print(params_json_table)
@@ -862,8 +864,8 @@ class ParamsAGTab(QWidget):
                     QMessageBox.warning(self, "Valor inválido", f"Parâmetro '{key}': {e}")
                     return
 
-                # Não editar listas (VARYING_KEYS) aqui: a tabela não possui coluna de edição de listas.
-                # Preservaremos as listas existentes em options.json ao salvar.
+                    # Não editar listas (VARYING_KEYS) aqui: a tabela não possui coluna de edição de listas.
+                    # Preservaremos as listas existentes em options.json ao salvar.
 
             # salvar params.json
             if not self.config_manager.save_json(new_params, PARAMS_FILE):
@@ -874,6 +876,7 @@ class ParamsAGTab(QWidget):
             out_options = {}
             if 'repeticoes_por_config' in self.options:
                 out_options['repeticoes_por_config'] = self.options['repeticoes_por_config']
+            
             # Apenas chaves em VARYING_KEYS: preservar arrays existentes (sem edição por esta tela)
             out_options.update({k: v for k, v in self.options.items() if k in VARYING_KEYS and isinstance(v, list)})
             if not self.config_manager.save_json(out_options, OPTIONS_FILE):
@@ -881,6 +884,7 @@ class ParamsAGTab(QWidget):
                 return
 
             QMessageBox.information(self, "Sucesso", "Parâmetros salvos com sucesso.")
+            
             # atualiza cópias do config_manager
             self.config_manager.params = new_params
             self.config_manager.options = out_options
@@ -1243,7 +1247,7 @@ class LauncherWindow(QMainWindow):
 
     def init_ui(self):
         """Configura janela, scroll e chama construtores de header e tabs."""
-        self.setWindowTitle("RCE Framework Launcher - Otimizado")
+        self.setWindowTitle("RCE Framework Launcher Desktop - Otimizado para AG")
         
         # Usa QScrollArea para permitir scroll vertical em telas menores
         scroll = QScrollArea()
