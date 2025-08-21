@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-Execução única do framework RCE
+Execução do framework RCE com configuração de várias execuções e variações de parâmetros.
 PVRV - 18/06/2025
 """
 

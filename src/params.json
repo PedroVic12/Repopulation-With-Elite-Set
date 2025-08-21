@@ -1,9 +1,18 @@
 {
-    "ARRAY_VAR": "[14, 15, 14, 18, 15]",
+    "ARRAY_VAR": [
+        14,
+        15,
+        14,
+        18,
+        15
+    ],
     "CROSSOVER": 0.5,
     "DELTA_MIN": 2,
     "IND_SIZE": 5,
-    "LIMITE_VAR": "[0, 31]",
+    "LIMITE_VAR": [
+        0,
+        31
+    ],
     "MUTACAO": 0.73,
     "NUM_GENERATIONS": 20,
     "NUM_VAR_DIFERENTES": 1,

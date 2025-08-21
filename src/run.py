@@ -1,210 +1,219 @@
-# -*- coding: utf-8 -#
-# Import RCE Framework
+# -*- coding: utf-8 -*-
+"""
+Execução única do framework RCE
+PVRV - 18/06/2025
+"""
+
+# Imports principais do framework
 from AlgEvolutivoRCE_backup.Setup import Setup
 from AlgEvolutivoRCE_backup.alg_evolutivo_rce import AlgoritimoEvolutivoRCE
+from RedeEletrica_backup.rede_eletrica import RedeEletricaPandaPower
 
-# Utils 
-from config_backup import FOLDER_NAME, entrada_de_dados, format_elapsed_time
-
-import streamlit as st
-import json
-import pathlib
-from datetime import datetime
-import os
-import pandas as pd
-from utils.functions_fitness.functions_benchmarking import rosenbrock_benchmark,esfera_benchmark,rastrigin, evaluate
+# Utils
+from config_backup import FOLDER_NAME, entrada_de_dados, format_elapsed_time, load_many_executions
+from utils.functions_fitness.functions_benchmarking import rastrigin
 from utils.functions_fitness.function_IEEE_14_contigencias import funcao_objetivo_IEEE14
 
-#! Lendo os parametros em JSON em /AlgEvolutivoRCE/params.json
+# Bibliotecas padrão
+import json
+import pathlib
+import pandas as pd
+import numpy as np
+import os
+from datetime import datetime
+
+
+BASE_DIR = pathlib.Path(__file__).resolve().parent
+
+
 def load_params(file_path):
+    """Carrega parâmetros de um arquivo JSON."""
     with open(file_path, "r") as file:
-        params = json.load(file)
+        return json.load(file)
+
+
+def convert_values_to_int(params):
+    """Converte valores dos parâmetros para int, float ou listas, se aplicável."""
+    float_keys = {"MUTACAO", "CROSSOVER", "PORCENTAGEM"}
+    for key, value in params.items():
+        # Se for uma string que parece uma lista, tenta converter
+        if isinstance(value, str) and value.strip().startswith('['):
+            try:
+                params[key] = json.loads(value)
+                continue # Pula para o próximo item
+            except json.JSONDecodeError:
+                # Se não for um JSON válido, ignora e mantém a string original
+                pass
+        
+        # Lógica original para floats e ints
+        try:
+            if key.upper() in float_keys:
+                params[key] = float(value)
+            else:
+                params[key] = int(float(value))
+        except (ValueError, TypeError):
+            # Ignora erros de conversão para valores que não são numéricos (como as listas já convertidas ou outras strings)
+            pass
     return params
 
 
+def run_framework_many_executions(function_bechmarking=False):
+    print("Função principal para executar o framework com múltiplas execuções.")
 
-# Load parameters from the JSON file in any configuration of PC
-results_consolidados = []  # Initialize an empty list to store results
-execution_times = []  # Lista para armazenar os tempos de execução
-BASE_DIR = pathlib.Path(__file__).resolve().parent 
-
-params = load_params(f"{BASE_DIR}/params.json")
-# windows
-#params = load_params(r"C:\Users\Pedro Victor R V\Documents\GitHub\Repopulation-With-Elite-Set\src\AlgEvolutivoRCE\params.json")
-
-############################# MUltiplas execuções com grupos de parâmetros #############################
-#Ex: 4 vezes mutação = 1 config com 3 execuções = 12 no total
-
-import itertools
-
-
-def load_many_executions(options, setupobj, algoritmo, config_num=1, exec_num=1, all_configs_results=None):
-    print("\n================================")
-    print(f"\tExecução: {exec_num}")
-    print("================================\n")
-    start = datetime.now()
-    
-    
-    # Loop principal do Algoritmo Evolutivo
-    pop_with_repopulation, logbook_with_repopulation, best_variables = algoritmo.run(RCE=True)
-    print("\n\nEvolução concluída  - 100%")
-    print(f"Best variables", best_variables)
-    
-    
-    # # Resultados
-    x, y, z, fig = algoritmo.dashboard.visualize(
-        logbook_with_repopulation, pop_with_repopulation,
-        config_num=config_num, execution_num=exec_num
-    )
-    
-
-    # Passando os valores do array direto no dataframe com os index como chave (hash = chave, valor)
-    hash_df1 = pd.DataFrame(setupobj.tabela_hash, columns=['Fitness'])
-    hash_df1.sort_values(by='Fitness', ascending=False, inplace=True)
-    hash_df1.to_excel("hash_table.xlsx", index=False)
-
-
-    print(f"\nObjective function runs : {setupobj.objectiveruns}")
-    print(f"Hash table reads : {setupobj.hashtablereads}")
-
-    end = datetime.now()
-    elapsed = end - start
-    formatted_time = format_elapsed_time(elapsed)
-
-    print(f"Elapsed Time in execution : {formatted_time}")
-
-    # Append results to the list for the current config
-    if all_configs_results is not None:
-        if config_num not in all_configs_results:
-            all_configs_results[config_num] = []
-        all_configs_results[config_num].append({
-            "execution": exec_num,
-            "solution_variables": y,
-            "best_fitness": z,
-            "best_generations": x,
-            "execution_time": elapsed.total_seconds() # Save as seconds for easier aggregation
-        })
-
-
-
-#! PVRV - Função que executa um loop de execuncoes com 2 parametros .json                     
-def run_framework_many_executions(function_bechmarking = False, config_num=1, exec_num=1):
-    """Função para executar o framework com múltiplas execuções."""
-    
-    # Load parameters from the JSON file in any configuration of PC
-    params = load_params(f"{BASE_DIR}/params.json")
+    # 1. Carrega parâmetros base e opções
+    params_base = load_params(f"{BASE_DIR}/params.json")
     options = load_params(f"{BASE_DIR}/options.json")
-    
-    print(f"\n\nIniciando execução do USER com os parâmetros: {options}")
-    
-    if not function_bechmarking:
-        #! Função de avaliação da rede IEEE 14
-        #! 2min a 3 min com config de AG básica mesmo com hashtable
-        fitness_func = funcao_objetivo_IEEE14
-    else:
-        fitness_func = rastrigin
-        
-    #!  Instanciando o Setup para configuração
-    setup = Setup(params, fitness_function = fitness_func,
-                  tamanho_hash=(entrada_de_dados()["num_contingencias"] * entrada_de_dados()["num_carregamentos"]*(2**entrada_de_dados()["num_desligamentos"])))
-    
-    print("Classe Setup iniciada")
+    params_base = convert_values_to_int(params_base)
 
-    #! SUBROTINA - for loop para conjunto de configurações de parametros_opcionais
-    def consulta_hashtable(show_table = False):
-        #! TODO para melhor performace
-        try:
-            # Ler xlsx no início da run_framework e verificar logo depois de instanciar o setup se o xlsx existe e caso exista, coloca o conteúdo do xlsx no setup.tabela_hash.
-            if os.path.exists(f"hash_table.xlsx"):
-                print("\n\nFazendo consulta para setup.tabela_hash")
+    # 2. Descobre variações e número de execuções
+    varying_keys = [k for k in options if isinstance(options[k], list) and len(options[k]) > 0]
+    varying_values = [options[k] for k in varying_keys]
+    repeticoes = options.get('repeticoes_por_config', 1)
 
+    # 3. Gera todas as combinações de parâmetros
+    from itertools import product
+    combinations = [dict(zip(varying_keys, vals)) for vals in product(*varying_values)] if varying_keys else [{}]
+
+    print(f"Total de configurações únicas: {len(combinations)}")
+    print(f"Execuções por configuração: {repeticoes}")
+
+    # Cria um diretório de saída com timestamp para evitar sobreposições
+    timestamp = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
+    main_output_dir = BASE_DIR / "output" / f"run_{timestamp}"
+    os.makedirs(main_output_dir, exist_ok=True)
+    print(f"Salvando resultados em: {main_output_dir}")
+
+    config_num = 1
+    for combo in combinations:
+        # Cria um diretório específico para a configuração
+        config_dir = main_output_dir / f"config_{config_num}"
+        os.makedirs(config_dir, exist_ok=True)
+
+        # Monta params para esta configuração
+        params = params_base.copy()
+        params.update(combo)
+        params = convert_values_to_int(params)
+
+        # Define função objetivo
+        fitness_func = funcao_objetivo_IEEE14 if not function_bechmarking else rastrigin
+
+        # Instancia Setup uma vez por configuração
+        print(f"\n\nIniciando configuração {config_num}: {params}")
+        setup = Setup(
+            params,
+            fitness_function=fitness_func,
+            tamanho_hash=(
+                entrada_de_dados()["num_contingencias"]
+                * entrada_de_dados()["num_carregamentos"]
+                * (2 ** entrada_de_dados()["num_desligamentos"])
+            )
+        )
+        print("Classe Setup iniciada para a configuração.")
+
+        # Consulta hash_table se existir
+        if os.path.exists("hash_table.xlsx"):
+            try:
                 hash_excel = pd.read_excel("hash_table.xlsx")
-
-                if not hash_excel.empty and not hash_excel.isnull().values.any():
-                                     
+                if not hash_excel.empty:
                     setup.tabela_hash = hash_excel['Fitness'].to_dict()
-                    neg_one_count = list(setup.tabela_hash.values()).count(-1)
+                    print("Tabela hash carregada com sucesso!")
+            except Exception as e:
+                print(f"Erro ao carregar hash_table.xlsx: {e}")
 
-                    if -1 in setup.tabela_hash.values():
-                        if show_table:
-                            print(hash_excel.head(5))
-                            print("Cenários Default = ",len(setup.tabela_hash))
-                            print(neg_one_count)
-                    else:
-                        fitness_counts = hash_excel['Fitness'].value_counts()
-                        filtered_df = hash_excel[hash_excel['Fitness'] > 14]
-                        print(fitness_counts.head())
-                else:
-                    print("O arquivo hash_table.xlsx está vazio ou contém valores nulos.")
-            else:
-                print("Arquivo da hash table não encontrado!")
+        for exec_num in range(1, repeticoes + 1):
+            print(f"\n--- Iniciando execução {exec_num}/{repeticoes} ---")
+
+            # Reseta contadores para a nova execução
+            if hasattr(setup, 'objectiveruns'):
+                setup.objectiveruns = 0
+            if hasattr(setup, 'hashtablereads'):
+                setup.hashtablereads = 0
+
+            # Executa algoritmo
+            alg = AlgoritimoEvolutivoRCE(setup, DEBUG=False)
+            print("Algoritmo Evolutivo iniciado.")
+            pop_with_repopulation, logbook_with_repopulation, best_individual, all_individual_values = alg.run(RCE=True)
+            print("\n\nEvolução concluída  - 100%")
+
+            alg.dashboard.visualize(
+                logbook_with_repopulation,
+                pop_with_repopulation,
+            )
+
+            best_variables = list(best_individual)
+
+            # Salva os dados de visualização
+            vis_output_path = config_dir / f"config_{config_num}_exec_{exec_num}_visualization.json"
+            try:
+                # Convert individuals to lists for JSON serialization
+                for item in all_individual_values:
+                    if 'Variaveis de Decisão' in item and hasattr(item['Variaveis de Decisão'], 'tolist'):
+                        item['Variaveis de Decisão'] = item['Variaveis de Decisão'].tolist()
+                    elif isinstance(item['Variaveis de Decisão'], np.ndarray):
+                        item['Variaveis de Decisão'] = item['Variaveis de Decisão'].tolist()
+                    elif not isinstance(item['Variaveis de Decisão'], (list, str)):
+                        item['Variaveis de Decisão'] = list(item['Variaveis de Decisão'])
 
 
-        except Exception as e:
-            print(f"Erro ao ler o arquivo xlsx: {e}")
+                with open(vis_output_path, 'w', encoding='utf-8') as f:
+                    json.dump(all_individual_values, f, indent=4, ensure_ascii=False)
+                print(f"Dados de visualização salvos em: {vis_output_path}")
+            except Exception as e:
+                print(f"Erro ao salvar dados de visualização para config {config_num}, exec {exec_num}: {e}")
 
-            
-    consulta_hashtable(show_table=True)
+            # Salva resultado individual como JSON
+            best_fitness = best_individual.fitness.values[0] if best_individual.fitness.valid else float('inf')
+            best_gen_idx = logbook_with_repopulation.select("gen")[-1] if logbook_with_repopulation else 'N/A'
 
-    
-    # Usando o algoritimo Genetico do DEAP
-    mode = False
-    RCE_MODE = True
-    alg = AlgoritimoEvolutivoRCE(setup, DEBUG = mode)
-
-    print(f"\n\nAlgoritimo Evolutivo iniciado -  MODO: DEBUG = {mode} - RCE_MODE = {RCE_MODE}")
-
-    # Run the utility function to load many executions
-    all_results = {}
-    load_many_executions(RCE_MODE, setup, alg, config_num=config_num, exec_num=exec_num, all_configs_results=all_results)
-
-    # Salva os resultados consolidados
-    all_data_for_df = []
-    for config_num_key, results_list in all_results.items():
-        for result_entry in results_list:
-            # Add config_num to each result entry
-            result_entry["config_num"] = config_num_key
-            all_data_for_df.append(result_entry)
-
-    if all_data_for_df:
-        consolidated_df = pd.DataFrame(all_data_for_df)
-        # Reorder columns to have config_num and execution at the beginning
-        cols = ["config_num", "execution"] + [col for col in consolidated_df.columns if col not in ["config_num", "execution"]]
-        consolidated_df = consolidated_df[cols]
-
-        print(f"Consolidando {len(all_data_for_df)} entradas de resultados no Excel.")
-        with pd.ExcelWriter(f"{FOLDER_NAME}/results_consolidados.xlsx") as writer:
-            consolidated_df.to_excel(writer, sheet_name="Consolidated Results", index=False)
-        print(f"Resultados consolidados salvos em {FOLDER_NAME}/results_consolidados.xlsx")
-
-        # Também salva o último resultado em um cache leve para o Streamlit consumir diretamente
-        try:
-            import json
-            from pathlib import Path
-            cache_path = Path(FOLDER_NAME) / "streamlit_cache_exec.json"
-            last_row = consolidated_df.iloc[-1].to_dict()
-            # Campos esperados na página do Streamlit
-            cache_payload = {
-                "execution": int(last_row.get("execution", 1)),
-                "solution_variables": last_row.get("solution_variables", []),
-                "best_fitness": last_row.get("best_fitness", None),
-                "best_generations": last_row.get("best_generations", None),
-                "execution_time": last_row.get("execution_time", None),
-                "config_num": int(last_row.get("config_num", 1)),
+            result = {
+                "config_num": config_num,
+                "exec_num": exec_num,
+                "params": params,
+                "best_variables": best_variables,
+                "best_fitness": best_fitness,
+                "best_gen_idx": best_gen_idx
             }
-            # Se solution_variables vier como string, tenta converter
-            if isinstance(cache_payload["solution_variables"], str):
-                try:
-                    import ast
-                    cache_payload["solution_variables"] = ast.literal_eval(cache_payload["solution_variables"]) 
-                except Exception:
-                    pass
-            cache_path.write_text(json.dumps(cache_payload, ensure_ascii=False, indent=2), encoding="utf-8")
-            print(f"Cache Streamlit salvo em {cache_path}")
-        except Exception as e:
-            print(f"Aviso: falha ao salvar cache do Streamlit: {e}")
-    else:
-        print("Nenhum resultado para consolidar.")
+            
+            output_path = config_dir / f"config_{config_num}_exec_{exec_num}_results.json"
+            try:
+                with open(output_path, 'w', encoding='utf-8') as f:
+                    json.dump(result, f, indent=4, ensure_ascii=False)
+                print(f"Resultado salvo em: {output_path}")
+            except Exception as e:
+                print(f"Erro ao salvar resultado para config {config_num}, exec {exec_num}: {e}")
+
+        config_num += 1
+    
+    print("\nTodas as execuções foram concluídas.")
+    
+    # Consolidar resultados automaticamente
+    print("\n🔄 Consolidando resultados...")
+    try:
+        import subprocess
+        import sys
+        
+        # Caminho para o script de consolidação
+        consolidar_script = BASE_DIR.parent / "consolidar_resultados.py"
+        
+        if consolidar_script.exists():
+            print(f"Executando consolidação: {consolidar_script}")
+            result = subprocess.run([sys.executable, str(consolidar_script)], 
+                                  capture_output=True, text=True, cwd=str(BASE_DIR.parent))
+            
+            if result.returncode == 0:
+                print("✅ Consolidação executada com sucesso!")
+                if result.stdout:
+                    print("Saída da consolidação:")
+                    print(result.stdout)
+            else:
+                print(f"❌ Erro na consolidação: {result.stderr}")
+        else:
+            print(f"⚠️ Script de consolidação não encontrado em: {consolidar_script}")
+            
+    except Exception as e:
+        print(f"❌ Erro ao executar consolidação: {e}")
+        print("Execute manualmente: python3 consolidar_resultados.py")
+
 
 if __name__ == "__main__":
     run_framework_many_executions(function_bechmarking=False)
