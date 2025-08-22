@@ -102,6 +102,26 @@ class FrameworkRCEDashboard:
         UseState.initialize_state("fixed_tab", None)
         UseState.initialize_state("current_config", None)
         UseState.initialize_state("current_exec", None)
+
+    def header(self):
+        st.markdown("---")
+        st.title("⚡ Dashboard Repopulation-With-Elite-Set RCE ⚡")
+        st.subheader("Version 15.7.5 - 16/08/2025")
+        st.subheader("Artigo Cientifico PIBIC - 28/08/2025")
+        st.subheader("Desenvolvido por Pedro Victor Veras e Rainer Zanghi em um projeto PIBIC pela UFF - 2024/2025")
+        st.subheader("Apresentação e Resumo UFF - 06/09/2025")
+        st.markdown("---")
+
+    def footer(self):
+        st.markdown("---")
+        st.info("Desenvolvido por Pedro Victor Veras e Rainer Zanghi em um projeto PIBIC pela UFF - 2024/2025")
+        st.link_button(
+            url="https://github.com/PedroVic12/Repopulation-With-Elite-Set",
+            label="Visite a Documentação do Projeto nesse link",
+            type="primary",
+            icon="📖",
+        )
+        st.markdown("---")
     
     def load_executions(self) -> Dict[str, List[int]]:
         """Carrega as execuções disponíveis."""
@@ -189,7 +209,8 @@ class FrameworkRCEDashboard:
 
     def run(self):
         """Método principal para executar o dashboard."""
-        st.title("RCE Framework Dashboard")
+        st.title("⚡ Dashboard RCE Framework ⚡")
+        st.markdown("---")
         
         # Carrega dados consolidados
         df_consolidado = load_consolidated_data(self.db_controller)
@@ -202,28 +223,47 @@ class FrameworkRCEDashboard:
         if not config_col or not exec_col:
             st.stop() # Stop if columns are not found
 
-        available_configs = sorted(df_consolidado[config_col].unique())
+        # Store validated column names in session state for later use
+        UseState.set_state("config_column_name", config_col)
+        UseState.set_state("exec_column_name", exec_col)
+        st.session_state['df_consolidado'] = df_consolidado # Store df_consolidado in session state
+
+        # Display consolidated results
+        st.header("✅ Resultados Consolidados")
+        st.dataframe(df_consolidado)
         
-        if not available_configs:
-            st.info("Nenhuma configuração encontrada nos resultados consolidados.")
-            return
-            
-        config_tabs = st.tabs([f"Config {key}" for key in available_configs])
+        # Add download button for consolidated results
+        csv = df_consolidado.to_csv(index=False).encode('utf-8')
+        st.download_button(
+            label="📥 Baixar Resultados Consolidados (CSV)",
+            data=csv,
+            file_name="resultados_consolidados.csv",
+            mime="text/csv"
+        )
+        
+        # Convert to Excel for download
+        excel_buffer = io.BytesIO()
+        with pd.ExcelWriter(excel_buffer, engine='xlsxwriter') as writer:
+            df_consolidado.to_excel(writer, index=False, sheet_name='Resultados Consolidados')
+        excel_buffer.seek(0)
+        st.download_button(
+            label="📥 Baixar Resultados Consolidados (XLSX)",
+            data=excel_buffer,
+            file_name="resultados_consolidados.xlsx",
+            mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+        )
 
-        for i, config_tab in enumerate(config_tabs):
-            with config_tab:
-                config_num = available_configs[i]
-                exec_numbers = sorted(df_consolidado[df_consolidado[config_col] == config_num][exec_col].unique())
-                
-                if not exec_numbers:
-                    st.info("Nenhuma execução encontrada para esta configuração.")
-                    continue
+        # Populate self.executions based on df_consolidado
+        available_configs = sorted(df_consolidado[config_col].unique())
+        executions = {}
+        for cfg in available_configs:
+            exec_numbers = sorted(df_consolidado[df_consolidado[config_col] == cfg][exec_col].unique().tolist())
+            executions[cfg] = exec_numbers
+        self.executions = executions # Update self.executions
 
-                exec_tabs = st.tabs([f"Execução {num}" for num in exec_numbers])
-                for j, exec_tab in enumerate(exec_tabs):
-                    with exec_tab:
-                        exec_num = exec_numbers[j]
-                        self.render_execution_details(config_num, exec_num)
+        # Render sidebar and main content based on fixed view state
+        self._render_sidebar()
+        self._render_main_content()
     
     def render_execution_details(self, config_num, exec_num):
         """Renderiza os detalhes (Soluções, Gráfico, etc.) para uma execução específica."""
@@ -263,6 +303,7 @@ class FrameworkRCEDashboard:
                         results_data['decision_vars'] = decision_vars
                 
                 CardSolutions.render(results_data, exec_num, debug=False)
+                st.markdown("--- ") # Add a separator after each solution card
             else:
                 st.warning("Dados de solução (results.json) não encontrados.")
         
@@ -320,12 +361,60 @@ class FrameworkRCEDashboard:
         else:
             st.warning("Dados de parâmetros não encontrados.")
 
+        self.footer()
+
     def _render_sidebar(self):
         """Renderiza a barra lateral com controles."""
         with st.sidebar:
             st.header("Controles")
-            self._render_view_controls()
-            self._render_config_selector()
+            
+            # Toggle para fixar visualização
+            fixed_view = UseState.get_state("fixed_view", False)
+            if st.button("🔒 Fixar Visualização" if not fixed_view else "🔓 Liberar Visualização"):
+                UseState.set_state("fixed_view", not fixed_view)
+                st.rerun()
+            
+            # Seletor de visualização quando fixado
+            if UseState.get_state("fixed_view"):
+                selected_view_option = st.selectbox(
+                    "Visualização Fixa:",
+                    ["Soluções", "Gráfico de Convergência", "População Final"],
+                    index=["Soluções", "Gráfico de Convergência", "População Final"].index(UseState.get_state("selected_view", "Soluções")),
+                    key="fixed_view_option_selector"
+                )
+                UseState.set_state("selected_view", selected_view_option)
+
+                # Selectors for specific config and exec when fixed view is active
+                configs = list(self.executions.keys())
+                if not configs:
+                    st.warning("Nenhuma configuração encontrada.")
+                    return
+                
+                selected_config = st.selectbox(
+                    "Selecione a Configuração:",
+                    configs,
+                    format_func=lambda x: f"Configuração {x}",
+                    key="fixed_config_selector"
+                )
+                
+                if selected_config in self.executions and self.executions[selected_config]:
+                    exec_numbers = self.executions[selected_config]
+                    # Ensure selected_exec is valid for the current config
+                    current_selected_exec = UseState.get_state("current_exec")
+                    if current_selected_exec not in exec_numbers:
+                        current_selected_exec = exec_numbers[0] # Default to first if not valid
+
+                    selected_exec = st.selectbox(
+                        "Selecione a Execução:",
+                        exec_numbers,
+                        index=exec_numbers.index(current_selected_exec) if current_selected_exec in exec_numbers else 0,
+                        format_func=lambda x: f"Execução {x}",
+                        key="fixed_exec_selector"
+                    )
+                    UseState.set_state("current_config", selected_config)
+                    UseState.set_state("current_exec", selected_exec)
+                else:
+                    st.warning("Nenhuma execução disponível para a configuração selecionada.")
     
     def _render_view_controls(self):
         """Renderiza os controles de visualização."""
@@ -385,41 +474,199 @@ class FrameworkRCEDashboard:
     
     def _render_main_content(self):
         """Renderiza o conteúdo principal do dashboard."""
-        if not UseState.get_state("fixed_view"):
-            self._render_dynamic_view()
+        fixed_view = UseState.get_state("fixed_view")
+        if not fixed_view:
+            # Dynamic view: iterate through all configs and executions
+            # Get validated column names from session state
+            config_col = UseState.get_state("config_column_name")
+            exec_col = UseState.get_state("exec_column_name")
+
+            if not config_col or not exec_col:
+                st.error("Nomes de colunas de configuração/execução não encontrados no estado da sessão.")
+                return
+
+            # Load df_consolidado from session state (it's already loaded in run)
+            df_consolidado = st.session_state.get('df_consolidado')
+            if df_consolidado is None:
+                st.error("Dados consolidados não encontrados no estado da sessão.")
+                return
+
+            available_configs = sorted(df_consolidado[config_col].unique())
+            
+            if not available_configs:
+                st.info("Nenhuma configuração encontrada nos resultados consolidados.")
+                return
+                
+            config_tabs = st.tabs([f"Config {key}" for key in available_configs])
+
+            for i, config_tab in enumerate(config_tabs):
+                with config_tab:
+                    config_num = available_configs[i]
+                    exec_numbers = sorted(df_consolidado[df_consolidado[config_col] == config_num][exec_col].unique())
+                    
+                    if not exec_numbers:
+                        st.info("Nenhuma execução encontrada para esta configuração.")
+                        continue
+
+                    exec_tabs = st.tabs([f"Execução {num}" for num in exec_numbers])
+                    for j, exec_tab in enumerate(exec_tabs):
+                        with exec_tab:
+                            exec_num = exec_numbers[j]
+                            self.render_execution_details(config_num, exec_num)
         else:
-            self._render_fixed_view()
+            # Fixed view: display only the selected config/exec
+            config_num = UseState.get_state("current_config")
+            exec_num = UseState.get_state("current_exec")
+            view_type = UseState.get_state("selected_view")
+            
+            if not all([config_num, exec_num]):
+                st.info("Selecione uma configuração e execução para começar na visualização fixa.")
+                return
+                
+            # Renderiza o componente selecionado na visualização fixa
+            if view_type == "Soluções":
+                self.render_execution_details(config_num, exec_num) # Call render_execution_details for solutions
+            elif view_type == "Gráfico de Convergência":
+                # Directly render the convergence graph component
+                st.subheader("Gráfico de Convergência")
+                viz_data = load_individual_run_data(self.db_controller, config_num, exec_num, "visualization")
+                if viz_data:
+                    try:
+                        df_viz = pd.DataFrame(viz_data)
+                        rename_map = {
+                            'gen': 'Generation',
+                            'avg': 'Average Fitness',
+                            'std': 'Std Deviation',
+                            'min': 'Min Fitness (Best)',
+                            'max': 'Max Fitness'
+                        }
+                        df_viz = df_viz.rename(columns=rename_map)
+                        st.line_chart(df_viz, x='Generation', y=[col for col in rename_map.values() if col in df_viz.columns])
+                    except Exception as e:
+                        st.error(f"Erro ao renderizar gráfico de convergência: {str(e)}")
+                else:
+                    st.warning("Dados de visualização não disponíveis.")
+            elif view_type == "População Final":
+                # Directly render the final population component
+                st.subheader("População Final")
+                pop_final_path = OUTPUT_DIR / "pop_final.xlsx"
+                if pop_final_path.exists():
+                    try:
+                        pop_final_data = pd.read_excel(pop_final_path)
+                        st.dataframe(
+                            pop_final_data,
+                            use_container_width=True,
+                            height=600,
+                            hide_index=True
+                        )
+                        csv = pop_final_data.to_csv(index=False).encode('utf-8')
+                        st.download_button(
+                            label="📥 Baixar População Final",
+                            data=csv,
+                            file_name=f'populacao_final_config_{config_num}_exec_{exec_num}.csv',
+                            mime='text/csv'
+                        )
+                    except Exception as e:
+                        st.warning(f"Erro ao carregar pop_final.xlsx: {str(e)}")
+                else:
+                    st.warning("Arquivo pop_final.xlsx não encontrado ou inválido.")
     
     def _render_dynamic_view(self):
         """Renderiza a visualização dinâmica com abas."""
-        config_num = UseState.get_state("current_config")
-        exec_num = UseState.get_state("current_exec")
+        # Get validated column names from session state
+        config_col = UseState.get_state("config_column_name")
+        exec_col = UseState.get_state("exec_column_name")
+
+        if not config_col or not exec_col:
+            st.error("Nomes de colunas de configuração/execução não encontrados no estado da sessão.")
+            return
+
+        # Load df_consolidado from session state (it's already loaded in run)
+        df_consolidado = st.session_state.get('df_consolidado')
+        if df_consolidado is None:
+            st.error("Dados consolidados não encontrados no estado da sessão.")
+            return
+
+        available_configs = sorted(df_consolidado[config_col].unique())
         
-        if not all([config_num, exec_num]):
-            st.info("Selecione uma configuração e execução para começar.")
+        if not available_configs:
+            st.info("Nenhuma configuração encontrada nos resultados consolidados.")
             return
             
-        # Renderiza os componentes na ordem desejada
-        self._render_solutions_view(config_num, exec_num)
-        self._render_statistics_view(config_num, exec_num)
-        self._render_power_view(config_num, exec_num)
-        self._render_population_view(config_num, exec_num)
+        config_tabs = st.tabs([f"Config {key}" for key in available_configs])
+
+        for i, config_tab in enumerate(config_tabs):
+            with config_tab:
+                config_num = available_configs[i]
+                exec_numbers = sorted(df_consolidado[df_consolidado[config_col] == config_num][exec_col].unique())
+                
+                if not exec_numbers:
+                    st.info("Nenhuma execução encontrada para esta configuração.")
+                    continue
+
+                exec_tabs = st.tabs([f"Execução {num}" for num in exec_numbers])
+                for j, exec_tab in enumerate(exec_tabs):
+                    with exec_tab:
+                        exec_num = exec_numbers[j]
+                        self.render_execution_details(config_num, exec_num)
     
     def _render_fixed_view(self):
         """Renderiza a visualização fixa selecionada."""
         config_num = UseState.get_state("current_config")
         exec_num = UseState.get_state("current_exec")
-        
-        if not all([config_num, exec_num]):
-            st.info("Selecione uma configuração e execução para começar.")
-            return
-            
         view_type = UseState.get_state("selected_view")
         
+        if not all([config_num, exec_num]):
+            st.info("Selecione uma configuração e execução para começar na visualização fixa.")
+            return
+            
+        # Renderiza o componente selecionado na visualização fixa
         if view_type == "Soluções":
-            self._render_solutions_view(config_num, exec_num)
+            self.render_execution_details(config_num, exec_num) # Call render_execution_details for solutions
+        elif view_type == "Gráfico de Convergência":
+            # Directly render the convergence graph component
+            st.subheader("Gráfico de Convergência")
+            viz_data = load_individual_run_data(self.db_controller, config_num, exec_num, "visualization")
+            if viz_data:
+                try:
+                    df_viz = pd.DataFrame(viz_data)
+                    rename_map = {
+                        'gen': 'Generation',
+                        'avg': 'Average Fitness',
+                        'std': 'Std Deviation',
+                        'min': 'Min Fitness (Best)',
+                        'max': 'Max Fitness'
+                    }
+                    df_viz = df_viz.rename(columns=rename_map)
+                    st.line_chart(df_viz, x='Generation', y=[col for col in rename_map.values() if col in df_viz.columns])
+                except Exception as e:
+                    st.error(f"Erro ao renderizar gráfico de convergência: {str(e)}")
+            else:
+                st.warning("Dados de visualização não disponíveis.")
         elif view_type == "População Final":
-            self._render_population_view(config_num, exec_num)
+            # Directly render the final population component
+            st.subheader("População Final")
+            pop_final_path = OUTPUT_DIR / "pop_final.xlsx"
+            if pop_final_path.exists():
+                try:
+                    pop_final_data = pd.read_excel(pop_final_path)
+                    st.dataframe(
+                        pop_final_data,
+                        use_container_width=True,
+                        height=600,
+                        hide_index=True
+                    )
+                    csv = pop_final_data.to_csv(index=False).encode('utf-8')
+                    st.download_button(
+                        label="📥 Baixar População Final",
+                        data=csv,
+                        file_name=f'populacao_final_config_{config_num}_exec_{exec_num}.csv',
+                        mime='text/csv'
+                    )
+                except Exception as e:
+                    st.warning(f"Erro ao carregar pop_final.xlsx: {str(e)}")
+            else:
+                st.warning("Arquivo pop_final.xlsx não encontrado ou inválido.")
     
     def _render_solutions_view(self, config_num: str, exec_num: int):
         """Renderiza a visualização de soluções."""
@@ -430,7 +677,7 @@ class FrameworkRCEDashboard:
             CardSolutions.render(data, exec_num)
         except Exception as e:
             st.error(f"Erro ao carregar soluções: {str(e)}")
-    
+
     def _render_statistics_view(self, config_num: str, exec_num: int):
         """Renderiza a visualização de estatísticas."""
         st.header("Estatísticas")
@@ -439,7 +686,7 @@ class FrameworkRCEDashboard:
             StatisticsTableComponent.render(data)
         except Exception as e:
             st.error(f"Erro ao carregar estatísticas: {str(e)}")
-    
+
     def _render_power_view(self, config_num: str, exec_num: int):
         """Renderiza a visualização de potência."""
         st.header("Gráfico de Potência")
@@ -447,7 +694,7 @@ class FrameworkRCEDashboard:
             GraficoPotenciaAtivaReativaComponent.render(exec_num)
         except Exception as e:
             st.error(f"Erro ao carregar gráfico de potência: {str(e)}")
-    
+
     def _render_population_view(self, config_num: str, exec_num: int):
         """Renderiza a visualização da população final."""
         st.header("População Final")
@@ -471,5 +718,6 @@ class FrameworkRCEDashboard:
             st.error(f"Erro ao carregar população final: {str(e)}")
 
 # Ponto de entrada principal
-#dashboard = FrameworkRCEDashboard()
-#dashboard.run()
+if __name__ == "__main__":
+    dashboard = FrameworkRCEDashboard()
+    dashboard.run()

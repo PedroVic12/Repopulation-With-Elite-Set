@@ -1,9 +1,9 @@
 {
     "repeticoes_por_config": 5,
-    "MUTACAO": [
-        0.77,
-        90.0,
-        0.5,
-        0.25
+    "CROSSOVER": [
+        0.9,
+        0.8,
+        0.7,
+        0.6
     ]
 }

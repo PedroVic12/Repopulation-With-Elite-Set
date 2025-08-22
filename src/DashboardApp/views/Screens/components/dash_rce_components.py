@@ -70,24 +70,73 @@ class ConsolidatedResultsComponent:
             try:
                 # Lê o excel usando o caminho completo
                 df_consolidado = pd.read_excel(consolidated_excel_path)
-                # Converter execution_time com robustez (aceita números, 'x segundos' ou 'y minutos')
-                if "execution_time" in df_consolidado.columns:
-                    def to_seconds(x):
-                        if pd.isna(x):
-                            return np.nan
-                        if isinstance(x, (int, float)):
-                            return float(x)
-                        s = str(x).strip().lower()
+                
+                # Mapear nomes de colunas antigos para os novos
+                column_mapping = {
+                    'configuracao': 'config',
+                    'execucao': 'execution',
+                    'best_gen_idx': 'best_gen',
+                    'best_fitness': 'best_fitness',
+                    'best_var_1': 'best_individual_0',
+                    'best_var_2': 'best_individual_1',
+                    'best_var_3': 'best_individual_2',
+                    'best_var_4': 'best_individual_3',
+                    'best_var_5': 'best_individual_4'
+                }
+                
+                # Renomear colunas se necessário
+                df_consolidado = df_consolidado.rename(columns={
+                    old: new for old, new in column_mapping.items() 
+                    if old in df_consolidado.columns
+                })
+                
+                # Criar coluna best_individual como lista de variáveis
+                if all(f'best_individual_{i}' in df_consolidado.columns for i in range(5)):
+                    df_consolidado['best_vars'] = df_consolidado.apply(
+                        lambda row: [row[f'best_individual_{i}'] for i in range(5)], 
+                        axis=1
+                    )
+                
+                # Adicionar coluna execution_time se não existir
+                if 'execution_time' not in df_consolidado.columns:
+                    df_consolidado['execution_time'] = 0  # Valor padrão
+                
+                # Converter execution_time com robustez (aceita números, strings de tempo, ou dicionários com 'tempo_total')
+                def to_seconds(x):
+                    # Se for NaN ou None, retorna 0
+                    if pd.isna(x) or x is None:
+                        return 0.0
+                        
+                    # Se for um dicionário, tenta extrair o tempo total
+                    if isinstance(x, dict):
+                        x = x.get('tempo_total', 0.0)
+                    
+                    # Se for numérico, retorna como float
+                    if isinstance(x, (int, float)):
+                        return float(x)
+                    
+                    # Se for string, tenta converter de formato legível
+                    if isinstance(x, str):
+                        s = x.strip().lower()
                         # extrai número (suporta vírgula decimal)
                         num_str = re.sub(r"[^0-9\.,]", "", s).replace(",", ".")
                         try:
-                            val = float(num_str) if num_str else np.nan
+                            val = float(num_str) if num_str else 0.0
                         except Exception:
-                            return np.nan
-                        if "min" in s:  # minutos -> segundos
+                            return 0.0
+                            
+                        # Converter para segundos se estiver em minutos
+                        if any(m in s for m in ['min', 'm']):  # minutos -> segundos
                             return val * 60.0
-                        return val  # já está em segundos
-                    df_consolidado["execution_time"] = df_consolidado["execution_time"].apply(to_seconds)
+                        if any(h in s for h in ['hora', 'hour', 'h']):  # horas -> segundos
+                            return val * 3600.0
+                        return val  # assume que já está em segundos
+                        
+                    # Se não for nenhum dos tipos conhecidos, retorna 0
+                    return 0.0
+                
+                # Aplicar conversão para a coluna execution_time
+                df_consolidado["execution_time"] = df_consolidado["execution_time"].apply(to_seconds)
 
                 # Calcula a média da coluna execution_time
                 exec_time = df_consolidado["execution_time"]
@@ -169,14 +218,29 @@ class ConsolidatedResultsComponent:
                             data = json.load(f)
                         
                         if isinstance(data, dict):
+                            # Mapear campos do JSON para o formato interno
+                            best_vars = data.get("best_variables", data.get("best_individual", []))
+                            if not isinstance(best_vars, list):
+                                best_vars = []
+                                
                             row = {
-                                "config": cfg,
-                                "execution": execn,
+                                "config": data.get("config_num", cfg),
+                                "execution": data.get("exec_num", execn),
                                 "best_fitness": data.get("best_fitness", np.nan),
-                                "best_gen_idx": data.get("best_gen", 0),
-                                "best_vars": data.get("best_individual", []),
-                                "execution_time": data.get("execution_time", np.nan)
+                                "best_gen_idx": data.get("best_gen_idx", data.get("best_gen", 0)),
+                                "best_vars": best_vars,
+                                "execution_time": data.get("execution_time", 0.0),
+                                # Adicionar parâmetros da execução
+                                "CROSSOVER": data.get("params", {}).get("CROSSOVER", np.nan),
+                                "MUTACAO": data.get("params", {}).get("MUTACAO", np.nan),
+                                "POP_SIZE": data.get("params", {}).get("POP_SIZE", np.nan),
+                                "IND_SIZE": data.get("params", {}).get("IND_SIZE", np.nan)
                             }
+                            
+                            # Adicionar variáveis individuais como colunas separadas
+                            for i, var in enumerate(best_vars):
+                                row[f"best_var_{i+1}"] = var
+                                
                             rows.append(row)
                     except Exception as e:
                         st.warning(f"Falha ao ler {fname}: {e}")

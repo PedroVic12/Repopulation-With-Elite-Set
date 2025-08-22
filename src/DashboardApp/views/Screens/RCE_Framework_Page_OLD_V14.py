@@ -1,8 +1,8 @@
 
 
 # --- Componentes da Interface de Usuário ---
-from components.dash_rce_components import ConsolidatedResultsComponent, CardSolutions, GraficoPotenciaAtivaReativaComponent, StatisticsTableComponent, GraficoRCEComponent
-from components.side_bar_widget import load_execution_data
+from .components.dash_rce_components import ConsolidatedResultsComponent, CardSolutions, GraficoPotenciaAtivaReativaComponent, StatisticsTableComponent, GraficoRCEComponent
+from .components.side_bar_widget import load_execution_data
 from AgendamentoRedePage import AgendamentoRedePage
 
 
