@@ -5,13 +5,21 @@ import streamlit as st
 import os
 import pandas as pd
 import numpy as np
-import sys
-import time
+
 import re
 
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+def reset_path():
+    import sys
+    import os
 
+    # Adiciona o diretório 'src' ao sys.path para permitir importações absolutas
+    SRC_PATH = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..', '..'))
+    if SRC_PATH not in sys.path:
+        sys.path.append(SRC_PATH)
+
+reset_path()
 from controllers.Utils import Controller, OPTIONS_JSON
+
 #! TODO SABER PEGAR IMPORT TUDO DE CONTROLLER E UTILS
 
 # Ajuste conforme a estrutura do projeto

@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
 import json
-import streamlit as st
 import pickle
 import plotly.io as pio
 import plotly.graph_objects as go
@@ -8,6 +7,8 @@ import pandas as pd
 import os
 import pathlib
 import time 
+import streamlit as st
+
 
 def load_params_from_file(path):
     with open(path, 'r') as file:
@@ -286,7 +287,8 @@ def run_utils_test():
     utils = Utils()
 
     files = utils.get_html_content_from_folder(FOLDER_NAME)
-    st.write("Arquivos HTML encontrados na pasta:", files)
-    st.write("Caminho da pasta de saída:", FOLDER_NAME)
 
-#run_utils_test()
+    print("Arquivos HTML encontrados na pasta:", files)
+    print("Caminho da pasta de saída:", FOLDER_NAME)
+
+run_utils_test()

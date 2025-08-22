@@ -1,65 +1,33 @@
 
 
 # --- Componentes da Interface de Usuário ---
-from ..components.dash_rce_components import ConsolidatedResultsComponent, CardSolutions, GraficoPotenciaAtivaReativaComponent, StatisticsTableComponent, GraficoRCEComponent
-from ..components.side_bar_widget import load_execution_data
-from .AgendamentoRedePage import AgendamentoRedePage
-
+from components.dash_rce_components import ConsolidatedResultsComponent, CardSolutions, GraficoPotenciaAtivaReativaComponent, StatisticsTableComponent, GraficoRCEComponent
+from components.side_bar_widget import load_execution_data
+from AgendamentoRedePage import AgendamentoRedePage
 
 
 #backend
-from controllers.Utils import Controller, Utils, ConfigController
+def reset_path():
+    import sys
+    import os
+
+    # Adiciona o diretório 'src' ao sys.path para permitir importações absolutas
+    SRC_PATH = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..', '..'))
+    if SRC_PATH not in sys.path:
+        sys.path.append(SRC_PATH)
+
+reset_path()
+
+from controllers.Utils import Controller, Utils, ConfigController, PARAMETROS_JSON
 
 # Frontend
 import streamlit as st
 
-# Configuração da barra lateral
-class DrawerSideBar:
-    """Classe para gerenciar a barra lateral do aplicativo."""
-
-    def __init__(self, warnings=None):
-        """Inicializa a barra lateral."""
-        self.st = st
-        self.warnings = warnings or []
-
-    def render(self):
-        """Renderiza a barra lateral."""
-        self.st.sidebar.title("Painel de Controle")
-        if st.sidebar.button("Atualizar Estado"):
-            st.session_state.clear()
-            st.rerun()
-        
-        if self.warnings:
-            with st.sidebar.expander("⚠️ Avisos de Execução", expanded=True):
-                for warning in self.warnings:
-                    st.warning(warning)
-
-        self.st.sidebar.markdown("---")  # Separador visual
-
-
-## Controlador de Gerenciamento de Estado
-class UseState:
-    """Classe para gerenciar o estado do Streamlit."""
-
-    @staticmethod
-    def initialize_state(key, default_value):
-        """Inicializa uma chave no session_state com um valor padrão."""
-        if key not in st.session_state:
-            st.session_state[key] = default_value
-
-    @staticmethod
-    def get_state(key, default_value=None):
-        """Obtém o valor de uma chave no session_state."""
-        return st.session_state.get(key, default_value)
-
-    @staticmethod
-    def set_state(key, value):
-        """Define o valor de uma chave no session_state."""
-        st.session_state[key] = value
-
 
 # --- Classe Principal do Aplicativo ---
 class FrameworkRCEDashboard:
+
+    # Configuração da barra lateral
     def __init__(self, options=None):
         self.controller = Controller()
         self.utils = Utils()
@@ -183,6 +151,62 @@ class FrameworkRCEDashboard:
                     key=f"{key_prefix}_contingencia_editor",
                 )
 
+    def _get_column_name_insensitive(self, df, possible_names):
+        """Obtém o nome correto da coluna, insensível a maiúsculas/minúsculas."""
+        df_columns = [str(col).lower() for col in df.columns]
+        for name in possible_names:
+            if name.lower() in df_columns:
+                return df.columns[df_columns.index(name.lower())]
+        return None
+
+    def _validate_required_columns(self, df):
+        """Valida se as colunas necessárias existem no DataFrame.
+        
+        Suporta tanto nomes em inglês quanto em português.
+        """
+        # Mapeamento de possíveis nomes de colunas em português e inglês
+        config_col_names = [
+            'config_num', 'config', 'configuration',  # inglês
+            'configuracao', 'configuração', 'num_config'  # português
+        ]
+        
+        exec_col_names = [
+            'exec_num', 'exec', 'execution', 'run_num', 'run',  # inglês
+            'execucao', 'execução', 'num_exec'  # português
+        ]
+        
+        # Tenta encontrar os nomes corretos das colunas
+        config_col = self._get_column_name_insensitive(df, config_col_names)
+        exec_col = self._get_column_name_insensitive(df, exec_col_names)
+        
+        # Fallback if not found by insensitive search
+        if not config_col:
+            config_col = next((col for col in df.columns if 'config' in str(col).lower()), None)
+        if not exec_col:
+            exec_col = next((col for col in df.columns if 'exec' in str(col).lower() or 'run' in str(col).lower()), None)
+        
+        # Final check: ensure identified columns actually exist in the DataFrame
+        if config_col not in df.columns:
+            config_col = None
+        if exec_col not in df.columns:
+            exec_col = None
+
+        # If still not found, show detailed error
+        if not config_col or not exec_col:
+            st.error("❌ Erro: Não foi possível identificar as colunas necessárias.")
+            st.error("Colunas necessárias:")
+            st.error("- Número da Configuração (ex: 'config_num', 'configuracao')")
+            st.error("- Número da Execução (ex: 'exec_num', 'execucao', 'run')")
+            st.error(f"\nColunas encontradas no arquivo:\n{', '.join(f'\"{col}\"' for col in df.columns)}")
+            st.error("\nPor favor, verifique se o arquivo contém as colunas necessárias.")
+            return None, None
+            
+        # Armazena os nomes das colunas para uso posterior
+        UseState.set_state("config_column_name", config_col)
+        UseState.set_state("exec_column_name", exec_col)
+            
+        return config_col, exec_col
+
     def run(self):
         try:
             self.menu_lateral.render()
@@ -196,7 +220,8 @@ class FrameworkRCEDashboard:
                 st.stop()
 
             config_controller = ConfigController()
-            all_params = config_controller.repository.get_all_configs()
+            #all_params = config_controller.repository.get_all_configs()
+            all_params = PARAMETROS_JSON
             
             # Show configuration and execution selectors
             with st.sidebar.expander("🔧 Configuração e Execução", expanded=True):
@@ -268,16 +293,23 @@ class FrameworkRCEDashboard:
                         st.dataframe(selected_solution)
 
             # Consolida resultados e exibe, passando all_params exigido pelo componente
+            st.info(all_params)
             df_consolidado, cons_warnings = ConsolidatedResultsComponent.render(all_params)
             if cons_warnings:
                 for w in cons_warnings:
                     st.warning(w)
             if df_consolidado is not None:
+                # Validate columns
+                config_col, exec_col = self._validate_required_columns(df_consolidado)
+                if not config_col or not exec_col:
+                    st.error("Não foi possível identificar as colunas de configuração e execução nos resultados consolidados.")
+                    return # Stop processing if columns are not found
+
                 # guarda no estado os execs realmente disponíveis por configuração
                 try:
                     available_execs = {}
-                    for cfg in sorted(df_consolidado['Config'].unique()):
-                        execs_list = sorted(df_consolidado[df_consolidado['Config'] == cfg]['Exec'].unique().tolist())
+                    for cfg in sorted(df_consolidado[config_col].unique()):
+                        execs_list = sorted(df_consolidado[df_consolidado[config_col] == cfg][exec_col].unique().tolist())
                         # guarda com múltiplas chaves para evitar mismatch de tipos (int/str)
                         available_execs[cfg] = execs_list
                         try:
@@ -488,3 +520,57 @@ class FrameworkRCEDashboard:
             icon="📖",
         )
         st.markdown("---")
+
+# Configuração da barra lateral
+class DrawerSideBar:
+    """Classe para gerenciar a barra lateral do aplicativo."""
+
+    def __init__(self, warnings=None):
+        """Inicializa a barra lateral."""
+        self.st = st
+        self.warnings = warnings or []
+
+    def render(self):
+        """Renderiza a barra lateral."""
+        self.st.sidebar.title("Painel de Controle")
+        if st.sidebar.button("Atualizar Estado"):
+            st.session_state.clear()
+            st.rerun()
+        
+        if self.warnings:
+            with st.sidebar.expander("⚠️ Avisos de Execução", expanded=True):
+                for warning in self.warnings:
+                    st.warning(warning)
+
+        self.st.sidebar.markdown("---")  # Separador visual
+
+
+## Controlador de Gerenciamento de Estado
+class UseState:
+    """Classe para gerenciar o estado do Streamlit."""
+
+    @staticmethod
+    def initialize_state(key, default_value):
+        """Inicializa uma chave no session_state com um valor padrão."""
+        if key not in st.session_state:
+            st.session_state[key] = default_value
+
+    @staticmethod
+    def get_state(key, default_value=None):
+        """Obtém o valor de uma chave no session_state."""
+        return st.session_state.get(key, default_value)
+
+    @staticmethod
+    def set_state(key, value):
+        """Define o valor de uma chave no session_state."""
+        st.session_state[key] = value
+
+
+
+def main():
+    dashboard = FrameworkRCEDashboard()
+    dashboard.run()
+
+if __name__ == "__main__":
+    main()
+    
