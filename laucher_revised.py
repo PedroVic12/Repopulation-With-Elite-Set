@@ -425,8 +425,13 @@ class ExecutionTab(QWidget):
     def consolidate_results(self):
         self.append_log("Iniciando consolidação manual de resultados...")
         try:
-            self.db_controller.consolidate_results()
-            self.append_log("Consolidação concluída com sucesso!")
+            
+            self.db_controller.consolidar_script_button()
+
+            #! Alteração na arquitetura do projeto com MVC  + Observer + Controller
+            #self.db_controller.consolidate_results()
+            self.append_log("Consolidação com Desgin Pattern DatabaseController!")
+            self.append_log("Verifique o terminal para ver quantos arquivos foram resultados da simulação!")
             QMessageBox.information(self, "Sucesso", "Resultados consolidados com sucesso!")
         except Exception as e:
             self.append_log(f"Erro durante a consolidação: {e}")

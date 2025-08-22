@@ -14,6 +14,188 @@ import pandas as pd
 from pathlib import Path
 import glob
 from datetime import datetime
+import subprocess
+
+
+
+def executa_script_py():
+
+    #executa um script com os
+    script_path = Path(__file__).parent / "consolidar_resultados.py"
+    subprocess.call([sys.executable, str(script_path)])
+
+#!/usr/bin/env python3
+"""
+Script para consolidar todos os resultados das execuções em um único arquivo Excel.
+Consolida dados de todas as pastas run_* e suas configurações.
+"""
+
+def consolidar_resultados():
+    """
+    Consolida todos os resultados das execuções em um único DataFrame
+    """
+    # Usando caminho relativo ao diretório do script
+    output_dir = Path(__file__).parent / "src" / "output"
+    resultados_consolidados = []
+
+    print(f"Pasta de saída definida como: {output_dir.resolve()}")
+
+    # Encontrar todas as pastas de execução
+    pastas_run = glob.glob(str(output_dir / "run_*"))
+
+    print(f"Encontradas {len(pastas_run)} pastas de execução:")
+    
+    for pasta_run in pastas_run:
+        pasta_run_path = Path(pasta_run)
+        nome_run = pasta_run_path.name
+        
+        # Encontrar todas as configurações dentro da pasta run
+        configs = glob.glob(str(pasta_run_path / "config_*"))
+        
+        print(f"  {nome_run}: {len(configs)} configurações")
+        
+        for config in configs:
+            config_path = Path(config)
+            nome_config = config_path.name
+            
+            # Encontrar todos os arquivos de resultados
+            resultados = glob.glob(str(config_path / "*_exec_*_results.json"))
+            
+            for resultado in resultados:
+                try:
+                    with open(resultado, 'r', encoding='utf-8') as f:
+                        dados = json.load(f)
+                    
+                    # Extrair informações básicas
+                    linha_resultado = {
+                        'pasta_run': nome_run,
+                        'configuracao': nome_config,
+                        'execucao': dados.get('exec_num', 'N/A'),
+                        'config_num': dados.get('config_num', 'N/A')
+                    }
+                    
+                    # Extrair parâmetros
+                    params = dados.get('params', {})
+                    for param, valor in params.items():
+                        if isinstance(valor, list):
+                            # Para arrays, criar colunas separadas
+                            for i, v in enumerate(valor):
+                                linha_resultado[f'{param}_{i+1}'] = v
+                        else:
+                            linha_resultado[f'param_{param}'] = valor
+                    
+                    # Extrair melhores variáveis
+                    best_vars = dados.get('best_variables', [])
+                    for i, var in enumerate(best_vars):
+                        linha_resultado[f'best_var_{i+1}'] = var
+                    
+                    # Extrair fitness e geração
+                    linha_resultado['best_fitness'] = dados.get('best_fitness', 'N/A')
+                    linha_resultado['best_gen_idx'] = dados.get('best_gen_idx', 'N/A')
+                    
+                    resultados_consolidados.append(linha_resultado)
+                    
+                except Exception as e:
+                    print(f"    Erro ao processar {resultado}: {e}")
+    
+    return resultados_consolidados
+
+def salvar_excel(resultados, output_dir):
+    """
+    Salva os resultados consolidados em um arquivo Excel
+    """
+    if not resultados:
+        print("Nenhum resultado encontrado para consolidar!")
+        return
+    
+    # Criar DataFrame
+    df = pd.DataFrame(resultados)
+    
+    # Reorganizar colunas para melhor visualização
+    colunas_ordenadas = []
+    
+    # Colunas de identificação primeiro
+    colunas_ordenadas.extend(['pasta_run', 'configuracao', 'execucao', 'config_num'])
+    
+    # Parâmetros
+    colunas_params = [col for col in df.columns if col.startswith('param_')]
+    colunas_params.sort()
+    colunas_ordenadas.extend(colunas_params)
+    
+    # Melhores variáveis
+    colunas_best = [col for col in df.columns if col.startswith('best_var_')]
+    colunas_best.sort()
+    colunas_ordenadas.extend(colunas_best)
+    
+    # Fitness e geração
+    colunas_fitness = ['best_fitness', 'best_gen_idx']
+    colunas_ordenadas.extend(colunas_fitness)
+    
+    # Reordenar DataFrame
+    df = df[colunas_ordenadas]
+    
+    # Nome do arquivo com timestamp
+    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+    nome_arquivo = f"resultados_consolidados.xlsx"
+    caminho_arquivo = output_dir / nome_arquivo
+    
+    # Salvar Excel
+    with pd.ExcelWriter(caminho_arquivo, engine='openpyxl') as writer:
+        df.to_excel(writer, sheet_name='Resultados_Consolidados', index=False)
+        
+        # Ajustar largura das colunas
+        worksheet = writer.sheets['Resultados_Consolidados']
+        for column in worksheet.columns:
+            max_length = 0
+            column_letter = column[0].column_letter
+            for cell in column:
+                try:
+                    if len(str(cell.value)) > max_length:
+                        max_length = len(str(cell.value))
+                except:
+                    pass
+            adjusted_width = min(max_length + 2, 50)
+            worksheet.column_dimensions[column_letter].width = adjusted_width
+    
+    print(f"\nArquivo salvo com sucesso: {caminho_arquivo}")
+    print(f"Total de resultados consolidados: {len(resultados)}")
+    
+    # Mostrar estatísticas
+    print(f"\nEstatísticas:")
+    print(f"  - Pastas de execução: {df['pasta_run'].nunique()}")
+    print(f"  - Configurações: {df['configuracao'].nunique()}")
+    print(f"  - Execuções: {df['execucao'].nunique()}")
+    
+    return caminho_arquivo
+
+def run_consolidar_resultados_script():
+    """
+    Função principal
+    """
+    print("=== CONSOLIDADOR DE RESULTADOS ===")
+    print("Iniciando consolidação...\n")
+    
+    try:
+        # Consolidar resultados
+        resultados = consolidar_resultados()
+        
+        if resultados:
+            # Salvar em Excel na pasta output
+            output_dir = Path(__file__).parent / "src" / "output"
+            arquivo_salvo = salvar_excel(resultados, output_dir)
+            print(f"\n📁 Arquivo salvo em: {arquivo_salvo}")
+
+            print(f"\n✅ Consolidação concluída com sucesso!")
+        else:
+            print("❌ Nenhum resultado encontrado para consolidar!")
+            
+    except Exception as e:
+        print(f"❌ Erro durante a consolidação: {e}")
+        import traceback
+        traceback.print_exc()
+
+
+
 
 class DatabaseController:
     """
@@ -99,7 +281,10 @@ class DatabaseController:
         except Exception as e:
             print(f"Erro ao salvar resultado individual em {filepath}: {e}")
 
-    def consolidate_results(self):
+    def consolidar_script_button(self):
+        run_consolidar_resultados_script()
+    
+    def consolidar_results_old_method(self):
         """
         Lê todos os JSONs de resultado individuais da pasta de saída,
         e cria (ou sobrescreve) o arquivo Excel consolidado.
