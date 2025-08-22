@@ -5,14 +5,10 @@ import pandas as pd
 import json
 from pathlib import Path
 
-# Adiciona o diretório raiz do projeto ao sys.path para encontrar o database_controller
-# Isso assume que RCE_Framework_Page.py está em src/DashboardApp/views/Screens
-try:
-    from src.database_controller import DatabaseController
-except ImportError:
-    # Fallback para o caso de a estrutura de pastas mudar ou o script ser chamado de outro lugar
-    sys.path.append(str(Path(__file__).resolve().parents[3]))
-    from src.database_controller import DatabaseController
+
+sys.path.append(str(Path(__file__).resolve().parents[4]))
+    
+from database_controller import DatabaseController
 
 # --- Componentes da UI (mantidos do código original) ---
 from .components.dash_rce_components import CardSolutions
@@ -21,7 +17,7 @@ from streamlit_timeline import st_timeline
 # --- Funções de Carregamento de Dados (Refatoradas) ---
 
 @st.cache_data(ttl=60) # Adiciona cache para performance
-def load_consolidated_data(_db_controller: DatabaseController):
+def load_consolidated_data(_db_controller):
     """Carrega os dados do arquivo Excel consolidado."""
     if not _db_controller.consolidated_results_file.exists():
         st.warning(f"Arquivo de resultados consolidados não encontrado em: {_db_controller.consolidated_results_file}")
@@ -34,7 +30,7 @@ def load_consolidated_data(_db_controller: DatabaseController):
         return None
 
 @st.cache_data(ttl=60)
-def load_individual_run_data(_db_controller: DatabaseController, config_num, exec_num, data_type):
+def load_individual_run_data(_db_controller, config_num, exec_num, data_type):
     """Carrega dados de um arquivo JSON individual (results ou visualization)."""
     if data_type == "results":
         filename = f"config_{config_num}_exec_{exec_num}_results.json"
@@ -57,8 +53,9 @@ def load_individual_run_data(_db_controller: DatabaseController, config_num, exe
 # --- Classe Principal do Dashboard (Refatorada) ---
 
 class FrameworkRCEDashboard:
-    def __init__(self):
+    def __init__(self,options):
         self.db_controller = DatabaseController()
+        self.options = options
 
     def run(self):
         st.set_page_config(layout="wide")
