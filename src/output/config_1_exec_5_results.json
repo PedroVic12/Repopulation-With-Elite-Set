@@ -1,6 +1,6 @@
 {
     "config_num": 1,
-    "exec_num": 1,
+    "exec_num": 5,
     "params": {
         "ARRAY_VAR": [
             14,
@@ -17,19 +17,19 @@
             31
         ],
         "MUTACAO": 0.9,
-        "NUM_GENERATIONS": 100,
+        "NUM_GENERATIONS": 20,
         "NUM_VAR_DIFERENTES": 1,
         "POP_SIZE": 10,
         "PORCENTAGEM": 0.25,
         "RCE_REPOPULATION_GENERATIONS": 50
     },
     "best_variables": [
-        23,
-        3,
-        23,
-        23,
-        4
+        1,
+        27,
+        1,
+        1,
+        7
     ],
-    "best_fitness": 49.13545004407975,
-    "best_gen_idx": 99
+    "best_fitness": 40.490470962888544,
+    "best_gen_idx": 19
 }

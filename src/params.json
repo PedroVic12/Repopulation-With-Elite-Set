@@ -13,8 +13,8 @@
         0,
         31
     ],
-    "MUTACAO": 0.9,
-    "NUM_GENERATIONS": 20,
+    "MUTACAO": 0.5,
+    "NUM_GENERATIONS": 100,
     "NUM_VAR_DIFERENTES": 1,
     "POP_SIZE": 10,
     "PORCENTAGEM": 0.25,

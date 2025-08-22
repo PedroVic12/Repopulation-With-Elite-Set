@@ -83,6 +83,17 @@ def run_single_execution(function_bechmarking=False):
     pop, logbook, best_individual, _ = alg.run(RCE=True)
     print("Evolução concluída.")
 
+    # Salva dados de visualização (logbook)
+    viz_filename = f"config_{args.config_num}_exec_{args.exec_num}_visualization.json"
+    viz_path = db_controller.output_dir / viz_filename
+    try:
+        # O logbook do DEAP é uma lista de dicionários, serializável para JSON
+        with open(viz_path, 'w', encoding='utf-8') as f:
+            json.dump(logbook, f, indent=4, ensure_ascii=False)
+        print(f"Dados de visualização salvos em: {viz_path}")
+    except Exception as e:
+        print(f"Erro ao salvar dados de visualização: {e}")
+
     # 5. Coleta e salva os resultados via DatabaseController
     result = {
         "config_num": args.config_num,
