@@ -58,7 +58,7 @@ class FrameworkRCEDashboard:
         self.options = options
 
     def run(self):
-        st.set_page_config(layout="wide")
+        #st.set_page_config(layout="wide")
         st.title("⚡ Dashboard RCE Framework ⚡")
         st.markdown("--- ")
 
