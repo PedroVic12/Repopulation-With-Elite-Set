@@ -175,7 +175,7 @@ class ConfigTab(QWidget):
     def __init__(self, config_manager):
         super().__init__()
         self.config_manager = config_manager
-        self.param_widgets = {{}}
+        self.param_widgets = {}
         self.init_ui()
         self.update_summary()
 
@@ -340,7 +340,7 @@ class ConfigTab(QWidget):
             "TAMANHO DA POPULAÇÃO (INT)": "POP_SIZE"
         }
 
-        current_varying = {{}}
+        current_varying = {}      
         # Coleta todos os valores válidos dos campos variáveis
         for display_name, param_info in self.param_widgets.items():
             param_key = param_mapping.get(display_name)
@@ -368,9 +368,9 @@ class ConfigTab(QWidget):
 
         # Se não há parâmetros variáveis na UI, verifica se há no options.json
         if not current_varying:
-            options = self.config_manager.load_json(OPTIONS_FILE) or {{}}
-            current_varying = {{k: v for k, v in options.items() 
-                             if k in VARYING_KEYS and isinstance(v, list) and len(v) > 0}}
+            options = self.config_manager.load_json(OPTIONS_FILE) or {}
+            current_varying = {k: v for k, v in options.items() 
+                             if k in VARYING_KEYS and isinstance(v, list) and len(v) > 0}
 
         # Calcula o total de combinações únicas
         arrays = list(current_varying.values()) if current_varying else []
@@ -752,11 +752,11 @@ class ParamsAGTab(QWidget):
 
     def reload(self):
         """Recarrega params.json e options.json e repopula a tabela."""
-        self.params = self.config_manager.load_json(PARAMS_FILE) or {{}}
-        self.options = self.config_manager.load_json(OPTIONS_FILE) or {{}}
-        self.types = {{k: type(v) for k, v in self.params.items()}}
+        self.params = self.config_manager.load_json(PARAMS_FILE) or {}
+        self.options = self.config_manager.load_json(OPTIONS_FILE) or {}
+        self.types = {k: type(v) for k, v in self.params.items()}
         # somente arrays de variação válidos (somente chaves permitidas) e excluir repeticoes_por_config
-        arrays = {{k: v for k, v in self.options.items() if k in VARYING_KEYS and isinstance(v, list)}}
+        arrays = {k: v for k, v in self.options.items() if k in VARYING_KEYS and isinstance(v, list)}
 
         # remover duplicados preservando ordem
         def unique(seq):
@@ -767,10 +767,10 @@ class ParamsAGTab(QWidget):
                     seen.add(x)
                     out.append(x)
             return out
-        arrays = {{k: unique(v) for k, v in arrays.items()}}
+        arrays = {k: unique(v) for k, v in arrays.items()}
 
         # Persistir options.json já limpo (apenas chaves permitidas e sem duplicatas)
-        cleaned_options = {{}}
+        cleaned_options = {}
         if 'repeticoes_por_config' in self.options:
             cleaned_options['repeticoes_por_config'] = self.options['repeticoes_por_config']
         cleaned_options.update(arrays)
@@ -780,7 +780,7 @@ class ParamsAGTab(QWidget):
         
 
         # salva apenas se mudou algo
-        if cleaned_options != {{k: v for k, v in self.options.items() if (k in arrays or k == 'repeticoes_por_config')}}:
+        if cleaned_options != {k: v for k, v in self.options.items() if (k in arrays or k == 'repeticoes_por_config')}:
             self.config_manager.save_json(cleaned_options, OPTIONS_FILE)
 
 
@@ -830,8 +830,8 @@ class ParamsAGTab(QWidget):
     def save(self):
         try:
             # reconstruir params e arrays
-            new_params = {{}}
-            new_arrays = {{}}
+            new_params = {}
+            new_arrays = {}
             rows = self.table.rowCount()
             for r in range(rows):
                 key = self.table.item(r, 0).text()
@@ -866,12 +866,12 @@ class ParamsAGTab(QWidget):
                 return
 
             # salvar options.json: somente arrays PERMITIDOS + manter repeticoes_por_config se existir
-            out_options = {{}}
+            out_options = { }
             if 'repeticoes_por_config' in self.options:
                 out_options['repeticoes_por_config'] = self.options['repeticoes_por_config']
             
             # Apenas chaves em VARYING_KEYS: preservar arrays existentes (sem edição por esta tela)
-            out_options.update({{k: v for k, v in self.options.items() if k in VARYING_KEYS and isinstance(v, list)}})
+            out_options.update({k: v for k, v in self.options.items() if k in VARYING_KEYS and isinstance(v, list)})
             if not self.config_manager.save_json(out_options, OPTIONS_FILE):
                 QMessageBox.critical(self, "Erro", f"Falha ao salvar {OPTIONS_FILE.name}")
                 return
@@ -900,19 +900,18 @@ class ParamsAGTab(QWidget):
             else:
                 # Template inicial
                 template = (
-                    """
-                    Arquivo de função de fitness do usuário.
-                    Implemente a função evaluate(individual, data) -> float
-                    """
-                    """
-                    def evaluate(individual, data=None):
-                        """
-                        individual: sequência de variáveis de decisão
-                        data: dados auxiliares (opcional)
-                        retorne um float com o fitness (quanto menor/melhor ou maior/melhor, conforme seu problema).
-                        """
-                        # TODO: implemente sua lógica aqui
-                        return 0.0
+                    "\"\"\"\n"
+                    "Arquivo de função de fitness do usuário.\n"
+                    "Implemente a função evaluate(individual, data) -> float\n"
+                    "\"\"\"\n\n"
+                    "def evaluate(individual, data=None):\n"
+                    "    \"\"\"\n"
+                    "    individual: sequência de variáveis de decisão\n"
+                    "    data: dados auxiliares (opcional)\n"
+                    "    retorne um float com o fitness (quanto menor/melhor ou maior/melhor, conforme seu problema).\n"
+                    "    \"\"\"\n"
+                    "    # TODO: implemente sua lógica aqui\n"
+                    "    return 0.0\n"
                 )
                 self.code_editor.setPlainText(template)
         except Exception as e:
@@ -946,7 +945,7 @@ class ExecutionTab(QWidget):
         self.total_runs = 0
         # Controle de saída
         self.output_base_dir = SRC_DIR / "output"
-        self._pre_run_snapshot = {{}}
+        self._pre_run_snapshot = {}
         self._current_dest_dir = None  # não usado mais (mantido por compatibilidade)
         self._current_config_index = None
         self._current_repetition = None
