@@ -85,7 +85,7 @@ class ConfigManager:
                 return json.load(f)
         except Exception as e:
             print(f"Erro ao carregar {file_path}: {e}")
-            return {{}}
+            return {}
 
     def save_json(self, data, file_path):
         try:
@@ -99,8 +99,8 @@ class ConfigManager:
     def clean_options(self):
         """Mantém apenas arrays para chaves em VARYING_KEYS + repeticoes_por_config; deduplica arrays."""
         try:
-            current = self.options if isinstance(self.options, dict) else {{}}
-            cleaned = {{}}
+            current = self.options if isinstance(self.options, dict) else {}
+            cleaned = {}
             if 'repeticoes_por_config' in current:
                 cleaned['repeticoes_por_config'] = current['repeticoes_por_config']
             for k in VARYING_KEYS:
