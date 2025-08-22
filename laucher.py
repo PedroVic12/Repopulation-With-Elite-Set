@@ -43,7 +43,7 @@ from PySide6.QtWidgets import (
 from PySide6.QtCore import Qt, QThread, Signal, QTimer
 from PySide6.QtGui import QFont, QIcon, QIntValidator, QDoubleValidator
 
-# --- CONFIGURAÇÃO --- 
+# --- CONFIGURAÇÃO ---
 # pasta raiz do projeto
 BASE_DIR = Path(__file__).parent
 SRC_DIR = BASE_DIR / "src"
@@ -85,7 +85,7 @@ class ConfigManager:
                 return json.load(f)
         except Exception as e:
             print(f"Erro ao carregar {file_path}: {e}")
-            return {}
+            return {{}}
 
     def save_json(self, data, file_path):
         try:
@@ -99,8 +99,8 @@ class ConfigManager:
     def clean_options(self):
         """Mantém apenas arrays para chaves em VARYING_KEYS + repeticoes_por_config; deduplica arrays."""
         try:
-            current = self.options if isinstance(self.options, dict) else {}
-            cleaned = {}
+            current = self.options if isinstance(self.options, dict) else {{}}
+            cleaned = {{}}
             if 'repeticoes_por_config' in current:
                 cleaned['repeticoes_por_config'] = current['repeticoes_por_config']
             for k in VARYING_KEYS:
@@ -175,7 +175,7 @@ class ConfigTab(QWidget):
     def __init__(self, config_manager):
         super().__init__()
         self.config_manager = config_manager
-        self.param_widgets = {}
+        self.param_widgets = {{}}
         self.init_ui()
         self.update_summary()
 
@@ -340,7 +340,7 @@ class ConfigTab(QWidget):
             "TAMANHO DA POPULAÇÃO (INT)": "POP_SIZE"
         }
 
-        current_varying = {}
+        current_varying = {{}}
         # Coleta todos os valores válidos dos campos variáveis
         for display_name, param_info in self.param_widgets.items():
             param_key = param_mapping.get(display_name)
@@ -368,9 +368,9 @@ class ConfigTab(QWidget):
 
         # Se não há parâmetros variáveis na UI, verifica se há no options.json
         if not current_varying:
-            options = self.config_manager.load_json(OPTIONS_FILE) or {}
-            current_varying = {k: v for k, v in options.items() 
-                             if k in VARYING_KEYS and isinstance(v, list) and len(v) > 0}
+            options = self.config_manager.load_json(OPTIONS_FILE) or {{}}
+            current_varying = {{k: v for k, v in options.items() 
+                             if k in VARYING_KEYS and isinstance(v, list) and len(v) > 0}}
 
         # Calcula o total de combinações únicas
         arrays = list(current_varying.values()) if current_varying else []
@@ -395,7 +395,7 @@ class ConfigTab(QWidget):
                 "NÚMERO DE GERAÇÕES (INT)": "NUM_GENERATIONS",
                 "TAMANHO DA POPULAÇÃO (INT)": "POP_SIZE"
             }
-            arrays = {}
+            arrays = {{}}
             for display_name, param_info in self.param_widgets.items():
                 param_key = param_mapping.get(display_name)
                 if not param_key:
@@ -421,7 +421,8 @@ class ConfigTab(QWidget):
                         arrays[param_key] = deduped
 
             # Salva arrays e repeticoes_por_config em options.json
-            filtered = {'repeticoes_por_config': runs_per_config, **arrays}
+            filtered = {{'repeticoes_por_config': runs_per_config}}
+            filtered.update(arrays)
             if not self.config_manager.save_json(filtered, OPTIONS_FILE):
                 QMessageBox.critical(self, "Erro", f"Falha ao salvar {OPTIONS_FILE.name}")
                 return
@@ -429,10 +430,10 @@ class ConfigTab(QWidget):
             # Gera combinações
             keys = list(arrays.keys())
             values_lists = list(arrays.values())
-            combinations = [dict(zip(keys, v)) for v in product(*values_lists)] if keys else [{}]
+            combinations = [dict(zip(keys, v)) for v in product(*values_lists)] if keys else [{{}}]
 
             configurations = []
-            skeleton = {}
+            skeleton = {{}}
             for idx, combo in enumerate(combinations, start=1):
                 cfg = dict(base_params)
                 cfg.update(combo)
@@ -465,7 +466,7 @@ class JsonEditor(QWidget):
         self.title = title
         self.file_path = file_path
         self.config_manager = config_manager
-        self.fields = {}  # key -> {widget, type, is_list, elem_type}
+        self.fields = {{}}  # key -> {{widget, type, is_list, elem_type}}
         self.init_ui()
 
     def init_ui(self):
@@ -552,7 +553,7 @@ class JsonEditor(QWidget):
         data = self.config_manager.load_json(self.file_path)
         if not isinstance(data, dict):
             QMessageBox.critical(self, "Erro", f"Arquivo inválido: {self.file_path}")
-            data = {}
+            data = {{}}
         self.build_fields(data)
 
     def parse_list(self, text, elem_type):
@@ -575,7 +576,7 @@ class JsonEditor(QWidget):
         try:
             current = self.config_manager.load_json(self.file_path)
             if not isinstance(current, dict):
-                current = {}
+                current = {{}}
             for key, meta in self.fields.items():
                 w: QLineEdit = meta["widget"]
                 txt = w.text().strip()
@@ -644,8 +645,7 @@ class ParamsAGTab(QWidget):
         header_font = self.table.horizontalHeader().font()
         header_font.setPointSize(max(header_font.pointSize(), 12))
         self.table.horizontalHeader().setFont(header_font)
-        self.table.setStyleSheet(
-            """
+        self.table.setStyleSheet("""
         QTableWidget {
             background-color: #7a7a7a;
             alternate-background-color: #2d2d2e;
@@ -687,8 +687,7 @@ class ParamsAGTab(QWidget):
         QTableWidget QLineEdit:hover {
             background-color: #6087e0;
         }
-        """
-        )
+        """)
 
         # Card wrapper centralizado com sombra
         card = QFrame(self)
@@ -753,11 +752,11 @@ class ParamsAGTab(QWidget):
 
     def reload(self):
         """Recarrega params.json e options.json e repopula a tabela."""
-        self.params = self.config_manager.load_json(PARAMS_FILE) or {}
-        self.options = self.config_manager.load_json(OPTIONS_FILE) or {}
-        self.types = {k: type(v) for k, v in self.params.items()}
+        self.params = self.config_manager.load_json(PARAMS_FILE) or {{}}
+        self.options = self.config_manager.load_json(OPTIONS_FILE) or {{}}
+        self.types = {{k: type(v) for k, v in self.params.items()}}
         # somente arrays de variação válidos (somente chaves permitidas) e excluir repeticoes_por_config
-        arrays = {k: v for k, v in self.options.items() if k in VARYING_KEYS and isinstance(v, list)}
+        arrays = {{k: v for k, v in self.options.items() if k in VARYING_KEYS and isinstance(v, list)}}
 
         # remover duplicados preservando ordem
         def unique(seq):
@@ -768,10 +767,10 @@ class ParamsAGTab(QWidget):
                     seen.add(x)
                     out.append(x)
             return out
-        arrays = {k: unique(v) for k, v in arrays.items()}
+        arrays = {{k: unique(v) for k, v in arrays.items()}}
 
         # Persistir options.json já limpo (apenas chaves permitidas e sem duplicatas)
-        cleaned_options = {}
+        cleaned_options = {{}}
         if 'repeticoes_por_config' in self.options:
             cleaned_options['repeticoes_por_config'] = self.options['repeticoes_por_config']
         cleaned_options.update(arrays)
@@ -781,7 +780,7 @@ class ParamsAGTab(QWidget):
         
 
         # salva apenas se mudou algo
-        if cleaned_options != {k: v for k, v in self.options.items() if (k in arrays or k == 'repeticoes_por_config')}:
+        if cleaned_options != {{k: v for k, v in self.options.items() if (k in arrays or k == 'repeticoes_por_config')}}:
             self.config_manager.save_json(cleaned_options, OPTIONS_FILE)
 
 
@@ -831,8 +830,8 @@ class ParamsAGTab(QWidget):
     def save(self):
         try:
             # reconstruir params e arrays
-            new_params = {}
-            new_arrays = {}
+            new_params = {{}}
+            new_arrays = {{}}
             rows = self.table.rowCount()
             for r in range(rows):
                 key = self.table.item(r, 0).text()
@@ -867,12 +866,12 @@ class ParamsAGTab(QWidget):
                 return
 
             # salvar options.json: somente arrays PERMITIDOS + manter repeticoes_por_config se existir
-            out_options = {}
+            out_options = {{}}
             if 'repeticoes_por_config' in self.options:
                 out_options['repeticoes_por_config'] = self.options['repeticoes_por_config']
             
             # Apenas chaves em VARYING_KEYS: preservar arrays existentes (sem edição por esta tela)
-            out_options.update({k: v for k, v in self.options.items() if k in VARYING_KEYS and isinstance(v, list)})
+            out_options.update({{k: v for k, v in self.options.items() if k in VARYING_KEYS and isinstance(v, list)}})
             if not self.config_manager.save_json(out_options, OPTIONS_FILE):
                 QMessageBox.critical(self, "Erro", f"Falha ao salvar {OPTIONS_FILE.name}")
                 return
@@ -905,18 +904,16 @@ class ParamsAGTab(QWidget):
                     Arquivo de função de fitness do usuário.
                     Implemente a função evaluate(individual, data) -> float
                     """
+                    """
+                    def evaluate(individual, data=None):
+                        """
+                        individual: sequência de variáveis de decisão
+                        data: dados auxiliares (opcional)
+                        retorne um float com o fitness (quanto menor/melhor ou maior/melhor, conforme seu problema).
+                        """
+                        # TODO: implemente sua lógica aqui
+                        return 0.0
                 )
-
-                def evaluate(individual, data=None):
-                    """
-                    individual: sequência de variáveis de decisão
-                    data: dados auxiliares (opcional)
-                    retorne um float com o fitness (quanto menor/melhor ou maior/melhor, conforme seu problema).
-                    """
-                    print("Função de otimização de eng eletrica!")
-                    # TODO: implemente sua lógica aqui
-                    return 0.0
-                
                 self.code_editor.setPlainText(template)
         except Exception as e:
             QMessageBox.critical(self, "Erro", f"Erro ao carregar código: {e}")
@@ -949,7 +946,7 @@ class ExecutionTab(QWidget):
         self.total_runs = 0
         # Controle de saída
         self.output_base_dir = SRC_DIR / "output"
-        self._pre_run_snapshot = {}
+        self._pre_run_snapshot = {{}}
         self._current_dest_dir = None  # não usado mais (mantido por compatibilidade)
         self._current_config_index = None
         self._current_repetition = None
@@ -1135,7 +1132,7 @@ class ExecutionTab(QWidget):
             self.append_log(f"Falha ao limpar diretório de saída: {e}")
 
     def _list_output_files(self):
-        files = {}
+        files = {{}}
         if not self.output_base_dir.exists():
             return files
         for root, _, filenames in os.walk(self.output_base_dir):
