@@ -22,6 +22,42 @@ BASE_DIR = pathlib.Path(__file__).resolve().parent.parent.parent.parent  # Ajust
 OUTPUT_DIR = BASE_DIR / "output"
 sys.path.append(str(BASE_DIR))
 
+# --- Funções de Carregamento de Dados (Refatoradas) ---
+
+@st.cache_data(ttl=60) # Adiciona cache para performance
+def load_consolidated_data(_db_controller):
+    """Carrega os dados do arquivo Excel consolidado."""
+    if not _db_controller.consolidated_results_file.exists():
+        st.warning(f"Arquivo de resultados consolidados não encontrado em: {_db_controller.consolidated_results_file}")
+        st.info("Por favor, execute a consolidação no Launcher para gerar o relatório.")
+        return None
+    try:
+        return pd.read_excel(_db_controller.consolidated_results_file)
+    except Exception as e:
+        st.error(f"Erro ao carregar o arquivo de resultados consolidados: {e}")
+        return None
+
+@st.cache_data(ttl=60)
+def load_individual_run_data(_db_controller, config_num, exec_num, data_type):
+    """Carrega dados de um arquivo JSON individual (results ou visualization)."""
+    if data_type == "results":
+        filename = f"config_{config_num}_exec_{exec_num}_results.json"
+    elif data_type == "visualization":
+        filename = f"config_{config_num}_exec_{exec_num}_visualization.json"
+    else:
+        return None
+
+    file_path = _db_controller.output_dir / filename
+    if not file_path.exists():
+        # Não mostra warning para não poluir a tela, apenas retorna None
+        return None
+    try:
+        with open(file_path, 'r', encoding='utf-8') as f:
+            return json.load(f)
+    except Exception as e:
+        st.error(f"Erro ao carregar o arquivo {file_path}: {e}")
+        return None
+
 # --- Controllers ---
 from database_controller_revised import DatabaseController
 from controllers.Utils import Controller, Utils, ConfigController
@@ -55,7 +91,7 @@ class FrameworkRCEDashboard:
     def __init__(self, options=None):
         """Inicializa o dashboard com os controladores necessários."""
         self.db_controller = DatabaseController()
-        self.utils = Controller()  # Importado de dash_rce_components
+        self.utils = Utils()
         self.options = options or {}
         self.executions = self.load_executions()
         
@@ -69,11 +105,87 @@ class FrameworkRCEDashboard:
     def load_executions(self) -> Dict[str, List[int]]:
         """Carrega as execuções disponíveis."""
         try:
-            return self.utils.find_available_executions()
+            df_consolidado = load_consolidated_data(self.db_controller)
+            if df_consolidado is None or df_consolidado.empty:
+                st.warning("Nenhum dado de execução encontrado para carregar execuções.")
+                return {}
+
+            config_col, exec_col = self._validate_required_columns(df_consolidado)
+            if not config_col or not exec_col:
+                st.error("Não foi possível validar as colunas necessárias para carregar execuções.")
+                return {}
+
+            # Converte para string para garantir consistência
+            df_consolidado[config_col] = df_consolidado[config_col].astype(str)
+            df_consolidado[exec_col] = df_consolidado[exec_col].astype(str)
+
+            # Agrupa as execuções por configuração
+            executions = {}
+            for config_num, group in df_consolidado.groupby(config_col):
+                exec_numbers = sorted(group[exec_col].unique().tolist())
+                executions[config_num] = exec_numbers
+            
+            return executions
         except Exception as e:
             st.error(f"Erro ao carregar execuções: {str(e)}")
             return {}
     
+    def _get_column_name_insensitive(self, df, possible_names):
+        """Obtém o nome correto da coluna, insensível a maiúsculas/minúsculas."""
+        df_columns = [str(col).lower() for col in df.columns]
+        for name in possible_names:
+            if name.lower() in df_columns:
+                return df.columns[df_columns.index(name.lower())]
+        return None
+
+    def _validate_required_columns(self, df):
+        """Valida se as colunas necessárias existem no DataFrame.
+        
+        Suporta tanto nomes em inglês quanto em português.
+        """
+        # Mapeamento de possíveis nomes de colunas em português e inglês
+        config_col_names = [
+            'config_num', 'config', 'configuration',  # inglês
+            'configuracao', 'configuração', 'num_config'  # português
+        ]
+        
+        exec_col_names = [
+            'exec_num', 'exec', 'execution', 'run_num', 'run',  # inglês
+            'execucao', 'execução', 'num_exec'  # português
+        ]
+        
+        # Tenta encontrar os nomes corretos das colunas
+        config_col = self._get_column_name_insensitive(df, config_col_names)
+        exec_col = self._get_column_name_insensitive(df, exec_col_names)
+        
+        # Fallback if not found by insensitive search
+        if not config_col:
+            config_col = next((col for col in df.columns if 'config' in str(col).lower()), None)
+        if not exec_col:
+            exec_col = next((col for col in df.columns if 'exec' in str(col).lower() or 'run' in str(col).lower()), None)
+        
+        # Final check: ensure identified columns actually exist in the DataFrame
+        if config_col not in df.columns:
+            config_col = None
+        if exec_col not in df.columns:
+            exec_col = None
+
+        # If still not found, show detailed error
+        if not config_col or not exec_col:
+            st.error("❌ Erro: Não foi possível identificar as colunas necessárias.")
+            st.error("Colunas necessárias:")
+            st.error("- Número da Configuração (ex: 'config_num', 'configuracao')")
+            st.error("- Número da Execução (ex: 'exec_num', 'execucao', 'run')")
+            st.error(f"\nColunas encontradas no arquivo:\n{', '.join(f'\"{col}\"' for col in df.columns)}")
+            st.error("\nPor favor, verifique se o arquivo contém as colunas necessárias.")
+            return None, None
+            
+        # Armazena os nomes das colunas para uso posterior
+        UseState.set_state("config_column_name", config_col)
+        UseState.set_state("exec_column_name", exec_col)
+            
+        return config_col, exec_col
+
     def run(self):
         """Método principal para executar o dashboard."""
         st.title("RCE Framework Dashboard")
@@ -84,16 +196,12 @@ class FrameworkRCEDashboard:
             st.error("Não foi possível carregar os dados consolidados.")
             return
             
-        # Verifica as colunas disponíveis
-        if 'config_num' not in df_consolidado.columns:
-            st.error("Coluna 'config_num' não encontrada nos dados consolidados.")
-            st.dataframe(df_consolidado.columns)  # Debug: mostra as colunas disponíveis
-            return
-            
-        # Usa 'execution' se 'exec_num' não existir
-        exec_col = 'exec_num' if 'exec_num' in df_consolidado.columns else 'execution'
-        
-        available_configs = sorted(df_consolidado['config_num'].unique())
+        # Valida as colunas necessárias
+        config_col, exec_col = self._validate_required_columns(df_consolidado)
+        if not config_col or not exec_col:
+            st.stop() # Stop if columns are not found
+
+        available_configs = sorted(df_consolidado[config_col].unique())
         
         if not available_configs:
             st.info("Nenhuma configuração encontrada nos resultados consolidados.")
@@ -104,7 +212,7 @@ class FrameworkRCEDashboard:
         for i, config_tab in enumerate(config_tabs):
             with config_tab:
                 config_num = available_configs[i]
-                exec_numbers = sorted(df_consolidado[df_consolidado['config_num'] == config_num][exec_col].unique())
+                exec_numbers = sorted(df_consolidado[df_consolidado[config_col] == config_num][exec_col].unique())
                 
                 if not exec_numbers:
                     st.info("Nenhuma execução encontrada para esta configuração.")
@@ -116,6 +224,101 @@ class FrameworkRCEDashboard:
                         exec_num = exec_numbers[j]
                         self.render_execution_details(config_num, exec_num)
     
+    def render_execution_details(self, config_num, exec_num):
+        """Renderiza os detalhes (Soluções, Gráfico, etc.) para uma execução específica."""
+        # Atualiza o estado atual
+        UseState.set_state("current_config", config_num)
+        UseState.set_state("current_exec", exec_num)
+            
+        results_data = load_individual_run_data(self.db_controller, config_num, exec_num, "results")
+        viz_data = load_individual_run_data(self.db_controller, config_num, exec_num, "visualization")
+        
+        # Carregar dados da população final
+        pop_final_path = OUTPUT_DIR / "pop_final.xlsx"
+        pop_final_data = None
+        if pop_final_path.exists():
+            try:
+                pop_final_data = pd.read_excel(pop_final_path)
+            except Exception as e:
+                st.warning(f"Erro ao carregar pop_final.xlsx: {str(e)}")
+        
+        # Definir abas
+        tab_titles = ["Soluções", "Gráfico de Convergência", "População Final"]
+        component_tabs = st.tabs(tab_titles)
+        
+        # Aba de Soluções
+        with component_tabs[0]:
+            if results_data:
+                # Carregar dados consolidados para extrair decision_vars
+                df_consolidado = load_consolidated_data(self.db_controller)
+                if df_consolidado is not None:
+                    exec_data = df_consolidado[
+                        (df_consolidado[UseState.get_state("config_column_name")] == config_num) & 
+                        (df_consolidado[UseState.get_state("exec_column_name")] == exec_num)
+                    ].iloc[0] if not df_consolidado.empty else None
+                    
+                    if exec_data is not None:
+                        decision_vars = {k: v for k, v in exec_data.items() if k.startswith('var_')}
+                        results_data['decision_vars'] = decision_vars
+                
+                CardSolutions.render(results_data, exec_num, debug=False)
+            else:
+                st.warning("Dados de solução (results.json) não encontrados.")
+        
+        # Aba de Gráfico de Convergência
+        with component_tabs[1]:
+            st.subheader("Gráfico de Convergência")
+            if viz_data:
+                try:
+                    df_viz = pd.DataFrame(viz_data)
+                    # DEAP logbook keys: gen, nevals, avg, std, min, max
+                    rename_map = {
+                        'gen': 'Generation',
+                        'avg': 'Average Fitness',
+                        'std': 'Std Deviation',
+                        'min': 'Min Fitness (Best)',
+                        'max': 'Max Fitness'
+                    }
+                    df_viz = df_viz.rename(columns=rename_map)
+                    
+                    # Plotar o gráfico
+                    st.line_chart(df_viz, x='Generation', y=[col for col in rename_map.values() if col in df_viz.columns])
+                except Exception as e:
+                    st.error(f"Erro ao renderizar gráfico de convergência: {str(e)}")
+            else:
+                st.warning("Dados de visualização não disponíveis.")
+        
+        # Aba de População Final
+        with component_tabs[2]:
+            if pop_final_data is not None:
+                st.dataframe(
+                    pop_final_data,
+                    use_container_width=True,
+                    height=600,
+                    hide_index=True
+                )
+                
+                # Adicionar botão para baixar os dados
+                csv = pop_final_data.to_csv(index=False).encode('utf-8')
+                st.download_button(
+                    label="📥 Baixar População Final",
+                    data=csv,
+                    file_name=f'populacao_final_config_{config_num}_exec_{exec_num}.csv',
+                    mime='text/csv'
+                )
+            else:
+                st.warning("Arquivo pop_final.xlsx não encontrado ou inválido.")
+        
+        # Adicionar espaço no final
+        st.markdown("<div style='margin-top: 24px;'></div>", unsafe_allow_html=True)
+        
+        # Mostrar parâmetros utilizados
+        st.subheader("Parâmetros Utilizados")
+        if results_data and 'params' in results_data:
+            st.json(results_data['params'], expanded=False)
+        else:
+            st.warning("Dados de parâmetros não encontrados.")
+
     def _render_sidebar(self):
         """Renderiza a barra lateral com controles."""
         with st.sidebar:
@@ -267,238 +470,5 @@ class FrameworkRCEDashboard:
             st.error(f"Erro ao carregar população final: {str(e)}")
 
 # Ponto de entrada principal
-if __name__ == "__main__":
-    dashboard = FrameworkRCEDashboard()
-    dashboard.run()
-def load_consolidated_data(_db_controller):
-    """Carrega os dados do arquivo Excel consolidado."""
-    if not _db_controller.consolidated_results_file.exists():
-        st.warning(f"Arquivo de resultados consolidados não encontrado em: {_db_controller.consolidated_results_file}")
-        st.info("Por favor, execute a consolidação no Launcher para gerar o relatório.")
-        return None
-    try:
-        return pd.read_excel(_db_controller.consolidated_results_file)
-    except Exception as e:
-        st.error(f"Erro ao carregar o arquivo de resultados consolidados: {e}")
-        return None
-
-@st.cache_data(ttl=60)
-def load_individual_run_data(_db_controller, config_num, exec_num, data_type):
-    """Carrega dados de um arquivo JSON individual (results ou visualization)."""
-    if data_type == "results":
-        filename = f"config_{config_num}_exec_{exec_num}_results.json"
-    elif data_type == "visualization":
-        filename = f"config_{config_num}_exec_{exec_num}_visualization.json"
-    else:
-        return None
-
-    file_path = _db_controller.output_dir / filename
-    if not file_path.exists():
-        # Não mostra warning para não poluir a tela, apenas retorna None
-        return None
-    try:
-        with open(file_path, 'r', encoding='utf-8') as f:
-            return json.load(f)
-    except Exception as e:
-        st.error(f"Erro ao carregar o arquivo {file_path}: {e}")
-        return None
-
-# --- Classe Principal do Dashboard (Refatorada) ---
-
-class FrameworkRCEDashboard:
-    """Classe principal do Dashboard RCE Framework."""
-    
-    def __init__(self, options=None):
-        """Inicializa o dashboard com os controladores necessários."""
-        self.db_controller = DatabaseController()
-        self.utils = Utils()  # Importado de dash_rce_components
-        self.options = options or {}
-        self.executions = self.load_executions()
-        
-        # Inicializa estados necessários
-        UseState.initialize_state("fixed_view", False)
-        UseState.initialize_state("selected_view", "Soluções")
-        UseState.initialize_state("fixed_tab", None)
-        UseState.initialize_state("current_config", None)
-        UseState.initialize_state("current_exec", None)
-    
-    def run(self):
-        """Método principal para executar o dashboard."""
-        st.title("⚡ Dashboard RCE Framework ⚡")
-        st.markdown("---")
-        
-        df_consolidado = load_consolidated_data(self.db_controller)
-
-        if df_consolidado is None:
-            st.stop()
-
-        st.header("✅ Resultados Consolidados")
-        st.dataframe(df_consolidado)
-        
-        available_configs = sorted(df_consolidado['config_num'].unique())
-        
-        if not available_configs:
-            st.info("Nenhuma configuração encontrada nos resultados consolidados.")
-            st.stop()
-
-        config_tabs = st.tabs([f"Config {key}" for key in available_configs])
-
-        for i, config_tab in enumerate(config_tabs):
-            with config_tab:
-                config_num = available_configs[i]
-                exec_numbers = sorted(df_consolidado[df_consolidado['config_num'] == config_num]['exec_num'].unique())
-                
-                if not exec_numbers:
-                    st.info("Nenhuma execução encontrada para esta configuração.")
-                    continue
-
-                exec_tabs = st.tabs([f"Execução {num}" for num in exec_numbers])
-                for j, exec_tab in enumerate(exec_tabs):
-                    with exec_tab:
-                        exec_num = exec_numbers[j]
-                        self.render_execution_details(config_num, exec_num)
-
-    def _render_view_controls(self):
-        """Renderiza os controles de visualização."""
-        col1, col2 = st.columns([1, 3])
-        
-        with col1:
-            # Toggle para fixar/liberar visualização
-            fixed_view = UseState.get_state("fixed_view", False)
-            if st.button("🔒 Fixar Visualização" if not fixed_view else "🔓 Liberar Visualização"):
-                UseState.set_state("fixed_view", not fixed_view)
-                st.rerun()
-        
-        with col2:
-            # Seletor de visualização quando fixado
-            if fixed_view:
-                view_options = ["Soluções", "População Final"]
-                selected_view = st.selectbox(
-                    "Visualização fixa:",
-                    options=view_options,
-                    index=view_options.index(UseState.get_state("selected_view", "Soluções")),
-                    key="view_selector"
-                )
-                UseState.set_state("selected_view", selected_view)
-                UseState.set_state("fixed_tab", selected_view.lower().replace(" ", "_"))
-                
-                # Se estiver em modo fixo, mostra apenas a visualização selecionada
-                config_num = UseState.get_state("current_config")
-                exec_num = UseState.get_state("current_exec")
-                
-                if config_num is not None and exec_num is not None:
-                    if selected_view == "Soluções":
-                        self._render_solutions_view(config_num, exec_num)
-                    else:
-                        self._render_population_view(config_num, exec_num)
-            else:
-                # Se não estiver em modo fixo, mostra todas as abas
-                config_keys = list(self.executions.keys())
-                config_tabs = st.tabs([f"Config {key}" for key in config_keys])
-                
-                for i, config_tab in enumerate(config_tabs):
-                    with config_tab:
-                        config_num = config_keys[i]
-                        exec_numbers = self.executions[config_num]
-                        exec_tabs = st.tabs([f"Execução {num}" for num in exec_numbers])
-                        
-                        for j, exec_tab in enumerate(exec_tabs):
-                            with exec_tab:
-                                exec_num = exec_numbers[j]
-                                self.render_execution_details(config_num, exec_num)
-
-    def render_execution_details(self, config_num, exec_num):
-        """Renderiza os detalhes (Soluções, Gráfico, etc.) para uma execução específica."""
-        # Atualiza o estado atual
-        UseState.set_state("current_config", config_num)
-        UseState.set_state("current_exec", exec_num)
-            
-        results_data = load_individual_run_data(self.db_controller, config_num, exec_num, "results")
-        viz_data = load_individual_run_data(self.db_controller, config_num, exec_num, "visualization")
-        
-        # Carregar dados da população final
-        pop_final_path = os.path.join("src", "output", "pop_final.xlsx")
-        pop_final_data = None
-        if os.path.exists(pop_final_path):
-            try:
-                pop_final_data = pd.read_excel(pop_final_path)
-            except Exception as e:
-                st.warning(f"Erro ao carregar pop_final.xlsx: {str(e)}")
-        
-        # Definir abas
-        tab_titles = ["Soluções", "Gráfico de Convergência", "População Final"]
-        component_tabs = st.tabs(tab_titles)
-        
-        # Mostrar todas as abas se não estiver em modo fixo
-        if not UseState.get_state("fixed_tab"):
-            # Aba de Soluções
-            with component_tabs[0]:
-                if results_data:
-                    CardSolutions.render(results_data, exec_num)
-                else:
-                    st.warning("Dados de resultados não disponíveis.")
-            
-            # Aba de Gráfico de Convergência
-            with component_tabs[1]:
-                st.subheader("Gráfico de Convergência")
-                if viz_data:
-                    try:
-                        GraficoRCEComponent.render(exec_num)
-                    except Exception as e:
-                        st.error(f"Erro ao renderizar gráfico de convergência: {str(e)}")
-                else:
-                    st.warning("Dados de visualização não disponíveis.")
-            
-            # Aba de População Final
-            with component_tabs[2]:
-                if pop_final_data is not None:
-                    st.dataframe(pop_final_data)
-                    csv = pop_final_data.to_csv(index=False).encode('utf-8')
-                    st.download_button(
-                        label="Baixar CSV",
-                        data=csv,
-                        file_name="populacao_final.csv",
-                        mime="text/csv"
-                    )
-                else:
-                    st.warning("Arquivo pop_final.xlsx não encontrado ou inválido.")
-        
-        # Modo de visualização fixa
-        else:
-            selected_view = UseState.get_state("selected_view", "Soluções")
-            
-            if selected_view == "Soluções":
-                if results_data:
-                    CardSolutions.render(results_data, exec_num)
-                else:
-                    st.warning("Dados de resultados não disponíveis.")
-            
-            elif selected_view == "População Final":
-                if pop_final_data is not None:
-                    st.dataframe(pop_final_data)
-                    csv = pop_final_data.to_csv(index=False).encode('utf-8')
-                    st.download_button(
-                        label="Baixar CSV",
-                        data=csv,
-                        file_name="populacao_final.csv",
-                        mime="text/csv"
-                    )
-                else:
-                    st.warning("Arquivo pop_final.xlsx não encontrado ou inválido.")
-        
-        # Adicionar espaço no final
-        st.markdown("<br><br>", unsafe_allow_html=True)
-        
-        # Mostrar parâmetros utilizados
-        st.subheader("Parâmetros Utilizados")
-        if results_data and 'params' in results_data:
-            st.json(results_data['params'], expanded=False)
-        else:
-            st.warning("Dados de parâmetros não encontrados.")
-
-# --- Ponto de Entrada ---
-# Este arquivo é uma "página" e deve ser chamado por um app Streamlit principal.
-# Para testar isoladamente, você pode adicionar:
-# if __name__ == "__main__":
-#     dashboard = FrameworkRCEDashboard()
-#     dashboard.run()
+#dashboard = FrameworkRCEDashboard()
+#dashboard.run()
