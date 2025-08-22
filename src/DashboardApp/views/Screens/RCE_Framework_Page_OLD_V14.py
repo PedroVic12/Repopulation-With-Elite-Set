@@ -294,7 +294,13 @@ class FrameworkRCEDashboard:
 
             # Consolida resultados e exibe, passando all_params exigido pelo componente
             st.info(all_params)
-            df_consolidado, cons_warnings = ConsolidatedResultsComponent.render(all_params)
+            result = ConsolidatedResultsComponent.render(all_params)
+            
+            if result is None:
+                st.warning("Não foi possível carregar os resultados consolidados. Verifique se existem execuções disponíveis.")
+                return
+                
+            df_consolidado, cons_warnings = result
             if cons_warnings:
                 for w in cons_warnings:
                     st.warning(w)

@@ -45,18 +45,24 @@ class ConsolidatedResultsComponent:
         """Verifica e exibe a seção de resultados consolidados."""
 
         # Nome base do arquivo
-        consolidated_excel_path = rf"{path_foler_output}/results_consolidados.xlsx"
+        consolidated_excel_path = os.path.join(path_foler_output, "resultados_consolidados.xlsx")
+        
+        # Verifica se existem arquivos de resultados .json
+        json_files = [f for f in os.listdir(path_foler_output) if f.endswith('_results.json')]
+        
+        if not json_files and not os.path.exists(consolidated_excel_path):
+            st.warning("Nenhum arquivo de execução (.json) encontrado em output para gerar o consolidado.")
+            return None, ["Nenhum arquivo de execução encontrado. Execute o algoritmo primeiro."]
 
         def button_save_excel(arquivo, nome_arquivo):
             # Abre o arquivo usando o caminho completo para o botão de download
             with open(arquivo, "rb") as fp:
-                        st.download_button(
-                            label="Baixar Resultados Consolidados (Excel)",
-                            data=fp,
-                            # Usa o nome base do arquivo para o download
-                            file_name=nome_arquivo,
-                            mime="application/vnd.ms-excel"
-                        )
+                st.download_button(
+                    label="Baixar Resultados Consolidados (Excel)",
+                    data=fp,
+                    file_name=nome_arquivo,
+                    mime="application/vnd.ms-excel"
+                )
 
         # Verifica a existência usando o caminho completo
         if os.path.exists(consolidated_excel_path):
@@ -140,34 +146,37 @@ class ConsolidatedResultsComponent:
             except Exception as e:
                 st.error(f"Erro ao ler os resultados consolidados: {e}")
         else:
-            # Tentativa de construir automaticamente o arquivo consolidado a partir dos .pkl no output
+            # Tentativa de construir automaticamente o arquivo consolidado a partir dos .json no output
             st.info(f"Arquivo de resultados consolidados ({consolidated_excel_path}) não encontrado. Tentando gerar automaticamente...")
             rows = []
             try:
+                # Procurar por arquivos de resultados JSON
                 for fname in sorted(os.listdir(path_foler_output)):
-                    if not (fname.startswith("dashboard_data_config") and fname.endswith(".pkl")):
+                    if not fname.endswith('_results.json'):
                         continue
+                        
                     # Extrair config e exec do nome do arquivo
-                    m = re.match(r"dashboard_data_config(\d+)_exec(\d+)\\.pkl", fname)
-                    cfg = execn = None
-                    if m:
-                        cfg = int(m.group(1))
-                        execn = int(m.group(2))
+                    m = re.match(r"config_(\d+)_exec_(\d+)_results\.json", fname)
+                    if not m:
+                        continue
+                        
+                    cfg = int(m.group(1))
+                    execn = int(m.group(2))
                     fpath = os.path.join(path_foler_output, fname)
+                    
                     try:
-                        with open(fpath, "rb") as f:
-                            data = pickle.load(f)
+                        with open(fpath, "r") as f:
+                            data = json.load(f)
+                        
                         if isinstance(data, dict):
                             row = {
                                 "config": cfg,
                                 "execution": execn,
                                 "best_fitness": data.get("best_fitness", np.nan),
-                                "best_gen_idx": data.get("best_gen_idx", np.nan),
-                                "best_vars": data.get("best_vars", []),
+                                "best_gen_idx": data.get("best_gen", 0),
+                                "best_vars": data.get("best_individual", []),
+                                "execution_time": data.get("execution_time", np.nan)
                             }
-                            # tentar pegar execution_time se existir
-                            et = data.get("execution_time") or data.get("tempo_execucao")
-                            row["execution_time"] = et if et is not None else np.nan
                             rows.append(row)
                     except Exception as e:
                         st.warning(f"Falha ao ler {fname}: {e}")

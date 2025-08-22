@@ -1,27 +1,11 @@
-"""
-Launcher Desktop App (PySide6) - Refatorado com DatabaseController e Observer
------------------------------------------------------------------------------
 
-Este aplicativo desktop organiza a configuração e execução do framework RCE.
-Agora utiliza o DatabaseController (com Observer Pattern) para centralizar
-todo o acesso a arquivos e notificar sobre mudanças.
-
-Principais mudanças:
-- Integração do `DatabaseController` para I/O de arquivos.
-- `ConfigManager` e outras classes usam o `DatabaseController`.
-- Tratamento robusto de arrays em `params.json` via `JsonEditor`.
-- `ExecutionTab` simplificada e com botão de consolidação.
-"""
 import sys
 import os
 import json
 import subprocess
-import threading
 import time
 import shutil
 from pathlib import Path
-from functools import reduce
-import operator
 from itertools import product
 
 from PySide6.QtWidgets import (
@@ -36,24 +20,21 @@ from PySide6.QtGui import QFont, QIcon, QIntValidator, QDoubleValidator, QColor
 
 # --- IMPORTS DO PROJETO ---
 from style import STYLESHEET
-from src.database_controller_revised import DatabaseController
-from src.event_system import EventObserver # Importa o Observer
+from database_controller import DatabaseController
 
 # --- CONFIGURAÇÃO ---
 BASE_DIR = Path(__file__).parent
 SRC_DIR = BASE_DIR / "src"
-
-# arquivos de execução do framework e dashboard
-RUN_FRAMEWORK_SCRIPT = SRC_DIR /"run_execution.py" 
+RUN_FRAMEWORK_SCRIPT = SRC_DIR / "run_execution.py"
 DASHBOARD_SCRIPT = SRC_DIR / "DashboardApp" / "dashboard_RCE_APP.py"
 
 # Parâmetros que podem variar via options.json (arrays)
 VARYING_KEYS = {"MUTACAO", "CROSSOVER", "NUM_GENERATIONS", "POP_SIZE"}
 
-class ConfigManager: 
+class ConfigManager:
     """Gerencia a lógica de configuração, usando o DatabaseController para I/O."""
-    def __init__(self, db_controller: DatabaseController):
-        self.db_controller = db_controller
+    def __init__(self):
+        self.db_controller = DatabaseController(BASE_DIR)
         self.params = self.db_controller.get_params()
         self.options = self.db_controller.get_options()
         self.clean_options()
@@ -109,7 +90,7 @@ class ConfigTab(QWidget):
     """Aba de Configuração e Execução rápida (UI Original mantida)."""
     execution_requested = Signal(list, int)
 
-    def __init__(self, config_manager: ConfigManager):
+    def __init__(self, config_manager):
         super().__init__()
         self.config_manager = config_manager
         self.param_widgets = {}
@@ -131,8 +112,8 @@ class ConfigTab(QWidget):
         self.runs_per_config_spin.setRange(1, 100)
         self.runs_per_config_spin.setValue(self.config_manager.options.get('repeticoes_por_config', 1))
         self.runs_per_config_spin.valueChanged.connect(self.update_summary)
-        general_layout.addWidget(QLabel("Execuções por Configuração:"), 0, 0)
-        general_layout.addWidget(self.runs_per_config_spin, 0, 1)
+        general_layout.addWidget(QLabel("Execuções por Configuração:"))
+        general_layout.addWidget(self.runs_per_config_spin)
         layout.addWidget(general_group)
 
     def create_ag_params(self, layout):
@@ -165,7 +146,7 @@ class ConfigTab(QWidget):
         layout.addWidget(summary_group)
 
     def create_run_button(self, layout):
-        self.run_button = QPushButton("💾 Salvar Configurações e Iniciar Execuções")
+        self.run_button = QPushButton("💾 Salvar e Executar")
         self.run_button.clicked.connect(self.prepare_and_run)
         layout.addWidget(self.run_button, alignment=Qt.AlignCenter)
 
@@ -244,18 +225,11 @@ class ConfigTab(QWidget):
     def prepare_and_run(self):
         base_params = self.config_manager.db_controller.get_params()
         variable_arrays = self._get_variable_arrays()
-        
-        # Atualiza os valores fixos em params
+
         for name, info in self.param_widgets.items():
             if info["mode"].checkedButton().text() == "Fixo":
-                try:
-                    value = int(info["fixed"].text()) if info["is_int"] else float(info["fixed"].text())
-                    base_params[name] = value
-                except ValueError:
-                    QMessageBox.critical(self, "Erro de Formato", f"Valor inválido para o parâmetro fixo '{name}'.")
-                    return
+                base_params[name] = int(info["fixed"].text()) if info["is_int"] else float(info["fixed"].text())
 
-        # Salva os arquivos de configuração
         options_to_save = {'repeticoes_por_config': self.runs_per_config_spin.value(), **variable_arrays}
         self.config_manager.db_controller.save_params(base_params)
         self.config_manager.db_controller.save_options(options_to_save)
@@ -269,182 +243,74 @@ class ConfigTab(QWidget):
         QMessageBox.information(self, "Pronto para Iniciar", msg)
         self.execution_requested.emit(configurations, self.runs_per_config_spin.value())
 
-class JsonEditor(QWidget):
-    """Editor de JSON genérico para params.json e options.json."""
-    def __init__(self, title, db_controller: DatabaseController, file_type: str):
+class ParamsAGTab(QWidget):
+    """Aba para editar todos os parâmetros em tabela (UI Original mantida)."""
+    def __init__(self, config_manager: 'ConfigManager'):
         super().__init__()
-        self.title = title
-        self.db_controller = db_controller
-        self.file_type = file_type # 'params' or 'options'
-        self.fields = {}
+        self.config_manager = config_manager
         self.init_ui()
+        self.reload()
 
     def init_ui(self):
         layout = QVBoxLayout(self)
-        group = QGroupBox(self.title)
-        v = QVBoxLayout(group)
-
-        self.info_label = QLabel(f"Arquivo: {self.file_type}.json")
-        self.info_label.setStyleSheet("color: #666;")
-        v.addWidget(self.info_label)
-
-        self.fields_widget = QWidget()
-        self.fields_layout = QGridLayout(self.fields_widget)
-        self.fields_layout.setColumnStretch(1, 1)
-        v.addWidget(self.fields_widget)
+        self.table = QTableWidget()
+        self.table.setColumnCount(2)
+        self.table.setHorizontalHeaderLabels(["Parâmetro", "Valor"])
+        self.table.horizontalHeader().setSectionResizeMode(QHeaderView.ResizeMode.Stretch)
+        layout.addWidget(self.table)
 
         buttons_layout = QHBoxLayout()
         self.reload_btn = QPushButton("🔄 Recarregar")
         self.save_btn = QPushButton("💾 Salvar")
         self.reload_btn.clicked.connect(self.reload)
         self.save_btn.clicked.connect(self.save)
-        buttons_layout.addStretch()
         buttons_layout.addWidget(self.reload_btn)
         buttons_layout.addWidget(self.save_btn)
-        v.addLayout(buttons_layout)
-
-        layout.addWidget(group)
-        self.reload()
-
-    def _get_data(self):
-        if self.file_type == 'params':
-            return self.db_controller.get_params()
-        elif self.file_type == 'options':
-            return self.db_controller.get_options()
-        return {}
-
-    def _save_data(self, data):
-        if self.file_type == 'params':
-            return self.db_controller.save_params(data)
-        elif self.file_type == 'options':
-            return self.db_controller.save_options(data)
-        return False
-
-    def detect_elem_type(self, lst):
-        if not lst:
-            return str # Default to string for empty lists
-        types = {type(x) for x in lst}
-        if int in types and float in types:
-            return float
-        if int in types and len(types) == 1:
-            return int
-        if float in types and len(types) == 1:
-            return float
-        return str
-
-    def build_fields(self, data: dict):
-        while self.fields_layout.count():
-            item = self.fields_layout.takeAt(0)
-            w = item.widget()
-            if w:
-                w.deleteLater()
-        self.fields.clear()
-
-        row = 0
-        for key, value in data.items():
-            label = QLabel(str(key))
-            label.setMinimumWidth(180)
-            self.fields_layout.addWidget(label, row, 0)
-
-            if isinstance(value, list):
-                editor = QLineEdit(json.dumps(value)) # Store lists as JSON string
-                self.fields_layout.addWidget(editor, row, 1)
-                self.fields[key] = {"widget": editor, "is_list": True, "orig_type": list}
-            elif isinstance(value, int):
-                editor = QLineEdit(str(value))
-                editor.setValidator(QIntValidator())
-                self.fields_layout.addWidget(editor, row, 1)
-                self.fields[key] = {"widget": editor, "is_list": False, "orig_type": int}
-            elif isinstance(value, float):
-                editor = QLineEdit(str(value))
-                editor.setValidator(QDoubleValidator())
-                self.fields_layout.addWidget(editor, row, 1)
-                self.fields[key] = {"widget": editor, "is_list": False, "orig_type": float}
-            else:
-                editor = QLineEdit(str(value))
-                self.fields_layout.addWidget(editor, row, 1)
-                self.fields[key] = {"widget": editor, "is_list": False, "orig_type": str}
-
-            row += 1
+        layout.addLayout(buttons_layout)
 
     def reload(self):
-        data = self._get_data()
-        if not isinstance(data, dict):
-            QMessageBox.critical(self, "Erro", f"Arquivo inválido: {self.file_type}.json")
-            data = {}
-        self.build_fields(data)
+        params = self.config_manager.db_controller.get_params()
+        self.table.setRowCount(len(params))
+        for r, (key, value) in enumerate(params.items()):
+            key_item = QTableWidgetItem(key)
+            key_item.setFlags(key_item.flags() & ~Qt.ItemIsEditable)
+            self.table.setItem(r, 0, key_item)
+            self.table.setItem(r, 1, QTableWidgetItem(str(value)))
 
     def save(self):
-        try:
-            current_data = self._get_data()
-            if not isinstance(current_data, dict):
-                current_data = {}
-
-            for key, meta in self.fields.items():
-                w: QLineEdit = meta["widget"]
-                txt = w.text().strip()
-                
-                if meta["is_list"]:
-                    try:
-                        # Tenta carregar a string como JSON (para listas)
-                        parsed_list = json.loads(txt)
-                        if not isinstance(parsed_list, list):
-                            raise ValueError("Conteúdo não é uma lista JSON válida.")
-                        current_data[key] = parsed_list
-                    except (json.JSONDecodeError, ValueError) as e:
-                        QMessageBox.warning(self, "Valor Inválido", f"Erro ao analisar lista para '{key}': {e}. Certifique-se de que é um JSON de lista válido (ex: [1, 2, 3]).")
-                        return
+        params = {}
+        for r in range(self.table.rowCount()):
+            key = self.table.item(r, 0).text()
+            value_str = self.table.item(r, 1).text()
+            try:
+                # Tenta converter para int, float, ou mantém como string
+                if '.' in value_str:
+                    params[key] = float(value_str)
                 else:
-                    orig_type = meta.get("orig_type", str)
+                    params[key] = int(value_str)
+            except (ValueError, TypeError):
+                # Lida com listas e outras strings
+                if value_str.startswith('[') and value_str.endswith(']'):
                     try:
-                        if orig_type is int:
-                            current_data[key] = int(txt) if txt else 0
-                        elif orig_type is float:
-                            current_data[key] = float(txt) if txt else 0.0
-                        elif orig_type is bool:
-                            current_data[key] = txt.lower() in ('1', 'true', 'yes', 'sim')
-                        else:
-                            current_data[key] = txt
-                    except ValueError:
-                        QMessageBox.warning(self, "Valor Inválido", f"Erro ao converter valor para '{key}'. Verifique o formato.")
-                        return
+                        params[key] = json.loads(value_str)
+                    except json.JSONDecodeError:
+                        params[key] = value_str # Mantém como string se não for JSON válido
+                else:
+                    params[key] = value_str
+        
+        if self.config_manager.db_controller.save_params(params):
+            QMessageBox.information(self, "Sucesso", "Parâmetros salvos.")
+        else:
+            QMessageBox.critical(self, "Erro", "Falha ao salvar parâmetros.")
 
-            if not self._save_data(current_data):
-                QMessageBox.critical(self, "Erro", f"Falha ao salvar {self.file_type}.json")
-                return
-            QMessageBox.information(self, "Sucesso", f"Arquivo salvo: {self.file_type}.json")
-        except Exception as e:
-            QMessageBox.critical(self, "Erro", f"Erro ao salvar: {e}")
-
-class ParamsAGTab(QWidget):
-    """Aba para editar todos os parâmetros em tabela (UI Original mantida)."""
-    def __init__(self, db_controller: DatabaseController):
-        super().__init__()
-        self.db_controller = db_controller
-        self.json_editor = JsonEditor("Editar Parâmetros (params.json)", self.db_controller, 'params')
-        self.init_ui()
-
-    def init_ui(self):
-        layout = QVBoxLayout(self)
-        header = QLabel("Edite os parâmetros base do algoritmo genético (params.json).")
-        header.setWordWrap(True)
-        layout.addWidget(header)
-        layout.addWidget(self.json_editor)
-
-class ExecutionTab(QWidget, EventObserver):
+class ExecutionTab(QWidget):
     """Aba de execução, logs e ações pós-execução."""
-    def __init__(self, db_controller: DatabaseController):
+    def __init__(self, config_manager):
         super().__init__()
-        self.db_controller = db_controller
+        self.config_manager = config_manager
+        self.db_controller = self.config_manager.db_controller
         self.execution_thread = None
         self.configurations = []
-        self.runs_per_config = 0
-        self.current_run_number = 0
-        self.total_runs = 0
-        
-        # Subscreve para eventos de consolidação
-        self.db_controller.subscribe("consolidation_finished", self)
-        
         self.init_ui()
 
     def init_ui(self):
@@ -520,4 +386,115 @@ class ExecutionTab(QWidget, EventObserver):
         current_config = self.configurations[config_index]
         
         self.status_label.setText(f"Executando {self.current_run_number + 1}/{self.total_runs} (Config {config_index + 1}, Rep {repetition})")
-        self.append_log("-
+        self.append_log("-" * 80)
+        self.append_log(f"Iniciando Config {config_index + 1}, Repetição {repetition}")
+
+        if not self.db_controller.save_params(current_config):
+             self.append_log(f"❌ Erro ao salvar o arquivo de parâmetros.")
+             self.on_all_executions_finished(False, "Erro de arquivo.")
+             return
+
+        args = ["--config_num", str(config_index + 1), "--exec_num", str(repetition)]
+        self.execution_thread = ExecutionThread(RUN_FRAMEWORK_SCRIPT, args)
+        self.execution_thread.log_updated.connect(self.append_log)
+        self.execution_thread.execution_finished.connect(self.on_single_execution_finished)
+        self.execution_thread.start()
+
+    def on_single_execution_finished(self, success, message):
+        self.append_log(f"Finalizada execução. Sucesso: {success}. {message}")
+        if not success:
+            self.append_log(f"❌ Erro na execução, pulando para a próxima.")
+        
+        self.current_run_number += 1
+        self.progress_bar.setValue(self.current_run_number)
+        QTimer.singleShot(100, self.run_next_configuration)
+
+    def stop_execution(self):
+        self.current_run_number = self.total_runs
+        if self.execution_thread and self.execution_thread.isRunning():
+            self.execution_thread.stop()
+        self.on_all_executions_finished(False, "Interrompido pelo usuário.")
+
+    def on_all_executions_finished(self, success, message):
+        self.stop_btn.setEnabled(False)
+        self.progress_bar.setValue(self.progress_bar.maximum())
+        self.status_label.setText(f"Finalizado. {message}")
+        self.append_log(f"✅ {message}")
+        QMessageBox.information(self, "Bateria de Testes Concluída", message)
+
+    def consolidate_results(self):
+        self.append_log("Iniciando consolidação manual de resultados...")
+        try:
+            self.db_controller.consolidate_results()
+            self.append_log("Consolidação concluída com sucesso!")
+            QMessageBox.information(self, "Sucesso", "Resultados consolidados com sucesso!")
+        except Exception as e:
+            self.append_log(f"Erro durante a consolidação: {e}")
+            QMessageBox.critical(self, "Erro", f"Falha ao consolidar resultados: {e}")
+
+    def run_dashboard(self):
+        try:
+            subprocess.Popen(["streamlit", "run", str(DASHBOARD_SCRIPT), "--server.port", "8501"], cwd=BASE_DIR)
+            self.append_log("\nDashboard iniciado em http://localhost:8501")
+        except Exception as e:
+            self.append_log(f"Erro ao iniciar dashboard: {e}")
+
+    def append_log(self, message):
+        self.log_text.append(f"[{time.strftime('%H:%M:%S')}] {message}")
+        self.log_text.ensureCursorVisible()
+
+class LauncherWindow(QMainWindow):
+    """Janela principal da aplicação (UI Original mantida)."""
+    def __init__(self):
+        super().__init__()
+        self.config_manager = ConfigManager()
+        self.init_ui()
+
+    def init_ui(self):
+        self.setWindowTitle("RCE Framework Launcher Desktop - Otimizado para AG")
+        scroll = QScrollArea()
+        scroll.setWidgetResizable(True)
+        content = QWidget()
+        main_layout = QVBoxLayout(content)
+        scroll.setWidget(content)
+        self.setCentralWidget(scroll)
+        
+        self.create_header(main_layout)
+        self.create_tabs(main_layout)
+        self.statusBar().showMessage("Pronto.")
+
+    def create_header(self, layout):
+        title = QLabel("Repopulation-With-Elite-Set Framework")
+        title.setObjectName("title")
+        title.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        layout.addWidget(title)
+        
+        subtitle = QLabel("Configuração e Execução em Tempo Real usando PySide6")
+        subtitle.setObjectName("subtitle")
+        subtitle.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        layout.addWidget(subtitle)
+
+    def create_tabs(self, layout):
+        tab_widget = QTabWidget()
+
+        # Recriando todas as abas originais
+        self.config_tab = ConfigTab(self.config_manager)
+        self.params_ag_tab = ParamsAGTab(self.config_manager)
+        self.execution_tab = ExecutionTab(self.config_manager)
+        
+        tab_widget.addTab(self.config_tab, "⚙️ Configuração e Execução")
+        tab_widget.addTab(self.params_ag_tab, "Parametros AG")
+        tab_widget.addTab(self.execution_tab, "📊 Dashboard e Logs")
+        
+        layout.addWidget(tab_widget)
+
+        # Conectando sinais
+        self.config_tab.execution_requested.connect(self.execution_tab.start_executions)
+        self.config_tab.execution_requested.connect(lambda: tab_widget.setCurrentWidget(self.execution_tab))
+
+if __name__ == "__main__":
+    app = QApplication(sys.argv)
+    app.setStyleSheet(STYLESHEET)
+    window = LauncherWindow()
+    window.showMaximized()
+    sys.exit(app.exec())
