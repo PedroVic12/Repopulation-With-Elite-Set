@@ -5,6 +5,8 @@ from ..components.dash_rce_components import ConsolidatedResultsComponent, CardS
 from ..components.side_bar_widget import load_execution_data
 from .AgendamentoRedePage import AgendamentoRedePage
 
+
+
 #backend
 from controllers.Utils import Controller, Utils, ConfigController
 

@@ -196,86 +196,235 @@ class ConsolidatedResultsComponent:
 
 
 class CardSolutions:
-    """Componente para exibir o resumo da melhor solução."""
+    """Componente moderno para exibir o resumo da melhor solução."""
+
+    @staticmethod
+    def _get_progress_color(progress):
+        """Retorna uma cor baseada no valor de progresso (0-1)."""
+        if progress < 0.3:
+            return "#ff4b4b"  # Vermelho
+        elif progress < 0.7:
+            return "#f4c430"  # Âmbar
+        return "#2ecc71"  # Verde
+
+    @staticmethod
+    def create_metric_card(title, value, icon, color, progress=None):
+        """Cria um cartão de métrica estilizado."""
+        if progress is not None:
+            progress_color = CardSolutions._get_progress_color(progress)
+            progress_bar = f"""
+            <div style="background: #e0e0e0; border-radius: 5px; height: 6px; margin-top: 8px;">
+                <div style="background: {progress_color}; width: {progress*100}%; height: 100%; border-radius: 5px;"></div>
+            </div>
+            """
+        else:
+            progress_bar = ""
+            
+        return f"""
+        <div style="
+            background: white;
+            border-radius: 12px;
+            padding: 16px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            transition: transform 0.2s, box-shadow 0.2s;
+            height: 100%;
+        ">
+            <div style="display: flex; align-items: center; margin-bottom: 8px;">
+                <div style="background: {color}20; color: {color}; width: 40px; height: 40px; 
+                    border-radius: 8px; display: flex; align-items: center; justify-content: center; 
+                    margin-right: 12px;">
+                    <span style="font-size: 20px;">{icon}</span>
+                </div>
+                <div>
+                    <div style="font-size: 12px; color: #666; font-weight: 500;">{title}</div>
+                    <div style="font-size: 18px; font-weight: 600; color: #2c3e50;">{value}</div>
+                </div>
+            </div>
+            {progress_bar}
+        </div>
+        """
 
     @staticmethod
     def render(data, exec_num, debug=False):
-        """Exibe o cabeçalho e o resumo da melhor solução."""
-        st.subheader(f"Resultados da Execução: {exec_num}")
-        #st.warning("Resultados da melhor geração da solução encontrada esta acumulando ao longo das execuções. Para ver os resultados de cada execução, acesse a a planilha em 'outpout/resultados_consolidados.xlsx'.")
+        """Exibe o cabeçalho e o resumo da melhor solução com UI moderna."""
+        # Configuração inicial
+        st.markdown("""
+        <style>
+            .metric-card {
+                transition: all 0.3s ease;
+                margin-bottom: 16px;
+                background: white;
+                border-radius: 12px;
+                padding: 16px;
+                box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            }
+            .metric-card:hover {
+                transform: translateY(-2px);
+                box-shadow: 0 6px 12px rgba(0,0,0,0.1) !important;
+            }
+            .solution-card {
+                background: white;
+                border-radius: 12px;
+                padding: 16px;
+                margin-bottom: 16px;
+                box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+                transition: all 0.3s ease;
+            }
+            .solution-card:hover {
+                transform: translateY(-2px);
+                box-shadow: 0 6px 12px rgba(0,0,0,0.1) !important;
+            }
+            .status-badge {
+                display: inline-flex;
+                align-items: center;
+                padding: 4px 12px;
+                border-radius: 12px;
+                font-size: 0.75rem;
+                font-weight: 500;
+                background: #e3f2fd;
+                color: #1976d2;
+            }
+            .status-badge::before {
+                content: '';
+                display: inline-block;
+                width: 8px;
+                height: 8px;
+                border-radius: 50%;
+                background: #1976d2;
+                margin-right: 6px;
+            }
+            .var-value {
+                font-weight: 600;
+                color: #2c3e50;
+            }
+            .var-label {
+                font-size: 0.8rem;
+                color: #6c757d;
+                margin-bottom: 4px;
+            }
+        </style>
+        """, unsafe_allow_html=True)
+
+        # Cabeçalho
+        st.markdown(f"""
+        <div style="margin-bottom: 24px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                <h2 style="margin: 0; color: #2c3e50; font-weight: 700; font-size: 1.5rem;">
+                    Execução #{exec_num}
+                </h2>
+                <div class="status-badge">
+                    Em execução
+                </div>
+            </div>
+            <p style="margin: 0; color: #6c757d; font-size: 0.9rem;">
+                Análise detalhada dos resultados
+            </p>
+        </div>
+        """, unsafe_allow_html=True)
 
         if debug:
-            st.write(data)
+            with st.expander("🔍 Dados brutos (debug)", expanded=False):
+                st.json(data)
 
-        # Obter os dados necessários
+        # Processar dados
         best_gen_idx = data.get('best_gen_idx', 'N/A')
         best_fitness = data.get('best_fitness', float('nan'))
         best_vars = data.get('best_vars', [])
-
-        # Corrigir/limitar melhor geração com base no logbook ou número de gerações
+        decision_vars = data.get('decision_vars', {})
+        num_generations = data.get('num_generations', 1)
+        
+        # Calcular métricas
         try:
-            max_gen_available = None
-            if isinstance(data.get('logbook_data'), dict):
-                gens = data['logbook_data'].get('generation')
-                if isinstance(gens, (list, tuple)) and len(gens) > 0:
-                    max_gen_available = max(gens)
-                elif isinstance(gens, (int, float)):
-                    max_gen_available = int(gens)
-            if max_gen_available is None and isinstance(data.get('num_generations'), (int, float)):
-                # num_generations pode ser contagem; índice máximo é num_generations-1
-                num_g = int(data['num_generations'])
-                max_gen_available = num_g - 1 if num_g > 0 else None
-
-            if isinstance(best_gen_idx, (int, float)) and max_gen_available is not None:
-                if best_gen_idx > max_gen_available:
-                    best_gen_idx = max_gen_available
-        except Exception:
-            pass
-
-        # Criar tabela de variáveis de decisão
-        if isinstance(best_vars, (list, tuple)) and len(best_vars) > 0:
-            best_vars_table = pd.DataFrame(
-                {"Valor": best_vars},
-                index=[f"VAR {i+1}" for i in range(len(best_vars))]
-            ).T.to_html(classes='dataframe', border=2, justify='center', index_names=True, index=True)
-        else:
-            best_vars_table = "<p>Nenhuma variável encontrada.</p>"
-
-      
-
-        # Safely format best_fitness
-        import math
-        if isinstance(best_fitness, (int, float)) and not math.isnan(best_fitness):
-            best_fitness_str = f"{best_fitness:.2f}"
-        else:
-            best_fitness_str = str(best_fitness)
-                   
+            progress = (int(best_gen_idx) / num_generations) if num_generations > 0 else 0
+            progress = min(progress, 1.0)  # Garante que não ultrapasse 100%
+        except (TypeError, ValueError):
+            progress = 0
             
-        st.markdown(
-            f"""
-            <div style="
-                border: 2px solid #e6e6e6; 
-                border-radius: 15px; 
-                background-color: #9c9c9c;
-                padding: 12px;
-                display: flex;
-                flex-direction: row;
-                justify-content: space-between;
-                align-items: flex-start;
-            ">
-                <div style="width: 52%; border: 1px solid #ccc; border-radius: 8px; padding: 12px;">
-                    <h3 style="color: #1f2db4; text-align: left;">Resumo da Melhor Solução</h3>
-                    <h4><strong>Melhor Geração:</strong> {best_gen_idx}</h4>
-                    <h4><strong>Melhor Fitness:</strong> {best_fitness_str}</h4>
-                </div>
-                <div style="width: 46%; border: 1px solid #ccc; border-radius: 8px; padding: 8px;">
-                    <h4 style="color: #1f2db4; text-align: left;">Variáveis de Decisão</h4>
-                    {best_vars_table}
-                </div>
-            </div>
-            """,
-            unsafe_allow_html=True
-        )
+        fitness_value = f"{float(best_fitness):.4f}" if isinstance(best_fitness, (int, float)) and not pd.isna(best_fitness) else "N/A"
+        
+        # Layout principal em duas colunas
+        col1, col2 = st.columns([1, 2])
+        
+        with col1:
+            # Métricas na coluna da esquerda
+            st.markdown(CardSolutions.create_metric_card(
+                "Melhor Geração", 
+                best_gen_idx,
+                "📊", 
+                "#3498db"
+            ), unsafe_allow_html=True)
+            
+            st.markdown(CardSolutions.create_metric_card(
+                "Melhor Fitness", 
+                fitness_value,
+                "🏆", 
+                "#2ecc71"
+            ), unsafe_allow_html=True)
+            
+            # Adicionar tempo de execução
+            execution_time = data.get('execution_time', 0)
+            if isinstance(execution_time, (int, float)) and execution_time > 0:
+                if execution_time > 60:
+                    exec_time_str = f"{execution_time/60:.1f} min"
+                else:
+                    exec_time_str = f"{execution_time:.1f} s"
+            else:
+                exec_time_str = "N/A"
+                
+            st.markdown(CardSolutions.create_metric_card(
+                "Tempo de Execução", 
+                exec_time_str,
+                "⏱️", 
+                "#e67e22"
+            ), unsafe_allow_html=True)
+        
+        with col2:
+            # Seção de variáveis de decisão
+            st.markdown("""
+            <div style="margin-bottom: 16px; padding: 16px; background: white; border-radius: 12px; box-shadow: 0 2px 4px rgba(0,0,0,0.05);">
+                <h3 style="margin: 0 0 16px 0; color: #2c3e50; font-size: 1.1rem; font-weight: 600;">
+                    Variáveis de Decisão
+                </h3>
+            """, unsafe_allow_html=True)
+            
+            if decision_vars and len(decision_vars) > 0:
+                # Criar cards para as variáveis de decisão
+                num_cols = 3
+                var_items = list(decision_vars.items())
+                
+                # Criar linhas de 3 colunas cada
+                for i in range(0, len(var_items), num_cols):
+                    cols = st.columns(num_cols)
+                    for j in range(num_cols):
+                        idx = i + j
+                        if idx < len(var_items):
+                            var_name, var_value = var_items[idx]
+                            with cols[j]:
+                                st.markdown(f"""
+                                <div class="solution-card">
+                                    <div class="var-label">{var_name.replace('_', ' ').title()}</div>
+                                    <div class="var-value">{var_value:.4f if isinstance(var_value, (int, float)) else var_value}</div>
+                                </div>
+                                """, unsafe_allow_html=True)
+            elif isinstance(best_vars, (list, tuple)) and len(best_vars) > 0:
+                # Fallback para best_vars se decision_vars não estiver disponível
+                for i in range(0, len(best_vars), 3):
+                    cols = st.columns(3)
+                    for j in range(3):
+                        idx = i + j
+                        if idx < len(best_vars):
+                            var = best_vars[idx]
+                            with cols[j]:
+                                st.markdown(f"""
+                                <div class="solution-card">
+                                    <div class="var-label">VAR {idx+1}</div>
+                                    <div class="var-value">{var:.4f if isinstance(var, (int, float)) else var}</div>
+                                </div>
+                                """, unsafe_allow_html=True)
+            else:
+                st.info("Nenhuma variável de decisão disponível.")
+            
+            st.markdown("</div>", unsafe_allow_html=True)  # Fechar div da seção
 
 
 
