@@ -209,7 +209,7 @@ class FrameworkRCEDashboard:
 
     def run(self):
         """Método principal para executar o dashboard."""
-        st.title("⚡ Dashboard RCE Framework ⚡")
+        st.title("⚡ Dashboard RCE Framework (em desenvolvimento) ⚡")
         st.markdown("---")
         
         # Carrega dados consolidados
