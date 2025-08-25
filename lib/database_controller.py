@@ -15,8 +15,8 @@ from pathlib import Path
 import glob
 from datetime import datetime
 import subprocess
-
 import sys
+
 
 def executa_script_py():
 
