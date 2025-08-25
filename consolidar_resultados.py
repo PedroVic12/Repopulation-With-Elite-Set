@@ -165,10 +165,10 @@ def main():
             output_dir = Path(__file__).parent / "src" / "output"
             arquivo_salvo = salvar_excel(resultados, output_dir)
             
-            print(f"\n✅ Consolidação concluída com sucesso!")
-            print(f"📁 Arquivo salvo em: {arquivo_salvo}")
+            print(f"Consolidação concluída com sucesso!")
+            print(f"Arquivo salvo em: {arquivo_salvo}")
         else:
-            print("❌ Nenhum resultado encontrado para consolidar!")
+            print("Nenhum resultado encontrado para consolidar!")
             
     except Exception as e:
         print(f"❌ Erro durante a consolidação: {e}")
