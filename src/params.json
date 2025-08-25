@@ -6,17 +6,17 @@
         18,
         20
     ],
-    "CROSSOVER": 0.5,
+    "CROSSOVER": 0.1,
     "DELTA_MIN": 2,
     "IND_SIZE": 5,
     "LIMITE_VAR": [
         0,
         31
     ],
-    "MUTACAO": 0.8,
-    "NUM_GENERATIONS": 20,
+    "MUTACAO": 0.1,
+    "NUM_GENERATIONS": 15,
     "NUM_VAR_DIFERENTES": 1,
-    "POP_SIZE": 5,
+    "POP_SIZE": 7,
     "PORCENTAGEM": 0.2,
     "RCE_REPOPULATION_GENERATIONS": 50
 }
