@@ -267,80 +267,79 @@ class FrameworkRCEDashboard:
     
     def render_execution_details(self, config_num, exec_num):
         """Renderiza os detalhes (Soluções, Gráfico, etc.) para uma execução específica."""
-        # Atualiza o estado atual
         UseState.set_state("current_config", config_num)
         UseState.set_state("current_exec", exec_num)
             
         results_data = load_individual_run_data(self.db_controller, config_num, exec_num, "results")
         viz_data = load_individual_run_data(self.db_controller, config_num, exec_num, "visualization")
         
-        # Carregar dados da população final
+        if results_data is None:
+            results_data = {}
+
+        df_consolidado = st.session_state.get('df_consolidado')
+        if df_consolidado is not None:
+            config_col_name = UseState.get_state("config_column_name")
+            exec_col_name = UseState.get_state("exec_column_name")
+
+            exec_data_row = df_consolidado[
+                (df_consolidado[config_col_name].astype(str) == str(config_num)) &
+                (df_consolidado[exec_col_name].astype(str) == str(exec_num))
+            ]
+            
+            if not exec_data_row.empty:
+                consolidated_row_data = exec_data_row.iloc[0].to_dict()
+                results_data.update(consolidated_row_data)
+
+        # Se 'best_variables' não veio do JSON ou está vazio, construa a partir das colunas 'best_var_X'.
+        if not results_data.get('best_variables') and results_data:
+            var_keys = sorted([k for k in results_data if str(k).startswith('best_var_')], 
+                              key=lambda x: int(str(x).split('_')[-1]))
+            if var_keys:
+                best_vars_list = [results_data[k] for k in var_keys]
+                results_data['best_variables'] = best_vars_list
+                results_data['Variaveis de Decisão'] = best_vars_list
+
         pop_final_path = OUTPUT_DIR / "pop_final.xlsx"
-        pop_final_data = None
-        if pop_final_path.exists():
-            try:
-                pop_final_data = pd.read_excel(pop_final_path)
-            except Exception as e:
-                st.warning(f"Erro ao carregar pop_final.xlsx: {str(e)}")
+        pop_final_data = pd.read_excel(pop_final_path) if pop_final_path.exists() else None
         
-        # Definir abas
         tab_titles = ["Soluções", "Gráfico de Convergência", "População Final"]
         component_tabs = st.tabs(tab_titles)
         
-        # Aba de Soluções
         with component_tabs[0]:
             if results_data:
-                # Carregar dados consolidados para extrair decision_vars
-                df_consolidado = load_consolidated_data(self.db_controller)
-                if df_consolidado is not None:
-                    exec_data = df_consolidado[
-                        (df_consolidado[UseState.get_state("config_column_name")] == config_num) & 
-                        (df_consolidado[UseState.get_state("exec_column_name")] == exec_num)
-                    ].iloc[0] if not df_consolidado.empty else None
-                    
-                    if exec_data is not None:
-                        decision_vars = {k: v for k, v in exec_data.items() if k.startswith('var_')}
-                        results_data['decision_vars'] = decision_vars
-                
                 CardSolutions.render(results_data, exec_num, debug=False)
-                st.markdown("--- ") # Add a separator after each solution card
+                st.markdown("--- ")
             else:
-                st.warning("Dados de solução (results.json) não encontrados.")
+                st.warning(f"Não foram encontrados dados de solução para Config {config_num}, Exec {exec_num}.")
         
-        # Aba de Gráfico de Convergência
         with component_tabs[1]:
             st.subheader("Gráfico de Convergência")
             if viz_data:
                 try:
                     df_viz = pd.DataFrame(viz_data)
-                    # DEAP logbook keys: gen, nevals, avg, std, min, max
-                    rename_map = {
-                        'gen': 'Generation',
-                        'avg': 'Average Fitness',
-                        'std': 'Std Deviation',
-                        'min': 'Min Fitness (Best)',
-                        'max': 'Max Fitness'
-                    }
-                    df_viz = df_viz.rename(columns=rename_map)
                     
-                    # Plotar o gráfico
-                    st.line_chart(df_viz, x='Generation', y=[col for col in rename_map.values() if col in df_viz.columns])
+                    if 'Generations' in df_viz.columns and 'Fitness' in df_viz.columns:
+                        stats_per_gen = df_viz.groupby('Generations')['Fitness'].agg(['mean', 'min', 'max', 'std']).reset_index()
+                        stats_per_gen = stats_per_gen.rename(columns={
+                            'Generations': 'Generation',
+                            'mean': 'Average Fitness',
+                            'std': 'Std Deviation',
+                            'min': 'Min Fitness (Best)',
+                            'max': 'Max Fitness'
+                        })
+                        
+                        st.line_chart(stats_per_gen, x='Generation', y=['Average Fitness', 'Min Fitness (Best)', 'Max Fitness'])
+                    else:
+                        st.warning("O arquivo de visualização não contém as colunas 'Generations' e 'Fitness' necessárias.")
+
                 except Exception as e:
                     st.error(f"Erro ao renderizar gráfico de convergência: {str(e)}")
             else:
-                st.warning("Dados de visualização não disponíveis.")
+                st.warning("Dados de visualização (visualization.json) não disponíveis.")
         
-        # Aba de População Final
         with component_tabs[2]:
             if pop_final_data is not None:
-                st.dataframe(
-                    pop_final_data,
-                    use_container_width=True,
-                    height=600,
-                    hide_index=True
-                )
-                
-                # Adicionar botão para baixar os dados
+                st.dataframe(pop_final_data, use_container_width=True, height=600, hide_index=True)
                 csv = pop_final_data.to_csv(index=False).encode('utf-8')
                 st.download_button(
                     label="📥 Baixar População Final",
@@ -351,15 +350,13 @@ class FrameworkRCEDashboard:
             else:
                 st.warning("Arquivo pop_final.xlsx não encontrado ou inválido.")
         
-        # Adicionar espaço no final
         st.markdown("<div style='margin-top: 24px;'></div>", unsafe_allow_html=True)
         
-        # Mostrar parâmetros utilizados
         st.subheader("Parâmetros Utilizados")
         if results_data and 'params' in results_data:
             st.json(results_data['params'], expanded=False)
         else:
-            st.warning("Dados de parâmetros não encontrados.")
+            st.warning("Dados de parâmetros não encontrados (requer o arquivo results.json).")
 
         self.footer()
 

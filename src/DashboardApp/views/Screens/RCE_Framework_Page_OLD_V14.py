@@ -1,553 +1,40 @@
 
 
 # --- Componentes da Interface de Usuário ---
-from .components.dash_rce_components import ConsolidatedResultsComponent, CardSolutions, GraficoPotenciaAtivaReativaComponent, StatisticsTableComponent, GraficoRCEComponent
-from .components.side_bar_widget import load_execution_data
-from AgendamentoRedePage import AgendamentoRedePage
+from functools import reduce
+import json
+import operator
+from ..components.dash_rce_components import ConsolidatedResultsComponent, CardSolutions, GraficoPotenciaAtivaReativaComponent, StatisticsTableComponent, GraficoRCEComponent
 
 
 #backend
-def reset_path():
-    import sys
-    import os
-
-    # Adiciona o diretório 'src' ao sys.path para permitir importações absolutas
-    SRC_PATH = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..', '..'))
-    if SRC_PATH not in sys.path:
-        sys.path.append(SRC_PATH)
-
-reset_path()
-
-from controllers.Utils import Controller, Utils, ConfigController, PARAMETROS_JSON
+from controllers.Utils import Controller,FOLDER_NAME, Utils, PARAMETROS_JSON
+import os
 
 # Frontend
 import streamlit as st
+import pandas as pd
+import json
+import time
+import threading
+import pathlib
 
 
-# --- Classe Principal do Aplicativo ---
-class FrameworkRCEDashboard:
-
-    # Configuração da barra lateral
-    def __init__(self, options=None):
-        self.controller = Controller()
-        self.utils = Utils()
-        
-        # Get available executions (returns dict of {config_num: [exec_nums]}, warnings)
-        self.executions, self.warnings = self.utils.find_available_executions()
-        self.menu_lateral = DrawerSideBar(self.warnings)
-        
-        # Store the first config and its first execution as default
-        self.current_config = next(iter(self.executions.keys()), None) if self.executions else None
-        self.current_execution = self.executions[self.current_config][0] if self.current_config and self.executions[self.current_config] else None
-        
-        self.options = options 
-        self.init_css()
-
-        UseState.initialize_state("saved_configurations", {})
-        if 'user_config' not in st.session_state:
-            st.session_state.user_config = self.options
-
-        if "dados" not in st.session_state:
-            st.session_state.dados = None
-
-        if "resultados_AG" not in st.session_state:
-            st.session_state.resultados_AG = None
-            
-        # Store execution data in session state
-        if 'execution_data' not in st.session_state and self.current_config and self.current_execution:
-            try:
-                st.session_state.execution_data = self.utils.load_execution_data(
-                    self.current_config, 
-                    self.current_execution
-                )
-            except Exception as e:
-                st.error(f"Erro ao carregar dados da execução: {str(e)}")
-
-
-
-
-    def init_css(self):
-        st.markdown("""...""", unsafe_allow_html=True) # CSS omitido para brevidade
-
-    def _create_timeline(self, execution_data):
-        """Create an interactive timeline of solutions with branch disconnections."""
-        if not execution_data or 'solutions' not in execution_data:
-            return None
-            
-        timeline_data = []
-        for sol in execution_data['solutions']:
-            if not sol.get('disconnected_branches'):
-                continue
-                
-            for branch in sol['disconnected_branches']:
-                timeline_data.append({
-                    'time': sol.get('timestamp', 0),
-                    'branch': f"Ramo {branch}",
-                    'status': 'Desligado',
-                    'fitness': sol.get('fitness', 0)
-                })
-        
-        if not timeline_data:
-            return None
-            
-        return pd.DataFrame(timeline_data)
-
-    def _display_timeline_filter(self, df):
-        """Display interactive timeline with filtering options."""
-        st.sidebar.subheader("Filtros")
-        
-        # Time range filter
-        min_time = int(df['time'].min())
-        max_time = int(df['time'].max())
-        time_range = st.sidebar.slider(
-            "Intervalo de Tempo",
-            min_value=min_time,
-            max_value=max_time,
-            value=(min_time, max_time)
-        )
-        
-        # Branch filter
-        all_branches = sorted(df['branch'].unique())
-        selected_branches = st.sidebar.multiselect(
-            "Ramos",
-            options=all_branches,
-            default=all_branches
-        )
-        
-        # Apply filters
-        filtered_df = df[
-            (df['time'] >= time_range[0]) & 
-            (df['time'] <= time_range[1]) &
-            (df['branch'].isin(selected_branches))
-        ]
-        
-        return filtered_df
-
-    def table_agendamento(self):
-        from AgendamentoRedePage import entrada_de_dados
-
-        st.write("Esta página exibe os agendamentos de rede elétrica e suas contingências, além de uma timeline interativa com as sugestões de agendamento.")
-
-        # Carregar dados
-        agendamento_df, contingencia_df = entrada_de_dados()
-
-        # Exibir tabelas editáveis
-        with st.expander("Editar Agendamentos e Contingências", expanded=False):
-                st.subheader("Tabela de Agendamentos")
-                edited_agendamento_df = st.data_editor(
-                    agendamento_df,
-                    use_container_width=True,
-                    num_rows="dynamic",
-                    column_config={},
-                    key=f"{key_prefix}_agendamento_editor",
-                )
-                st.markdown("---")
-                st.info("Edite os agendamentos e contingências conforme necessário. As alterações serão salvas automaticamente.")
-                st.subheader("Tabela de Contingências")
-                edited_contingencia_df = st.data_editor(
-                    contingencia_df,
-                    use_container_width=True,
-                    num_rows="dynamic",
-                    key=f"{key_prefix}_contingencia_editor",
-                )
-
-    def _get_column_name_insensitive(self, df, possible_names):
-        """Obtém o nome correto da coluna, insensível a maiúsculas/minúsculas."""
-        df_columns = [str(col).lower() for col in df.columns]
-        for name in possible_names:
-            if name.lower() in df_columns:
-                return df.columns[df_columns.index(name.lower())]
-        return None
-
-    def _validate_required_columns(self, df):
-        """Valida se as colunas necessárias existem no DataFrame.
-        
-        Suporta tanto nomes em inglês quanto em português.
-        """
-        # Mapeamento de possíveis nomes de colunas em português e inglês
-        config_col_names = [
-            'config_num', 'config', 'configuration',  # inglês
-            'configuracao', 'configuração', 'num_config'  # português
-        ]
-        
-        exec_col_names = [
-            'exec_num', 'exec', 'execution', 'run_num', 'run',  # inglês
-            'execucao', 'execução', 'num_exec'  # português
-        ]
-        
-        # Tenta encontrar os nomes corretos das colunas
-        config_col = self._get_column_name_insensitive(df, config_col_names)
-        exec_col = self._get_column_name_insensitive(df, exec_col_names)
-        
-        # Fallback if not found by insensitive search
-        if not config_col:
-            config_col = next((col for col in df.columns if 'config' in str(col).lower()), None)
-        if not exec_col:
-            exec_col = next((col for col in df.columns if 'exec' in str(col).lower() or 'run' in str(col).lower()), None)
-        
-        # Final check: ensure identified columns actually exist in the DataFrame
-        if config_col not in df.columns:
-            config_col = None
-        if exec_col not in df.columns:
-            exec_col = None
-
-        # If still not found, show detailed error
-        if not config_col or not exec_col:
-            st.error("❌ Erro: Não foi possível identificar as colunas necessárias.")
-            st.error("Colunas necessárias:")
-            st.error("- Número da Configuração (ex: 'config_num', 'configuracao')")
-            st.error("- Número da Execução (ex: 'exec_num', 'execucao', 'run')")
-            st.error(f"\nColunas encontradas no arquivo:\n{', '.join(f'\"{col}\"' for col in df.columns)}")
-            st.error("\nPor favor, verifique se o arquivo contém as colunas necessárias.")
-            return None, None
-            
-        # Armazena os nomes das colunas para uso posterior
-        UseState.set_state("config_column_name", config_col)
-        UseState.set_state("exec_column_name", exec_col)
-            
-        return config_col, exec_col
-
-    def run(self):
-        try:
-            self.menu_lateral.render()
-
-            #! TODO -> PVRV - 16/08/25 ver uma forma de colocar os horarios de agendamentos de IEEE 14,30 e 118 por aqui e rodar a otimização AG
-            #self.table_agendamento()
-            self.header()
-
-            if not self.executions:
-                st.info("Nenhuma execução encontrada. Execute o framework para gerar resultados.")
-                st.stop()
-
-            config_controller = ConfigController()
-            #all_params = config_controller.repository.get_all_configs()
-            all_params = PARAMETROS_JSON
-            
-            # Show configuration and execution selectors
-            with st.sidebar.expander("🔧 Configuração e Execução", expanded=True):
-                # Configuration selector
-                config_options = list(self.executions.keys())
-                selected_config = st.selectbox(
-                    "Selecione a configuração:",
-                    config_options,
-                    index=0,
-                    format_func=lambda x: f"Configuração {x}"
-                )
-                
-                # Execution selector for the selected configuration
-                if selected_config in self.executions and self.executions[selected_config]:
-                    exec_options = self.executions[selected_config]
-                    selected_exec = st.selectbox(
-                        "Selecione a execução:",
-                        exec_options,
-                        index=0,
-                        format_func=lambda x: f"Execução {x}"
-                    )
-                    
-                    # Load button
-                    if st.button("Carregar Dados"):
-                        with st.spinner("Carregando dados da execução..."):
-                            try:
-                                data, fig = self.utils.load_execution_data(selected_config, selected_exec)
-                                st.session_state.execution_data = data
-                                if fig is not None:
-                                    st.session_state.execution_figure = fig
-                                st.rerun()
-                            except Exception as e:
-                                st.error(f"Erro ao carregar execução: {str(e)}")
-                else:
-                    st.warning("Nenhuma execução disponível para esta configuração.")
-            
-            # Display execution data if available
-            if 'execution_data' in st.session_state and st.session_state.execution_data:
-                # Create and display timeline if data is available
-                timeline_df = self._create_timeline(st.session_state.execution_data)
-                if timeline_df is not None:
-                    st.subheader("Linha do Tempo de Soluções")
-                    filtered_timeline = self._display_timeline_filter(timeline_df)
-                    
-                    # Display timeline
-                    if not filtered_timeline.empty:
-                        st.vega_lite_chart(filtered_timeline, {
-                            'mark': {'type': 'circle', 'tooltip': True},
-                            'encoding': {
-                                'x': {'field': 'time', 'type': 'quantitative', 'title': 'Tempo'},
-                                'y': {'field': 'branch', 'type': 'nominal', 'title': 'Ramo'},
-                                'size': {'field': 'fitness', 'type': 'quantitative', 'title': 'Fitness'},
-                            'color': {'field': 'status', 'type': 'nominal', 'title': 'Status'}
-                        }
-                    })
-                    
-                    # Show selected point details
-                    if st.checkbox("Mostrar detalhes da solução"):
-                        selected_time = st.slider(
-                            "Selecione um ponto no tempo",
-                            min_value=int(filtered_timeline['time'].min()),
-                            max_value=int(filtered_timeline['time'].max()),
-                            value=int(filtered_timeline['time'].iloc[0])
-                        )
-                        
-                        selected_solution = filtered_timeline[
-                            filtered_timeline['time'] == selected_time
-                        ]
-                        st.dataframe(selected_solution)
-
-            # Consolida resultados e exibe, passando all_params exigido pelo componente
-            st.info(all_params)
-            result = ConsolidatedResultsComponent.render(all_params)
-            
-            if result is None:
-                st.warning("Não foi possível carregar os resultados consolidados. Verifique se existem execuções disponíveis.")
-                return
-                
-            df_consolidado, cons_warnings = result
-            if cons_warnings:
-                for w in cons_warnings:
-                    st.warning(w)
-            if df_consolidado is not None:
-                # Validate columns
-                config_col, exec_col = self._validate_required_columns(df_consolidado)
-                if not config_col or not exec_col:
-                    st.error("Não foi possível identificar as colunas de configuração e execução nos resultados consolidados.")
-                    return # Stop processing if columns are not found
-
-                # guarda no estado os execs realmente disponíveis por configuração
-                try:
-                    available_execs = {}
-                    for cfg in sorted(df_consolidado[config_col].unique()):
-                        execs_list = sorted(df_consolidado[df_consolidado[config_col] == cfg][exec_col].unique().tolist())
-                        # guarda com múltiplas chaves para evitar mismatch de tipos (int/str)
-                        available_execs[cfg] = execs_list
-                        try:
-                            available_execs[int(cfg)] = execs_list
-                        except Exception:
-                            st.error(f"Erro ao converter config {cfg} para int.")
-                        try:
-                            available_execs[str(cfg)] = execs_list
-                        except Exception:
-                            st.error(f"Erro ao converter config {cfg} para str.")
-                    st.session_state['available_execs_by_config'] = available_execs
-                    st.session_state['df_consolidado'] = df_consolidado
-                except Exception as e:
-                    st.error(f"Erro ao processar resultados consolidados: {e}")
-                ConsolidatedResultsComponent.display_and_download(df_consolidado)
-
-            self.render_execution_tabs()
-            
-        except Exception as e:
-            st.error(f"Ocorreu um erro inesperado no dashboard: {e}")
-            st.exception(e)
-
-    def show_config_parameters(self):
-        st.header("Parâmetros de Configuração do AG")
-        config_controller = ConfigController()
-        formatted_configs = config_controller.get_formatted_configs()
-
-        if not formatted_configs:
-            st.warning("Nenhum arquivo de parâmetro de configuração (params_config*.json) foi encontrado.")
-            return
-
-        for config_num, df_params in sorted(formatted_configs.items()):
-            with st.expander(f"Configuração {config_num}"):
-                st.dataframe(df_params)
-            
-    def render_execution_tabs(self):
-        # Controle global acima das tabs
-        UseState.initialize_state("lock_all_configs", False)
-        top_cols = st.columns([0.8, 0.2])
-        with top_cols[1]:
-            is_locked_global = st.toggle(
-                "🔒 Fixar Aba",
-                key="toggle_all_configs",
-                value=UseState.get_state("lock_all_configs"),
-                help="Fixar a visualização e escolher componente/execução via select boxes."
-            )
-            UseState.set_state("lock_all_configs", is_locked_global)
-
-        #st.markdown("---")
-
-        config_keys = list(self.executions.keys())
-        config_tabs = st.tabs([f"Config {key}" for key in config_keys])
-
-        for i, config_tab in enumerate(config_tabs):
-            with config_tab:
-                config_num = config_keys[i]
-                # Se existir um conjunto de execs consolidado para essa config, usa ele para evitar inconsistências
-                available_map = st.session_state.get('available_execs_by_config', {})
-                exec_numbers = (
-                    available_map.get(config_num)
-                    or available_map.get(str(config_num))
-                    or available_map.get(int(config_num) if isinstance(config_num, (str, bytes)) and str(config_num).isdigit() else None)
-                    or self.executions[config_num]
-                )
-                if not exec_numbers:
-                    st.info("Nenhuma execução consolidada disponível para esta configuração.")
-                    continue
-                
-                if is_locked_global:
-                    self.render_locked_view(config_num, exec_numbers)
-                else:
-                    self.render_dynamic_view(config_num, exec_numbers)
-
-    def render_locked_view(self, config_num, exec_numbers):
-        component_options = ["Soluções", "Gráfico", "Estatísticas"]
-        locked_component_key = f"locked_component_{config_num}"
-        locked_exec_key = f"locked_exec_{config_num}"
-        
-        UseState.initialize_state(locked_component_key, component_options[0])
-        UseState.initialize_state(locked_exec_key, exec_numbers[0])
-        # Se o estado persistido tiver uma execução indisponível, ajusta para a primeira disponível
-        try:
-            if UseState.get_state(locked_exec_key) not in exec_numbers:
-                UseState.set_state(locked_exec_key, exec_numbers[0])
-        except Exception:
-            UseState.set_state(locked_exec_key, exec_numbers[0])
-
-        col1, col2 = st.columns(2)
-        with col1:
-            selected_component = st.selectbox("Selecione o Componente", component_options, 
-                index=component_options.index(UseState.get_state(locked_component_key)),
-                key=f"select_comp_{config_num}")
-            UseState.set_state(locked_component_key, selected_component)
-        with col2:
-            # Garante que o índice exista; se não, usa 0
-            try:
-                idx_exec = exec_numbers.index(UseState.get_state(locked_exec_key))
-            except ValueError:
-                idx_exec = 0
-            selected_exec = st.selectbox("Selecione a Execução", exec_numbers,
-                index=idx_exec,
-                key=f"select_exec_{config_num}")
-            UseState.set_state(locked_exec_key, selected_exec)
-            
-        #st.markdown("---")
-        st.info(f"Mostrando **{selected_component}** para a **Execução {selected_exec}** da **Configuração {config_num}**")
-
-        dados = self.utils.load_execution_data(config_num, selected_exec)
-        if dados:
-            self.render_component(selected_component, dados, config_num, selected_exec)
-        else:
-            st.warning("Não foi possível carregar os dados para a seleção atual.")
-
-    def render_dynamic_view(self, config_num, exec_numbers):
-        exec_tabs = st.tabs([f"Execução {num}" for num in exec_numbers])
-        for j, exec_tab in enumerate(exec_tabs):
-            with exec_tab:
-                exec_num = exec_numbers[j]
-                dados = self.utils.load_execution_data(config_num, exec_num)
-                
-                if dados:
-                    component_tabs = st.tabs(["Soluções", "Gráfico", "Estatísticas"])
-                    with component_tabs[0]:
-                        self.render_component("Soluções", dados, config_num, exec_num)
-                    with component_tabs[1]:
-                        self.render_component("Gráfico", dados, config_num, exec_num)
-                    with component_tabs[2]:
-                        self.render_component("Estatísticas", dados, config_num, exec_num)
-                else:
-                    st.warning(f"Dados para Config {config_num} / Exec {exec_num} não encontrados.")
-
-    def render_component(self, component_name, data, config_num, exec_num):
-        try:
-            if component_name == "Soluções":
-                # Check if data is the correct structure for CardSolutions
-                if isinstance(data, list) and len(data) > 0:
-                    # If data is a list, use the first element (assuming it contains the solution data)
-                    solution_data = data[0] if isinstance(data[0], dict) else {}
-                elif isinstance(data, dict):
-                    solution_data = data
-                else:
-                    solution_data = {}
-                    st.warning(f"Estrutura de dados inesperada para Config {config_num}/Exec {exec_num}. Dados: {type(data)}")
-                
-                CardSolutions.render(solution_data, exec_num, debug=False)
-                # Renderizar Agendamento diretamente para esta aba de execução
-                AgendamentoRedePage(
-                    key_prefix=f"cfg{config_num}_exec{exec_num}",
-                    selected_exec=exec_num,
-                    solution_vars=solution_data.get('best_vars') if isinstance(solution_data, dict) else None,
-                )
-                
-            elif component_name == "Gráfico":
-                # Verifica se a execução selecionada existe no consolidado
-                available_map = st.session_state.get('available_execs_by_config', {})
-                available_execs_raw = (
-                    available_map.get(config_num)
-                    or available_map.get(str(config_num))
-                    or available_map.get(int(config_num) if isinstance(config_num, (str, bytes)) and str(config_num).isdigit() else None)
-                    or []
-                )
-                # Normaliza tipos para evitar mismatch entre str/int nas listas
-                try:
-                    available_execs = [int(x) for x in available_execs_raw]
-                except Exception:
-                    # Fallback: mantém valores válidos convertidos
-                    available_execs = []
-                    for x in available_execs_raw:
-                        try:
-                            available_execs.append(int(x))
-                        except Exception:
-                            pass
-                # Compara usando versão inteira quando possível
-                try:
-                    exec_num_int = int(exec_num)
-                except Exception:
-                    exec_num_int = exec_num
-                if available_execs and exec_num_int not in available_execs:
-                    st.warning(f"Gráficos não disponíveis para a Execução {exec_num}. Disponíveis: {available_execs}")
-                    return
-                GraficoRCEComponent.render(exec_num, config_num=config_num)
-
-                #! Grafico de Bode para fluxo de pontencai (MW e MVar)
-                #GraficoPotenciaAtivaReativaComponent.render(exec_num, 1, config_num=config_num)
-                
-            elif component_name == "Estatísticas":
-                StatisticsTableComponent.render(data)
-                
-        except Exception as e:
-            st.error(f"Erro ao renderizar '{component_name}' para Config {config_num}/Exec {exec_num}: {e}")
-
-    def header(self):
-        st.markdown("---")
-        st.title("⚡ Dashboard Repopulation-With-Elite-Set RCE ⚡")
-        st.subheader("Version 15.7.5 - 16/08/2025")
-        st.subheader("Artigo Cientifico PIBIC - 28/08/2025")
-        st.subheader("Desenvolvido por Pedro Victor Veras e Rainer Zanghi em um projeto PIBIC pela UFF - 2024/2025")
-        st.subheader("Apresentação e Resumo UFF - 06/09/2025")
-        st.markdown("---")
-
-    def footer(self):
-        st.markdown("---")
-        st.info("Desenvolvido por Pedro Victor Veras e Rainer Zanghi em um projeto PIBIC pela UFF - 2024/2025")
-        st.link_button(
-            url="https://github.com/PedroVic12/Repopulation-With-Elite-Set",
-            label="Visite a Documentação do Projeto nesse link",
-            type="primary",
-            icon="📖",
-        )
-        st.markdown("---")
 
 # Configuração da barra lateral
 class DrawerSideBar:
     """Classe para gerenciar a barra lateral do aplicativo."""
 
-    def __init__(self, warnings=None):
+    def __init__(self):
         """Inicializa a barra lateral."""
         self.st = st
-        self.warnings = warnings or []
 
     def render(self):
         """Renderiza a barra lateral."""
-        self.st.sidebar.title("Painel de Controle")
-        if st.sidebar.button("Atualizar Estado"):
-            st.session_state.clear()
+        self.st.sidebar.title("Seleção da Execução com Algoritmo Evolutivo")
+        if st.button("Atualizar Estado"):
+            st.session_state["selected_execution"] = None
             st.rerun()
-        
-        if self.warnings:
-            with st.sidebar.expander("⚠️ Avisos de Execução", expanded=True):
-                for warning in self.warnings:
-                    st.warning(warning)
-
         self.st.sidebar.markdown("---")  # Separador visual
 
 
@@ -570,13 +57,675 @@ class UseState:
     def set_state(key, value):
         """Define o valor de uma chave no session_state."""
         st.session_state[key] = value
+        #print("State atualizado:", key, "=", value)  
 
 
+# --- Classe Principal do Aplicativo ---
+class FrameworkRCEDashboard:
+    def __init__(self, options = None):
+        self.controller = Controller()
+        self.utils = Utils()
+        self.execution_numbers = self.controller.execution_numbers
+        self.menu_lateral = DrawerSideBar()
+  
+        # Initialize options from parameter or use default
+        self.options = options 
+        self.init_css()
 
-def main():
-    dashboard = FrameworkRCEDashboard()
-    dashboard.run()
 
-if __name__ == "__main__":
-    main()
+        # Inicializa os estados necessários
+        UseState.initialize_state("selected_execution", None)
+        UseState.initialize_state("active_tab", 0)
+        UseState.initialize_state("saved_configurations", {})
+        if 'user_config' not in st.session_state:
+            # Usa uma cópia da configuração padrão para o estado da sessão
+            st.session_state.user_config = self.options
+
+
+    def handle_tab_change(self, tab_index: int, execution_number: int):
+        """Gerencia mudanças de aba e atualiza o estado."""
+        UseState.set_state("active_tab", tab_index)
+        UseState.set_state("selected_execution", execution_number)
+
+
+    def init_css(self):
+        st.markdown("""
+        <style>
+            .st-emotion-cache-j7qwjs.e1c29vlm3 {
+                display: none;
+            }
+            
+            .st-emotion-cache-vz9k5h.e1c29vlm19 {
+                display: none;
+            }
+            
+            .st-emotion-cache-1s1exd7.e1c29vlm19 {
+                display: none;
+            }
+            
+            .st-emotion-cache-14lrqrc.e1c29vlm19 {
+                display: none;
+            }
+            
+            .st-emotion-cache-1tuwfdi.e1c29vlm19 {
+                display: none;
+            }
+            
+            .st-emotion-cache-1gczx66.edtmxes2 {
+                display: none;
+            }
+            
+            .st-emotion-cache-1s1exd7.edtmxes19 {
+                display: none;
+            }
+            
+            .st-emotion-cache-1gczx66.edtmxes2 {
+                display: none;
+            }
+            .st-emotion-cache-1s1exd7.edtmxes19 {
+                display: none;
+            }
+
+            .st-emotion-cache-1s1exd7.edtmxes19 {
+                display: none;
+            }
+            
+            .st-emotion-cache-1gczx66.edtmxes2 {
+                display: none;
+            }
+            
+            /* Estilos para o sistema de bloqueio de tabs */
+            .locked-tab-container {
+                border: 2px solid #ffd700;
+                border-radius: 10px;
+                padding: 15px;
+                background-color: #fffef7;
+                margin: 10px 0;
+            }
+            
+            .lock-indicator {
+                background-color: #ffd700;
+                color: #333;
+                padding: 5px 10px;
+                border-radius: 15px;
+                font-weight: bold;
+                font-size: 12px;
+            }
+            
+            .stSelectbox > div > div {
+                background-color: #f8f9fa;
+            }
+        </style>
+    """, unsafe_allow_html=True)
+
     
+
+    def run(self):
+        try:
+            # Carrega os dados da execução ativa
+            active_tab = UseState.get_state("active_tab")
+            if active_tab is not None:
+                dados = self.utils.load_execution_data(active_tab + 1, debug=False)
+                saved_config = UseState.get_state("saved_configurations", {})
+
+            else:
+                dados = None
+
+            desktop_app = st.toggle("Executar Desktop App", value=False, key="desktop_app_toggle")
+            if desktop_app:
+                st.write("Executando Desktop App...")
+
+                # Sempre renderiza a configuração do app e do AG 
+                self.ConfigWebApp()
+                # Optiins e params em json separados mas talves ter as configuracoes em array de dicts
+                self.Config_AG_Json()
+
+            # Cabeçalho
+            self.header()
+
+            if dados:
+                # Renderiza os resultados consolidados
+                ConsolidatedResultsComponent.render()
+            else:
+                # Renderiza componente default para "sem execução"
+                st.info("Nenhum dado encontrado ainda. Execute uma simulação para visualizar os resultados.")
+
+            # Renderiza as abas de execução - Por um Container pelo TAB
+            exec_tabs_dict = self.get_exec_tabs_dict()
+            self.ContainerTabs(exec_tabs_dict)
+            
+        except Exception as e:
+            st.error(f"Ocorreu um erro ao carregar os dados da execução: {e}")
+            
+            # Agrupa os dados das execuções e os lambdas dos componentes em uma função separada
+    def get_exec_tabs_dict(self):
+        exec_tabs_dict = {}
+        for exec_num in self.execution_numbers:
+            dados_exec = self.utils.load_execution_data(exec_num, debug=False)
+            if dados_exec:
+                exec_tabs_dict[f"Execução {exec_num}"] = {
+                    "Soluções": lambda de=dados_exec, en=exec_num: CardSolutions.render(de, en, debug=False),
+                    "Gráfico": lambda en=exec_num: [GraficoRCEComponent.render(en),GraficoPotenciaAtivaReativaComponent.render(en,1)],
+                    "Estatísticas": lambda de=dados_exec: StatisticsTableComponent.render(de)
+                }
+            else:
+                exec_tabs_dict[f"Execução {exec_num}"] = {"Erro": "Não foi encontrado nenhum conjunto de dados"}
+        return exec_tabs_dict
+
+    # Função separada para renderizar o container de tabs
+    def ContainerTabs(self, exec_tabs_dict):
+        with st.container():
+            # Inicializa estados para o sistema de bloqueio de tabs
+            UseState.initialize_state("locked_main_tab_key", None)
+
+            # Header com controles
+            col1, col2 = st.columns([3, 1])
+            with col1:
+                st.subheader("🔄 Seleção da Execução (NEW)")
+            with col2:
+                # Toggle para bloquear/desbloquear tab
+                locked_main_tab_key = UseState.get_state("locked_main_tab_key")
+                lock_icon = "🔒" if locked_main_tab_key else "🔓"
+                
+                # Se uma aba estiver fixada, o toggle desativa a fixação
+                if locked_main_tab_key:
+                    if st.button(f"{lock_icon} Desfixar Aba"):
+                        UseState.set_state("locked_main_tab_key", None)
+                        st.rerun()
+                else:
+                    # Se nenhuma aba estiver fixada, o toggle não faz nada diretamente
+                    st.write("") # Placeholder
+
+            # Se uma aba principal estiver fixada
+            if locked_main_tab_key:
+                st.info(f"🔒 Execução Fixada: **{locked_main_tab_key}**")
+                
+                # Renderiza apenas a aba principal fixada
+                sub_dict = exec_tabs_dict[locked_main_tab_key]
+                if isinstance(sub_dict, dict):
+                    sub_tabs = st.tabs(list(sub_dict.keys()))
+                    for sub_tab, sub_key in zip(sub_tabs, sub_dict.keys()):
+                        with sub_tab:
+                            content = sub_dict[sub_key]
+                            if callable(content):
+                                try:
+                                    content()
+                                except Exception as e:
+                                    st.error(f"Erro ao renderizar '{sub_key}': {e}")
+                            else:
+                                st.write(content)
+                else:
+                    st.write(sub_dict)
+            else:
+                # Renderiza todas as abas principais
+                main_tabs = st.tabs(list(exec_tabs_dict.keys()))
+                for i, (main_tab, main_key) in enumerate(zip(main_tabs, exec_tabs_dict.keys())):
+                    with main_tab:
+                        # Botão para fixar a aba principal
+                        if st.button(f"📌 Fixar {main_key}", key=f"pin_button_{i}"):
+                            UseState.set_state("locked_main_tab_key", main_key)
+                            st.rerun()
+
+                        sub_dict = exec_tabs_dict[main_key]
+                        if isinstance(sub_dict, dict):
+                            sub_tabs = st.tabs(list(sub_dict.keys()))
+                            for j, (sub_tab, sub_key) in enumerate(zip(sub_tabs, sub_dict.keys())):
+                                with sub_tab:
+                                    content = sub_dict[sub_key]
+                                    if callable(content):
+                                        try:
+                                            content()
+                                        except Exception as e:
+                                            st.error(f"Erro ao renderizar '{sub_key}': {e}")
+                                    else:
+                                        st.write(content)
+                        else:
+                            st.write(sub_dict)
+
+            # Footer apenas se nenhuma aba estiver fixada
+            if not UseState.get_state("locked_main_tab_key"):
+                self.footer()
+
+
+    def Config_AG_Json(self):
+            # Expandir para mostrar os parâmetros utilizados
+            with st.expander("Parâmetros AG - RCE Utilizados em params.json", expanded=False):
+                json_data_params = PARAMETROS_JSON
+                
+                if json_data_params:
+                    
+                    # Separa os campos especiais
+                    array_var = json_data_params.get("ARRAY_VAR", [14,15,14,18,15])
+                    limite_var = json_data_params.get("LIMITE_VAR", [0, 31])
+
+                    # Remove os campos especiais para edição no data_editor
+                    json_table = {k: v for k, v in json_data_params.items() if k not in ["ARRAY_VAR", "LIMITE_VAR"]}
+                    #print("json_table", json_table)
+
+
+                    #st.info("Usando Variáveis de Decisão do Problema e Limites de valores inteiros para o problema de agendamento de Redes Elétricas")
+
+                    # Edição simples do ARRAY_VAR
+                    try:
+                        array_str = st.text_input(
+                            "Variáveis de Decisão do Problema (digite 5 valores separados por vírgula)",
+                            value=", ".join(str(x) for x in array_var),
+                            help="Esses são os horários de agendamento para Rede Elétrica (ex: 14h, 15h, 14h, 18h, 15h)"
+                        )
+                        array_var_edit = [int(x.strip()) for x in array_str.split(",")][:5]
+
+                        if len(array_var_edit) < 5:
+                            array_var_edit += [0] * (5 - len(array_var_edit))
+
+                        # Slider para LIMITE_VAR
+                        else:
+                            limite_var_value = limite_var
+                            limite_var_value = st.slider(
+                                "Selecione os limites dos valores da variável de decisão",
+                                0, 50, (0, 31), step=1, key="limite_var_slider"
+                            )
+                            limite_var_edit = list(limite_var_value)
+
+                    except Exception:
+                        st.error("ARRAY_VAR inválido. Use 5 números separados por vírgula.")
+                        array_var_edit = array_var
+
+
+
+                    # Data editor para os demais parâmetros
+                    def excel_table(array, colunas_excluir=None, css_inicial=False):
+                        """
+                        Exibe um DataFrame no estilo Excel, removendo colunas indesejadas e aplicando CSS opcional.
+                        :param array: lista de tuplas ou dicionário de parâmetros
+                        :param colunas_excluir: lista de nomes de colunas a serem excluídas
+                        :param css_inicial: bool, se True aplica CSS customizado
+                        :return: DataFrame editado pelo usuário
+                        """
+                        df = pd.DataFrame(list(array.items()))
+                        df.columns = ["Parâmetro", "Valor"]
+                        if colunas_excluir:
+                            df = df[~df["Parâmetro"].isin(colunas_excluir)]
+                        if css_inicial:
+                            st.markdown(
+                                """
+                                <style>
+                                .stDataFrame {background-color: #f7f7f7;}
+                                </style>
+                                """,
+                                unsafe_allow_html=True
+                            )
+                        edited_df = st.data_editor(
+                            df,
+                            use_container_width=True,
+                            num_rows="dynamic",
+                            column_config={
+                                "Parâmetro": st.column_config.Column(disabled=True),
+                                "Valor": st.column_config.Column(disabled=False)
+                            },
+                            key="params_editor"
+                        )
+                        return edited_df
+
+                    # Exemplo de uso:
+                    colunas_nao_usar = ["CROSSOVER", "MUTACAO", "NUM_GENERATIONS", "POP_SIZE"]  # Exemplo, substitua pelos nomes das colunas que deseja excluir
+                    edited_df = excel_table(json_table, colunas_excluir=colunas_nao_usar, css_inicial=True)
+
+                    # Atualiza json_table com os valores editados
+                    if not edited_df.empty:
+                        for _, row in edited_df.iterrows():
+                            param = row["Parâmetro"]
+                            value = row["Valor"]
+                            json_table[param] = value
+
+                        # Monta o dicionário final para exportação
+                        json_atualizados = dict(json_table)
+                        json_atualizados["ARRAY_VAR"] = [int(x) for x in array_var_edit]
+                        json_atualizados["LIMITE_VAR"] = [int(x) for x in limite_var_edit]
+
+                        # --- TRATAMENTO DE TIPOS de dados para salvar no json---
+                        float_keys = {"MUTACAO", "CROSSOVER", "PORCENTAGEM"}
+                        for k, v in json_atualizados.items():
+                            if k in float_keys:
+                                try:
+                                    json_atualizados[k] = float(v)
+                                except Exception:
+                                    st.error(f"Valor inválido para {k}. Deve ser um número flutuante.")
+                            elif k in {"ARRAY_VAR", "LIMITE_VAR"}:
+                                if isinstance(v, list):
+                                    try:
+                                        json_atualizados[k] = [int(x) for x in v]
+                                    except Exception:
+                                        st.error(f"Valor inválido em {k}. Todos os valores devem ser inteiros.")
+                                else:
+                                    st.error(f"{k} deve ser uma lista de inteiros.")
+                            else:
+                                try:
+                                    json_atualizados[k] = int(v)
+                                except Exception:
+                                    st.error(f"Valor inválido para {k}. Deve ser um número inteiro.")
+
+                        # Salva o arquivo atualizado automaticamente
+                        current_dir = pathlib.Path(__file__).parent
+                        target_path = current_dir.parent.parent.parent / "params.json"
+                        try:
+                            with open(target_path, "w", encoding="utf-8") as f:
+                                json.dump(json_atualizados, f, indent=4, ensure_ascii=False)
+                            st.success(f"Arquivo salvo automaticamente em: {target_path}")
+                        except Exception as e:
+                            st.error(f"Erro ao salvar arquivo: {e}")
+
+                    # Exporta os dados atualizados para um arquivo json com um botão de download
+                    # st.download_button(
+                    #     label="Salvar os Parâmetros AG Atualizados",
+                    #     data=json.dumps(json_atualizados, indent=4),
+                    #     file_name="params.json",
+                    #     mime="application/json"
+                    # )
+
+    def ConfigWebApp(self):
+        
+#    !TODO GUI para interação com o usuário
+
+#    1 - 256 conjuntos de parametros (4⁴) 
+#    2 - 10 ou 20 numero de execucoes
+#    3 - 4 parametros variando [Mutação, Crossover, Var DIFF, DELTA e restante fixo 
+#    4 - 4 Caixas de texto fixas para esses parametros variando
+#    5 - Criar checkbox para o usuario desabilitar as demais caixas de texto, deixando um valor possivel para aquele parametro 
+#    6 - butao Radio para selecionar a tabela a configuração das 256 conjuntos
+#    7 - Progress bar para cada geração em tempo de execução 
+
+
+        st.title("🛠️ Configurador do Framework")
+        
+        with st.expander("Configuração de Execução em options.json", expanded=False):
+            config = st.session_state.user_config
+
+            # --- Seção de Configurações Gerais ---
+            st.subheader("Configurações Gerais")
+            config['value'] = st.number_input(
+                "Número de Execuções por Configuração",
+                min_value=1,
+                value=config.get('value', 1),
+                help="Quantas vezes cada combinação única de parâmetros será executada."
+            )
+            st.markdown("---")
+
+            # --- Seção de Parâmetros Evolutivos ---
+            st.subheader("Parâmetros AG (Algoritmo Genético)")
+
+            def render_parameter_widget(param_name, default_value_from_params):
+                # --- LÓGICA ROBUSTA PARA ENCONTRAR O PARÂMETRO E SEU ÍNDICE ---
+                param_dict = None
+                param_index = -1
+                for i, p_dict in enumerate(config.get('parametros_opcionais', [])):
+                    if param_name in p_dict:
+                        param_dict = p_dict
+                        param_index = i
+                        break
+
+                # Corrigido: Verifica se param_dict é None antes de tentar acessar
+                if param_dict is None or param_index == -1:
+                    st.error(f"Parâmetro de configuração '{param_name}' não encontrado no estado da sessão ou não foi configurado.")
+                    return
+
+                current_value = param_dict[param_name]
+
+
+                # --- FIM DA LÓGICA ROBUSTA ---
+
+
+
+                # Altera os nomes dos parametros para português e adiciona toggle
+                toggle_label = {
+                    "NUM_GENERATIONS": "Configurar Número de Gerações?",
+                    "POP_SIZE": "Configurar Tamanho da População?",
+                    "MUTACAO": "Configurar Taxa de Mutação?",
+                    "CROSSOVER": "Configurar Taxa de Crossover?"
+                }.get(param_name, f"Configurar {param_name}?")
+
+                if st.toggle(toggle_label, key=f"config_check_{param_index}"):
+
+
+                    mode = "Variável" if isinstance(current_value, list) and len(current_value) > 1 else "Fixo"
+                    choice = st.radio(
+                        "Modo:", ("Fixo", "Variável"), index=1 if mode == "Variável" else 0,
+                        key=f"radio_{param_index}", horizontal=True, label_visibility="collapsed"
+                    )
+
+                    if choice == "Variável":
+                        st.write(f"Valores para {param_name}:")
+                        cols = st.columns(4)
+                        new_values = []
+                        existing_values = current_value if mode == "Variável" else [""]*4
+                        
+                        for j, col in enumerate(cols):
+                            with col:
+                                val_str = str(existing_values[j]) if j < len(existing_values) else ""
+                                user_input = st.text_input(f"V {j+1}", val_str, key=f"input_{param_index}_{j}", label_visibility="collapsed")
+                                if user_input:
+                                    try:
+                                        if param_name in ["NUM_GENERATIONS", "POP_SIZE"]:
+                                            new_values.append(int(user_input))
+                                        else:
+                                            new_values.append(round(float(user_input), 1))
+                                    except ValueError:
+                                        st.error("Valor inválido", icon="⚠️")
+                        
+                        if not new_values:
+                            st.warning(f"Preencha ao menos um valor para '{param_name}'.")
+                        
+                        config['parametros_opcionais'][param_index] = {param_name: new_values or [default_value_from_params]}
+
+                    else: # Fixo
+                        default_value = current_value[0] if isinstance(current_value, list) else current_value
+                        if param_name in ["NUM_GENERATIONS", "POP_SIZE"]:
+                            new_val = st.number_input(f"Valor para {param_name}", value=int(default_value), step=1, key=f"s_{param_index}", format="%d")
+                        else:
+                            new_val = st.number_input(f"Valor para {param_name}", value=float(default_value), step=0.1, key=f"s_{param_index}", format="%.1f")
+                        config['parametros_opcionais'][param_index] = {param_name: [new_val]}
+
+
+                        
+                st.markdown("---")
+
+            col1, col2 = st.columns(2)
+            with col1:
+                render_parameter_widget("MUTACAO", PARAMETROS_JSON["MUTACAO"])
+                render_parameter_widget("CROSSOVER", PARAMETROS_JSON["CROSSOVER"])
+            with col2:
+                render_parameter_widget("NUM_GENERATIONS", PARAMETROS_JSON["NUM_GENERATIONS"])
+                render_parameter_widget("POP_SIZE", PARAMETROS_JSON["POP_SIZE"])
+
+            # --- Seção de Resumo ---
+            st.subheader("Quantidade de Execuções Configuradas")
+            num_variations = [len(v) for p in config['parametros_opcionais'] for k,v in p.items() if isinstance(v, list) and len(v) > 1 and v]
+            total_combinations = reduce(operator.mul, num_variations, 1) if num_variations else 1
+            total_execucoes = total_combinations * config.get('value', 1)
+
+            metric_col1, metric_col2 = st.columns(2)
+            with metric_col1:
+                st.metric("Configurações Únicas", total_combinations, help="Número de combinações diferentes de parâmetros.")
+            with metric_col2:
+                st.metric("Total de Execuções", total_execucoes)
+
+            # --- Botão para Salvar ---
+            if st.button("Salvar e Executar", type="primary"):
+                try:
+                    self.utils.apagar_arquivos()
+
+                    final_config = {**PARAMETROS_JSON}
+                    user_config = st.session_state.user_config
+
+                    # Pega os dados atualizados do usuario na tela
+                    optional_params_dict = {k: v for d in user_config.get('parametros_opcionais', []) for k, v in d.items()}
+                    final_config.update(optional_params_dict)
+                    final_config['repeticoes_por_config'] = user_config.get('value')
+                    final_config.update(user_config)
+
+                    # --- TRATAMENTO DE TIPOS ---
+                    for k in ["NUM_GENERATIONS", "POP_SIZE"]:
+                        if isinstance(final_config[k], list):
+                            final_config[k] = [int(x) for x in final_config[k]]
+                        else:
+                            final_config[k] = int(final_config[k])
+                    for k in ["MUTACAO", "CROSSOVER"]:
+                        if isinstance(final_config[k], list):
+                            final_config[k] = [float(x) for x in final_config[k]]
+                        else:
+                            final_config[k] = float(final_config[k])
+                            
+                    # remove os campos desnecessários
+                    del final_config['parametros_opcionais']
+                    del final_config['value']
+                    # -------------------------
+                    
+
+                    with open("../options.json", "w", encoding="utf-8") as f:
+                            json.dump(final_config, f, indent=4, ensure_ascii=False)
+                    st.success(f"Configuração salva em **options.json**!")
+
+                    # Executa o script principal
+                    script_path = FOLDER_NAME.parent / "run_framework.py"
+                    print("Configurações o Usuario escolhida", final_config)
+                    self.run_script(script_path)
+                    st.rerun()
+
+                except Exception as e:
+                    st.error(f"Ocorreu um erro ao salvar os options.json ou executar o script run_framework.py : {e}")
+
+    def atualizar_pagina(self):
+        """Atualiza a página."""
+        print("Atualizando a página...")
+        st.rerun()
+
+    def run_script(self, script_path):
+            """Executa um script Python com barra de progresso baseado no número total de execuções configuradas."""
+            dialog_placeholder = st.empty()
+            progress_placeholder = st.empty()
+
+            try:
+                img_gif_loading = FOLDER_NAME.parent / "assets" / "humans_evolution.gif"
+
+                # Obtém o total de steps a partir da configuração do usuário
+                config = st.session_state.user_config
+                total_steps = config.get('value', 1)
+
+                if img_gif_loading.exists():
+                    with dialog_placeholder.container():
+                        st.image(str(img_gif_loading), width=800)
+                        st.subheader("Executando o programa principal com Algoritmo Evolutivo RCE no mesmo terminal, por favor aguarde...")
+
+                        # Executa o script em thread separada para não travar a UI
+                        def run_command():
+                            command = f'python "{script_path}"'
+                            self._return_code = os.system(command)
+
+                        self._return_code = None
+                        thread = threading.Thread(target=run_command)
+                        thread.start()
+
+                        while thread.is_alive():
+                            arquivos_atual = set(self.utils.get_html_content_from_folder(str(FOLDER_NAME)))
+                            progresso = len(arquivos_atual)
+                            percent = int((progresso / total_steps) * 100) if total_steps > 0 else 0
+                            percent = min(percent, 100)  # Garante que não passe de 100%
+
+                            bar_html = f"""
+                            <div style="background-color:#e0e0e0; border-radius:10px; width:100%; height:30px;">
+                                <div style="background-color:#008000; width:{percent}%; height:30px; border-radius:10px;"></div>
+                            </div>
+                            <p style="text-align:center;">{percent}%</p>
+                            """
+                            progress_placeholder.markdown(bar_html, unsafe_allow_html=True)
+                            time.sleep(3.0)  # Atualiza a cada 2 segundos
+
+                        # Garante 100% ao finalizar
+                        bar_html = f"""
+                        <div style="background-color:#e0e0e0; border-radius:10px; width:100%; height:30px;">
+                            <div style="background-color:#008000; width:100%; height:30px; border-radius:10px;"></div>
+                        </div>
+                        <p style="text-align:center;">100%</p>
+                        """
+                        progress_placeholder.markdown(bar_html, unsafe_allow_html=True)
+                        time.sleep(1.0)  # Espera um segundo para mostrar 100%
+                        st.success("Script executado com sucesso!")
+
+                        thread.join()
+                        return_code = self._return_code
+
+
+
+                dialog_placeholder.empty()
+                progress_placeholder.empty()
+
+                if return_code == 0:
+                    st.rerun()
+
+            except Exception as e:
+                dialog_placeholder.empty()
+                st.error(f"Erro ao executar o script. Código de retorno: {locals().get('return_code', 'N/A')} e Erro: {e}")
+
+            if not self.execution_numbers:
+                st.error("Nenhum arquivo de resultado encontrado.")
+                st.stop()
+
+
+    def header(self):
+        """Cabeçalho do aplicativo."""
+        st.markdown("---")
+        st.title("⚡ Framework Repopulation-With-Elite-Set RCE ⚡")
+        st.subheader("Version 14.3.2 - 17/07/2025")
+        st.markdown("---")
+
+        # Adiciona CSS personalizado para estilizar o botão
+        st.markdown(
+            """
+            <style>
+            div.stButton > button {
+                background-color: #008000; /* Verde */
+                color: white; /* Cor do texto */
+                padding: 12px 20px;
+                text-align: center;
+                display: inline-block;
+                font-size: 25px;
+                margin: 2px 2px;
+                cursor: pointer;
+                border-radius: 8px;
+            }
+            div.stButton > button:hover {
+                background-color: #45a049; /* Verde mais escuro ao passar o mouse */
+            }
+            </style>
+            """,
+            unsafe_allow_html=True,
+        )
+
+        # Adiciona CSS personalizado para estilizar as abas
+        st.markdown(
+            """
+            <style>
+            /* Estiliza as abas */
+            div.streamlit-tabs div[data-baseweb="tab"] {
+                font-size: 25px; /* Aumenta o tamanho da fonte */
+                padding: 10px 10px; /* Aumenta o espaçamento interno */
+            }
+            </style>
+            """,
+            unsafe_allow_html=True,
+        )
+
+
+
+    def footer(self):
+        """Rodapé do aplicativo."""
+        st.markdown("---")
+        st.info("Desenvolvido por Pedro Victor Veras e Rainer Zanghi em um projeto PIBIC pela UFF - 2024/2025")
+        st.link_button(
+            url="https://github.com/PedroVic12/Repopulation-With-Elite-Set",
+            label="Visite a Documentação do Projeto nesse link",
+            type="primary",
+            icon="📖",
+        )
+        st.markdown("---")
+
+
