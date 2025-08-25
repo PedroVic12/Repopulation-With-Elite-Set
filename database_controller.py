@@ -55,6 +55,21 @@ class DatabaseController:
         filename = f"config_{config_num}_exec_{exec_num}_visualization.json"
         return self._load_json(self.output_dir / filename)
 
+    def get_consolidated_data(self) -> pd.DataFrame | None:
+        """Lê o arquivo de resultados consolidados e o retorna como um DataFrame."""
+        if not self.consolidated_results_file.exists():
+            print(f"Aviso: Arquivo consolidado não encontrado em {self.consolidated_results_file}")
+            return None
+        try:
+            return pd.read_excel(self.consolidated_results_file)
+        except Exception as e:
+            print(f"Erro ao ler o arquivo Excel consolidado: {e}")
+            return None
+
+    def consolidar_script_button(self):
+        """Executa o processo de consolidação. Mantido para compatibilidade com launchers existentes."""
+        self.run_consolidation()
+
     # --- Métodos de Consolidação ---
 
     def run_consolidation(self):

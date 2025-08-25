@@ -1,148 +1,165 @@
 import streamlit as st
 import pandas as pd
 import sys
-import os
 from pathlib import Path
+import numpy as np
 
-# Adiciona o diretório raiz ao path para encontrar os módulos
+# --- Adiciona o diretório raiz ao path para encontrar os módulos ---
 BASE_DIR = Path(__file__).resolve().parent.parent.parent
 if str(BASE_DIR) not in sys.path:
     sys.path.append(str(BASE_DIR))
 
 from database_controller import DatabaseController
-from src.DashboardApp.views.Screens.components.custom_components import CardSolutions
 
-class DashboardRCEPage:
-    """Nova página de dashboard unificada e refatorada."""
+# --- Definição dos Componentes da UI diretamente no arquivo ---
 
+class CardSolutions:
+    """Componente para exibir o resumo da melhor solução."""
+    @staticmethod
+    def render(data, exec_num, debug=False):
+        best_gen_idx = data.get('best_gen_idx', 'N/A')
+        best_fitness = data.get('best_fitness', float('nan'))
+        num_generations = data.get('params', {}).get('NUM_GENERATIONS', 100)
+        fitness_value = f"{float(best_fitness):.4f}" if isinstance(best_fitness, (int, float)) and not pd.isna(best_fitness) else "N/A"
+
+        st.metric("🏆 Melhor Fitness", fitness_value)
+        st.metric("📊 Melhor Geração", best_gen_idx)
+
+        st.subheader("Variáveis de Decisão")
+        vars_to_display = data.get('decision_vars', {})
+        if not vars_to_display:
+            best_vars_list = data.get('best_variables', [])
+            if isinstance(best_vars_list, (list, tuple)) and best_vars_list:
+                vars_to_display = {f"VAR {i+1}": val for i, val in enumerate(best_vars_list)}
+
+        if vars_to_display:
+            st.json(vars_to_display)
+        else:
+            st.info("Nenhuma variável de decisão disponível.")
+
+class StatisticsTableComponent:
+    """Componente para exibir a tabela de estatísticas."""
+    @staticmethod
+    def render(viz_data):
+        if not viz_data:
+            st.warning("Dados de visualização não disponíveis para a tabela de estatísticas.")
+            return
+        try:
+            df_viz = pd.DataFrame(viz_data)
+            st.dataframe(df_viz)
+        except Exception as e:
+            st.error(f"Erro ao renderizar tabela de estatísticas: {e}")
+
+# --- Classe Principal do Dashboard ---
+
+class FinalDashboardPage:
     def __init__(self):
-        st.set_page_config(
-            page_title="Dashboard RCE Framework",
-            page_icon="⚡",
-            layout="wide"
-        )
-        self.db_controller = DatabaseController(base_dir=BASE_DIR.parent)
+        st.set_page_config(page_title="Dashboard RCE Framework", page_icon="⚡", layout="wide")
+        self.db_controller = DatabaseController(base_dir=BASE_DIR)
         self.init_state()
 
     def init_state(self):
-        """Inicializa o estado da sessão do Streamlit."""
         if "df_consolidado" not in st.session_state:
             st.session_state.df_consolidado = self.db_controller.get_consolidated_data()
         if "executions_map" not in st.session_state:
             st.session_state.executions_map = self._get_executions_map()
 
     def _get_executions_map(self) -> dict:
-        """Cria um mapa de execuções disponíveis a partir do dataframe consolidado."""
         df = st.session_state.df_consolidado
-        if df is None or df.empty:
+        if df is None or df.empty: return {}
+        
+        config_col, exec_col = self._validate_required_columns(df)
+        if not config_col or not exec_col: 
+            st.error("O arquivo consolidado não contém as colunas de configuração ou execução.")
             return {}
         
-        # Assume que as colunas se chamam 'config_num' e 'exec_num' após a consolidação
-        if 'config_num' not in df.columns or 'exec_num' not in df.columns:
-            st.error("O arquivo consolidado não contém as colunas 'config_num' ou 'exec_num'.")
-            return {}
+        df[config_col] = df[config_col].astype(str)
+        df[exec_col] = df[exec_col].astype(str)
+        return df.groupby(config_col)[exec_col].apply(lambda x: sorted(x.unique())).to_dict()
 
-        return df.groupby('config_num')['exec_num'].apply(lambda x: sorted(x.unique().tolist())).to_dict()
+    def _get_column_name_insensitive(self, df, possible_names):
+        df_columns = [str(col).lower().strip() for col in df.columns]
+        for name in possible_names:
+            if name.lower() in df_columns:
+                return df.columns[df_columns.index(name.lower())]
+        return None
 
-    def render_header(self):
-        """Renderiza o cabeçalho da página."""
-        st.title("⚡ Dashboard Unificado RCE Framework ⚡")
-        st.markdown("**Versão Refatorada** - Foco em performance e manutenibilidade.")
-        st.markdown("---")
+    def _validate_required_columns(self, df):
+        config_col_names = ['config_num', 'config', 'configuration', 'configuracao', 'configuração']
+        exec_col_names = ['exec_num', 'exec', 'execution', 'run', 'execucao', 'execução']
+        config_col = self._get_column_name_insensitive(df, config_col_names)
+        exec_col = self._get_column_name_insensitive(df, exec_col_names)
+        return config_col, exec_col
 
-    def render_consolidated_results(self):
-        """Renderiza a tabela de resultados consolidados."""
-        if st.session_state.df_consolidado is not None and not st.session_state.df_consolidado.empty:
-            with st.expander("Ver Resultados Consolidados", expanded=False):
-                st.dataframe(st.session_state.df_consolidado)
-        else:
-            st.warning("Arquivo de resultados consolidados não encontrado. Execute a consolidação primeiro.")
+    def render_header_and_footer(self):
+        st.title("⚡ Dashboard RCE Framework ⚡")
+        st.markdown("**Versão Final Consolidada**")
+        # Footer pode ser adicionado no final do método run
 
     def render_execution_details(self, config_num, exec_num):
-        """Renderiza os detalhes de uma execução específica (solução, gráfico, etc.)."""
-        # 1. Carregar todos os dados necessários usando o controller
         results_data = self.db_controller.get_run_data(config_num, exec_num) or {}
         viz_data = self.db_controller.get_visualization_data(config_num, exec_num)
         df_consolidado = st.session_state.df_consolidado
 
-        # 2. Enriquecer dados com a linha do consolidado
-        if df_consolidado is not None and not df_consolidado.empty:
-            row = df_consolidado[
-                (df_consolidado['config_num'] == config_num) & 
-                (df_consolidado['exec_num'] == exec_num)
-            ]
-            if not row.empty:
-                results_data.update(row.iloc[0].to_dict())
+        if df_consolidado is not None:
+            config_col, exec_col = self._validate_required_columns(df_consolidado)
+            if config_col and exec_col:
+                row = df_consolidado[(df_consolidado[config_col].astype(str) == str(config_num)) & (df_consolidado[exec_col].astype(str) == str(exec_num))]
+                if not row.empty:
+                    results_data.update(row.iloc[0].to_dict())
 
-        # 3. Reconstruir variáveis de decisão se necessário
         if not results_data.get('best_variables') and results_data:
-            var_keys = sorted([k for k in results_data if str(k).startswith('best_var_')], 
-                              key=lambda x: int(str(x).split('_')[-1]))
+            var_keys = sorted([k for k in results_data if str(k).startswith('best_var_')], key=lambda x: int(str(x).split('_')[-1]))
             if var_keys:
                 best_vars_list = [results_data[k] for k in var_keys]
                 results_data['best_variables'] = best_vars_list
-                results_data['best_vars'] = best_vars_list
-                results_data['decision_vars'] = {f'Var {i+1}': v for i, v in enumerate(best_vars_list)}
+                results_data['decision_vars'] = {f'VAR {i+1}': v for i, v in enumerate(best_vars_list)}
 
-        # 4. Renderizar os componentes da UI
-        tab_titles = ["Solução", "Gráfico de Convergência"]
-        tab1, tab2 = st.tabs(tab_titles)
+        tab1, tab2, tab3 = st.tabs(["Solução", "Gráfico de Convergência", "Estatísticas"])
 
         with tab1:
-            if results_data:
-                CardSolutions.render(results_data, exec_num)
-            else:
-                st.warning(f"Não foram encontrados dados para Config {config_num}, Exec {exec_num}.")
+            CardSolutions.render(results_data, exec_num)
 
         with tab2:
-            st.subheader("Gráfico de Convergência")
             if viz_data:
                 try:
                     df_viz = pd.DataFrame(viz_data)
                     if 'gen' in df_viz.columns:
-                        stats_per_gen = df_viz.rename(columns={
-                            'gen': 'Generation', 'avg': 'Average Fitness',
-                            'min': 'Min Fitness (Best)', 'max': 'Max Fitness'
-                        })
-                        st.line_chart(stats_per_gen, x='Generation', y=['Average Fitness', 'Min Fitness (Best)', 'Max Fitness'])
+                        stats_df = df_viz.rename(columns={'gen': 'Generation', 'avg': 'Média', 'min': 'Mínimo', 'max': 'Máximo'})
+                        st.line_chart(stats_df, x='Generation', y=['Média', 'Mínimo', 'Máximo'])
                     elif 'Generations' in df_viz.columns:
-                        stats_per_gen = df_viz.groupby('Generations')['Fitness'].agg(['mean', 'min', 'max']).reset_index()
-                        stats_per_gen = stats_per_gen.rename(columns={
-                            'Generations': 'Generation', 'mean': 'Average Fitness',
-                            'min': 'Min Fitness (Best)', 'max': 'Max Fitness'
-                        })
-                        st.line_chart(stats_per_gen, x='Generation', y=['Average Fitness', 'Min Fitness (Best)', 'Max Fitness'])
-                    else:
-                        st.warning("Formato do arquivo de visualização não reconhecido.")
+                        stats_df = df_viz.groupby('Generations')['Fitness'].agg(['mean', 'min', 'max']).reset_index()
+                        stats_df = stats_df.rename(columns={'Generations': 'Generation', 'mean': 'Média', 'min': 'Mínimo', 'max': 'Máximo'})
+                        st.line_chart(stats_df, x='Generation', y=['Média', 'Mínimo', 'Máximo'])
                 except Exception as e:
                     st.error(f"Erro ao renderizar gráfico: {e}")
             else:
                 st.warning("Dados de visualização não disponíveis.")
+        
+        with tab3:
+            StatisticsTableComponent.render(viz_data)
 
     def run(self):
-        """Executa a renderização da página do dashboard."""
-        self.render_header()
-        self.render_consolidated_results()
+        self.render_header_and_footer()
 
-        executions_map = st.session_state.executions_map
-        if not executions_map:
-            st.info("Nenhuma execução encontrada. Rode o framework para gerar resultados.")
+        if st.session_state.df_consolidado is None or st.session_state.df_consolidado.empty:
+            st.warning("Nenhum resultado consolidado encontrado. Execute a consolidação através do Laucher.")
             return
 
-        st.markdown("### Visualização por Execução")
-        config_keys = sorted(executions_map.keys())
-        config_tabs = st.tabs([f"Config {cfg}" for cfg in config_keys])
-
+        config_tabs = st.tabs([f"Config {cfg}" for cfg in sorted(st.session_state.executions_map.keys())])
         for i, tab in enumerate(config_tabs):
             with tab:
-                config_num = config_keys[i]
-                exec_numbers = executions_map[config_num]
+                config_num = sorted(st.session_state.executions_map.keys())[i]
+                exec_numbers = st.session_state.executions_map[config_num]
                 exec_tabs = st.tabs([f"Execução {en}" for en in exec_numbers])
                 for j, exec_tab in enumerate(exec_tabs):
                     with exec_tab:
                         exec_num = exec_numbers[j]
                         self.render_execution_details(config_num, exec_num)
+        
+        st.markdown("---")
+        st.info("Desenvolvido por Pedro Victor Veras e Rainer Zanghi em um projeto PIBIC pela UFF - 2024/2025")
 
 if __name__ == "__main__":
-    page = DashboardRCEPage()
+    page = FinalDashboardPage()
     page.run()
