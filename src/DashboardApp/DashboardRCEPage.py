@@ -10,7 +10,7 @@ if str(BASE_DIR) not in sys.path:
     sys.path.append(str(BASE_DIR))
 
 from database_controller import DatabaseController
-from src.DashboardApp.views.Screens.components.dash_rce_components import CardSolutions
+from src.DashboardApp.views.Screens.components.custom_components import CardSolutions
 
 class DashboardRCEPage:
     """Nova página de dashboard unificada e refatorada."""
