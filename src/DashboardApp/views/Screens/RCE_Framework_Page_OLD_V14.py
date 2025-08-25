@@ -185,7 +185,9 @@ class FrameworkRCEDashboard:
 
             if dados:
                 # Renderiza os resultados consolidados
-                ConsolidatedResultsComponent.render()
+                ConsolidatedResultsComponent.render(
+                     
+                )
             else:
                 # Renderiza componente default para "sem execução"
                 st.info("Nenhum dado encontrado ainda. Execute uma simulação para visualizar os resultados.")

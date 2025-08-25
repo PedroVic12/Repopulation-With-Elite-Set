@@ -290,14 +290,18 @@ class FrameworkRCEDashboard:
                 consolidated_row_data = exec_data_row.iloc[0].to_dict()
                 results_data.update(consolidated_row_data)
 
-        # Se 'best_variables' não veio do JSON ou está vazio, construa a partir das colunas 'best_var_X'.
+        # --- Lógica para Variáveis de Decisão ---
+        # Se 'best_variables' não existir ou estiver vazio, tenta reconstruir a partir das colunas do Excel.
         if not results_data.get('best_variables') and results_data:
             var_keys = sorted([k for k in results_data if str(k).startswith('best_var_')], 
                               key=lambda x: int(str(x).split('_')[-1]))
             if var_keys:
                 best_vars_list = [results_data[k] for k in var_keys]
+                # Popula todas as chaves possíveis que os componentes podem usar
                 results_data['best_variables'] = best_vars_list
+                results_data['best_vars'] = best_vars_list
                 results_data['Variaveis de Decisão'] = best_vars_list
+                results_data['decision_vars'] = {f'Var {i+1}': v for i, v in enumerate(best_vars_list)}
 
         pop_final_path = OUTPUT_DIR / "pop_final.xlsx"
         pop_final_data = pd.read_excel(pop_final_path) if pop_final_path.exists() else None
@@ -318,7 +322,20 @@ class FrameworkRCEDashboard:
                 try:
                     df_viz = pd.DataFrame(viz_data)
                     
-                    if 'Generations' in df_viz.columns and 'Fitness' in df_viz.columns:
+                    # Lógica para lidar com os DOIS formatos de visualization.json
+                    if 'gen' in df_viz.columns:
+                        # Formato 1: DEAP (gen, avg, min, max)
+                        stats_per_gen = df_viz.rename(columns={
+                            'gen': 'Generation',
+                            'avg': 'Average Fitness',
+                            'std': 'Std Deviation',
+                            'min': 'Min Fitness (Best)',
+                            'max': 'Max Fitness'
+                        })
+                        st.line_chart(stats_per_gen, x='Generation', y=['Average Fitness', 'Min Fitness (Best)', 'Max Fitness'])
+                    
+                    elif 'Generations' in df_viz.columns and 'Fitness' in df_viz.columns:
+                        # Formato 2: Custom (agrupar por geração)
                         stats_per_gen = df_viz.groupby('Generations')['Fitness'].agg(['mean', 'min', 'max', 'std']).reset_index()
                         stats_per_gen = stats_per_gen.rename(columns={
                             'Generations': 'Generation',
@@ -327,10 +344,10 @@ class FrameworkRCEDashboard:
                             'min': 'Min Fitness (Best)',
                             'max': 'Max Fitness'
                         })
-                        
                         st.line_chart(stats_per_gen, x='Generation', y=['Average Fitness', 'Min Fitness (Best)', 'Max Fitness'])
                     else:
-                        st.warning("O arquivo de visualização não contém as colunas 'Generations' e 'Fitness' necessárias.")
+                        st.warning("Formato do arquivo de visualização não reconhecido. Colunas esperadas não encontradas.")
+                        st.write("Colunas encontradas:", df_viz.columns.tolist())
 
                 except Exception as e:
                     st.error(f"Erro ao renderizar gráfico de convergência: {str(e)}")

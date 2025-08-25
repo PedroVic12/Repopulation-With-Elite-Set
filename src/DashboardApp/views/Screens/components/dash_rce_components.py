@@ -481,10 +481,11 @@ class CardSolutions:
                         if idx < len(var_items):
                             var_name, var_value = var_items[idx]
                             with cols[j]:
+                                formatted_value = f"{var_value:.4f}" if isinstance(var_value, (int, float)) else str(var_value)
                                 st.markdown(f"""
                                 <div class="solution-card">
                                     <div class="var-label">{var_name.replace('_', ' ').title()}</div>
-                                    <div class="var-value">{var_value:.4f if isinstance(var_value, (int, float)) else var_value}</div>
+                                    <div class="var-value">{formatted_value}</div>
                                 </div>
                                 """, unsafe_allow_html=True)
             elif isinstance(best_vars, (list, tuple)) and len(best_vars) > 0:
@@ -496,10 +497,11 @@ class CardSolutions:
                         if idx < len(best_vars):
                             var = best_vars[idx]
                             with cols[j]:
+                                formatted_value = f"{var:.4f}" if isinstance(var, (int, float)) else str(var)
                                 st.markdown(f"""
                                 <div class="solution-card">
                                     <div class="var-label">VAR {idx+1}</div>
-                                    <div class="var-value">{var:.4f if isinstance(var, (int, float)) else var}</div>
+                                    <div class="var-value">{formatted_value}</div>
                                 </div>
                                 """, unsafe_allow_html=True)
             else:
