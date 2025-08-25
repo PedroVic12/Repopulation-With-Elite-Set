@@ -99,6 +99,10 @@ class DatabaseController:
         except Exception as e:
             print(f"Erro ao salvar resultado individual em {filepath}: {e}")
 
+    def get_consolidated_data(self):
+        df = pd.read_excel("/home/pedrov12/Documentos/GitHub/Repopulation-With-Elite-Set/src/output/resultados_consolidados.xlsx")
+        return df
+
     def consolidate_results(self):
         """
         Lê todos os JSONs de resultado individuais da pasta de saída,
