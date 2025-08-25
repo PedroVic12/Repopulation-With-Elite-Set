@@ -133,6 +133,10 @@ def run_framework_many_executions(function_bechmarking=False):
             alg = AlgoritimoEvolutivoRCE(setup, DEBUG=False)
             print("Algoritmo Evolutivo iniciado.")
             pop_with_repopulation, logbook_with_repopulation, best_individual, all_individual_values = alg.run(RCE=True)
+
+
+            # Visualize do Alg.dashbord aqui
+
             print("\n\nEvolução concluída  - 100%")
 
             alg.dashboard.visualize(
