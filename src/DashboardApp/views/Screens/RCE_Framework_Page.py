@@ -106,7 +106,7 @@ class FrameworkRCEDashboard:
     def header(self):
         st.markdown("---")
         st.title("⚡ Dashboard Repopulation-With-Elite-Set RCE ⚡")
-        st.subheader("Version 15.7.5 - 16/08/2025")
+        st.subheader("Version 15.7.5 - 20/08/2025")
         st.subheader("Artigo Cientifico PIBIC - 28/08/2025")
         st.subheader("Desenvolvido por Pedro Victor Veras e Rainer Zanghi em um projeto PIBIC pela UFF - 2024/2025")
         st.subheader("Apresentação e Resumo UFF - 06/09/2025")

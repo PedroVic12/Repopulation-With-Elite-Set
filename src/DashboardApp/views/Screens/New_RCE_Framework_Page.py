@@ -1,147 +1,138 @@
 import streamlit as st
-import sys
-import os
 import pandas as pd
-import json
-from pathlib import Path
+import plotly.express as px
 
-# Adiciona o diretório raiz do projeto ao sys.path para encontrar o database_controller
-# Isso assume que RCE_Framework_Page.py está em src/DashboardApp/views/Screens
-try:
-    from ....database_controller import DatabaseController
-except ImportError:
-    # Fallback para o caso de a estrutura de pastas mudar ou o script ser chamado de outro lugar
-    sys.path.append(str(Path(__file__).resolve().parents[3]))
+# --- Configuração da Página ---
+# Define o título da página, o ícone e o layout para ocupar a largura inteira.
+st.set_page_config(
+    page_title="Dashboard de Salários na Área de Dados",
+    page_icon="📊",
+    layout="wide",
+)
 
+# --- Carregamento dos dados ---
+df = pd.read_csv("https://raw.githubusercontent.com/vqrca/dashboard_salarios_dados/refs/heads/main/dados-imersao-final.csv")
 
+# --- Barra Lateral (Filtros) ---
+st.sidebar.header("🔍 Filtros")
 
-# --- Componentes da UI (mantidos do código original) ---
-from .components.dash_rce_components import CardSolutions
-from streamlit_timeline import st_timeline
+# Filtro de Ano
+anos_disponiveis = sorted(df['ano'].unique())
+anos_selecionados = st.sidebar.multiselect("Ano", anos_disponiveis, default=anos_disponiveis)
 
-# --- Funções de Carregamento de Dados (Refatoradas) ---
+# Filtro de Senioridade
+senioridades_disponiveis = sorted(df['senioridade'].unique())
+senioridades_selecionadas = st.sidebar.multiselect("Senioridade", senioridades_disponiveis, default=senioridades_disponiveis)
 
-@st.cache_data(ttl=60) # Adiciona cache para performance
-def load_consolidated_data(_db_controller: DatabaseController):
-    """Carrega os dados do arquivo Excel consolidado."""
-    if not _db_controller.consolidated_results_file.exists():
-        st.warning(f"Arquivo de resultados consolidados não encontrado em: {_db_controller.consolidated_results_file}")
-        st.info("Por favor, execute a consolidação no Launcher para gerar o relatório.")
-        return None
-    try:
-        return pd.read_excel(_db_controller.consolidated_results_file)
-    except Exception as e:
-        st.error(f"Erro ao carregar o arquivo de resultados consolidados: {e}")
-        return None
+# Filtro por Tipo de Contrato
+contratos_disponiveis = sorted(df['contrato'].unique())
+contratos_selecionados = st.sidebar.multiselect("Tipo de Contrato", contratos_disponiveis, default=contratos_disponiveis)
 
-@st.cache_data(ttl=60)
-def load_individual_run_data(_db_controller: DatabaseController, config_num, exec_num, data_type):
-    """Carrega dados de um arquivo JSON individual (results ou visualization)."""
-    if data_type == "results":
-        filename = f"config_{config_num}_exec_{exec_num}_results.json"
-    elif data_type == "visualization":
-        filename = f"config_{config_num}_exec_{exec_num}_visualization.json"
+# Filtro por Tamanho da Empresa
+tamanhos_disponiveis = sorted(df['tamanho_empresa'].unique())
+tamanhos_selecionados = st.sidebar.multiselect("Tamanho da Empresa", tamanhos_disponiveis, default=tamanhos_disponiveis)
+
+# --- Filtragem do DataFrame ---
+# O dataframe principal é filtrado com base nas seleções feitas na barra lateral.
+df_filtrado = df[
+    (df['ano'].isin(anos_selecionados)) &
+    (df['senioridade'].isin(senioridades_selecionadas)) &
+    (df['contrato'].isin(contratos_selecionados)) &
+    (df['tamanho_empresa'].isin(tamanhos_selecionados))
+]
+
+# --- Conteúdo Principal ---
+st.title("🎲 Dashboard de Análise de Salários na Área de Dados")
+st.markdown("Explore os dados salariais na área de dados nos últimos anos. Utilize os filtros à esquerda para refinar sua análise.")
+
+# --- Métricas Principais (KPIs) ---
+st.subheader("Métricas gerais (Salário anual em USD)")
+
+if not df_filtrado.empty:
+    salario_medio = df_filtrado['usd'].mean()
+    salario_maximo = df_filtrado['usd'].max()
+    total_registros = df_filtrado.shape[0]
+    cargo_mais_frequente = df_filtrado["cargo"].mode()[0]
+else:
+    salario_medio, salario_mediano, salario_maximo, total_registros, cargo_mais_comum = 0, 0, 0, ""
+
+col1, col2, col3, col4 = st.columns(4)
+col1.metric("Salário médio", f"${salario_medio:,.0f}")
+col2.metric("Salário máximo", f"${salario_maximo:,.0f}")
+col3.metric("Total de registros", f"{total_registros:,}")
+col4.metric("Cargo mais frequente", cargo_mais_frequente)
+
+st.markdown("---")
+
+# --- Análises Visuais com Plotly ---
+st.subheader("Gráficos")
+
+col_graf1, col_graf2 = st.columns(2)
+
+with col_graf1:
+    if not df_filtrado.empty:
+        top_cargos = df_filtrado.groupby('cargo')['usd'].mean().nlargest(10).sort_values(ascending=True).reset_index()
+        grafico_cargos = px.bar(
+            top_cargos,
+            x='usd',
+            y='cargo',
+            orientation='h',
+            title="Top 10 cargos por salário médio",
+            labels={'usd': 'Média salarial anual (USD)', 'cargo': ''}
+        )
+        grafico_cargos.update_layout(title_x=0.1, yaxis={'categoryorder':'total ascending'})
+        st.plotly_chart(grafico_cargos, use_container_width=True)
     else:
-        return None
+        st.warning("Nenhum dado para exibir no gráfico de cargos.")
 
-    file_path = _db_controller.output_dir / filename
-    if not file_path.exists():
-        # Não mostra warning para não poluir a tela, apenas retorna None
-        return None
-    try:
-        with open(file_path, 'r', encoding='utf-8') as f:
-            return json.load(f)
-    except Exception as e:
-        st.error(f"Erro ao carregar o arquivo {file_path}: {e}")
-        return None
+with col_graf2:
+    if not df_filtrado.empty:
+        grafico_hist = px.histogram(
+            df_filtrado,
+            x='usd',
+            nbins=30,
+            title="Distribuição de salários anuais",
+            labels={'usd': 'Faixa salarial (USD)', 'count': ''}
+        )
+        grafico_hist.update_layout(title_x=0.1)
+        st.plotly_chart(grafico_hist, use_container_width=True)
+    else:
+        st.warning("Nenhum dado para exibir no gráfico de distribuição.")
 
-# --- Classe Principal do Dashboard (Refatorada) ---
+col_graf3, col_graf4 = st.columns(2)
 
-class FrameworkRCEDashboard:
-    def __init__(self):
-        self.db_controller = DatabaseController()
+with col_graf3:
+    if not df_filtrado.empty:
+        remoto_contagem = df_filtrado['remoto'].value_counts().reset_index()
+        remoto_contagem.columns = ['tipo_trabalho', 'quantidade']
+        grafico_remoto = px.pie(
+            remoto_contagem,
+            names='tipo_trabalho',
+            values='quantidade',
+            title='Proporção dos tipos de trabalho',
+            hole=0.5  
+        )
+        grafico_remoto.update_traces(textinfo='percent+label')
+        grafico_remoto.update_layout(title_x=0.1)
+        st.plotly_chart(grafico_remoto, use_container_width=True)
+    else:
+        st.warning("Nenhum dado para exibir no gráfico dos tipos de trabalho.")
 
-    def run(self):
-        st.set_page_config(layout="wide")
-        st.title("⚡ Dashboard RCE Framework ⚡")
-        st.markdown("--- ")
+with col_graf4:
+    if not df_filtrado.empty:
+        df_ds = df_filtrado[df_filtrado['cargo'] == 'Data Scientist']
+        media_ds_pais = df_ds.groupby('residencia_iso3')['usd'].mean().reset_index()
+        grafico_paises = px.choropleth(media_ds_pais,
+            locations='residencia_iso3',
+            color='usd',
+            color_continuous_scale='rdylgn',
+            title='Salário médio de Cientista de Dados por país',
+            labels={'usd': 'Salário médio (USD)', 'residencia_iso3': 'País'})
+        grafico_paises.update_layout(title_x=0.1)
+        st.plotly_chart(grafico_paises, use_container_width=True)
+    else:
+        st.warning("Nenhum dado para exibir no gráfico de países.")
 
-        df_consolidado = load_consolidated_data(self.db_controller)
-
-        if df_consolidado is None:
-            st.stop()
-
-        st.header("✅ Resultados Consolidados")
-        st.dataframe(df_consolidado)
-        
-        available_configs = sorted(df_consolidado['config_num'].unique())
-        
-        if not available_configs:
-            st.info("Nenhuma configuração encontrada nos resultados consolidados.")
-            st.stop()
-
-        config_tabs = st.tabs([f"Config {key}" for key in available_configs])
-
-        for i, config_tab in enumerate(config_tabs):
-            with config_tab:
-                config_num = available_configs[i]
-                exec_numbers = sorted(df_consolidado[df_consolidado['config_num'] == config_num]['exec_num'].unique())
-                
-                if not exec_numbers:
-                    st.info("Nenhuma execução encontrada para esta configuração.")
-                    continue
-
-                exec_tabs = st.tabs([f"Execução {num}" for num in exec_numbers])
-                for j, exec_tab in enumerate(exec_tabs):
-                    with exec_tab:
-                        exec_num = exec_numbers[j]
-                        self.render_execution_details(config_num, exec_num)
-
-    def render_execution_details(self, config_num, exec_num):
-        """Renderiza os detalhes (Soluções, Gráfico, etc.) para uma execução específica."""
-        results_data = load_individual_run_data(self.db_controller, config_num, exec_num, "results")
-        viz_data = load_individual_run_data(self.db_controller, config_num, exec_num, "visualization")
-
-        component_tabs = st.tabs(["Soluções", "Gráfico de Convergência", "Parâmetros"])
-        
-        with component_tabs[0]:
-            if results_data:
-                CardSolutions.render(results_data, exec_num, debug=False)
-            else:
-                st.warning("Dados de solução (results.json) não encontrados.")
-
-        with component_tabs[1]:
-            st.subheader("Gráfico de Convergência")
-            if viz_data:
-                df_viz = pd.DataFrame(viz_data)
-                # DEAP logbook keys: gen, nevals, avg, std, min, max
-                rename_map = {
-                    'gen': 'Generation',
-                    'avg': 'Average Fitness',
-                    'std': 'Std Deviation',
-                    'min': 'Min Fitness (Best)',
-                    'max': 'Max Fitness'
-                }
-                df_viz.rename(columns=rename_map, inplace=True)
-                
-                chart_cols = [col for col in rename_map.values() if col in df_viz.columns]
-                if "Generation" in df_viz.columns and chart_cols:
-                    st.line_chart(df_viz, x="Generation", y=chart_cols)
-                else:
-                    st.warning("Colunas necessárias para o gráfico não encontradas nos dados de visualização.")
-            else:
-                st.warning("Dados de visualização (visualization.json) não encontrados.")
-
-        with component_tabs[2]:
-            st.subheader("Parâmetros Utilizados")
-            if results_data and 'params' in results_data:
-                st.json(results_data['params'], expanded=False)
-            else:
-                st.warning("Dados de parâmetros não encontrados.")
-
-# --- Ponto de Entrada ---
-# Este arquivo é uma "página" e deve ser chamado por um app Streamlit principal.
-# Para testar isoladamente, você pode adicionar:
-# if __name__ == "__main__":
-#     dashboard = FrameworkRCEDashboard()
-#     dashboard.run()
+# --- Tabela de Dados Detalhados ---
+st.subheader("Dados Detalhados")
+st.dataframe(df_filtrado)
