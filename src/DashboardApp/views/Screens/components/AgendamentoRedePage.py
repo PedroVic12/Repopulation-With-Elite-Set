@@ -9,6 +9,34 @@ output_xlsx_file = pathlib.Path(__file__).resolve().parent.parent.parent.parent.
 pop_final_xlsx_file = pathlib.Path(__file__).resolve().parent.parent.parent.parent.parent /  "output" / "pop_final.xlsx" # Importando o caminho do diretório de configuração
 
 
+import streamlit.components.v1 as components
+import os
+
+def rede_template_view(html_path: str | None = None, height: int = 1200):
+    """Renderiza o template HTML da rede IEEE dentro do Streamlit.
+
+    Args:
+        html_path: Caminho absoluto/relativo para o arquivo HTML. Se None, usa o arquivo padrão ao lado desta tela.
+        height: Altura do iframe em pixels.
+    """
+    # Caminho padrão: src/DashboardApp/plot_rede_IEEE_template_dashboard.html
+    if html_path is None:
+        html_path = "/home/pedrov12/Documentos/GitHub/Repopulation-With-Elite-Set/resultados - Artigo PIBIC/plot_rede_IEEE_template_dashboard.html"
+    try:
+        with open(html_path, "r", encoding="utf-8") as f:
+            html_content = f.read()
+    except FileNotFoundError:
+        st.error(f"Arquivo HTML não encontrado: {os.path.abspath(html_path)}")
+        st.info("Crie o arquivo ou informe um caminho válido em rede_template_view(html_path=...)")
+        return
+    except Exception as e:
+        st.error(f"Erro ao ler o arquivo HTML: {e}")
+        return
+
+    # Renderiza o HTML completo (com Plotly CDN incluído no próprio arquivo)
+    components.html(html_content, height=height, scrolling=True)
+
+
 # Função para carregar os dados de agendamento e contingência
 def entrada_de_dados():
     agendamento_df = pd.DataFrame([
@@ -149,6 +177,10 @@ def time_line_from_solution_variables(agendamento_df, contingencia_df, exec_data
 
 # Função para exibir a página de agendamento de rede elétrica
 def AgendamentoRedePage(key_prefix: str = "", selected_exec: int | None = None, solution_vars: list | None = None):
+
+
+    rede_template_view()  # Renderiza o template da rede IEEE    
+    """Página de Agendamento de Rede Elétrica com timeline interativa."""
 
     st.subheader("Agendamento de Intervenções de Redes Elétricas")
     st.write("Esta página exibe os agendamentos de rede elétrica e suas contingências, além de uma timeline interativa com as sugestões de agendamento.")

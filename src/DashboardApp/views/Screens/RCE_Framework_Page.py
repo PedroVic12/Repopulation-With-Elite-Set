@@ -18,6 +18,40 @@ from database_controller import DatabaseController
 from dashboard_config import get_config
 from consolidation_manager import ConsolidationManager
 
+
+import streamlit.components.v1 as components
+import os
+
+
+def load_data_excel():
+    df = pd.read_excel("/home/pedrov12/Documentos/GitHub/Repopulation-With-Elite-Set/src/output/resultados_consolidados.xlsx")
+    return df
+
+def rede_template_view(html_path: str | None = None, height: int = 1200):
+    """Renderiza o template HTML da rede IEEE dentro do Streamlit.
+
+    Args:
+        html_path: Caminho absoluto/relativo para o arquivo HTML. Se None, usa o arquivo padrão ao lado desta tela.
+        height: Altura do iframe em pixels.
+    """
+    # Caminho padrão: src/DashboardApp/plot_rede_IEEE_template_dashboard.html
+    if html_path is None:
+        html_path = "/home/pedrov12/Documentos/GitHub/Repopulation-With-Elite-Set/resultados - Artigo PIBIC/plot_rede_IEEE_template_dashboard.html"
+    try:
+        with open(html_path, "r", encoding="utf-8") as f:
+            html_content = f.read()
+    except FileNotFoundError:
+        st.error(f"Arquivo HTML não encontrado: {os.path.abspath(html_path)}")
+        st.info("Crie o arquivo ou informe um caminho válido em rede_template_view(html_path=...)")
+        return
+    except Exception as e:
+        st.error(f"Erro ao ler o arquivo HTML: {e}")
+        return
+
+    # Renderiza o HTML completo (com Plotly CDN incluído no próprio arquivo)
+    components.html(html_content, height=height, scrolling=True)
+
+
 class FrameworkRCEDashboard:
     """Dashboard principal, restaurado e corrigido para incluir todas as funcionalidades solicitadas."""
 
@@ -69,19 +103,18 @@ class FrameworkRCEDashboard:
         st.markdown("Análise de resultados de otimização com Repopulation-With-Elite-Set.")
         
         # Barra de informações e controles usando configurações
-        col1, col2, col3, col4 = st.columns([2, 1, 1, 1])
+        col1,col3 = st.columns([1,  1])
         
         with col1:
             # Status do sistema
             if st.session_state.df_consolidado is not None:
                 st.success(self.config.get_message("success", "system_loaded"))
+                # Botão de atualização
+                if st.button("🔄 Atualizar", key="refresh_btn"):
+                    st.rerun()
             else:
                 st.warning(self.config.get_message("warning", "system_not_loaded"))
-        
-        with col2:
-            # Botão de atualização
-            if st.button("🔄 Atualizar", key="refresh_btn"):
-                st.rerun()
+  
         
         with col3:
             # Botão de consolidação com status
@@ -105,12 +138,7 @@ class FrameworkRCEDashboard:
                             st.error("❌ Falha na consolidação. Verifique os logs.")
                     except Exception as e:
                         st.error(f"{self.config.get_message('error', 'consolidation_error')}: {e}")
-        
-        with col4:
-            # Informações do sistema
-            if st.button("ℹ️ Info", key="info_btn"):
-                self._show_system_info()
-        
+
         # Separador
         st.markdown("---")
         
@@ -284,7 +312,7 @@ class FrameworkRCEDashboard:
             try:
                 # Verifica se o componente está habilitado nas configurações
                 if self.config.is_component_enabled("StatisticsTableComponent"):
-                    StatisticsTableComponent.render(viz_data, key=f"stats_table_{config_num}_{exec_num}")
+                    StatisticsTableComponent.render(viz_data)
                 else:
                     st.warning("Componente de estatísticas desabilitado nas configurações.")
             except Exception as e:
@@ -325,47 +353,7 @@ class FrameworkRCEDashboard:
                         
                 except Exception as e:
                     st.write(f"Erro ao obter informações do orquestrador: {e}")
-
-    def run(self):
-        self.render_header()
-
-        executions_map = st.session_state.executions_map
-        if not executions_map:
-            st.warning("Nenhum resultado consolidado encontrado. Execute a consolidação através do Launcher.")
-            st.stop()
-
-        # Lógica do Toggle para fixar a visualização
-        if st.session_state.locked_config:
-            if st.button(f"🔓 Desfixar Configuração {st.session_state.locked_config}"):
-                st.session_state.locked_config = None
-                st.rerun()
-            
-            config_num = st.session_state.locked_config
-            st.header(f"Configuração {config_num} (Fixada)")
-            exec_numbers = executions_map.get(config_num, [])
-            exec_tabs = st.tabs([f"Execução {en}" for en in exec_numbers])
-            for j, exec_tab in enumerate(exec_tabs):
-                with exec_tab:
-                    self.render_execution_details(config_num, exec_numbers[j])
-        else:
-            config_keys = sorted(executions_map.keys())
-            config_tabs = st.tabs([f"Config {cfg}" for cfg in config_keys])
-
-            for i, tab in enumerate(config_tabs):
-                with tab:
-                    config_num = config_keys[i]
-                    if st.button(f"📌 Fixar Configuração {config_num}", key=f"pin_{config_num}"):
-                        st.session_state.locked_config = config_num
-                        st.rerun()
                     
-                    exec_numbers = executions_map.get(config_num, [])
-                    exec_tabs = st.tabs([f"Execução {en}" for en in exec_numbers])
-                    for j, exec_tab in enumerate(exec_tabs):
-                        with exec_tab:
-                            self.render_execution_details(config_num, exec_numbers[j])
-        
-        self.render_footer()
-
     def _show_system_info(self):
         """Mostra informações detalhadas do sistema usando configurações."""
         with st.expander("ℹ️ Informações do Sistema", expanded=True):
@@ -421,3 +409,54 @@ class FrameworkRCEDashboard:
                     
             except Exception as e:
                 st.write(f"  • Erro ao verificar status: {e}")
+
+    def run(self):
+        self.render_header()
+
+        executions_map = st.session_state.executions_map
+        if not executions_map:
+            st.warning("Nenhum resultado consolidado encontrado. Execute a consolidação através do Launcher.")
+            st.stop()
+            
+        df_consolidado = load_data_excel()
+        
+        if df_consolidado is not None:
+            st.session_state.df_consolidado = df_consolidado
+            st.session_state.executions_map = self._get_executions_map()
+            executions_map = st.session_state.executions_map
+            st.subheader("📈 Resultados Consolidados de Todas as Configurações e Execuções")
+            if df_consolidado is not None:
+                st.dataframe(df_consolidado, use_container_width=True)
+
+        # Lógica do Toggle para fixar a visualização
+        if st.session_state.locked_config:
+            if st.button(f"🔓 Desfixar Configuração {st.session_state.locked_config}"):
+                st.session_state.locked_config = None
+                st.rerun()
+            
+            config_num = st.session_state.locked_config
+            st.header(f"Configuração {config_num} (Fixada)")
+            exec_numbers = executions_map.get(config_num, [])
+            exec_tabs = st.tabs([f"Execução {en}" for en in exec_numbers])
+            for j, exec_tab in enumerate(exec_tabs):
+                with exec_tab:
+                    self.render_execution_details(config_num, exec_numbers[j])
+        else:
+            config_keys = sorted(executions_map.keys())
+            config_tabs = st.tabs([f"Config {cfg}" for cfg in config_keys])
+
+            for i, tab in enumerate(config_tabs):
+                with tab:
+                    config_num = config_keys[i]
+                    if st.button(f"📌 Fixar Configuração {config_num}", key=f"pin_{config_num}"):
+                        st.session_state.locked_config = config_num
+                        st.rerun()
+                    
+                    exec_numbers = executions_map.get(config_num, [])
+                    exec_tabs = st.tabs([f"Execução {en}" for en in exec_numbers])
+                    for j, exec_tab in enumerate(exec_tabs):
+                        with exec_tab:
+                            self.render_execution_details(config_num, exec_numbers[j])
+        
+        self.render_footer()
+
