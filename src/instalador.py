@@ -10,7 +10,7 @@ from PySide6.QtCore import QThread, Signal, Qt
 
 STYLESHEET = """
 QWidget {
-    background-color: #005AB4FF;
+    background-color: #0047ab;
     color: #ecf0f1;
     font-family: Arial, sans-serif;
 }
