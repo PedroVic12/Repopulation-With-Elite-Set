@@ -23,6 +23,7 @@ import streamlit.components.v1 as components
 import os
 
 
+
 def load_data_excel():
     df = pd.read_excel("/home/pedrov12/Documentos/GitHub/Repopulation-With-Elite-Set/src/output/resultados_consolidados.xlsx")
     return df
@@ -418,15 +419,17 @@ class FrameworkRCEDashboard:
             st.warning("Nenhum resultado consolidado encontrado. Execute a consolidação através do Launcher.")
             st.stop()
             
-        df_consolidado = load_data_excel()
-        
-        if df_consolidado is not None:
-            st.session_state.df_consolidado = df_consolidado
-            st.session_state.executions_map = self._get_executions_map()
-            executions_map = st.session_state.executions_map
+        # Ensure df_consolidado and executions_map are initialized in _init_state
+        # and are available in st.session_state
+        df_consolidado = st.session_state.df_consolidado
+        executions_map = st.session_state.executions_map
+
+        if df_consolidado is not None and not df_consolidado.empty:
             st.subheader("📈 Resultados Consolidados de Todas as Configurações e Execuções")
-            if df_consolidado is not None:
-                st.dataframe(df_consolidado, use_container_width=True)
+            st.dataframe(df_consolidado, use_container_width=True)
+        else:
+            st.warning("Nenhum resultado consolidado encontrado. Execute a consolidação através do Launcher.")
+            st.stop()
 
         # Lógica do Toggle para fixar a visualização
         if st.session_state.locked_config:

@@ -363,36 +363,7 @@ def AgendamentoRedePage(key_prefix: str = "", selected_exec: int | None = None, 
             "end": f"2025-0{mes}-{dia}T{end_hour:02d}:{start_minute:02d}:00"
         })
 
-    #!  Exibir timeline inicial de Proposta de Agendamento
-    # st.subheader("Sugestão inicial para o Agendamento de Rede Elétrica")
-    # st.write("Clique em um item para ver os detalhes da execução selecionada.")
-    # timeline = st_timeline(
-    #     timeline_items,
-    #     groups=[],
-    #     options={
-    #         "selectable": True,
-    #         "multiselect": True,
-    #         "zoomable": True,
-    #         "verticalScroll": True,
-    #         "stack": True,
-    #         "height": 500,
-    #         "margin": {"axis": 5},
-    #         "groupHeightMode": "auto",
-    #         "orientation": {"axis": "top", "item": "top"}
-    #     },
-    # )
 
-    # # Mostrar dados da execução selecionada
-    # if timeline:
-    #     selected_id = timeline.get("id", "").split("-")[1]
-    #     selected_agendamento = agendamento_df.iloc[int(selected_id)]
-    #     st.json(selected_agendamento.to_dict())
-
-    # #! Tabs para cada execução
-    # st.subheader("Resultado de todas as Execuções")
-    # st.write(execution_df)
-    # st.info("Para melhor visualização vou tentar ter um checkbox no data_editor de cada execução e selecionar dentro da tabela (retira o tabs de execução), mas por enquanto vou deixar como está.")
-    
     
     
     def tabs_results_redeEletrica():
