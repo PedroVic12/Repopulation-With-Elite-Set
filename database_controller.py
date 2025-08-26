@@ -1,4 +1,5 @@
 import glob
+print(f"Loading database_controller.py from: {__file__}")
 import json
 import pandas as pd
 from datetime import datetime
@@ -114,7 +115,7 @@ class DatabaseController:
         Inicializa o controlador.
         """
         if base_dir is None:
-            self.base_dir = Path(__file__).resolve().parent.parent
+            self.base_dir = Path(__file__).resolve().parent
         else:
             self.base_dir = base_dir
             
@@ -205,6 +206,89 @@ class DatabaseController:
                 print(f"Erro ao ler arquivo {f_path} para visualização: {e}")
         return all_viz_data
 
+    def get_run_data(self, config_num: int, exec_num: int) -> dict | None:
+        """Carrega os dados de um arquivo de resultado individual (results.json)."""
+        search_pattern = str(self.output_dir / "**" / f"config_{config_num}_exec_{exec_num}_results.json")
+        result_files = glob.glob(search_pattern, recursive=True)
+        if not result_files:
+            return None
+        try:
+            with open(result_files[0], 'r', encoding='utf-8') as f:
+                return json.load(f)
+        except (json.JSONDecodeError, FileNotFoundError) as e:
+            print(f"Aviso: Não foi possível ler o arquivo de resultado para config {config_num}, exec {exec_num}. Erro: {e}")
+            return None
+
+    def get_visualization_data_for_run(self, config_num: int, exec_num: int) -> list | None:
+        """Carrega os dados de um arquivo de visualização individual (visualization.json)."""
+        search_pattern = str(self.output_dir / "**" / f"config_{config_num}_exec_{exec_num}_visualization.json")
+        viz_files = glob.glob(search_pattern, recursive=True)
+        if not viz_files:
+            return None
+        try:
+            with open(viz_files[0], 'r', encoding='utf-8') as f:
+                data = json.load(f)
+                if isinstance(data, list):
+                    return data
+                elif isinstance(data, dict):
+                    return data.get('viz_data', [])
+                else:
+                    return None
+        except (json.JSONDecodeError, FileNotFoundError) as e:
+            print(f"Aviso: Não foi possível ler o arquivo de visualização para config {config_num}, exec {exec_num}. Erro: {e}")
+            return None
+
+    def get_execution_summary(self) -> dict:
+        """Retorna um resumo organizado de todas as execuções e arquivos de saída."""
+        summary = {
+            'total_runs': 0,
+            'total_configs': 0,
+            'total_files': 0,
+            'file_counts': {
+                'json': 0,
+                'html': 0,
+                'pkl': 0,
+                'xlsx': 0,
+                'other': 0
+            }
+        }
+        
+        all_files = glob.glob(str(self.output_dir / "**/*"), recursive=True)
+        
+        config_exec_pairs = set()
+        
+        for file_path_str in all_files:
+            file_path = Path(file_path_str)
+            if file_path.is_file():
+                summary['total_files'] += 1
+                file_ext = file_path.suffix.lower()
+                if file_ext == '.json':
+                    summary['file_counts']['json'] += 1
+                    # Try to extract config_num and exec_num from results.json
+                    if '_results.json' in file_path.name:
+                        try:
+                            parts = file_path.name.split('_')
+                            config_num = int(parts[1])
+                            exec_num = int(parts[3])
+                            config_exec_pairs.add((config_num, exec_num))
+                        except (ValueError, IndexError):
+                            pass # Not a standard results file
+                elif file_ext == '.html':
+                    summary['file_counts']['html'] += 1
+                elif file_ext == '.pkl':
+                    summary['file_counts']['pkl'] += 1
+                elif file_ext == '.xlsx':
+                    summary['file_counts']['xlsx'] += 1
+                else:
+                    summary['file_counts']['other'] += 1
+        
+        summary['total_runs'] = len(config_exec_pairs)
+        # This is a simplification; actual total configs would require parsing all params.json
+        # For now, we'll count unique config_nums from results files
+        summary['total_configs'] = len(set(pair[0] for pair in config_exec_pairs))
+        
+        return summary
+
     def consolidate_results(self):
         """
         Chama a lógica de consolidação para gerar o arquivo Excel.
@@ -220,11 +304,55 @@ class DatabaseController:
         except Exception as e:
             print(f"Erro ao chamar o processo de consolidação: {e}")
 
+    def run(self, consolidate: bool = True, show_data: bool = True, show_viz_data: bool = True):
+        """
+        Executa um fluxo de trabalho completo de gerenciamento de dados.
+        Esta é a função "potente" que orquestra várias operações.
+        
+        Args:
+            consolidate (bool): Se deve executar o processo de consolidação.
+            show_data (bool): Se deve carregar e exibir os dados consolidados.
+            show_viz_data (bool): Se deve carregar e exibir os dados de visualização.
+        """
+        print("🚀 INICIANDO FLUXO DE TRABALHO DO DATABASE CONTROLLER 🚀")
+        print("=" * 60)
+
+        if consolidate:
+            print("\n1️⃣ EXECUTANDO CONSOLIDAÇÃO DE RESULTADOS...")
+            self.consolidate_results()
+
+        if show_data:
+            print("\n2️⃣ CARREGANDO DADOS CONSOLIDADOS...")
+            df_consolidado = self.get_consolidated_data()
+            if df_consolidado is not None:
+                print(f"   ✅ Dados consolidados carregados. {len(df_consolidado)} linhas.")
+                print("   Primeiras 5 linhas:")
+                print(df_consolidado.head())
+            else:
+                print("   ❌ Nenhum dado consolidado encontrado.")
+
+        if show_viz_data:
+            print("\n3️⃣ CARREGANDO DADOS DE VISUALIZAÇÃO...")
+            viz_data = self.get_visualization_data()
+            if viz_data:
+                print(f"   ✅ Dados de visualização carregados. {len(viz_data)} registros.")
+                print("   Primeiros 5 registros:")
+                for i, item in enumerate(viz_data[:5]):
+                    print(f"     - {item}")
+            else:
+                print("   ❌ Nenhum dado de visualização encontrado.")
+
+        print("\n🎯 FLUXO DE TRABALHO DO DATABASE CONTROLLER CONCLUÍDO! 🎯")
+        print("=" * 60)
+
 
 if __name__ == "__main__":
-    print("Este arquivo contém a classe DatabaseController e funções de consolidação.")
-    print("Para usar, importe a classe DatabaseController em seu script principal.")
-    print("Exemplo de uso:")
-    print("  from database_controller import DatabaseController")
-    print("  db_controller = DatabaseController()")
-    print("  db_controller.consolidate_results()")
+    base_directory = Path(__file__).resolve().parent
+    controller = DatabaseController(base_dir=base_directory)
+    
+    # Exemplo de uso da nova função run com todas as funcionalidades
+    controller.run(
+        consolidate=True,
+        show_data=True,
+        show_viz_data=True
+    )

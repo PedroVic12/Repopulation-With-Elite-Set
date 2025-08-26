@@ -15,6 +15,7 @@ if str(BASE_DIR) not in sys.path:
     sys.path.append(str(BASE_DIR))
 
 from database_controller import DatabaseController
+print(f"Dashboard importing database_controller from: {DatabaseController.__module__}")
 from dashboard_config import get_config
 from consolidation_manager import ConsolidationManager
 
@@ -22,28 +23,6 @@ import streamlit.components.v1 as components
 import os
 
 
-
-@st.cache_data
-def load_data_excel():
-    """Carrega dados do Excel com cache."""
-    try:
-        # Primeiro, tenta o caminho absoluto original
-        file_path = "/home/pedrov12/Documentos/GitHub/Repopulation-With-Elite-Set/src/output/resultados_consolidados.xlsx"
-        if Path(file_path).exists():
-            return pd.read_excel(file_path)
-        
-        # Se não encontrar, tenta caminho relativo
-        relative_path = Path(__file__).parent.parent.parent / "src" / "output" / "resultados_consolidados.xlsx"
-        if relative_path.exists():
-            return pd.read_excel(relative_path)
-        
-        # Se ainda não encontrar, retorna DataFrame vazio
-        st.warning("Arquivo de resultados consolidados não encontrado.")
-        return pd.DataFrame()
-        
-    except Exception as e:
-        st.error(f"Erro ao carregar dados: {e}")
-        return pd.DataFrame()
 
 def rede_template_view(html_path: str | None = None, height: int = 1200):
     """Renderiza o template HTML da rede IEEE dentro do Streamlit.
@@ -216,16 +195,9 @@ class FrameworkRCEDashboard:
             st.write("**Programa:** PIBIC - Programa Institucional de Bolsas de Iniciação Científica")
 
     def _export_data(self):
-        """Exporta dados do dashboard usando o orquestrador."""
-        try:
-            with st.spinner("Exportando dados..."):
-                # Cria relatório de saída
-                if self.db_controller.create_output_report():
-                    st.success(self.config.get_message("success", "export_complete"))
-                else:
-                    st.error(self.config.get_message("error", "export_error"))
-        except Exception as e:
-            st.error(f"{self.config.get_message('error', 'export_error')}: {e}")
+        """Exporta dados do dashboard. (Funcionalidade simplificada)"""
+        st.info("A funcionalidade de exportação de dados completa não está disponível nesta versão simplificada do controlador de banco de dados.")
+        st.info("Você pode acessar os resultados consolidados diretamente em: `src/output/resultados_consolidados.xlsx`")
 
     def _clear_cache(self):
         """Limpa o cache da sessão."""
@@ -242,36 +214,29 @@ class FrameworkRCEDashboard:
             st.error(f"{self.config.get_message('error', 'cache_error')}: {e}")
 
     def _generate_report(self):
-        """Gera relatório detalhado do sistema."""
+        """Gera relatório detalhado do sistema. (Funcionalidade simplificada)"""
+        st.info("A funcionalidade de geração de relatório detalhado não está disponível nesta versão simplificada do controlador de banco de dados.")
+        st.info("Para um resumo, consulte a seção 'Informações do Sistema'.")
+        
+        # Exibe informações do sistema
+        st.write("**Relatório do Sistema (Resumo):**")
+        st.write(f"  • Data/Hora: {pd.Timestamp.now()}")
+        st.write(f"  • Total de Execuções Consolidadas: {len(st.session_state.df_consolidado) if st.session_state.df_consolidado is not None else 0}")
+        st.write(f"  • Configurações Únicas: {len(st.session_state.executions_map)}")
+        
+        # Informações do controlador de banco de dados (simplificado)
         try:
-            with st.spinner("Gerando relatório..."):
-                # Usa o orquestrador para criar relatório
-                if self.db_controller.create_output_report():
-                    st.success("✅ Relatório gerado com sucesso!")
-                    
-                    # Exibe informações do sistema
-                    st.write("**Relatório do Sistema:**")
-                    st.write(f"  • Data/Hora: {pd.Timestamp.now()}")
-                    st.write(f"  • Total de Execuções: {len(st.session_state.df_consolidado) if st.session_state.df_consolidado is not None else 0}")
-                    st.write(f"  • Configurações: {len(st.session_state.executions_map)}")
-                    
-                    # Informações do orquestrador
-                    try:
-                        summary = self.db_controller.get_execution_summary()
-                        st.write(f"  • Execuções Detectadas: {summary['total_runs']}")
-                        st.write(f"  • Total de Arquivos: {sum(summary['file_counts'].values())}")
-                    except Exception as e:
-                        st.write(f"  • Erro ao obter resumo: {e}")
-                        
-                else:
-                    st.error("❌ Erro ao gerar relatório")
-                    
+            summary = self.db_controller.get_execution_summary()
+            st.write(f"  • Execuções Detectadas (via controlador): {summary['total_runs']}")
+            st.write(f"  • Total de Arquivos de Saída: {summary['total_files']}")
+            st.write("  • Contagem de Arquivos por Tipo:")
+            for file_type, count in summary['file_counts'].items():
+                st.write(f"    - {file_type.upper()}: {count}")
         except Exception as e:
-            st.error(f"❌ Erro ao gerar relatório: {e}")
+            st.write(f"  • Erro ao obter resumo do controlador: {e}")
 
     def render_execution_details(self, config_num, exec_num):
         results_data = self.db_controller.get_run_data(config_num, exec_num) or {}
-        viz_data = self.db_controller.get_visualization_data(config_num, exec_num)
         df_consolidado = st.session_state.df_consolidado
 
         if df_consolidado is not None:
@@ -288,6 +253,10 @@ class FrameworkRCEDashboard:
                 results_data['best_variables'] = best_vars_list
                 results_data['best_vars'] = best_vars_list
                 results_data['decision_vars'] = {f'VAR {i+1}': v for i, v in enumerate(best_vars_list)}
+
+        # Get visualization data and convert to DataFrame once
+        viz_data_list = self.db_controller.get_visualization_data_for_run(config_num, exec_num)
+        df_viz = pd.DataFrame(viz_data_list) if viz_data_list else pd.DataFrame() # Create empty DataFrame if list is empty
 
         # Usa nomes de tabs das configurações
         tab_names = [
@@ -309,29 +278,19 @@ class FrameworkRCEDashboard:
 
         with tab2:
             st.subheader("Gráfico de Convergência")
-            
-            
-                    
+
             try:
                 html_path = "/home/pedrov12/Documentos/GitHub/Repopulation-With-Elite-Set/src/output/grafico_execucao_config1_exec1.html"
 
                 with open(html_path, "r", encoding="utf-8") as f:
                     html_content = f.read()
             except FileNotFoundError:
-                st.error(f"Arquivo HTML não encontrado: {os.path.abspath(html_path)}")            
-            
-            df_viz = self.db_controller.get_visualization_data(config_num, exec_num)
+                st.error(f"Arquivo HTML não encontrado: {os.path.abspath(html_path)}")
 
-            
-            if df_viz:
-            
-            
-                st.write(df_viz)
-            
+            if not df_viz.empty: # Check if df_viz is not empty
                 st.write("**Dados de Visualização:**")
                 st.dataframe(df_viz.head(self.config.MAX_ROWS_IN_TABLE), use_container_width=True)
                 try:
-
                     if 'gen' in df_viz.columns:
                         stats_df = df_viz.rename(columns={'gen': 'Generation', 'avg': 'Média', 'min': 'Mínimo', 'max': 'Máximo'})
                         st.line_chart(stats_df, x='Generation', y=['Média', 'Mínimo', 'Máximo'], height=self.config.CHART_HEIGHT)
@@ -339,51 +298,55 @@ class FrameworkRCEDashboard:
                         stats_df = df_viz.groupby('Generations')['Fitness'].agg(['mean', 'min', 'max']).reset_index()
                         stats_df = stats_df.rename(columns={'Generations': 'Generation', 'mean': 'Média', 'min': 'Mínimo', 'max': 'Máximo'})
                         st.line_chart(stats_df, x='Generation', y=['Média', 'Mínimo', 'Máximo'], height=self.config.CHART_HEIGHT)
+                    else:
+                        st.warning("Colunas 'gen' ou 'Generations' não encontradas para o gráfico de convergência.")
                 except Exception as e:
                     st.error(f"Erro ao renderizar gráfico: {e}")
                     st.info(self.config.get_message("info", "try_reload"))
             else:
                 st.warning("Dados de visualização não disponíveis.")
-            
+
         with tab3:
             st.subheader("Tabela de Estatísticas")
             try:
                 if 'StatisticsTableComponent' in globals() and self.config.is_component_enabled("StatisticsTableComponent"):
-                    StatisticsTableComponent.render(viz_data)
-                else:
-                    # Implementação básica de estatísticas
-                    if isinstance(viz_data, pd.DataFrame) and not viz_data.empty:
-                        st.write("**Estatísticas dos Dados:**")
-                        st.dataframe(viz_data.describe())
-                        
-                        st.write("**Primeiros Registros:**")
-                        st.dataframe(viz_data.head(20))
+                    if not df_viz.empty: # Check if df_viz is not empty
+                        StatisticsTableComponent.render(df_viz) # Pass df_viz
                     else:
                         st.warning("Dados de estatísticas não disponíveis.")
-                        
+                else:
+                    # Implementação básica de estatísticas
+                    if not df_viz.empty: # Check if df_viz is not empty
+                        st.write("**Estatísticas dos Dados:**")
+                        st.dataframe(df_viz.describe()) # Use df_viz
+                        st.write("**Primeiros Registros:**")
+                        st.dataframe(df_viz.head(20)) # Use df_viz
+                    else:
+                        st.warning("Dados de estatísticas não disponíveis.")
+
             except Exception as e:
                 st.error(f"Erro ao renderizar estatísticas: {e}")
                 st.info("Estatísticas não disponíveis.")
-            
+
         with tab4:
             st.warning("População Final não implementada nesta visualização.")
             st.info("Esta funcionalidade será implementada em versões futuras.")
-            
+
             # Adiciona informações sobre população final se o arquivo existir
             pop_final_path = self.config.POP_FINAL_FILE
             if pop_final_path.exists():
                 try:
                     pop_df = pd.read_excel(pop_final_path)
                     st.success(f"✅ Arquivo de população final encontrado: {len(pop_df)} indivíduos")
-                    
+
                     with st.expander("📋 Visualizar População Final"):
                         st.dataframe(pop_df.head(self.config.MAX_ROWS_IN_TABLE))
-                        
+
                 except Exception as e:
                     st.error(f"Erro ao ler população final: {e}")
             else:
                 st.info("Arquivo de população final não encontrado.")
-            
+
             # Adiciona informações do orquestrador
             with st.expander("🔍 Informações do Orquestrador", expanded=False):
                 try:
@@ -391,12 +354,12 @@ class FrameworkRCEDashboard:
                     st.write("**Resumo das Execuções:**")
                     st.write(f"  • Total de execuções: {summary['total_runs']}")
                     st.write(f"  • Total de arquivos: {sum(summary['file_counts'].values())}")
-                    
+
                     # Lista arquivos por tipo
                     st.write("**Arquivos por Tipo:**")
                     for file_type, count in summary['file_counts'].items():
                         st.write(f"  • {file_type.upper()}: {count}")
-                        
+
                 except Exception as e:
                     st.write(f"Erro ao obter informações do orquestrador: {e}")
                     
@@ -429,13 +392,16 @@ class FrameworkRCEDashboard:
                 st.write(f"  • Colunas Disponíveis: {list(df.columns)}")
             
             # Funcionalidades do orquestrador
-            st.write("**Funcionalidades do Orquestrador:**")
+            st.write("**Funcionalidades do Controlador de Dados (Simplificado):**")
             try:
                 summary = self.db_controller.get_execution_summary()
-                st.write(f"  • Total de Execuções: {summary['total_runs']}")
-                st.write(f"  • Total de Arquivos: {sum(summary['file_counts'].values())}")
+                st.write(f"  • Total de Execuções Detectadas: {summary['total_runs']}")
+                st.write(f"  • Total de Arquivos de Saída: {summary['total_files']}")
+                st.write("  • Contagem de Arquivos por Tipo:")
+                for file_type, count in summary['file_counts'].items():
+                    st.write(f"    - {file_type.upper()}: {count}")
             except Exception as e:
-                st.write(f"  • Erro ao obter resumo: {e}")
+                st.write(f"  • Erro ao obter resumo do controlador: {e}")
             
             # Status da consolidação
             st.write("**Status da Consolidação:**")

@@ -109,11 +109,14 @@ class StatisticsTableComponent:
     """Componente para exibir a tabela de estatísticas por geração."""
     @staticmethod
     def render(data):
-        if not data:
+        if data.empty:
             st.info("Não há dados de estatísticas por geração para exibir.")
             return
         try:
-            df = pd.DataFrame(data)
+            if isinstance(data, pd.DataFrame):
+                df = data
+            else:
+                df = pd.DataFrame(data)
             st.dataframe(df)
         except Exception as e:
             st.error(f"Não foi possível exibir tabela de estatísticas: {e}")
