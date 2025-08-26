@@ -32,8 +32,9 @@ def rede_template_view(html_path: str | None = None, height: int = 1200):
         height: Altura do iframe em pixels.
     """
     # Caminho padrão: src/DashboardApp/plot_rede_IEEE_template_dashboard.html
+    st.write(BASE_DIR)
     if html_path is None:
-        html_path = "/home/pedrov12/Documentos/GitHub/Repopulation-With-Elite-Set/resultados - Artigo PIBIC/plot_rede_IEEE_template_dashboard.html"
+        html_path = BASE_DIR / "resultados - Artigo PIBIC" / "plot_rede_IEEE_template_dashboard.html"
     try:
         with open(html_path, "r", encoding="utf-8") as f:
             html_content = f.read()
@@ -175,8 +176,7 @@ class FrameworkRCEDashboard:
                     except Exception as e:
                         st.error(f"{self.config.get_message('error', 'consolidation_error')}: {e}")
             
-            # Add the tab pinning toggle here
-            self.tab_pinning_controller.render_toggle()
+
 
         # Separador
         st.markdown("---")
@@ -568,9 +568,15 @@ class FrameworkRCEDashboard:
             st.warning("Nenhum resultado consolidado encontrado. Execute a consolidação através do Launcher.")
             st.stop()
 
+
+        # Add the tab pinning toggle here
+        self.tab_pinning_controller.render_toggle()
+
+        # Tabs de configuração
         config_keys = sorted(executions_map.keys())
         config_tabs = st.tabs([f"Config {cfg}" for cfg in config_keys])
 
+        # Tabs de execução
         for i, tab in enumerate(config_tabs):
             with tab:
                 config_num = config_keys[i]
