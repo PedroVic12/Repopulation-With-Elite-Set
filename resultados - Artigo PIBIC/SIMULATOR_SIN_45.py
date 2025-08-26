@@ -14,9 +14,10 @@ from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 from PySide6.QtWidgets import (
     QApplication, QMainWindow, QWidget, QVBoxLayout, QHBoxLayout,
     QPushButton, QTableWidget, QTableWidgetItem, QTabWidget, QFileDialog,
-    QMessageBox, QHeaderView, QGroupBox, QSplitter
+    QMessageBox, QHeaderView, QGroupBox, QSplitter, QLabel
 )
 from PySide6.QtCore import Qt
+from PySide6.QtGui import QFont
 
 # =============================================================================
 # 1. MODELO (Lógica de Dados e Pandapower)
@@ -152,6 +153,49 @@ class PowerSystemModel:
 # =============================================================================
 # 2. VIEW (Interface Gráfica com PySide6)
 # =============================================================================
+class MetricsWidget(QWidget):
+    """Um widget para exibir as métricas da rede em cards."""
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        layout = QHBoxLayout(self)
+        layout.setContentsMargins(0, 10, 0, 10)
+
+        self.gen_card = self._create_metric_card("Geração Total (MW)", "N/A")
+        self.load_card = self._create_metric_card("Carga Total (MW)", "N/A")
+        
+        layout.addWidget(self.gen_card)
+        layout.addWidget(self.load_card)
+
+    def _create_metric_card(self, title, initial_value):
+        card = QGroupBox(title)
+        card_layout = QVBoxLayout(card)
+        value_label = QLabel(initial_value)
+        font = QFont("Segoe UI", 20, QFont.Bold)
+        value_label.setFont(font)
+        value_label.setAlignment(Qt.AlignCenter)
+        card_layout.addWidget(value_label)
+        card.setStyleSheet("""
+            QGroupBox {
+                background-color: #f0f0f0;
+                border: 1px solid #cccccc;
+                border-radius: 5px;
+                margin-top: 1ex;
+                font-weight: bold;
+            }
+            QGroupBox::title {
+                subcontrol-origin: margin;
+                subcontrol-position: top center;
+                padding: 0 3px;
+            }
+        """)
+        return card
+
+    def update_metrics(self, total_gen_mw, total_load_mw):
+        gen_label = self.gen_card.findChild(QLabel)
+        load_label = self.load_card.findChild(QLabel)
+        gen_label.setText(f"{total_gen_mw:.2f}")
+        load_label.setText(f"{total_load_mw:.2f}")
+
 class NetworkCanvas(FigureCanvas):
     """Widget para exibir o gráfico da rede Matplotlib."""
     def __init__(self, parent=None):
@@ -166,15 +210,19 @@ class NetworkCanvas(FigureCanvas):
         self.ax.clear()
         if net and len(net.bus) > 0:
             try:
+                collections = []
                 # Criar coleções para cada tipo de elemento da rede
-                bc = plot.create_bus_collection(net, size=80, color="blue", zorder=3, label="Barras")
-                lc = plot.create_line_collection(net, color="grey", linewidth=2.0, label="Linhas")
-                load_collection = plot.create_load_collection(net, size=60, orientation=30, color="red", label="Cargas")
-                gen_collection = plot.create_gen_collection(net, size=80, marker='o', color='green', label="Geradores")
-                ext_grid_collection = plot.create_ext_grid_collection(net, size=100, marker='s', color='orange', label="Grid Externo")
+                collections.append(plot.create_bus_collection(net, size=80, color="blue", zorder=3, label="Barras"))
+                collections.append(plot.create_line_collection(net, color="grey", linewidth=2.0, label="Linhas"))
+                if len(net.load) > 0:
+                    collections.append(plot.create_load_collection(net, size=60, orientation=30, color="red", label="Cargas"))
+                if len(net.gen) > 0:
+                    collections.append(plot.create_gen_collection(net, size=80,  color='green', label="Geradores"))
+                if len(net.ext_grid) > 0:
+                    collections.append(plot.create_ext_grid_collection(net, size=100, color='orange', label="Grid Externo"))
 
                 # Desenhar todas as coleções no gráfico
-                plot.draw_collections([lc, bc, load_collection, gen_collection, ext_grid_collection], ax=self.ax)
+                plot.draw_collections(collections, ax=self.ax)
                 
                 self.ax.legend()
             except Exception as e:
@@ -204,13 +252,18 @@ class MainWindow(QMainWindow):
         left_layout = QVBoxLayout(left_panel)
         splitter.addWidget(left_panel)
 
-        right_panel = QGroupBox("Diagrama da Rede")
+        right_panel = QGroupBox("Visualização da Rede")
         right_layout = QVBoxLayout(right_panel)
-        self.network_canvas = NetworkCanvas(self)
-        right_layout.addWidget(self.network_canvas)
         splitter.addWidget(right_panel)
         
         splitter.setSizes([600, 800])
+
+        # Adicionar o widget de métricas
+        self.metrics_widget = MetricsWidget()
+        right_layout.addWidget(self.metrics_widget)
+
+        self.network_canvas = NetworkCanvas(self)
+        right_layout.addWidget(self.network_canvas)
 
         controls_group = QGroupBox("Controles")
         controls_layout = QHBoxLayout(controls_group)
@@ -305,6 +358,7 @@ class AppController:
             for name, df in dfs.items():
                 self.view.add_table_tab(name, df)
             self.view.network_canvas.plot_network(None)
+            self.view.metrics_widget.update_metrics(0, 0) # Reseta os cards
         except Exception as e:
             QMessageBox.critical(self.view, "Erro de Importação", str(e))
 
@@ -327,20 +381,30 @@ class AppController:
             success, message = self.model.run_power_flow()
             
             if success:
-                # --- CORREÇÃO: Gerar coordenadas ANTES de plotar ---
+                # Gerar coordenadas ANTES de plotar
                 pp.plotting.create_generic_coordinates(self.model.net)
                 
                 QMessageBox.information(self.view, "Fluxo de Potência", message)
+                # Atualizar tabelas de resultados
                 self.view.add_table_tab("res_bus", self.model.net.res_bus)
                 self.view.add_table_tab("res_line", self.model.net.res_line)
+                
+                # Calcular e atualizar as métricas
+                total_gen = self.model.net.res_gen.p_mw.sum() + self.model.net.res_ext_grid.p_mw.sum()
+                total_load = self.model.net.res_load.p_mw.sum()
+                self.view.metrics_widget.update_metrics(total_gen, total_load)
+
+                # Plotar a rede
                 self.view.network_canvas.plot_network(self.model.net)
             else:
                 QMessageBox.warning(self.view, "Fluxo de Potência", message)
                 self.view.network_canvas.plot_network(None)
+                self.view.metrics_widget.update_metrics(0, 0)
 
         except Exception as e:
             QMessageBox.critical(self.view, "Erro", f"Ocorreu um erro: {e}")
             self.view.network_canvas.plot_network(None)
+            self.view.metrics_widget.update_metrics(0, 0)
 
 # =============================================================================
 # 4. PONTO DE ENTRADA DA APLICAÇÃO
