@@ -17,12 +17,20 @@ if str(BASE_DIR) not in sys.path:
 from database_controller import DatabaseController, ConsolidationManager
 print(f"Dashboard importing database_controller from: {DatabaseController.__module__}")
 from dashboard_config import get_config
-#!from consolidation_manager import ConsolidationManager
 
 import streamlit.components.v1 as components
 import os
 
 
+def run_bare_mode():
+    from streamlit_server_state import server
+    from streamlit.runtime.scriptrunner.script_run_context import get_script_run_ctx
+
+    # The container can host multiple sessions, so we must make sure to select the correct one!
+    session_id = get_script_run_ctx().session_id
+    session_info = server.get_current_server()._get_session_info(session_id)
+    session_headers = session_info.client.request.headers._dict
+    st.write(session_headers)
 
 def rede_template_view(html_path: str | None = None, height: int = 1200):
     """Renderiza o template HTML da rede IEEE dentro do Streamlit.
@@ -52,23 +60,32 @@ def rede_template_view(html_path: str | None = None, height: int = 1200):
 
 class TabPinningController:
     def __init__(self):
-        if "pin_tabs_active" not in st.session_state:
-            st.session_state.pin_tabs_active = False
+        # No state initialization needed here, it will be dynamic based on keys
+        pass
 
-    def render_toggle(self):
-        """Renders the toggle switch and returns its state."""
-        st.session_state.pin_tabs_active = st.toggle(
+    def render_toggle(self, key):
+        """Renders the toggle switch and returns its state, using a unique key."""
+        # Initialize the state if it doesn't exist
+        if key not in st.session_state:
+            st.session_state[key] = False
+        
+        # Render the toggle. It will use st.session_state[key] as its value
+        # and update it automatically on interaction.
+        st.toggle(
             "📌 Fixar Aba",
-            value=st.session_state.pin_tabs_active,
+            key=key,
             help="Ative para selecionar e fixar a visualização de uma única aba."
         )
-        return st.session_state.pin_tabs_active
+        
+        # Return the current state.
+        return st.session_state[key]
 
-    def render_selection_box(self, tab_options):
-        """Renders the selection box for choosing a tab."""
+    def render_selection_box(self, tab_options, key):
+        """Renders the selection box for choosing a tab, using a unique key."""
         return st.selectbox(
             "Selecione a aba para fixar:",
-            options=tab_options
+            options=tab_options,
+            key=key
         )
 
 
@@ -374,11 +391,15 @@ class FrameworkRCEDashboard:
         }
         tab_names = list(tab_definitions.keys())
 
+        # --- Create unique keys for this execution view's widgets ---
+        toggle_key = f"pin_toggle_{config_num}_{exec_num}"
+        select_key = f"pin_select_{config_num}_{exec_num}"
+
         # --- Render toggle and conditional tab display ---
-        is_pinned = self.tab_pinning_controller.render_toggle()
+        is_pinned = self.tab_pinning_controller.render_toggle(key=toggle_key)
 
         if is_pinned:
-            selected_tab_name = self.tab_pinning_controller.render_selection_box(tab_names)
+            selected_tab_name = self.tab_pinning_controller.render_selection_box(tab_names, key=select_key)
             render_function = tab_definitions.get(selected_tab_name)
             if render_function:
                 render_function()

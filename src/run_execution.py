@@ -205,7 +205,7 @@ def run_framework_many_executions(function_bechmarking=False):
                 "best_variables": best_variables,
                 "best_fitness": best_fitness,
                 "best_gen_idx": best_solution_generation,
-                "time":formatted_time.total_seconds()
+                "time":formatted_time
             }
             
             output_path = config_dir / f"config_{config_num}_exec_{exec_num}_results.json"
