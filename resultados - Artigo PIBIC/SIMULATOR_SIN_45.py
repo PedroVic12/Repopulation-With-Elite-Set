@@ -10,6 +10,8 @@ import pandas as pd
 import pandapower as pp
 import pandapower.plotting as plot
 import matplotlib.pyplot as plt
+import matplotlib.colors as mcolors
+import numpy as np
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 from PySide6.QtWidgets import (
     QApplication, QMainWindow, QWidget, QVBoxLayout, QHBoxLayout,
@@ -210,23 +212,47 @@ class NetworkCanvas(FigureCanvas):
         self.ax.clear()
         if net and len(net.bus) > 0:
             try:
+                # --- MELHORIA: Lógica de cores e tamanhos ---
                 collections = []
-                # Criar coleções para cada tipo de elemento da rede
-                collections.append(plot.create_bus_collection(net, size=0.15, color="blue", zorder=10, label="Barras"))
-                collections.append(plot.create_line_collection(net, color="grey", linewidth=1.5, label="Linhas"))
-                if len(net.load) > 0:
-                    collections.append(plot.create_load_collection(net, size=0.15, color="red", label="Cargas"))
-                if len(net.gen) > 0:
-                    collections.append(plot.create_gen_collection(net, size=0.15,  color='green', label="Geradores"))
-                if len(net.ext_grid) > 0:
-                    collections.append(plot.create_ext_grid_collection(net, size=0.15, color='orange', label="Grid Externo"))
-                if len(net.trafo) > 0:
-                    collections.append(plot.create_trafo_collection(net, size=0.15, color='purple', label="Transformadores"))
-                    
-                # Desenhar todas as coleções no gráfico
-                plot.draw_collections(collections, ax=self.ax)
                 
-                self.ax.legend()
+                # Mapeamento de cores por tensão
+                voltage_levels = sorted(net.bus.vn_kv.unique())
+                cmap = plt.get_cmap('viridis', len(voltage_levels))
+                norm = mcolors.BoundaryNorm(boundaries=np.append(voltage_levels, voltage_levels[-1]+1)-0.5, ncolors=len(voltage_levels))
+
+                # Coleção de Barras com cores baseadas na tensão
+                bc = plot.create_bus_collection(net, size=0.02, zorder=10, 
+                                                cmap=cmap, norm=norm, bus_geodata=net.bus.vn_kv)
+                collections.append(bc)
+
+                # Outras coleções com tamanhos ajustados
+                collections.append(plot.create_line_collection(net, color="grey", linewidth=1.5))
+                if len(net.load) > 0:
+                    collections.append(plot.create_load_collection(net, size=0.03, orientation=30, color="red"))
+                if len(net.gen) > 0:
+                    collections.append(plot.create_gen_collection(net, size=0.03, color='green'))
+                if len(net.ext_grid) > 0:
+                    collections.append(plot.create_ext_grid_collection(net, size=0.04, color='orange'))
+                if len(net.trafo) > 0:
+                    collections.append(plot.create_trafo_collection(net, size=0.03, color='purple'))
+                    
+                plot.draw_collections(collections, ax=self.ax)
+
+                # --- MELHORIA: Legenda customizada ---
+                handles = [
+                    plt.Line2D([0], [0], color='grey', lw=2, label='Linhas'),
+                    plt.Line2D([0], [0], marker='>', color='red', lw=0, markersize=8, label='Cargas'),
+                    plt.Line2D([0], [0], marker='o', color='green', lw=0, markersize=8, label='Geradores'),
+                    plt.Line2D([0], [0], marker='s', color='orange', lw=0, markersize=8, label='Grid Externo'),
+                    plt.Line2D([0], [0], marker='o', color='purple', lw=0, markersize=8, label='Transformadores')
+                ]
+                # Adicionar handles para cada nível de tensão
+                for level in voltage_levels:
+                    color = cmap(norm([level])[0])
+                    handles.append(plt.Line2D([0], [0], marker='o', color=color, lw=0, markersize=8, label=f'Barra {level} kV'))
+                
+                self.ax.legend(handles=handles, loc='best')
+
             except Exception as e:
                 self.ax.text(0.5, 0.5, f'Erro ao plotar a rede:\n{e}', ha='center', va='center', fontsize=10, color='red')
         
@@ -260,7 +286,6 @@ class MainWindow(QMainWindow):
         
         splitter.setSizes([600, 800])
 
-        # Adicionar o widget de métricas
         self.metrics_widget = MetricsWidget()
         right_layout.addWidget(self.metrics_widget)
 
