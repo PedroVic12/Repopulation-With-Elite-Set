@@ -120,6 +120,13 @@ def run_framework_many_executions(function_bechmarking=False):
                 * (2 ** entrada_de_dados()["num_desligamentos"])
             )
         )
+
+        # Reseta contadores para a nova execução
+        if hasattr(setup, 'objectiveruns'):
+            setup.objectiveruns = 0
+        if hasattr(setup, 'hashtablereads'):
+            setup.hashtablereads = 0
+
         print("Classe Setup iniciada para a configuração.")
 
         def consultaHashTable():
@@ -137,11 +144,6 @@ def run_framework_many_executions(function_bechmarking=False):
         for exec_num in range(1, repeticoes + 1):
             print(f"\n--- Iniciando execução {exec_num}/{repeticoes} ---")
 
-            # Reseta contadores para a nova execução
-            if hasattr(setup, 'objectiveruns'):
-                setup.objectiveruns = 0
-            if hasattr(setup, 'hashtablereads'):
-                setup.hashtablereads = 0
 
             #! 6) Executa algoritmo
             alg = AlgoritimoEvolutivoRCE(setup, DEBUG=False)
@@ -172,7 +174,7 @@ def run_framework_many_executions(function_bechmarking=False):
             end = datetime.now()
             elapsed = end - start
             formatted_time = format_elapsed_time(elapsed)
-            print(f"Elapsed Time in execution : {formatted_time}")
+            print(f"\nElapsed Time in execution : {formatted_time}\n\n")
 
 
             #! 8) Salva os dados de  cada visualização
@@ -190,7 +192,7 @@ def run_framework_many_executions(function_bechmarking=False):
 
                 with open(vis_output_path, 'w', encoding='utf-8') as f:
                     json.dump(all_individual_values, f, indent=4, ensure_ascii=False)
-                print(f"Dados de visualização salvos em: {vis_output_path}")
+                print(f"\nDados de visualização salvos em: {vis_output_path}")
             except Exception as e:
                 print(f"Erro ao salvar dados de visualização para config {config_num}, exec {exec_num}: {e}")
 
@@ -221,7 +223,6 @@ def run_framework_many_executions(function_bechmarking=False):
     print("\nTodas as execuções foram concluídas.")
     
     # Consolidar resultados automaticamente
-    print("\n🔄 Consolidando resultados...")
     try:
         import subprocess
         import sys

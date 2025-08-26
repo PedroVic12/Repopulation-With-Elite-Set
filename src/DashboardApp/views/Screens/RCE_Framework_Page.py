@@ -467,16 +467,18 @@ class FrameworkRCEDashboard:
     def run(self):
         self.renderHeader()
 
+        # Pega o hash das execuções
         executions_map = st.session_state.executions_map
         if not executions_map:
             st.warning("Nenhum resultado consolidado encontrado. Execute a consolidação através do Launcher.")
             st.stop()
             
         # Ensure df_consolidado and executions_map are initialized in _init_state
-        # and are available in st.session_state
         df_consolidado = st.session_state.df_consolidado
         executions_map = st.session_state.executions_map
 
+
+        # Resultado consolidado
         if df_consolidado is not None and not df_consolidado.empty:
             st.subheader("📈 Resultados Consolidados de Todas as Configurações e Execuções")
             st.dataframe(df_consolidado, use_container_width=True)

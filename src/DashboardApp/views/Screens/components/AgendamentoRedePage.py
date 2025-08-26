@@ -8,7 +8,8 @@ import numpy as np
 output_xlsx_file = pathlib.Path(__file__).resolve().parent.parent.parent.parent.parent /  "output" / "resultados_consolidados.xlsx" # Importando o caminho do diretório de configuração
 pop_final_xlsx_file = pathlib.Path(__file__).resolve().parent.parent.parent.parent.parent /  "output" / "pop_final.xlsx" # Importando o caminho do diretório de configuração
 
-
+print("output_xlsx_file")
+print(output_xlsx_file)
 import streamlit.components.v1 as components
 import os
 
