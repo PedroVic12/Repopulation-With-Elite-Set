@@ -11,15 +11,7 @@ sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 from config_backup import options_main_file
 
 
-
-
 def DrawerSideBar():
-    """Menu lateral único para navegação."""
-    st.sidebar.title("🧭 Menu Dashboard")
-    
-    # logo da UFF
-    st.sidebar.image("https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRHVsZ1z9B-HIP8Ddsks0mP3aETeG1CkYixtA&s", width=800)
-    st.sidebar.markdown("---")  # Separador visual
 
     # Opções de páginas 
     page_options = {

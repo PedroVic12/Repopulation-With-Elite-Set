@@ -85,6 +85,17 @@ class FrameworkRCEDashboard:
         self.config = get_config()  # Carrega configurações
         self.tab_pinning_controller = TabPinningController(self.config) # Add this line
         self._init_state()
+        self.MenuLateral()
+        
+    def MenuLateral(self):
+        
+        """Menu lateral único para navegação."""
+        st.sidebar.title("🧭 Menu Dashboard")
+        
+        # logo da UFF
+        st.sidebar.image("https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRHVsZ1z9B-HIP8Ddsks0mP3aETeG1CkYixtA&s", width=800)
+        st.sidebar.markdown("---")  # Separador visual
+
 
     def _init_state(self):
         """Inicializa o estado da sessão do Streamlit."""
