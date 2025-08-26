@@ -10,15 +10,14 @@ from AlgEvolutivoRCE_backup.alg_evolutivo_rce import AlgoritimoEvolutivoRCE
 #from RedeEletrica_backup.rede_eletrica import RedeEletricaPandaPower
 
 # Utils
-from config_backup import FOLDER_NAME, entrada_de_dados, format_elapsed_time, load_many_executions
+from config_backup import FOLDER_NAME, entrada_de_dados, format_elapsed_time
 
 
 #! Importando a minha função objetivo dentro do projeto
 from utils.functions_fitness.functions_benchmarking import rastrigin
 from utils.functions_fitness.function_IEEE_14_contigencias import funcao_objetivo_IEEE14
-from utils.functions_fitness.function_IEEE_57_otimizacao import funcao_objetivo_IEEE57
 from utils.functions_fitness.function_IEEE_118_otimizacao import funcao_objetivo_IEEE118
-
+from utils.functions_fitness.function_IEEE_30_otimizacao import funcao_objetivo_IEEE30
 
 # Bibliotecas padrão
 import json
@@ -31,7 +30,7 @@ from datetime import datetime
 
 BASE_DIR = pathlib.Path(__file__).resolve().parent
 
-ARRAY_FITNESS_FUNCTIONS = [funcao_objetivo_IEEE14,funcao_objetivo_IEEE118]
+ARRAY_FITNESS_FUNCTIONS = [funcao_objetivo_IEEE14,funcao_objetivo_IEEE118,funcao_objetivo_IEEE30]
 
 def load_params(file_path):
     """Carrega parâmetros de um arquivo JSON."""
@@ -81,6 +80,11 @@ def run_framework_many_executions(function_bechmarking=False):
     from itertools import product
     combinations = [dict(zip(varying_keys, vals)) for vals in product(*varying_values)] if varying_keys else [{}]
 
+    
+    #! Inicia o contador de tempo de execução
+    start = datetime.now()
+
+    # Exibe informações das configurações
     print(f"\nTotal de configurações únicas: {len(combinations)}")
     print(f"Execuções por configuração: {repeticoes}")
 
@@ -92,6 +96,7 @@ def run_framework_many_executions(function_bechmarking=False):
 
     config_num = 1
     for combo in combinations:
+
         # Cria um diretório específico para a configuração
         config_dir = main_output_dir / f"config_{config_num}"
         os.makedirs(config_dir, exist_ok=True)
@@ -101,10 +106,10 @@ def run_framework_many_executions(function_bechmarking=False):
         params.update(combo)
         params = convert_values_to_int(params)
 
-        # Define função objetivo
+        #! 4) Define função objetivo
         fitness_func = ARRAY_FITNESS_FUNCTIONS[1] if not function_bechmarking else rastrigin
 
-        # Instancia Setup uma vez por configuração
+        #! 5) Instancia Setup uma vez por configuração
         print(f"\n\nIniciando configuração {config_num}: {params}")
         setup = Setup(
             params,
@@ -117,15 +122,17 @@ def run_framework_many_executions(function_bechmarking=False):
         )
         print("Classe Setup iniciada para a configuração.")
 
-        # Consulta hash_table se existir
-        if os.path.exists("hash_table.xlsx"):
-            try:
-                hash_excel = pd.read_excel("hash_table.xlsx")
-                if not hash_excel.empty:
-                    setup.tabela_hash = hash_excel['Fitness'].to_dict()
-                    print("Tabela hash carregada com sucesso!")
-            except Exception as e:
-                print(f"Erro ao carregar hash_table.xlsx: {e}")
+        def consultaHashTable():
+            # Consulta hash_table se existir (sub rotina)
+            if os.path.exists("hash_table.xlsx"):
+                try:
+                    hash_excel = pd.read_excel("hash_table.xlsx")
+                    if not hash_excel.empty:
+                        setup.tabela_hash = hash_excel['Fitness'].to_dict()
+                        print("Tabela hash carregada com sucesso!")
+                except Exception as e:
+                    print(f"Erro ao carregar hash_table.xlsx: {e}")
+        consultaHashTable()
 
         for exec_num in range(1, repeticoes + 1):
             print(f"\n--- Iniciando execução {exec_num}/{repeticoes} ---")
@@ -136,17 +143,15 @@ def run_framework_many_executions(function_bechmarking=False):
             if hasattr(setup, 'hashtablereads'):
                 setup.hashtablereads = 0
 
-            # Executa algoritmo
+            #! 6) Executa algoritmo
             alg = AlgoritimoEvolutivoRCE(setup, DEBUG=False)
             print("Algoritmo Evolutivo iniciado.")
             pop_with_repopulation, logbook_with_repopulation, best_individual, all_individual_values = alg.run(RCE=True)
 
-
-            # Visualize do Alg.dashbord aqui
-
+            #! 7) Visualize os Resultados do Primeiro Dashboard do Alg.dashbord aqui
             print("\nEvolução concluída  - 100%")
 
-            alg.dashboard.visualize(
+            best_solution_generation, best_solution_variables, best_solution_fitness, grafico_RCE = alg.dashboard.visualize(
                 logbook_with_repopulation,
                 pop_with_repopulation,
                 config_num=config_num,
@@ -155,7 +160,21 @@ def run_framework_many_executions(function_bechmarking=False):
 
             best_variables = list(best_individual)
 
-            # Salva os dados de visualização
+            # Passando os valores do array direto no dataframe com os index como chave (hash = chave, valor)
+            hash_df1 = pd.DataFrame(setupobj.tabela_hash, columns=['Fitness'])
+            hash_df1.sort_values(by='Fitness', ascending=False, inplace=True)
+            hash_df1.to_excel("hash_table.xlsx", index=False)
+
+            print(f"\nObjective function runs : {setupobj.objectiveruns}")
+            print(f"Hash table reads : {setupobj.hashtablereads}")
+
+            end = datetime.now()
+            elapsed = end - start
+            formatted_time = format_elapsed_time(elapsed)
+            print(f"Elapsed Time in execution : {formatted_time}")
+
+
+            #! 8) Salva os dados de  cada visualização
             vis_output_path = config_dir / f"config_{config_num}_exec_{exec_num}_visualization.json"
             try:
                 # Convert individuals to lists for JSON serialization
@@ -174,7 +193,7 @@ def run_framework_many_executions(function_bechmarking=False):
             except Exception as e:
                 print(f"Erro ao salvar dados de visualização para config {config_num}, exec {exec_num}: {e}")
 
-            # Salva resultado individual como JSON
+            #! 9) Salva resultado individual como JSON
             best_fitness = best_individual.fitness.values[0] if best_individual.fitness.valid else float('inf')
             best_gen_idx = logbook_with_repopulation.select("gen")[-1] if logbook_with_repopulation else 'N/A'
 
@@ -184,7 +203,8 @@ def run_framework_many_executions(function_bechmarking=False):
                 "params": params,
                 "best_variables": best_variables,
                 "best_fitness": best_fitness,
-                "best_gen_idx": best_gen_idx
+                "best_gen_idx": best_solution_generation,
+                "time":formatted_time
             }
             
             output_path = config_dir / f"config_{config_num}_exec_{exec_num}_results.json"

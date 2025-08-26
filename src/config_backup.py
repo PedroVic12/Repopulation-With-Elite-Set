@@ -131,14 +131,12 @@ def load_many_executions(options, setupobj, algoritmo, config_num=1, exec_num=1,
     hash_df1.sort_values(by='Fitness', ascending=False, inplace=True)
     hash_df1.to_excel("hash_table.xlsx", index=False)
 
-
     print(f"\nObjective function runs : {setupobj.objectiveruns}")
     print(f"Hash table reads : {setupobj.hashtablereads}")
 
     end = datetime.now()
     elapsed = end - start
     formatted_time = format_elapsed_time(elapsed)
-
     print(f"Elapsed Time in execution : {formatted_time}")
 
     # Append results to the list for the current config
