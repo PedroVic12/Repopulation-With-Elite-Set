@@ -10,12 +10,12 @@ from PySide6.QtCore import QThread, Signal, Qt
 
 STYLESHEET = """
 QWidget {
-    background-color: #2c3e50;
+    background-color: #005AB4FF;
     color: #ecf0f1;
     font-family: Arial, sans-serif;
 }
 QPushButton {
-    background-color: #3498db;
+    background-color: #009E2FFF;
     color: white;
     border: none;
     padding: 10px 20px;
@@ -100,7 +100,7 @@ class InstallerWindow(QMainWindow):
         # Paths
         self.base_dir = os.path.dirname(os.path.abspath(__file__))
         self.requirements_path = os.path.join(self.base_dir,  'DashboardApp', 'requirements.txt')
-        self.launcher_path = os.path.join(self.base_dir, 'laucher_revised.py')
+        self.launcher_path = os.path.join(self.base_dir, '..', 'laucher_revised.py')
 
         # Create pages
         self.create_welcome_page()
