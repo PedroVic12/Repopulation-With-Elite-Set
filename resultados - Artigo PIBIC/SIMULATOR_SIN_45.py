@@ -212,15 +212,17 @@ class NetworkCanvas(FigureCanvas):
             try:
                 collections = []
                 # Criar coleções para cada tipo de elemento da rede
-                collections.append(plot.create_bus_collection(net, size=80, color="blue", zorder=3, label="Barras"))
-                collections.append(plot.create_line_collection(net, color="grey", linewidth=2.0, label="Linhas"))
+                collections.append(plot.create_bus_collection(net, size=0.15, color="blue", zorder=10, label="Barras"))
+                collections.append(plot.create_line_collection(net, color="grey", linewidth=1.5, label="Linhas"))
                 if len(net.load) > 0:
-                    collections.append(plot.create_load_collection(net, size=60, orientation=30, color="red", label="Cargas"))
+                    collections.append(plot.create_load_collection(net, size=0.15, color="red", label="Cargas"))
                 if len(net.gen) > 0:
-                    collections.append(plot.create_gen_collection(net, size=80,  color='green', label="Geradores"))
+                    collections.append(plot.create_gen_collection(net, size=0.15,  color='green', label="Geradores"))
                 if len(net.ext_grid) > 0:
-                    collections.append(plot.create_ext_grid_collection(net, size=100, color='orange', label="Grid Externo"))
-
+                    collections.append(plot.create_ext_grid_collection(net, size=0.15, color='orange', label="Grid Externo"))
+                if len(net.trafo) > 0:
+                    collections.append(plot.create_trafo_collection(net, size=0.15, color='purple', label="Transformadores"))
+                    
                 # Desenhar todas as coleções no gráfico
                 plot.draw_collections(collections, ax=self.ax)
                 

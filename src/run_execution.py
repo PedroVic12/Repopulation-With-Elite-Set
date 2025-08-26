@@ -7,7 +7,7 @@ PVRV - 20/08/2025
 # Imports principais do framework
 from AlgEvolutivoRCE_backup.Setup import Setup
 from AlgEvolutivoRCE_backup.alg_evolutivo_rce import AlgoritimoEvolutivoRCE
-from RedeEletrica_backup.rede_eletrica import RedeEletricaPandaPower
+#from RedeEletrica_backup.rede_eletrica import RedeEletricaPandaPower
 
 # Utils
 from config_backup import FOLDER_NAME, entrada_de_dados, format_elapsed_time, load_many_executions

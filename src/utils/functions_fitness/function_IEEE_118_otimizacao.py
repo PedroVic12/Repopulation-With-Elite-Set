@@ -13,7 +13,7 @@ from AlgEvolutivoRCE_backup.Setup import Setup
 
 
 def your_fitness_function(ind):
-    """Here you create your objetive function with your decision variable (ind) """
+    """Here you c3,reate your objetive function with your decision variable (ind) """
     pass
 
 
