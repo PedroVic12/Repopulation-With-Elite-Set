@@ -99,7 +99,7 @@ class InstallerWindow(QMainWindow):
 
         # Paths
         self.base_dir = os.path.dirname(os.path.abspath(__file__))
-        self.requirements_path = os.path.join(self.base_dir, 'src', 'DashboardApp', 'requirements.txt')
+        self.requirements_path = os.path.join(self.base_dir,  'DashboardApp', 'requirements.txt')
         self.launcher_path = os.path.join(self.base_dir, 'laucher_revised.py')
 
         # Create pages
