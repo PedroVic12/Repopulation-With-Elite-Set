@@ -149,13 +149,22 @@ class InstallerWindow(QMainWindow):
         # Adiciona logo da UFF usando a função upload_file
         logo_path = os.path.join(self.base_dir, 'assets', 'uff_logo.jpg')
         logo_label = self.upload_file(logo_path)
-        
+
+        # Foto das libs usadas
+        libs_path = os.path.join(self.base_dir, 'assets', 'logo_libs_framework.png')
+        libs_label = self.upload_file(libs_path)
+
+        # Botão Avançar
         next_button = QPushButton("Avançar >")
         next_button.clicked.connect(self.next_page)
 
+        # Aciciona meus componentes ao layout
         layout.addWidget(title)
         layout.addWidget(description)
-        layout.addWidget(logo_label)  # Adiciona a logo ao layout
+        layout.addWidget(logo_label)  
+        layout.addWidget(libs_label)
+
+
         layout.addStretch()
         layout.addWidget(next_button, alignment=Qt.AlignRight)
         
