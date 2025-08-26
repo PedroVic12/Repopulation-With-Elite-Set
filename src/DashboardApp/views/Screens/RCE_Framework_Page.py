@@ -298,7 +298,7 @@ class FrameworkRCEDashboard:
         except Exception as e:
             st.write(f"  • Erro ao obter resumo do controlador: {e}")
 
-    def renderExecutionDetails(self, config_num, exec_num):
+    def renderExecutionDetails(self, config_num, exec_num, pinned_tab_name=None):
         results_data = self.db_controller.get_run_data(config_num, exec_num) or {}
         df_consolidado = st.session_state.df_consolidado
 
@@ -389,21 +389,13 @@ class FrameworkRCEDashboard:
             "População Final": render_pop_final_tab,
             "Dashboard Sistema Elétrico": render_dashboard_tab
         }
-        tab_names = list(tab_definitions.keys())
 
-        # --- Create unique keys for this execution view's widgets ---
-        toggle_key = f"pin_toggle_{config_num}_{exec_num}"
-        select_key = f"pin_select_{config_num}_{exec_num}"
-
-        # --- Render toggle and conditional tab display ---
-        is_pinned = self.tab_pinning_controller.render_toggle(key=toggle_key)
-
-        if is_pinned:
-            selected_tab_name = self.tab_pinning_controller.render_selection_box(tab_names, key=select_key)
-            render_function = tab_definitions.get(selected_tab_name)
+        if pinned_tab_name:
+            render_function = tab_definitions.get(pinned_tab_name)
             if render_function:
                 render_function()
         else:
+            tab_names = list(tab_definitions.keys())
             tabs = st.tabs(tab_names)
             for tab, (name, render_func) in zip(tabs, tab_definitions.items()):
                 with tab:
@@ -467,18 +459,12 @@ class FrameworkRCEDashboard:
     def run(self):
         self.renderHeader()
 
-        # Pega o hash das execuções
         executions_map = st.session_state.executions_map
         if not executions_map:
             st.warning("Nenhum resultado consolidado encontrado. Execute a consolidação através do Launcher.")
             st.stop()
             
-        # Ensure df_consolidado and executions_map are initialized in _init_state
         df_consolidado = st.session_state.df_consolidado
-        executions_map = st.session_state.executions_map
-
-
-        # Resultado consolidado
         if df_consolidado is not None and not df_consolidado.empty:
             st.subheader("📈 Resultados Consolidados de Todas as Configurações e Execuções")
             st.dataframe(df_consolidado, use_container_width=True)
@@ -486,20 +472,46 @@ class FrameworkRCEDashboard:
             st.warning("Nenhum resultado consolidado encontrado. Execute a consolidação através do Launcher.")
             st.stop()
 
-
-        # Tabs de configuração
         config_keys = sorted(executions_map.keys())
         config_tabs = st.tabs([f"Config {cfg}" for cfg in config_keys])
 
-        # Tabs de execução
-        for i, tab in enumerate(config_tabs):
-            with tab:
+        for i, config_tab_ui in enumerate(config_tabs):
+            with config_tab_ui:
                 config_num = config_keys[i]
-                exec_numbers = executions_map.get(config_num, [])
-                exec_tabs = st.tabs([f"Execução {en}" for en in exec_numbers])
-                for j, exec_tab in enumerate(exec_tabs):
-                    with exec_tab:
-                        self.renderExecutionDetails(config_num, exec_numbers[j])
-        
+                
+                tab_names = ["Solução", "Gráficos de Convergência", "População Final", "Dashboard Sistema Elétrico"]
 
+                toggle_key = f"pin_toggle_{config_num}"
+                select_key = f"pin_select_{config_num}"
+
+                is_pinned = self.tab_pinning_controller.render_toggle(key=toggle_key)
+
+                if is_pinned:
+                    selected_tab_name = self.tab_pinning_controller.render_selection_box(tab_names, key=select_key)
+                    
+                    exec_numbers = executions_map.get(config_num, [])
+                    if not exec_numbers:
+                        st.warning("Nenhuma execução encontrada para esta configuração.")
+                        continue
+
+                    selected_exec = st.selectbox(
+                        "Selecione a Execução:",
+                        options=exec_numbers,
+                        key=f"exec_select_{config_num}"
+                    )
+                    
+                    st.markdown("---")
+                    self.renderExecutionDetails(config_num, selected_exec, pinned_tab_name=selected_tab_name)
+
+                else:
+                    exec_numbers = executions_map.get(config_num, [])
+                    if not exec_numbers:
+                        st.warning("Nenhuma execução encontrada para esta configuração.")
+                        continue
+                        
+                    exec_tabs = st.tabs([f"Execução {en}" for en in exec_numbers])
+                    for j, exec_tab_ui in enumerate(exec_tabs):
+                        with exec_tab_ui:
+                            self.renderExecutionDetails(config_num, exec_numbers[j])
+        
         self.renderFooter()

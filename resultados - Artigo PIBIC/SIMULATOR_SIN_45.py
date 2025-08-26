@@ -221,20 +221,20 @@ class NetworkCanvas(FigureCanvas):
                 norm = mcolors.BoundaryNorm(boundaries=np.append(voltage_levels, voltage_levels[-1]+1)-0.5, ncolors=len(voltage_levels))
 
                 # Coleção de Barras com cores baseadas na tensão
-                bc = plot.create_bus_collection(net, size=0.02, zorder=10, 
+                bc = plot.create_bus_collection(net, size=0.07, zorder=10, 
                                                 cmap=cmap, norm=norm)
                 collections.append(bc)
 
                 # Outras coleções com tamanhos ajustados
-                collections.append(plot.create_line_collection(net, color="grey", linewidth=1.5))
+                collections.append(plot.create_line_collection(net, color="grey", linewidth=2.0))
                 if len(net.load) > 0:
-                    collections.append(plot.create_load_collection(net, size=0.03, orientation=30, color="red"))
+                    collections.append(plot.create_load_collection(net, size=0.15, orientation=45, color="red"))
                 if len(net.gen) > 0:
-                    collections.append(plot.create_gen_collection(net, size=0.03, color='green'))
+                    collections.append(plot.create_gen_collection(net, size=0.15, color='green'))
                 if len(net.ext_grid) > 0:
-                    collections.append(plot.create_ext_grid_collection(net, size=0.04, color='orange'))
+                    collections.append(plot.create_ext_grid_collection(net, size=0.15, color='orange'))
                 if len(net.trafo) > 0:
-                    collections.append(plot.create_trafo_collection(net, size=0.03, color='purple'))
+                    collections.append(plot.create_trafo_collection(net, size=0.15, color='purple'))
                     
                 plot.draw_collections(collections, ax=self.ax)
 

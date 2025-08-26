@@ -1,0 +1,46 @@
+{
+    "config_num": 3,
+    "exec_num": 3,
+    "params": {
+        "ARRAY_VAR": [
+            24,
+            3,
+            24,
+            26,
+            1,
+            24,
+            24,
+            27,
+            24,
+            24
+        ],
+        "CROSSOVER": 0.9,
+        "DELTA_MIN": 2,
+        "IND_SIZE": 10,
+        "LIMITE_VAR": [
+            0,
+            31
+        ],
+        "MUTACAO": 0.9,
+        "NUM_GENERATIONS": 20,
+        "NUM_VAR_DIFERENTES": 1,
+        "POP_SIZE": 5,
+        "PORCENTAGEM": 0.2,
+        "RCE_REPOPULATION_GENERATIONS": 50
+    },
+    "best_variables": [
+        8,
+        8,
+        12,
+        7,
+        7,
+        29,
+        7,
+        29,
+        13,
+        13
+    ],
+    "best_fitness": 11.710852225738465,
+    "best_gen_idx": 18,
+    "time": "42 minutos 37 segundos"
+}

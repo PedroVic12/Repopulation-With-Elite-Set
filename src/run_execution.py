@@ -79,7 +79,6 @@ def run_framework_many_executions(function_bechmarking=False):
     # 3. Gera todas as combinações de parâmetros
     from itertools import product
     combinations = [dict(zip(varying_keys, vals)) for vals in product(*varying_values)] if varying_keys else [{}]
-
     
     #! Inicia o contador de tempo de execução
     start = datetime.now()
@@ -92,7 +91,7 @@ def run_framework_many_executions(function_bechmarking=False):
     timestamp = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
     main_output_dir = BASE_DIR / "output" / f"run_{timestamp}"
     os.makedirs(main_output_dir, exist_ok=True)
-    print(f"\nSalvando resultados em: {main_output_dir}")
+    #print(f"\nSalvando resultados em: {main_output_dir}")
 
     config_num = 1
     for combo in combinations:
@@ -122,10 +121,10 @@ def run_framework_many_executions(function_bechmarking=False):
         )
 
         # Reseta contadores para a nova execução
-        if hasattr(setup, 'objectiveruns'):
-            setup.objectiveruns = 0
-        if hasattr(setup, 'hashtablereads'):
-            setup.hashtablereads = 0
+        # if hasattr(setup, 'objectiveruns'):
+        #     setup.objectiveruns = 0
+        # if hasattr(setup, 'hashtablereads'):
+        #     setup.hashtablereads = 0
 
         print("Classe Setup iniciada para a configuração.")
 

@@ -197,7 +197,7 @@ class Setup:
         else:
             self.tabela_hash = None
             
-            
+        #! Contadores de avaliações da função objetivo e leituras da tabela hash já resetados na intancia
         self.objectiveruns = 0
         self.hashtablereads = 0
 
