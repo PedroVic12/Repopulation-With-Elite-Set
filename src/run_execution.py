@@ -142,6 +142,8 @@ def run_framework_many_executions(function_bechmarking=False):
             alg.dashboard.visualize(
                 logbook_with_repopulation,
                 pop_with_repopulation,
+                config_num=config_num,
+                execution_num=exec_num,
             )
 
             best_variables = list(best_individual)
