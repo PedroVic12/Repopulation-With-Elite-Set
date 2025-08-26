@@ -21,7 +21,7 @@ def your_fitness_function(ind):
 def funcao_objetivo_IEEE118(individuo, _debug = False):
 
     #! 1) Criar a rede elétrica IEEE 14 barras, Inicializar a classe com a rede e carrega a tabela de agendamento
-    rede = RedeEletricaPandaPower("118", debug=_debug)
+    rede = RedeEletricaPandaPower("118", debug=False)
 
     #! Colocando pesos como input do usuario e os dados de entrada do agendamento
     rede.pesos["tensao"] = {"min": 100, "max": 100}
@@ -118,7 +118,7 @@ def funcao_objetivo_IEEE118(individuo, _debug = False):
                 rede.desligar_contingencia(ramo_contingencia)
 
                 # 9) Executar fluxo de potência para o cenário com contingência
-                if rede.executar_fluxo_de_carga():
+                if rede.executar_fluxo_de_potencia():
 
                     # 10) Calcular violações com pesos e armazenar os resultados
                     fitness, violacoes_df = rede.calcular_violacoes_fitness()
@@ -158,3 +158,18 @@ def funcao_objetivo_IEEE118(individuo, _debug = False):
 
     except Exception as e:
         print(f"\nErro: {e}")
+
+
+
+def run_fitness_function():
+    fitness = funcao_objetivo_IEEE118(
+        #agendamento proposto em Zanghi(2016)
+        #individuo=[20,18,21,27,1,21,20,14,19,20],
+
+        #agendamento ótimo em Zanghi(2016)
+        individuo=[24,3,24,26,1,24,24,27,24,24],
+        _debug = False
+    )
+
+    print(fitness)
+#run_fitness_function()

@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """
-Execução única do framework RCE
-PVRV - 18/06/2025
+Execução do framework RCE com configuração de várias execuções e variações de parâmetros.
+PVRV - 20/08/2025
 """
 
 # Imports principais do framework
@@ -11,8 +11,14 @@ from RedeEletrica_backup.rede_eletrica import RedeEletricaPandaPower
 
 # Utils
 from config_backup import FOLDER_NAME, entrada_de_dados, format_elapsed_time, load_many_executions
+
+
+#! Importando a minha função objetivo dentro do projeto
 from utils.functions_fitness.functions_benchmarking import rastrigin
 from utils.functions_fitness.function_IEEE_14_contigencias import funcao_objetivo_IEEE14
+from utils.functions_fitness.function_IEEE_57_otimizacao import funcao_objetivo_IEEE57
+from utils.functions_fitness.function_IEEE_118_otimizacao import funcao_objetivo_IEEE118
+
 
 # Bibliotecas padrão
 import json
@@ -24,7 +30,9 @@ from datetime import datetime
 
 
 BASE_DIR = pathlib.Path(__file__).resolve().parent
-
+MODE_DEBUG = True
+MODE_RCE = True
+ARRAY_FITNESS_FUNCTIONS = [funcao_objetivo_IEEE14,funcao_objetivo_IEEE118]
 
 def load_params(file_path):
     """Carrega parâmetros de um arquivo JSON."""
@@ -74,14 +82,14 @@ def run_framework_many_executions(function_bechmarking=False):
     from itertools import product
     combinations = [dict(zip(varying_keys, vals)) for vals in product(*varying_values)] if varying_keys else [{}]
 
-    print(f"Total de configurações únicas: {len(combinations)}")
+    print(f"\nTotal de configurações únicas: {len(combinations)}")
     print(f"Execuções por configuração: {repeticoes}")
 
     # Cria um diretório de saída com timestamp para evitar sobreposições
     timestamp = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
     main_output_dir = BASE_DIR / "output" / f"run_{timestamp}"
     os.makedirs(main_output_dir, exist_ok=True)
-    print(f"Salvando resultados em: {main_output_dir}")
+    print(f"\nSalvando resultados em: {main_output_dir}")
 
     config_num = 1
     for combo in combinations:
@@ -95,7 +103,7 @@ def run_framework_many_executions(function_bechmarking=False):
         params = convert_values_to_int(params)
 
         # Define função objetivo
-        fitness_func = funcao_objetivo_IEEE14 if not function_bechmarking else rastrigin
+        fitness_func = ARRAY_FITNESS_FUNCTIONS[1] if not function_bechmarking else rastrigin
 
         # Instancia Setup uma vez por configuração
         print(f"\n\nIniciando configuração {config_num}: {params}")
@@ -111,14 +119,16 @@ def run_framework_many_executions(function_bechmarking=False):
         print("Classe Setup iniciada para a configuração.")
 
         # Consulta hash_table se existir
-        if os.path.exists("hash_table.xlsx"):
-            try:
-                hash_excel = pd.read_excel("hash_table.xlsx")
-                if not hash_excel.empty:
-                    setup.tabela_hash = hash_excel['Fitness'].to_dict()
-                    print("Tabela hash carregada com sucesso!")
-            except Exception as e:
-                print(f"Erro ao carregar hash_table.xlsx: {e}")
+        def consultaHashTable():
+            if os.path.exists("hash_table.xlsx"):
+                try:
+                    hash_excel = pd.read_excel("hash_table.xlsx")
+                    if not hash_excel.empty:
+                        setup.tabela_hash = hash_excel['Fitness'].to_dict()
+                        print("Tabela hash carregada com sucesso!")
+                except Exception as e:
+                    print(f"Erro ao carregar hash_table.xlsx: {e}")
+        consultaHashTable()
 
         for exec_num in range(1, repeticoes + 1):
             print(f"\n--- Iniciando execução {exec_num}/{repeticoes} ---")
@@ -130,14 +140,18 @@ def run_framework_many_executions(function_bechmarking=False):
                 setup.hashtablereads = 0
 
             # Executa algoritmo
-            alg = AlgoritimoEvolutivoRCE(setup, DEBUG=False)
-            print("Algoritmo Evolutivo iniciado.")
-            pop_with_repopulation, logbook_with_repopulation, best_individual, all_individual_values = alg.run(RCE=True)
+            alg = AlgoritimoEvolutivoRCE(setup, DEBUG=MODE_DEBUG)
+            print(f"Algoritmo Evolutivo iniciado. DEBUG = {MODE_DEBUG} - RCE = {MODE_RCE}")
+            pop_with_repopulation, logbook_with_repopulation, best_individual, all_individual_values = alg.run(RCE=MODE_RCE)
+
+
             print("\n\nEvolução concluída  - 100%")
 
             alg.dashboard.visualize(
                 logbook_with_repopulation,
                 pop_with_repopulation,
+                config_num=config_num,
+                execution_num=exec_num,
             )
 
             best_variables = list(best_individual)
@@ -198,7 +212,7 @@ def run_framework_many_executions(function_bechmarking=False):
         if consolidar_script.exists():
             print(f"Executando consolidação: {consolidar_script}")
             result = subprocess.run([sys.executable, str(consolidar_script)], 
-                                  capture_output=True, text=True, cwd=str(BASE_DIR.parent))
+                                      capture_output=True, text=True, cwd=str(BASE_DIR.parent))
             
             if result.returncode == 0:
                 print("✅ Consolidação executada com sucesso!")

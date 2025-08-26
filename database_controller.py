@@ -293,7 +293,6 @@ class DatabaseController:
         """
         Chama a lógica de consolidação para gerar o arquivo Excel.
         """
-        print("Iniciando consolidação de resultados...")
         try:
             resultados = consolidar_resultados(self.output_dir)
             if resultados:

@@ -458,14 +458,14 @@ class AlgoritimoEvolutivoRCE:
 
             
             if self.DEBUG:
-                print(f"\nALGORITIMO EVOLUTIVO COM AG COM DEAP. Geração atual = {current_generation}")
+                print(f"\nALGORITIMO EVOLUTIVO COM AG COM DEAP. Geração atual = {current_generation + 1}")
 
                             # Log de progresso da geração
                 print(f"  - Geração {current_generation + 1:3d}/{self.setup.NGEN:3d} -> "
-                  f"Min: {record['min']:.4f} | "
-                  f"Avg: {record['avg']:.4f} | "
-                  f"Max: {record['max']:.4f} | "
-                  f"Std: {record['std']:.4f}")
+                  f"Min: {record['min']:.3f} | "
+                  f"Avg: {record['avg']:.3f} | "
+                  f"Max: {record['max']:.3f} | "
+                  f"Std: {record['std']:.3f}")
 
         # Retornar população final, logbook e elite
         return population[num_pop], self.logbook, self.hof[0], self.allIndividualValuesArray
@@ -479,8 +479,10 @@ class AlgoritimoEvolutivoRCE:
         """
         if self.DEBUG:
             print(f"\n\nVisualizando população atual da geração {geracaoAtual + 1} com {len(self.POPULATION)} indivíduos.")
-            
+            print("TOP 3 Individuals in current population:")
+
         try:
+
             for i, ind in enumerate(self.POPULATION):
                 # Get fitness value safely, default to infinity if not valid
                 fitness_value = float('inf')
@@ -501,8 +503,9 @@ class AlgoritimoEvolutivoRCE:
                 
                 # Debug output for the first few individuals
                 if self.DEBUG and i < 3:  # Only show first 3 for brevity
-                    print("TOP 3 Individuals in current population:",self.POPULATION)
-                    print(f"Ind {i}: {ind} -> Fitness: {fitness_value} (Valid: {ind.fitness.valid})")
+                    #print("TOP 3 Individuals in current population:",self.POPULATION)
+
+                    print(f"Ind {i}: {ind} -> Fitness: {fitness_value:.2f} (Valid: {ind.fitness.valid})")
                 
                     
                     

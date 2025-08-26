@@ -7,6 +7,15 @@ Centraliza todas as configurações e opções do sistema.
 import os
 from pathlib import Path
 
+variables_decision_IEEE_118 = [24,3,24,26,1,24,24,27,24,24]
+variables_decision_IEEE_14 = [
+        14,
+        15,
+        14,
+        18,
+        20
+    ]
+
 class DashboardConfig:
     """Configurações centralizadas do dashboard."""
     

@@ -423,13 +423,13 @@ class ExecutionTab(QWidget):
         QMessageBox.information(self, "Bateria de Testes Concluída", message)
 
     def consolidate_results(self):
-        self.append_log("Iniciando consolidação manual de resultados...")
+        self.append_log("\nIniciando consolidação de resultados via chamada de script...")
         try:
             
-            self.db_controller.consolidar_script_button()
+            #self.db_controller.consolidar_script_button()
 
             #! Alteração na arquitetura do projeto com MVC  + Observer + Controller
-            #self.db_controller.consolidate_results()
+            self.db_controller.consolidate_results()
             self.append_log("Consolidação com Desgin Pattern DatabaseController!")
             self.append_log("Verifique o terminal para ver quantos arquivos foram resultados da simulação!")
             QMessageBox.information(self, "Sucesso", "Resultados consolidados com sucesso!")
