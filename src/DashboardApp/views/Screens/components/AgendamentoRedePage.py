@@ -180,8 +180,9 @@ def AgendamentoRedePage(key_prefix: str = "", selected_exec: int | None = None, 
 
 
     rede_template_view()  # Renderiza o template da rede IEEE    
+    
+    
     """Página de Agendamento de Rede Elétrica com timeline interativa."""
-
     st.subheader("Agendamento de Intervenções de Redes Elétricas")
     st.write("Esta página exibe os agendamentos de rede elétrica e suas contingências, além de uma timeline interativa com as sugestões de agendamento.")
 
