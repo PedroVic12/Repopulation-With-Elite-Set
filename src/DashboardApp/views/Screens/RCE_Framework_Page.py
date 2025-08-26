@@ -91,9 +91,13 @@ class FrameworkRCEDashboard:
         tab1, tab2, tab3, tab4 = st.tabs(["Solução", "Gráfico de Convergência", "Estatísticas", "Agendamento"])
 
         with tab1:
-            CardSolutions.render(results_data, exec_num)
-            st.markdown("---")
-            AgendamentoRedePage(key_prefix=f"agend_{config_num}_{exec_num}", selected_exec=exec_num, solution_vars=results_data.get('best_variables'))
+            try:
+                CardSolutions.render(results_data, exec_num)
+                st.markdown("---")
+                AgendamentoRedePage(key_prefix=f"agend_{config_num}_{exec_num}", selected_exec=exec_num, solution_vars=results_data.get('best_variables'))
+            except Exception as e:
+                st.error(f"Erro ao renderizar aba de Solução: {e}")
+                st.info("Tente recarregar a página ou verificar se todos os componentes estão disponíveis.")
 
         with tab2:
             st.subheader("Gráfico de Convergência")
@@ -109,22 +113,28 @@ class FrameworkRCEDashboard:
                         st.line_chart(stats_df, x='Generation', y=['Média', 'Mínimo', 'Máximo'])
                 except Exception as e:
                     st.error(f"Erro ao renderizar gráfico: {e}")
+                    st.info("Verifique se os dados de visualização estão no formato correto.")
             else:
                 st.warning("Dados de visualização não disponíveis.")
         
         with tab3:
             st.subheader("Tabela de Estatísticas")
-            StatisticsTableComponent.render(viz_data)
+            try:
+                StatisticsTableComponent.render(viz_data)
+            except Exception as e:
+                st.error(f"Erro ao renderizar estatísticas: {e}")
+                st.info("Componente de estatísticas não disponível ou dados inválidos.")
 
         with tab4:
             st.warning("População Final não implementada nesta visualização.")
+            st.info("Esta funcionalidade será implementada em versões futuras.")
 
     def run(self):
         self.render_header()
 
         executions_map = st.session_state.executions_map
         if not executions_map:
-            st.warning("Nenhum resultado consolidado encontrado. Execute a consolidação através do Laucher.")
+            st.warning("Nenhum resultado consolidado encontrado. Execute a consolidação através do Launcher.")
             st.stop()
 
         # Lógica do Toggle para fixar a visualização
@@ -158,7 +168,3 @@ class FrameworkRCEDashboard:
                             self.render_execution_details(config_num, exec_numbers[j])
         
         self.render_footer()
-
-if __name__ == "__main__":
-    page = RCEFrameworkDashboard()
-    page.run()

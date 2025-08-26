@@ -77,8 +77,8 @@ if __name__ == "__main__":
     app = App()  # Initialize app config and styling
     try:
         # Passando a pagina que desejo exibir
-        pagina_selecionada = FrameworkRCEDashboard()
-        app.run(pagina_selecionada)
+        pagina_selecionada = FrameworkRCEDashboard().run()
+        app.run(pagina_selecionada) 
 
     except Exception as e:
         st.exception(e)

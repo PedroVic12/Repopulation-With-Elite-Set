@@ -40,7 +40,7 @@ def carregar_dados_execucao():
     
 def time_line_from_solution_variables(agendamento_df, contingencia_df, exec_data, key_prefix: str = ""):
     # Timeline para a execução selecionada
-    st.subheader(f"Timeline de Soluções para a Execução {exec_data['execucao']}")
+    st.subheader(f"Timeline de Soluções para a Execução {exec_data['execution']}")
     solution_variables = sorted(exec_data["solution_variables"])  # Ordenar os horários
     solution_timeline_items = []
 
@@ -64,7 +64,7 @@ def time_line_from_solution_variables(agendamento_df, contingencia_df, exec_data
         end_time = f"2025-06-{18 + day_offset_end}T{hour_in_day_end:02d}:00:00"
 
         solution_timeline_items.append({
-            "id": f"{exec_data['execucao']}-{j}",
+            "id": f"{exec_data['execution']}-{j}",
             "content": f"Horário: {start_label} - {end_label} ({duration}h)",
             "start": start_time,
             "end": end_time,
@@ -101,7 +101,7 @@ def time_line_from_solution_variables(agendamento_df, contingencia_df, exec_data
             "groupHeightMode": "auto",
             "orientation": {"axis": "top", "item": "top"}
         },
-        key=f"{key_prefix}_execution_timeline_{exec_data['execucao']}"
+        key=f"{key_prefix}_execution_timeline_{exec_data['execution']}"
     )
 
     # Mostrar detalhes da execução ao clicar no timeline
@@ -165,9 +165,9 @@ def AgendamentoRedePage(key_prefix: str = "", selected_exec: int | None = None, 
             execution_df['solution_variables'] = execution_df['solution_variables'].apply(ast.literal_eval)
         # Garantir que a coluna 'execution' seja numérica para comparação confiável
         if 'execution' in execution_df.columns:
-            execution_df['execution'] = pd.to_numeric(execution_df['execucao'], errors='coerce')
-            execution_df = execution_df.dropna(subset=['execucao'])
-            execution_df['execution'] = execution_df['execucao'].astype(int)
+            execution_df['execution'] = pd.to_numeric(execution_df['execution'], errors='coerce')
+            execution_df = execution_df.dropna(subset=['execution'])
+            execution_df['execution'] = execution_df['execution'].astype(int)
     except Exception as e:
         st.warning(f"Erro ao carregar do Excel: {e}. Usando dados hardcoded com 5 execucões.")
         execution_df = carregar_dados_execucao()
@@ -177,8 +177,10 @@ def AgendamentoRedePage(key_prefix: str = "", selected_exec: int | None = None, 
         cache_path = output_xlsx_file.parent / "streamlit_cache_exec.json"
         if cache_path.exists():
             cache = json.loads(cache_path.read_text(encoding="utf-8"))
+            
+            
             # Normaliza tipos
-            cache_exec = int(cache.get("execucao", 0))
+            cache_exec = int(cache.get("execution", 0))
             cache_vars = cache.get("solution_variables", [])
             if isinstance(cache_vars, str):
                 try:
@@ -187,7 +189,7 @@ def AgendamentoRedePage(key_prefix: str = "", selected_exec: int | None = None, 
                 except Exception:
                     cache_vars = []
             # Se execução do cache não está no consolidado, adiciona uma linha virtual
-            if cache_exec and (cache_exec not in execution_df['execucao'].tolist()):
+            if cache_exec and (cache_exec not in execution_df['execution'].tolist()):
                 cache_row = {
                     'execucao': cache_exec,
                     'solution_variables': cache_vars,
@@ -233,7 +235,7 @@ def AgendamentoRedePage(key_prefix: str = "", selected_exec: int | None = None, 
             except Exception:
                 selected_exec = None
         # ordenar opções por execução
-        exec_options = sorted(list(execution_df['execucao'].unique().tolist()))
+        exec_options = sorted(list(execution_df['execution'].unique().tolist()))
         selected_exec = st.selectbox(
             "Selecione a execução",
             exec_options,
@@ -252,7 +254,7 @@ def AgendamentoRedePage(key_prefix: str = "", selected_exec: int | None = None, 
     except Exception:
         st.error(f"Execução inválida: {selected_exec}")
         return
-    mask = (execution_df['execucao'] == selected_exec_int)
+    mask = (execution_df['execution'] == selected_exec_int)
     override_applied = False
     if not mask.any():
         # Se não encontrou no consolidado mas recebemos solution_vars, usa-as para montar o exec_data
@@ -399,9 +401,19 @@ def AgendamentoRedePage(key_prefix: str = "", selected_exec: int | None = None, 
                             
 
     try:
-        st.caption(
-            f"[diag] key_prefix={key_prefix} | shared_key={session_key_exec} | selected_exec={selected_exec_int} | execs={sorted(execution_df['execution'].unique().tolist())} | resolved_exec={int(exec_data['execution'])} | override={override_applied}"
-        )
+        if 'exec_data' in locals() and exec_data is not None:
+            st.caption(
+                f"[diag] key_prefix={key_prefix} | shared_key={session_key_exec} | selected_exec={selected_exec_int} | execs={sorted(execution_df['execution'].unique().tolist())} | resolved_exec={int(exec_data['execution'])} | override={override_applied}"
+            )
+        else:
+            st.caption(
+                f"[diag] key_prefix={key_prefix} | shared_key={session_key_exec} | selected_exec={selected_exec_int} | execs={sorted(execution_df['execution'].unique().tolist())} | exec_data=undefined | override={override_applied}"
+            )
     except Exception as e:
-        st.error("Erro ao exibir diagnóstico.", e)
-    time_line_from_solution_variables(agendamento_df, contingencia_df, exec_data, key_prefix=key_prefix)
+        st.error(f"Erro ao exibir diagnóstico: {e}")
+    
+    # Só chama a função se exec_data estiver definida
+    if 'exec_data' in locals() and exec_data is not None:
+        time_line_from_solution_variables(agendamento_df, contingencia_df, exec_data, key_prefix=key_prefix)
+    else:
+        st.warning("Dados de execução não disponíveis para renderizar timeline.")

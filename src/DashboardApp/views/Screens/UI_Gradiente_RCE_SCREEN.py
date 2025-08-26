@@ -7,21 +7,25 @@ import operator
 import sys
 import os
 
+
+
+
 # Ajusta o path para permitir execução isolada via `streamlit run` deste arquivo
 CURRENT_DIR = os.path.dirname(__file__)
 PARENT_DIR = os.path.abspath(os.path.join(CURRENT_DIR, '.'))
+
+from components.dash_components import (
+        CardSolutions,
+    StatisticsTableComponent,
+    GraficoRCEComponent,
+)
 SRC_DIR = os.path.abspath(os.path.join(CURRENT_DIR, '..'))
 if PARENT_DIR not in sys.path:
     sys.path.append(PARENT_DIR)
 if SRC_DIR not in sys.path:
     sys.path.append(SRC_DIR)
 
-from views.components.dash_rce_components import (
-    ConsolidatedResultsComponent,
-    CardSolutions,
-    StatisticsTableComponent,
-    GraficoRCEComponent,
-)
+
 
 
 #backend
@@ -38,6 +42,10 @@ import threading
 import pathlib
 
 
+def load_data_excel():
+    df = pd.read_excel("/home/pedrov12/Documentos/GitHub/Repopulation-With-Elite-Set/src/output/resultados_consolidados.xlsx")
+    return df
+
 
 def rede_template_view(html_path: str | None = None, height: int = 1200):
     """Renderiza o template HTML da rede IEEE dentro do Streamlit.
@@ -49,7 +57,7 @@ def rede_template_view(html_path: str | None = None, height: int = 1200):
     # Caminho padrão: src/DashboardApp/plot_rede_IEEE_template_dashboard.html
     if html_path is None:
         html_path = os.path.join(CURRENT_DIR, "plot_rede_IEEE_template_dashboard.html")
-
+        html_path = "/home/pedrov12/Documentos/GitHub/Repopulation-With-Elite-Set/resultados - Artigo PIBIC/plot_rede_IEEE_template_dashboard.html"
     try:
         with open(html_path, "r", encoding="utf-8") as f:
             html_content = f.read()
@@ -305,11 +313,11 @@ class FrameworkRCEDashboard:
                 # Carrega todos os parâmetros por configuração para consolidar
                 repo = ConfigRepository(pathlib.Path(FOLDER_NAME))
                 all_params = repo.get_all_configs()
-                df_consolidado, warnings = ConsolidatedResultsComponent.render(all_params)
-                if df_consolidado is not None:
-                    ConsolidatedResultsComponent.display_and_download(df_consolidado)
-                for w in (warnings or []):
-                    st.warning(w)
+                # df_consolidado, warnings = ConsolidatedResultsComponent.render(all_params)
+                # if df_consolidado is not None:
+                #     ConsolidatedResultsComponent.display_and_download(df_consolidado)
+                # for w in (warnings or []):
+                #     st.warning(w)
             else:
                 # Renderiza componente default para "sem execução"
                 st.info("Nenhum dado encontrado ainda. Execute uma simulação para visualizar os resultados.")

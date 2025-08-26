@@ -9,20 +9,23 @@ from functools import reduce
 import operator
 import streamlit.components.v1 as components
 
+# Assuming these components are in the same directory or accessible via sys.path
+# Adjust imports if components are in different subdirectories
+from components.dash_rce_components import CardSolutions, StatisticsTableComponent
+from components.AgendamentoRedePage import AgendamentoRedePage
+
+
 # --- Add root directory to path to find modules ---
 BASE_DIR = Path(__file__).resolve().parent.parent.parent.parent.parent
 if str(BASE_DIR) not in sys.path:
     sys.path.append(str(BASE_DIR))
+print(BASE_DIR)
 
 # --- Import Controllers and Components ---
 from database_controller import DatabaseController
 from controllers.Utils import Controller, FOLDER_NAME, Utils, PARAMETROS_JSON
 from controllers.ConfigRepository import ConfigRepository
 
-# Assuming these components are in the same directory or accessible via sys.path
-# Adjust imports if components are in different subdirectories
-from .components.dash_rce_components import CardSolutions, StatisticsTableComponent
-from .components.AgendamentoRedePage import AgendamentoRedePage
 
 # --- Helper for Streamlit State Management ---
 class UseState:
