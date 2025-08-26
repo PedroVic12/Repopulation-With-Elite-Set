@@ -18,15 +18,32 @@ from database_controller import DatabaseController
 from dashboard_config import get_config
 from consolidation_manager import ConsolidationManager
 
-
 import streamlit.components.v1 as components
 import os
 
 
 
+@st.cache_data
 def load_data_excel():
-    df = pd.read_excel("/home/pedrov12/Documentos/GitHub/Repopulation-With-Elite-Set/src/output/resultados_consolidados.xlsx")
-    return df
+    """Carrega dados do Excel com cache."""
+    try:
+        # Primeiro, tenta o caminho absoluto original
+        file_path = "/home/pedrov12/Documentos/GitHub/Repopulation-With-Elite-Set/src/output/resultados_consolidados.xlsx"
+        if Path(file_path).exists():
+            return pd.read_excel(file_path)
+        
+        # Se não encontrar, tenta caminho relativo
+        relative_path = Path(__file__).parent.parent.parent / "src" / "output" / "resultados_consolidados.xlsx"
+        if relative_path.exists():
+            return pd.read_excel(relative_path)
+        
+        # Se ainda não encontrar, retorna DataFrame vazio
+        st.warning("Arquivo de resultados consolidados não encontrado.")
+        return pd.DataFrame()
+        
+    except Exception as e:
+        st.error(f"Erro ao carregar dados: {e}")
+        return pd.DataFrame()
 
 def rede_template_view(html_path: str | None = None, height: int = 1200):
     """Renderiza o template HTML da rede IEEE dentro do Streamlit.
@@ -292,10 +309,25 @@ class FrameworkRCEDashboard:
 
         with tab2:
             st.subheader("Gráfico de Convergência")
-            df_viz = self.db_controller.get_visualization_data(config_num, exec_num)
-            st.write(df_viz)
-            if df_viz:
+            
+            
+                    
+            try:
+                html_path = "/home/pedrov12/Documentos/GitHub/Repopulation-With-Elite-Set/src/output/grafico_execucao_config1_exec1.html"
 
+                with open(html_path, "r", encoding="utf-8") as f:
+                    html_content = f.read()
+            except FileNotFoundError:
+                st.error(f"Arquivo HTML não encontrado: {os.path.abspath(html_path)}")            
+            
+            df_viz = self.db_controller.get_visualization_data(config_num, exec_num)
+
+            
+            if df_viz:
+            
+            
+                st.write(df_viz)
+            
                 st.write("**Dados de Visualização:**")
                 st.dataframe(df_viz.head(self.config.MAX_ROWS_IN_TABLE), use_container_width=True)
                 try:
@@ -312,19 +344,27 @@ class FrameworkRCEDashboard:
                     st.info(self.config.get_message("info", "try_reload"))
             else:
                 st.warning("Dados de visualização não disponíveis.")
-        
+            
         with tab3:
             st.subheader("Tabela de Estatísticas")
             try:
-                # Verifica se o componente está habilitado nas configurações
-                if self.config.is_component_enabled("StatisticsTableComponent"):
+                if 'StatisticsTableComponent' in globals() and self.config.is_component_enabled("StatisticsTableComponent"):
                     StatisticsTableComponent.render(viz_data)
                 else:
-                    st.warning("Componente de estatísticas desabilitado nas configurações.")
+                    # Implementação básica de estatísticas
+                    if isinstance(viz_data, pd.DataFrame) and not viz_data.empty:
+                        st.write("**Estatísticas dos Dados:**")
+                        st.dataframe(viz_data.describe())
+                        
+                        st.write("**Primeiros Registros:**")
+                        st.dataframe(viz_data.head(20))
+                    else:
+                        st.warning("Dados de estatísticas não disponíveis.")
+                        
             except Exception as e:
                 st.error(f"Erro ao renderizar estatísticas: {e}")
-                st.info(self.config.get_message("info", "check_components"))
-
+                st.info("Estatísticas não disponíveis.")
+            
         with tab4:
             st.warning("População Final não implementada nesta visualização.")
             st.info("Esta funcionalidade será implementada em versões futuras.")
@@ -466,5 +506,6 @@ class FrameworkRCEDashboard:
                         with exec_tab:
                             self.render_execution_details(config_num, exec_numbers[j])
         
+
         self.render_footer()
 
