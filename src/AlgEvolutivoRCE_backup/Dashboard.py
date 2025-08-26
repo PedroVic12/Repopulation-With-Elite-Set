@@ -148,7 +148,7 @@ class DashboardApp:
             best_solution_index = min_fitness_values.index(best_solution_fitness)
 
             
-            # Foi feito os SLICING  porque o deap acumula os resultados  de fitness na varaiveal statics
+            # Foi feito os SLICING  porque o deap acumula os resultados  de fitness na variável statics
             array_values.append(
                 statics.get("min_fitness", [])[(execution_num -1) * int(len(generation)/execution_num):(execution_num * int(len(generation)/execution_num)) -1] 
             )
@@ -177,9 +177,9 @@ class DashboardApp:
 
             grafico_RCE = self.graficoRCE(generation, array_values, repopulation=repopulation)
             
-            print(f"\n[INFO]: Salvando dados .pkl, .json e figura .html para Config {config_num} / Execução {execution_num}...")
+            print(f"\n[INFO]: Salvando dados .json e figura .html para Config {config_num} / Execução {execution_num}...")
             output_path = f"{FOLDER_NAME}"
-            data_file = f"{output_path}/dashboard_data_config{config_num}_exec{execution_num}.pkl"
+            data_file = f"{output_path}/dashboard_data_config{config_num}_exec{execution_num}.json"
 
             # --- Salvar dados e figura para o script Streamlit ---
             data_to_save = {
@@ -203,8 +203,8 @@ class DashboardApp:
             all_results.append(data_to_save)
 
             # Salva a lista completa de resultados
-            with open(data_file, 'wb') as f:
-                pickle.dump(all_results, f)
+            with open(data_file, 'w') as f:
+                json.dump(all_results, f, indent=4, ensure_ascii=False)
    
             print(f"\n[INFO]: Dados e figura para execução {execution_num} salvos com sucesso.")
             print(fig_filename)
