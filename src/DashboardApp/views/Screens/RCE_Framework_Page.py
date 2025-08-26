@@ -293,8 +293,12 @@ class FrameworkRCEDashboard:
         with tab2:
             st.subheader("Gráfico de Convergência")
             if viz_data:
+                df_viz = pd.DataFrame(viz_data)
+                st.write(viz_data)
+                st.write("**Dados de Visualização:**")
+                st.dataframe(df_viz.head(self.config.MAX_ROWS_IN_TABLE), use_container_width=True)
                 try:
-                    df_viz = pd.DataFrame(viz_data)
+
                     if 'gen' in df_viz.columns:
                         stats_df = df_viz.rename(columns={'gen': 'Generation', 'avg': 'Média', 'min': 'Mínimo', 'max': 'Máximo'})
                         st.line_chart(stats_df, x='Generation', y=['Média', 'Mínimo', 'Máximo'], height=self.config.CHART_HEIGHT)

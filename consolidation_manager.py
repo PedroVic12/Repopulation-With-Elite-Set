@@ -11,6 +11,7 @@ import glob
 from datetime import datetime
 import shutil
 import zipfile
+from consolidar_resultados import consolidar_resultados
 
 class ConsolidationManager:
     """
@@ -89,39 +90,14 @@ class ConsolidationManager:
         Returns:
             bool: True se a consolidação foi bem-sucedida, False caso contrário
         """
-        print("=== INICIANDO CONSOLIDAÇÃO DE RESULTADOS ===")
+        print("=== CONSOLIDAÇÃO DE RESULTADOS ===")
         try:
             # Verifica se o diretório de saída existe
             if not self.output_dir.exists():
                 print(f"❌ Diretório de saída não encontrado: {self.output_dir}")
                 return False
             
-            # Busca todos os resultados
-            results_list = self._gather_all_results()
-            if not results_list:
-                print("❌ Nenhum resultado encontrado para consolidar!")
-                print("💡 Verifique se existem arquivos *_exec_*_results.json no diretório de saída")
-                return False
-
-            print(f"📊 Processando {len(results_list)} resultados...")
-            
-            # Cria o DataFrame consolidado
-            df = self._create_consolidated_dataframe(results_list)
-            if df is None or df.empty:
-                print("❌ Erro ao criar DataFrame consolidado!")
-                return False
-            
-            print(f"📋 DataFrame criado com {len(df)} linhas e {len(df.columns)} colunas")
-            
-            # Salva em Excel
-            success = self._save_dataframe_to_excel(df)
-            if success:
-                print("\n✅ Consolidação concluída com sucesso!")
-                print(f"📁 Arquivo salvo em: {self.consolidated_results_file}")
-                return True
-            else:
-                print("❌ Erro ao salvar arquivo Excel!")
-                return False
+            consolidar_resultados()
 
         except Exception as e:
             print(f"❌ Erro durante a consolidação: {e}")
