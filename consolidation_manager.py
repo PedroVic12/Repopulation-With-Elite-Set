@@ -9,8 +9,7 @@ import pandas as pd
 from pathlib import Path
 import glob
 from datetime import datetime
-import shutil
-import zipfile
+
 from consolidar_resultados import consolidar_resultados
 
 class ConsolidationManager:

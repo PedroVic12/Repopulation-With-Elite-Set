@@ -1,6 +1,5 @@
 
 
-
 # File: Repopulation-With-Elite-Set/src/utils/functions_fitness/
 import os
 import sys
@@ -11,17 +10,10 @@ sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '.
 from RedeEletrica_backup.rede_eletrica import RedeEletricaPandaPower
 from AlgEvolutivoRCE_backup.Setup import Setup
 
-
-def your_fitness_function(ind):
-    """Here you create your objetive function with your decision variable (ind) """
-    pass
-
-
-
-def funcao_objetivo_IEEE118(individuo, _debug = False):
+def funcao_objetivo_IEEE57(individuo, _debug = False):
 
     #! 1) Criar a rede elétrica IEEE 14 barras, Inicializar a classe com a rede e carrega a tabela de agendamento
-    rede = RedeEletricaPandaPower("118", debug=_debug)
+    rede = RedeEletricaPandaPower("57", debug=_debug)
 
     #! Colocando pesos como input do usuario e os dados de entrada do agendamento
     rede.pesos["tensao"] = {"min": 100, "max": 100}
@@ -30,23 +22,23 @@ def funcao_objetivo_IEEE118(individuo, _debug = False):
 
     #! Tabela agendamentos em xlsx hardcoded
     agendamento_df = pd.DataFrame([
-        {"ramo": [7, 29], "inicio": "20:00", "duracao": 6 ,"prioridade": 4},
-        {"ramo": [44, 48], "inicio": "18:00", "duracao": 5, "prioridade": 1},
-        {"ramo": [16, 112], "inicio": "21:00", "duracao": 6, "prioridade": 1},
-        {"ramo": [61, 65], "inicio": "27:00", "duracao": 6, "prioridade": 1}, # dia seguinte
-        {"ramo": [75, 117], "inicio": "01:00", "duracao": 4, "prioridade": 1},
-        {"ramo": [46, 68], "inicio": "21:00", "duracao": 5, "prioridade": 1},
-        {"ramo": [84, 88], "inicio": "20:00", "duracao": 6, "prioridade": 1},
-        {"ramo": [18, 33], "inicio": "14:00", "duracao": 5, "prioridade": 1},
-        {"ramo": [3, 10], "inicio": "19:00", "duracao": 4, "prioridade": 1},
-        {"ramo": [11, 15], "inicio": "20:00", "duracao": 5, "prioridade": 1},
+        {"ramo": [2, 3], "inicio": "08:00", "duracao": 6 ,"prioridade": 4},
+        {"ramo": [8, 10], "inicio": "10:00", "duracao": 5, "prioridade": 1},
+        {"ramo": [25, 26], "inicio": "14:00", "duracao": 6, "prioridade": 1},
+        {"ramo": [12, 14], "inicio": "18:00", "duracao": 6, "prioridade": 1},
+        {"ramo": [10, 40], "inicio": "15:00", "duracao": 4, "prioridade": 1},
+        {"ramo": [37, 48], "inicio": "08:00", "duracao": 5, "prioridade": 1},
+        {"ramo": [51, 52], "inicio": "10:00", "duracao": 6, "prioridade": 1},
+        {"ramo": [39, 55], "inicio": "14:00", "duracao": 5, "prioridade": 1},
+        {"ramo": [45, 46], "inicio": "18:00", "duracao": 4, "prioridade": 1},
+        {"ramo": [17, 18], "inicio": "15:00", "duracao": 5, "prioridade": 1},
 
     ])
 
     contingencia_df = pd.DataFrame([
-            {"contingencia":1,  "from":48 , "to": 49},
-            {"contingencia":2,  "from":10 , "to": 11},
-            {"contingencia":3,  "from":16 , "to": 17},
+            {"contingencia":1,  "from":1 , "to": 2},
+            {"contingencia":2,  "from":8 , "to": 9},
+            {"contingencia":3,  "from":43 , "to": 44},
     ])
 
     # Converter horários de início para horas do dia
@@ -61,8 +53,6 @@ def funcao_objetivo_IEEE118(individuo, _debug = False):
 
     # passando a variavel de decisão na função objetivo
     agendamento_df["inicio"] = individuo
-
-
 
     #=====================================================
 
@@ -151,10 +141,19 @@ def funcao_objetivo_IEEE118(individuo, _debug = False):
         # 12) Calcular fitness final com somatorio das vioações com pesos de todos os cenarios
         fitness_final = sum(violacoes_total)
         rede.log(f"\nFitness do agendamento = {fitness_final:.2f}\n")
-
-
         return fitness_final
 
 
     except Exception as e:
         print(f"\nErro: {e}")
+        
+
+def run():
+    funcao_objetivo_IEEE57(
+    #agendamento proposto em Zanghi(2016)
+    individuo=[8,10,14,18,15,8,10,14,18,15],
+    
+    #agendamento ótimo em Zanghi(2016)
+    #individuo=[8,10,28,24,14,3,10,13,24,13],
+    _debug = False
+)

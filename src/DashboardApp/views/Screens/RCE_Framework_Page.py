@@ -14,10 +14,10 @@ BASE_DIR = Path(__file__).resolve().parent.parent.parent.parent.parent
 if str(BASE_DIR) not in sys.path:
     sys.path.append(str(BASE_DIR))
 
-from database_controller import DatabaseController
+from database_controller import DatabaseController, ConsolidationManager
 print(f"Dashboard importing database_controller from: {DatabaseController.__module__}")
 from dashboard_config import get_config
-from consolidation_manager import ConsolidationManager
+#!from consolidation_manager import ConsolidationManager
 
 import streamlit.components.v1 as components
 import os

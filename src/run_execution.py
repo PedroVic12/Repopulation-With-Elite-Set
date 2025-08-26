@@ -11,8 +11,14 @@ from RedeEletrica_backup.rede_eletrica import RedeEletricaPandaPower
 
 # Utils
 from config_backup import FOLDER_NAME, entrada_de_dados, format_elapsed_time, load_many_executions
+
+
+#! Importando a minha função objetivo dentro do projeto
 from utils.functions_fitness.functions_benchmarking import rastrigin
 from utils.functions_fitness.function_IEEE_14_contigencias import funcao_objetivo_IEEE14
+from utils.functions_fitness.function_IEEE_57_otimizacao import funcao_objetivo_IEEE57
+from utils.functions_fitness.function_IEEE_117_otimizacao import funcao_objetivo_IEEE118
+
 
 # Bibliotecas padrão
 import json
