@@ -15,12 +15,16 @@ if str(BASE_DIR) not in sys.path:
     sys.path.append(str(BASE_DIR))
 
 from database_controller import DatabaseController
+from dashboard_config import get_config
+from consolidation_manager import ConsolidationManager
 
 class FrameworkRCEDashboard:
     """Dashboard principal, restaurado e corrigido para incluir todas as funcionalidades solicitadas."""
 
     def __init__(self):
         self.db_controller = DatabaseController(base_dir=BASE_DIR)
+        self.consolidation_manager = ConsolidationManager(base_dir=BASE_DIR)  # Gerenciador de consolidação
+        self.config = get_config()  # Carrega configurações
         self._init_state()
 
     def _init_state(self):
@@ -61,12 +65,163 @@ class FrameworkRCEDashboard:
         return df.groupby(config_col)[exec_col].apply(lambda x: sorted(x.unique())).to_dict()
 
     def render_header(self):
-        st.title("⚡ Dashboard RCE Framework (Versão Completa) ⚡")
+        st.title(f"{self.config.PAGE_TITLE} (Versão Completa)")
         st.markdown("Análise de resultados de otimização com Repopulation-With-Elite-Set.")
+        
+        # Barra de informações e controles usando configurações
+        col1, col2, col3, col4 = st.columns([2, 1, 1, 1])
+        
+        with col1:
+            # Status do sistema
+            if st.session_state.df_consolidado is not None:
+                st.success(self.config.get_message("success", "system_loaded"))
+            else:
+                st.warning(self.config.get_message("warning", "system_not_loaded"))
+        
+        with col2:
+            # Botão de atualização
+            if st.button("🔄 Atualizar", key="refresh_btn"):
+                st.rerun()
+        
+        with col3:
+            # Botão de consolidação com status
+            consolidation_status = self.consolidation_manager.get_consolidation_status()
+            
+            if consolidation_status.get('needs_consolidation', False):
+                st.warning("⚠️ Consolidação necessária")
+                consolidate_text = "🔄 Consolidar Agora"
+            else:
+                st.success("✅ Consolidação atualizada")
+                consolidate_text = "📊 Re-consolidar"
+            
+            if st.button(consolidate_text, key="consolidate_btn"):
+                with st.spinner("Consolidando resultados..."):
+                    try:
+                        success = self.consolidation_manager.run_consolidation()
+                        if success:
+                            st.success(self.config.get_message("success", "consolidation_complete"))
+                            st.rerun()
+                        else:
+                            st.error("❌ Falha na consolidação. Verifique os logs.")
+                    except Exception as e:
+                        st.error(f"{self.config.get_message('error', 'consolidation_error')}: {e}")
+        
+        with col4:
+            # Informações do sistema
+            if st.button("ℹ️ Info", key="info_btn"):
+                self._show_system_info()
+        
+        # Separador
+        st.markdown("---")
+        
+        # Informações rápidas usando configurações
+        if st.session_state.df_consolidado is not None:
+            df = st.session_state.df_consolidado
+            col1, col2, col3, col4 = st.columns(4)
+            
+            with col1:
+                st.metric("📁 Total de Execuções", len(df))
+            
+            with col2:
+                config_col, _ = self._validate_required_columns(df)
+                if config_col:
+                    unique_configs = df[config_col].nunique()
+                    st.metric("⚙️ Configurações", unique_configs)
+                else:
+                    st.metric("⚙️ Configurações", "N/A")
+            
+            with col3:
+                st.metric("📊 Arquivos de Saída", len(st.session_state.executions_map))
+            
+            with col4:
+                if st.session_state.locked_config:
+                    st.metric("📌 Config Fixada", st.session_state.locked_config)
+                else:
+                    st.metric("📌 Config Fixada", "Nenhuma")
+        
+        st.markdown("---")
 
     def render_footer(self):
         st.markdown("---")
-        st.info("Desenvolvido por Pedro Victor Veras e Rainer Zanghi em um projeto PIBIC pela UFF - 2024/2025")
+        
+        # Funcionalidades de exportação e utilitários
+        col1, col2, col3, col4 = st.columns([2, 1, 1, 1])
+        
+        with col1:
+            st.info("Desenvolvido por Pedro Victor Veras e Rainer Zanghi em um projeto PIBIC pela UFF - 2024/2025")
+        
+        with col2:
+            if st.button("📥 Exportar Dados", key="export_btn"):
+                self._export_data()
+        
+        with col3:
+            if st.button("🧹 Limpar Cache", key="clear_cache_btn"):
+                self._clear_cache()
+        
+        with col4:
+            if st.button("📋 Relatório", key="report_btn"):
+                self._generate_report()
+        
+        # Informações de contato e suporte
+        with st.expander("📞 Contato e Suporte", expanded=False):
+            st.write("**Email:** pedro.veras@id.uff.br")
+            st.write("**Projeto:** Repopulation-With-Elite-Set")
+            st.write("**Universidade:** Universidade Federal Fluminense (UFF)")
+            st.write("**Programa:** PIBIC - Programa Institucional de Bolsas de Iniciação Científica")
+
+    def _export_data(self):
+        """Exporta dados do dashboard usando o orquestrador."""
+        try:
+            with st.spinner("Exportando dados..."):
+                # Cria relatório de saída
+                if self.db_controller.create_output_report():
+                    st.success(self.config.get_message("success", "export_complete"))
+                else:
+                    st.error(self.config.get_message("error", "export_error"))
+        except Exception as e:
+            st.error(f"{self.config.get_message('error', 'export_error')}: {e}")
+
+    def _clear_cache(self):
+        """Limpa o cache da sessão."""
+        try:
+            # Limpa dados da sessão
+            if "df_consolidado" in st.session_state:
+                del st.session_state.df_consolidado
+            if "executions_map" in st.session_state:
+                del st.session_state.executions_map
+            
+            st.success(self.config.get_message("success", "cache_cleared"))
+            st.rerun()
+        except Exception as e:
+            st.error(f"{self.config.get_message('error', 'cache_error')}: {e}")
+
+    def _generate_report(self):
+        """Gera relatório detalhado do sistema."""
+        try:
+            with st.spinner("Gerando relatório..."):
+                # Usa o orquestrador para criar relatório
+                if self.db_controller.create_output_report():
+                    st.success("✅ Relatório gerado com sucesso!")
+                    
+                    # Exibe informações do sistema
+                    st.write("**Relatório do Sistema:**")
+                    st.write(f"  • Data/Hora: {pd.Timestamp.now()}")
+                    st.write(f"  • Total de Execuções: {len(st.session_state.df_consolidado) if st.session_state.df_consolidado is not None else 0}")
+                    st.write(f"  • Configurações: {len(st.session_state.executions_map)}")
+                    
+                    # Informações do orquestrador
+                    try:
+                        summary = self.db_controller.get_execution_summary()
+                        st.write(f"  • Execuções Detectadas: {summary['total_runs']}")
+                        st.write(f"  • Total de Arquivos: {sum(summary['file_counts'].values())}")
+                    except Exception as e:
+                        st.write(f"  • Erro ao obter resumo: {e}")
+                        
+                else:
+                    st.error("❌ Erro ao gerar relatório")
+                    
+        except Exception as e:
+            st.error(f"❌ Erro ao gerar relatório: {e}")
 
     def render_execution_details(self, config_num, exec_num):
         results_data = self.db_controller.get_run_data(config_num, exec_num) or {}
@@ -88,7 +243,14 @@ class FrameworkRCEDashboard:
                 results_data['best_vars'] = best_vars_list
                 results_data['decision_vars'] = {f'VAR {i+1}': v for i, v in enumerate(best_vars_list)}
 
-        tab1, tab2, tab3, tab4 = st.tabs(["Solução", "Gráfico de Convergência", "Estatísticas", "Agendamento"])
+        # Usa nomes de tabs das configurações
+        tab_names = [
+            self.config.TAB_NAMES["solution"],
+            self.config.TAB_NAMES["convergence"],
+            self.config.TAB_NAMES["statistics"],
+            self.config.TAB_NAMES["scheduling"]
+        ]
+        tab1, tab2, tab3, tab4 = st.tabs(tab_names)
 
         with tab1:
             try:
@@ -106,28 +268,63 @@ class FrameworkRCEDashboard:
                     df_viz = pd.DataFrame(viz_data)
                     if 'gen' in df_viz.columns:
                         stats_df = df_viz.rename(columns={'gen': 'Generation', 'avg': 'Média', 'min': 'Mínimo', 'max': 'Máximo'})
-                        st.line_chart(stats_df, x='Generation', y=['Média', 'Mínimo', 'Máximo'])
+                        st.line_chart(stats_df, x='Generation', y=['Média', 'Mínimo', 'Máximo'], height=self.config.CHART_HEIGHT)
                     elif 'Generations' in df_viz.columns:
                         stats_df = df_viz.groupby('Generations')['Fitness'].agg(['mean', 'min', 'max']).reset_index()
                         stats_df = stats_df.rename(columns={'Generations': 'Generation', 'mean': 'Média', 'min': 'Mínimo', 'max': 'Máximo'})
-                        st.line_chart(stats_df, x='Generation', y=['Média', 'Mínimo', 'Máximo'])
+                        st.line_chart(stats_df, x='Generation', y=['Média', 'Mínimo', 'Máximo'], height=self.config.CHART_HEIGHT)
                 except Exception as e:
                     st.error(f"Erro ao renderizar gráfico: {e}")
-                    st.info("Verifique se os dados de visualização estão no formato correto.")
+                    st.info(self.config.get_message("info", "try_reload"))
             else:
                 st.warning("Dados de visualização não disponíveis.")
         
         with tab3:
             st.subheader("Tabela de Estatísticas")
             try:
-                StatisticsTableComponent.render(viz_data)
+                # Verifica se o componente está habilitado nas configurações
+                if self.config.is_component_enabled("StatisticsTableComponent"):
+                    StatisticsTableComponent.render(viz_data, key=f"stats_table_{config_num}_{exec_num}")
+                else:
+                    st.warning("Componente de estatísticas desabilitado nas configurações.")
             except Exception as e:
                 st.error(f"Erro ao renderizar estatísticas: {e}")
-                st.info("Componente de estatísticas não disponível ou dados inválidos.")
+                st.info(self.config.get_message("info", "check_components"))
 
         with tab4:
             st.warning("População Final não implementada nesta visualização.")
             st.info("Esta funcionalidade será implementada em versões futuras.")
+            
+            # Adiciona informações sobre população final se o arquivo existir
+            pop_final_path = self.config.POP_FINAL_FILE
+            if pop_final_path.exists():
+                try:
+                    pop_df = pd.read_excel(pop_final_path)
+                    st.success(f"✅ Arquivo de população final encontrado: {len(pop_df)} indivíduos")
+                    
+                    with st.expander("📋 Visualizar População Final"):
+                        st.dataframe(pop_df.head(self.config.MAX_ROWS_IN_TABLE))
+                        
+                except Exception as e:
+                    st.error(f"Erro ao ler população final: {e}")
+            else:
+                st.info("Arquivo de população final não encontrado.")
+            
+            # Adiciona informações do orquestrador
+            with st.expander("🔍 Informações do Orquestrador", expanded=False):
+                try:
+                    summary = self.db_controller.get_execution_summary()
+                    st.write("**Resumo das Execuções:**")
+                    st.write(f"  • Total de execuções: {summary['total_runs']}")
+                    st.write(f"  • Total de arquivos: {sum(summary['file_counts'].values())}")
+                    
+                    # Lista arquivos por tipo
+                    st.write("**Arquivos por Tipo:**")
+                    for file_type, count in summary['file_counts'].items():
+                        st.write(f"  • {file_type.upper()}: {count}")
+                        
+                except Exception as e:
+                    st.write(f"Erro ao obter informações do orquestrador: {e}")
 
     def run(self):
         self.render_header()
@@ -168,3 +365,59 @@ class FrameworkRCEDashboard:
                             self.render_execution_details(config_num, exec_numbers[j])
         
         self.render_footer()
+
+    def _show_system_info(self):
+        """Mostra informações detalhadas do sistema usando configurações."""
+        with st.expander("ℹ️ Informações do Sistema", expanded=True):
+            st.write(f"**Versão:** {self.config.PAGE_TITLE} v2.0")
+            st.write("**Desenvolvedores:** Pedro Victor Veras e Rainer Zanghi")
+            st.write("**Projeto:** PIBIC UFF 2024/2025")
+            st.write("**Framework:** Repopulation-With-Elite-Set")
+            
+            # Informações técnicas
+            st.write("**Informações Técnicas:**")
+            st.write(f"  • Base Directory: {self.config.BASE_DIR}")
+            st.write(f"  • Output Directory: {self.config.OUTPUT_DIR}")
+            st.write(f"  • Debug Mode: {self.config.DEBUG_MODE}")
+            st.write(f"  • Log Level: {self.config.LOG_LEVEL}")
+            
+            # Status dos componentes
+            st.write("**Status dos Componentes:**")
+            for component_name, config in self.config.COMPONENTS.items():
+                status = "✅ Habilitado" if config.get("enabled", True) else "❌ Desabilitado"
+                st.write(f"  {status} {component_name}")
+            
+            # Informações do sistema
+            st.write("**Informações do Sistema:**")
+            if st.session_state.df_consolidado is not None:
+                df = st.session_state.df_consolidado
+                st.write(f"  • Total de Execuções: {len(df)}")
+                st.write(f"  • Colunas Disponíveis: {list(df.columns)}")
+            
+            # Funcionalidades do orquestrador
+            st.write("**Funcionalidades do Orquestrador:**")
+            try:
+                summary = self.db_controller.get_execution_summary()
+                st.write(f"  • Total de Execuções: {summary['total_runs']}")
+                st.write(f"  • Total de Arquivos: {sum(summary['file_counts'].values())}")
+            except Exception as e:
+                st.write(f"  • Erro ao obter resumo: {e}")
+            
+            # Status da consolidação
+            st.write("**Status da Consolidação:**")
+            try:
+                consolidation_status = self.consolidation_manager.get_consolidation_status()
+                st.write(f"  • Arquivo Consolidado: {'✅ Sim' if consolidation_status['consolidated_file_exists'] else '❌ Não'}")
+                if consolidation_status['consolidated_file_exists']:
+                    st.write(f"  • Última Consolidação: {consolidation_status['last_consolidation']}")
+                    st.write(f"  • Tamanho do Arquivo: {consolidation_status['file_size_mb']} MB")
+                    st.write(f"  • Total de Execuções: {consolidation_status['total_executions']}")
+                    st.write(f"  • Total de Configurações: {consolidation_status['total_configs']}")
+                
+                if consolidation_status.get('needs_consolidation', False):
+                    st.warning("⚠️ Nova consolidação necessária!")
+                else:
+                    st.success("✅ Consolidação atualizada")
+                    
+            except Exception as e:
+                st.write(f"  • Erro ao verificar status: {e}")

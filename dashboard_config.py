@@ -48,7 +48,7 @@ class DashboardConfig:
     MAX_CACHE_SIZE = 1000
     
     # === CONFIGURAÇÕES DE EXPORTAÇÃO ===
-    EXPORT_FORMATS = ["xlsx", "csv", "json"]
+    EXPORT_FORMATS = ["xlsx"]
     DEFAULT_EXPORT_FORMAT = "xlsx"
     
     # === CONFIGURAÇÕES DE LOGGING ===
@@ -88,8 +88,8 @@ class DashboardConfig:
     # === CONFIGURAÇÕES DE VALIDAÇÃO ===
     VALIDATION = {
         "required_columns": {
-            "config": ['config_num', 'config', 'configuration', 'configuracao', 'configuração'],
-            "exec": ['exec_num', 'exec', 'execution', 'run', 'execucao', 'execução']
+            "config": ['config_num', 'config',  'configuracao', ],
+            "exec": ['exec_num', 'exec', 'run', 'execucao', ]
         },
         "data_types": {
             "config_num": ["int", "str"],

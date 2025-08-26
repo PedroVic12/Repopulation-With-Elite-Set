@@ -88,6 +88,21 @@ class DrawerSideBar:
             st.session_state["selected_execution"] = None
             st.rerun()
         self.st.sidebar.markdown("---")  # Separador visual
+        self.filtro()
+        
+    def filtro(self):
+        """Adiciona filtros à barra lateral."""
+        self.st.sidebar.header("🔍 Filtros")
+        data = load_data_excel()
+        
+        item_selecionado = st.sidebar.multiselect(
+            "Selecione o número da execução para visualizar os dados:",
+            options=data["configuracao"].unique().tolist(),
+        )
+        
+
+
+
 
 
 ## Controlador de Gerenciamento de Estado
@@ -123,7 +138,8 @@ class FrameworkRCEDashboard:
         except Exception:
             executions_map = {}
         self.executions_map = executions_map
-        self.menu_lateral = DrawerSideBar()
+        self.menu_lateral = DrawerSideBar().render()
+        
   
         # Initialize options from parameter or use default
         self.options = options 
@@ -299,11 +315,7 @@ class FrameworkRCEDashboard:
                 _saved_config = UseState.get_state("saved_configurations", {})
             else:
                 dados = None
-                    
-            # Sempre renderiza a configuração do app e do AG 
-            #self.ConfigWebApp()
-            # Optiins e params em json separados mas talves ter as configuracoes em array de dicts
-            #self.Config_AG_Json()
+
 
             # Cabeçalho
             self.header()
@@ -318,6 +330,12 @@ class FrameworkRCEDashboard:
                 #     ConsolidatedResultsComponent.display_and_download(df_consolidado)
                 # for w in (warnings or []):
                 #     st.warning(w)
+                
+                
+                df_consolidado = load_data_excel()
+                st.subheader("📈 Resultados Consolidados de Todas as Configurações e Execuções")
+                if df_consolidado is not None:
+                    st.dataframe(df_consolidado, use_container_width=True)
             else:
                 # Renderiza componente default para "sem execução"
                 st.info("Nenhum dado encontrado ainda. Execute uma simulação para visualizar os resultados.")

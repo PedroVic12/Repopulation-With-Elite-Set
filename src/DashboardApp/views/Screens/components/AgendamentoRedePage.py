@@ -80,7 +80,7 @@ def time_line_from_solution_variables(agendamento_df, contingencia_df, exec_data
     last_end_time = f"2025-06-{18 + day_offset_last}T{(hour_in_day_last + 1) % 24:02d}:00:00"
 
     solution_timeline_items.append({
-        "id": f"{exec_data['execucao']}-last",
+        "id": f"{exec_data.get('execution', 'unknown')}-last",
         "content": f"Horário: {hour_in_day_last:02d}h",
         "start": last_start_time,
         "end": last_end_time,
@@ -402,8 +402,10 @@ def AgendamentoRedePage(key_prefix: str = "", selected_exec: int | None = None, 
 
     try:
         if 'exec_data' in locals() and exec_data is not None:
+            # Verifica se exec_data tem a chave 'execution' antes de acessá-la
+            exec_num = exec_data.get('execution', selected_exec_int)
             st.caption(
-                f"[diag] key_prefix={key_prefix} | shared_key={session_key_exec} | selected_exec={selected_exec_int} | execs={sorted(execution_df['execution'].unique().tolist())} | resolved_exec={int(exec_data['execution'])} | override={override_applied}"
+                f"[diag] key_prefix={key_prefix} | shared_key={session_key_exec} | selected_exec={selected_exec_int} | execs={sorted(execution_df['execution'].unique().tolist())} | resolved_exec={exec_num} | override={override_applied}"
             )
         else:
             st.caption(
@@ -414,6 +416,10 @@ def AgendamentoRedePage(key_prefix: str = "", selected_exec: int | None = None, 
     
     # Só chama a função se exec_data estiver definida
     if 'exec_data' in locals() and exec_data is not None:
-        time_line_from_solution_variables(agendamento_df, contingencia_df, exec_data, key_prefix=key_prefix)
+        try:
+            time_line_from_solution_variables(agendamento_df, contingencia_df, exec_data, key_prefix=key_prefix)
+        except Exception as e:
+            st.error(f"Erro ao renderizar timeline: {e}")
+            st.info("Timeline não disponível para esta execução.")
     else:
         st.warning("Dados de execução não disponíveis para renderizar timeline.")
