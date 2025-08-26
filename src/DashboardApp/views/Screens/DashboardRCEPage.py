@@ -3,18 +3,19 @@ import pandas as pd
 import sys
 from pathlib import Path
 import numpy as np
-from components.dash_rce_components import (
-    CardSolutions,
-    StatisticsTableComponent
-)
-from components.AgendamentoRedePage import AgendamentoRedePage
 
 # --- Adiciona o diretório raiz ao path para encontrar os módulos ---
-BASE_DIR = Path(__file__).resolve().parent.parent.parent.parent.parent
+BASE_DIR = Path(__file__).resolve().parent.parent.parent.parent
 if str(BASE_DIR) not in sys.path:
     sys.path.append(str(BASE_DIR))
 
 from database_controller import DatabaseController
+from src.DashboardApp.views.Screens.components.dash_rce_components import (
+    CardSolutions,
+    StatisticsTableComponent
+)
+from src.DashboardApp.views.Screens.components.AgendamentoRedePage import AgendamentoRedePage
+
 class DashboardRCEPage:
     """Página de dashboard principal, seguindo o esquema do DASHBOARD_ALURA_TEMPLATE.py."""
 
@@ -37,17 +38,8 @@ class DashboardRCEPage:
         if "executions_map" not in st.session_state:
             st.session_state.executions_map = self._get_executions_map()
 
-        if "selected_config" not in st.session_state:
-            st.session_state.selected_config = None
-        if "selected_exec" not in st.session_state:
-            st.session_state.selected_exec = None
-
-        # Now, update them if data is found
-        df = st.session_state.df_consolidado
-        if df is not None and not df.empty:
-            config_col, exec_col = self._validate_required_columns(df)
-            st.session_state.config_col = config_col
-            st.session_state.exec_col = exec_col
+        if "locked_config" not in st.session_state:
+            st.session_state.locked_config = None
 
     def _get_column_name_insensitive(self, df, possible_names):
         df_columns = [str(col).lower().strip() for col in df.columns]
