@@ -161,13 +161,13 @@ def run_framework_many_executions(function_bechmarking=False):
 
 
             # Passando os valores do array direto no dataframe com os index como chave (hash = chave, valor)
-            hash_df1 = pd.DataFrame(setupobj.tabela_hash, columns=['Fitness'])
+            hash_df1 = pd.DataFrame(setup.tabela_hash, columns=['Fitness'])
             hash_df1.sort_values(by='Fitness', ascending=False, inplace=True)
             hash_df1.to_excel("hash_table.xlsx", index=False)
 
             # Verificação de velocidade com hashtable
-            print(f"\nObjective function runs : {setupobj.objectiveruns}")
-            print(f"Hash table reads : {setupobj.hashtablereads}")
+            print(f"\nObjective function runs : {setup.objectiveruns}")
+            print(f"Hash table reads : {setup.hashtablereads}")
 
             end = datetime.now()
             elapsed = end - start

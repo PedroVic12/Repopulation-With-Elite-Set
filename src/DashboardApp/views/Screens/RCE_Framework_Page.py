@@ -51,30 +51,25 @@ def rede_template_view(html_path: str | None = None, height: int = 1200):
 
 
 class TabPinningController:
-    def __init__(self, config):
-        self.config = config
-        self.fixed_tab_keys = ["solution", "convergence", "statistics", "scheduling"]
+    def __init__(self):
         if "pin_tabs_active" not in st.session_state:
             st.session_state.pin_tabs_active = False
 
     def render_toggle(self):
+        """Renders the toggle switch and returns its state."""
         st.session_state.pin_tabs_active = st.toggle(
-            "📌 Fixar Abas Essenciais",
+            "📌 Fixar Aba",
             value=st.session_state.pin_tabs_active,
-            help="Ativa/desativa a visualização apenas das abas de Solução, Convergência, Estatísticas e Agendamento."
+            help="Ative para selecionar e fixar a visualização de uma única aba."
         )
+        return st.session_state.pin_tabs_active
 
-    def get_filtered_tab_names(self):
-        if st.session_state.pin_tabs_active:
-            return [self.config.TAB_NAMES[key] for key in self.fixed_tab_keys]
-        else:
-            return [self.config.TAB_NAMES[key] for key in self.config.TAB_NAMES.keys()]
-
-    def get_filtered_tab_keys(self):
-        if st.session_state.pin_tabs_active:
-            return self.fixed_tab_keys
-        else:
-            return list(self.config.TAB_NAMES.keys())
+    def render_selection_box(self, tab_options):
+        """Renders the selection box for choosing a tab."""
+        return st.selectbox(
+            "Selecione a aba para fixar:",
+            options=tab_options
+        )
 
 
 class FrameworkRCEDashboard:
@@ -84,7 +79,7 @@ class FrameworkRCEDashboard:
         self.db_controller = DatabaseController(base_dir=BASE_DIR)
         self.consolidation_manager = ConsolidationManager(base_dir=BASE_DIR)  # Gerenciador de consolidação
         self.config = get_config()  # Carrega configurações
-        self.tab_pinning_controller = TabPinningController(self.config) # Add this line
+        self.tab_pinning_controller = TabPinningController()
         self._init_state()
         self.MenuLateral()
         
@@ -230,12 +225,20 @@ class FrameworkRCEDashboard:
             if st.button("📋 Relatório", key="report_btn"):
                 self.generateReport()
         
+        # Separador
+        st.markdown("---")
+        
         # Informações de contato e suporte
-        with st.expander("📞 Contato e Suporte", expanded=False):
-            st.write("**Email:** pedro.veras@id.uff.br")
-            st.write("**Projeto:** Repopulation-With-Elite-Set")
+        with st.expander("📞 Contato e Suporte", expanded=True):
+            st.write(f"**Versão:** {self.config.PAGE_TITLE} v17.0")
+            st.write("**Desenvolvedores:** Pedro Victor Veras e Rainer Zanghi")
+            st.write("**Projeto:** PIBIC UFF 2024/2025")
+            st.write("**Framework:** Repopulation-With-Elite-Set")
+            st.write("**Email:** pedrovictorveras@id.uff.br")
             st.write("**Universidade:** Universidade Federal Fluminense (UFF)")
             st.write("**Programa:** PIBIC - Programa Institucional de Bolsas de Iniciação Científica")
+
+        self.showSystemInfo()
 
     def exportData(self):
         """Exporta dados do dashboard. (Funcionalidade simplificada)"""
@@ -300,18 +303,16 @@ class FrameworkRCEDashboard:
         viz_data_list = self.db_controller.get_visualization_data_for_run(config_num, exec_num)
         df_viz = pd.DataFrame(viz_data_list) if viz_data_list else pd.DataFrame()
 
-        tab_solucao, tab_graficos, tab_pop_final, tab_agendamento = st.tabs([
-            "Solução", "Gráficos de Convergência", "População Final", "Agendamento de Rede"
-        ])
-
-        with tab_solucao:
+        # --- Define functions for rendering tab content ---
+        def render_solucao_tab():
             try:
                 CardSolutions.render(results_data, exec_num)
+                AgendamentoRedePage(key_prefix=f"agend_{config_num}_{exec_num}", selected_exec=exec_num, solution_vars=results_data.get('best_variables'))
             except Exception as e:
                 st.error(f"Erro ao renderizar a aba de Solução: {e}")
                 st.info("Tente recarregar a página ou verificar se todos os componentes estão disponíveis.")
 
-        with tab_graficos:
+        def render_graficos_tab():
             st.subheader("Gráfico de Convergência (Estatísticas)")
             if not df_viz.empty:
                 try:
@@ -333,7 +334,6 @@ class FrameworkRCEDashboard:
             st.markdown("---")
             st.subheader("Gráfico de Convergência (Interativo)")
             try:
-                # O caminho do HTML pode ser dinâmico no futuro
                 html_path = self.db_controller.output_dir / f"grafico_execucao_config{config_num}_exec{exec_num}.html"
                 if not html_path.exists():
                      html_path = "/home/pedrov12/Documentos/GitHub/Repopulation-With-Elite-Set/src/output/grafico_execucao_config1_exec1.html"
@@ -346,8 +346,7 @@ class FrameworkRCEDashboard:
             except Exception as e:
                 st.error(f"Erro ao renderizar o gráfico interativo: {e}")
 
-
-        with tab_pop_final:
+        def render_pop_final_tab():
             st.subheader("Análise da População Final")
             pop_final_path = self.config.POP_FINAL_FILE
             if pop_final_path.exists():
@@ -361,45 +360,50 @@ class FrameworkRCEDashboard:
             else:
                 st.info("Arquivo de população final não encontrado.")
 
-            with st.expander("🔍 Informações do Orquestrador", expanded=False):
-                try:
-                    summary = self.db_controller.get_execution_summary()
-                    st.write("**Resumo das Execuções:**")
-                    st.write(f"  • Total de execuções: {summary['total_runs']}")
-                    st.write(f"  • Total de arquivos: {sum(summary['file_counts'].values())}")
-                    st.write("**Arquivos por Tipo:**")
-                    for file_type, count in summary['file_counts'].items():
-                        st.write(f"  • {file_type.upper()}: {count}")
-                except Exception as e:
-                    st.write(f"Erro ao obter informações do orquestrador: {e}")
-
-        with tab_agendamento:
+        def render_dashboard_tab():
             try:
-                AgendamentoRedePage(key_prefix=f"agend_{config_num}_{exec_num}", selected_exec=exec_num, solution_vars=results_data.get('best_variables'))
+                rede_template_view()
             except Exception as e:
-                st.error(f"Erro ao renderizar a página de Agendamento: {e}")
-                st.info("Tente recarregar a página ou verificar se o componente está disponível.")
+                st.error(f"Tente recarregar a página ou verificar se o componente está disponível: {e}")
+
+        tab_definitions = {
+            "Solução": render_solucao_tab,
+            "Gráficos de Convergência": render_graficos_tab,
+            "População Final": render_pop_final_tab,
+            "Dashboard Sistema Elétrico": render_dashboard_tab
+        }
+        tab_names = list(tab_definitions.keys())
+
+        # --- Render toggle and conditional tab display ---
+        is_pinned = self.tab_pinning_controller.render_toggle()
+
+        if is_pinned:
+            selected_tab_name = self.tab_pinning_controller.render_selection_box(tab_names)
+            render_function = tab_definitions.get(selected_tab_name)
+            if render_function:
+                render_function()
+        else:
+            tabs = st.tabs(tab_names)
+            for tab, (name, render_func) in zip(tabs, tab_definitions.items()):
+                with tab:
+                    render_func()
                     
     def showSystemInfo(self):
         """Mostra informações detalhadas do sistema usando configurações."""
-        with st.expander("ℹ️ Informações do Sistema", expanded=True):
-            st.write(f"**Versão:** {self.config.PAGE_TITLE} v2.0")
-            st.write("**Desenvolvedores:** Pedro Victor Veras e Rainer Zanghi")
-            st.write("**Projeto:** PIBIC UFF 2024/2025")
-            st.write("**Framework:** Repopulation-With-Elite-Set")
+        with st.expander("ℹ️ Informações do Sistema", expanded=False):
             
             # Informações técnicas
             st.write("**Informações Técnicas:**")
-            st.write(f"  • Base Directory: {self.config.BASE_DIR}")
-            st.write(f"  • Output Directory: {self.config.OUTPUT_DIR}")
+            #st.write(f"  • Base Directory: {self.config.BASE_DIR}")
+            #st.write(f"  • Output Directory: {self.config.OUTPUT_DIR}")
             st.write(f"  • Debug Mode: {self.config.DEBUG_MODE}")
             st.write(f"  • Log Level: {self.config.LOG_LEVEL}")
             
             # Status dos componentes
-            st.write("**Status dos Componentes:**")
-            for component_name, config in self.config.COMPONENTS.items():
-                status = "✅ Habilitado" if config.get("enabled", True) else "❌ Desabilitado"
-                st.write(f"  {status} {component_name}")
+            # st.write("**Status dos Componentes:**")
+            # for component_name, config in self.config.COMPONENTS.items():
+            #     status = "✅ Habilitado" if config.get("enabled", True) else "❌ Desabilitado"
+            #     st.write(f"  {status} {component_name}")
             
             # Informações do sistema
             st.write("**Informações do Sistema:**")
@@ -460,9 +464,6 @@ class FrameworkRCEDashboard:
             st.stop()
 
 
-        # Add the tab pinning toggle here
-        self.tab_pinning_controller.render_toggle()
-
         # Tabs de configuração
         config_keys = sorted(executions_map.keys())
         config_tabs = st.tabs([f"Config {cfg}" for cfg in config_keys])
@@ -479,4 +480,3 @@ class FrameworkRCEDashboard:
         
 
         self.renderFooter()
-

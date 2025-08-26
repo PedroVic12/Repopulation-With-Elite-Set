@@ -177,10 +177,6 @@ def time_line_from_solution_variables(agendamento_df, contingencia_df, exec_data
 
 # Função para exibir a página de agendamento de rede elétrica
 def AgendamentoRedePage(key_prefix: str = "", selected_exec: int | None = None, solution_vars: list | None = None):
-
-
-    rede_template_view()  # Renderiza o template da rede IEEE    
-    
     
     """Página de Agendamento de Rede Elétrica com timeline interativa."""
     st.subheader("Agendamento de Intervenções de Redes Elétricas")
