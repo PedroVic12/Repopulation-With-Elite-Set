@@ -4,15 +4,20 @@
 from functools import reduce
 import json
 import operator
-from ..components.dash_rce_components import ConsolidatedResultsComponent, CardSolutions, GraficoPotenciaAtivaReativaComponent, StatisticsTableComponent, GraficoRCEComponent
-
+from .components.dash_rce_components import ConsolidatedResultsComponent, CardSolutions, GraficoPotenciaAtivaReativaComponent, StatisticsTableComponent, GraficoRCEComponent
+from pathlib import Path
+import sys
+import streamlit as st
 
 #backend
+BASE_DIR = Path(__file__).resolve().parent
+if str(BASE_DIR) not in sys.path:
+    sys.path.append(str(BASE_DIR))
+
 from controllers.Utils import Controller,FOLDER_NAME, Utils, PARAMETROS_JSON
 import os
 
 # Frontend
-import streamlit as st
 import pandas as pd
 import json
 import time

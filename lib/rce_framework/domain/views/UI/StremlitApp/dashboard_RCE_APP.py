@@ -11,9 +11,23 @@ import sys
 import os
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
-from config_backup import options_main_file
 
+from controllers.Utils import PARAMETROS_JSON
 
+configuracoes_execucoes = {
+        "key": True,
+        "value": 7,
+        "parametros_opcionais": [
+            {"MUTACAO": [PARAMETROS_JSON['MUTACAO']]},
+            {"CROSSOVER": [PARAMETROS_JSON['CROSSOVER']]},
+            {'NUM_GENERATIONS': [PARAMETROS_JSON['NUM_GENERATIONS']]},
+            {'POP_SIZE': [PARAMETROS_JSON['POP_SIZE']]},
+        ]
+}
+
+options_main_file = configuracoes_execucoes
+
+# --- Menu Lateral ---
 
 
 def DrawerSideBar():

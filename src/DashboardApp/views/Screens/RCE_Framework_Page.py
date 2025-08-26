@@ -26,9 +26,7 @@ class FrameworkRCEDashboard:
     def _init_state(self):
         """Inicializa o estado da sessão do Streamlit."""
         if "df_consolidado" not in st.session_state:
-            st.session_state.df_consolidado = pd.read_excel("/home/pedrov12/Documentos/GitHub/Repopulation-With-Elite-Set/src/output/resultados_consolidados.xlsx")
-
-            #st.session_state.df_consolidado = self.db_controller.get_consolidated_data()
+            st.session_state.df_consolidado = self.db_controller.get_consolidated_data()
         
         if "executions_map" not in st.session_state:
             st.session_state.executions_map = self._get_executions_map()
@@ -109,8 +107,6 @@ class FrameworkRCEDashboard:
                         stats_df = df_viz.groupby('Generations')['Fitness'].agg(['mean', 'min', 'max']).reset_index()
                         stats_df = stats_df.rename(columns={'Generations': 'Generation', 'mean': 'Média', 'min': 'Mínimo', 'max': 'Máximo'})
                         st.line_chart(stats_df, x='Generation', y=['Média', 'Mínimo', 'Máximo'])
-                    else:
-                        st.warning("Formato do arquivo de visualização não reconhecido.")
                 except Exception as e:
                     st.error(f"Erro ao renderizar gráfico: {e}")
             else:
@@ -163,3 +159,6 @@ class FrameworkRCEDashboard:
         
         self.render_footer()
 
+if __name__ == "__main__":
+    page = RCEFrameworkDashboard()
+    page.run()
