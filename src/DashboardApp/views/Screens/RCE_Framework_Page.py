@@ -3,24 +3,23 @@ import pandas as pd
 import sys
 from pathlib import Path
 import numpy as np
+from .components.dash_rce_components import (
+    CardSolutions,
+    StatisticsTableComponent
+)
+from .components.AgendamentoRedePage import AgendamentoRedePage
 
 # --- Adiciona o diretório raiz ao path para encontrar os módulos ---
-BASE_DIR = Path(__file__).resolve().parent.parent.parent.parent
+BASE_DIR = Path(__file__).resolve().parent.parent.parent.parent.parent
 if str(BASE_DIR) not in sys.path:
     sys.path.append(str(BASE_DIR))
 
 from database_controller import DatabaseController
-from src.DashboardApp.views.Screens.components.dash_rce_components import (
-    CardSolutions,
-    StatisticsTableComponent
-)
-from src.DashboardApp.views.Screens.components.AgendamentoRedePage import AgendamentoRedePage
 
-class RCEFrameworkDashboard:
+class FrameworkRCEDashboard:
     """Dashboard principal, restaurado e corrigido para incluir todas as funcionalidades solicitadas."""
 
     def __init__(self):
-        st.set_page_config(page_title="Dashboard RCE Framework", page_icon="⚡", layout="wide")
         self.db_controller = DatabaseController(base_dir=BASE_DIR)
         self._init_state()
 
@@ -86,6 +85,7 @@ class RCEFrameworkDashboard:
             if var_keys:
                 best_vars_list = [results_data[k] for k in var_keys]
                 results_data['best_variables'] = best_vars_list
+                results_data['best_vars'] = best_vars_list
                 results_data['decision_vars'] = {f'VAR {i+1}': v for i, v in enumerate(best_vars_list)}
 
         tab1, tab2, tab3, tab4 = st.tabs(["Solução", "Gráfico de Convergência", "Estatísticas", "Agendamento"])
