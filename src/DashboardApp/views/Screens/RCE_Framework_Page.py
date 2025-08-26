@@ -54,7 +54,7 @@ def rede_template_view(html_path: str | None = None, height: int = 1200):
 
 
 class FrameworkRCEDashboard:
-    """Dashboard principal, restaurado e corrigido para incluir todas as funcionalidades solicitadas."""
+    """Dashboard principal, restaurado e corrigido para incluigr todas as funcionalidades solicitadas."""
 
     def __init__(self):
         self.db_controller = DatabaseController(base_dir=BASE_DIR)
@@ -292,9 +292,10 @@ class FrameworkRCEDashboard:
 
         with tab2:
             st.subheader("Gráfico de Convergência")
-            if viz_data:
-                df_viz = pd.DataFrame(viz_data)
-                st.write(viz_data)
+            df_viz = self.db_controller.get_visualization_data(config_num, exec_num)
+            st.write(df_viz)
+            if df_viz:
+
                 st.write("**Dados de Visualização:**")
                 st.dataframe(df_viz.head(self.config.MAX_ROWS_IN_TABLE), use_container_width=True)
                 try:

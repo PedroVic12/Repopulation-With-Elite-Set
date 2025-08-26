@@ -102,6 +102,20 @@ class DatabaseController:
     def get_consolidated_data(self):
         df = pd.read_excel("/home/pedrov12/Documentos/GitHub/Repopulation-With-Elite-Set/src/output/resultados_consolidados.xlsx")
         return df
+    
+    def get_visualization_data(self):
+        #ler arquivo json das pastas output
+        json_files = glob.glob(str(self.output_dir / "config_*_exec_*_visualization.json"))
+        all_viz_data = []
+        for f_path in json_files:
+            try:
+                with open(f_path, 'r', encoding='utf-8') as f:
+                    data = json.load(f)
+                viz_data = data.get('viz_data', [])
+                all_viz_data.extend(viz_data)
+            except Exception as e:
+                print(f"Erro ao ler arquivo {f_path} para visualização: {e}")
+        return all_viz_data
 
     def consolidate_results(self):
         """
