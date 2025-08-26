@@ -34,7 +34,7 @@ class DashboardConfig:
         "convergence": "📈 Gráfico de Convergência", 
         "statistics": "📊 Estatísticas",
         "scheduling": "🎯 Agendamento",
-        "population": "👥 População Final"
+        
     }
     
     # === CONFIGURAÇÕES DE VISUALIZAÇÃO ===

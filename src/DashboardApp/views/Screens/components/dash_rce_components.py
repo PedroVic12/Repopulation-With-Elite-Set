@@ -72,7 +72,7 @@ class CardSolutions:
         best_vars = data.get('best_vars', data.get('best_variables', []))
         decision_vars = data.get('decision_vars', {})
         
-        fitness_value = f"{float(best_fitness):.4f}" if isinstance(best_fitness, (int, float)) and not pd.isna(best_fitness) else "N/A"
+        fitness_value = f"{float(best_fitness):.2f}" if isinstance(best_fitness, (int, float)) and not pd.isna(best_fitness) else "N/A"
         
         col1, col2 = st.columns([1, 2])
         
@@ -97,7 +97,7 @@ class CardSolutions:
                         if i + j < len(var_items):
                             var_name, var_value = var_items[i+j]
                             with cols[j]:
-                                formatted_value = f"{float(var_value):.4f}" if isinstance(var_value, (int, float)) else str(var_value)
+                                formatted_value = f"{float(var_value):.2f}" if isinstance(var_value, (int, float)) else str(var_value)
                                 st.markdown(f'''
                                 <div class="var-label">{str(var_name).replace('_', ' ').title()}</div>
                                 <div class="var-value">{formatted_value}</div>

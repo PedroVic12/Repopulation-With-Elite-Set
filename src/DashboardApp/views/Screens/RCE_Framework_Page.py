@@ -288,8 +288,8 @@ class FrameworkRCEDashboard:
                 st.error(f"Arquivo HTML não encontrado: {os.path.abspath(html_path)}")
 
             if not df_viz.empty: # Check if df_viz is not empty
-                st.write("**Dados de Visualização:**")
-                st.dataframe(df_viz.head(self.config.MAX_ROWS_IN_TABLE), use_container_width=True)
+                #st.write("**Dados de Visualização:**")
+                #st.dataframe(df_viz.head(self.config.MAX_ROWS_IN_TABLE), use_container_width=True)
                 try:
                     if 'gen' in df_viz.columns:
                         stats_df = df_viz.rename(columns={'gen': 'Generation', 'avg': 'Média', 'min': 'Mínimo', 'max': 'Máximo'})
