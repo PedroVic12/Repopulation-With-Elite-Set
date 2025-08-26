@@ -69,7 +69,6 @@ class PowerSystemModel:
         if df_bus is None or df_load_gen is None:
             raise ValueError("Abas 'bus' e 'load_gen' são necessárias.")
 
-        # --- CORREÇÃO: Converter colunas para tipo numérico antes de usar ---
         for col in ['Barra', 'Tipo de Barra (*)', 'Potência Ativa (MW)', 'Carga Ativa (MW)', 'Carga Reativa (Mvar)']:
             if col in df_load_gen.columns:
                 df_load_gen[col] = pd.to_numeric(df_load_gen[col], errors='coerce').fillna(0)
@@ -154,6 +153,7 @@ class PowerSystemModel:
 # 2. VIEW (Interface Gráfica com PySide6)
 # =============================================================================
 class NetworkCanvas(FigureCanvas):
+    """Widget para exibir o gráfico da rede Matplotlib."""
     def __init__(self, parent=None):
         self.fig, self.ax = plt.subplots(figsize=(10, 8))
         super().__init__(self.fig)
@@ -162,15 +162,29 @@ class NetworkCanvas(FigureCanvas):
         self.fig.tight_layout()
 
     def plot_network(self, net):
+        """Plota a rede pandapower usando collections para mais detalhes."""
         self.ax.clear()
         if net and len(net.bus) > 0:
             try:
-                bc = plot.create_bus_collection(net, size=80, color="blue", zorder=3)
-                lc = plot.create_line_collection(net, color="grey", linewidth=2.0)
-                plot.draw_collections([lc, bc], ax=self.ax)
+                # Criar coleções para cada tipo de elemento da rede
+                bc = plot.create_bus_collection(net, size=80, color="blue", zorder=3, label="Barras")
+                lc = plot.create_line_collection(net, color="grey", linewidth=2.0, label="Linhas")
+                load_collection = plot.create_load_collection(net, size=60, orientation=30, color="red", label="Cargas")
+                gen_collection = plot.create_gen_collection(net, size=80, marker='o', color='green', label="Geradores")
+                ext_grid_collection = plot.create_ext_grid_collection(net, size=100, marker='s', color='orange', label="Grid Externo")
+
+                # Desenhar todas as coleções no gráfico
+                plot.draw_collections([lc, bc, load_collection, gen_collection, ext_grid_collection], ax=self.ax)
+                
+                self.ax.legend()
             except Exception as e:
-                self.ax.text(0.5, 0.5, f'Erro ao plotar a rede:\n{e}', ha='center', va='center')
+                self.ax.text(0.5, 0.5, f'Erro ao plotar a rede:\n{e}', ha='center', va='center', fontsize=10, color='red')
+        
         self.ax.set_title("Diagrama Unifilar da Rede")
+        self.ax.set_xlabel("")
+        self.ax.set_ylabel("")
+        self.ax.grid(False)
+        self.fig.tight_layout()
         self.draw()
 
 class MainWindow(QMainWindow):
