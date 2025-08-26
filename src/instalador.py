@@ -7,6 +7,7 @@ from PySide6.QtWidgets import (
     QLabel, QTextEdit, QStackedWidget, QHBoxLayout
 )
 from PySide6.QtCore import QThread, Signal, Qt
+from PySide6.QtGui import QPixmap
 
 STYLESHEET = """
 QWidget {
@@ -15,15 +16,16 @@ QWidget {
     font-family: Arial, sans-serif;
 }
 QPushButton {
-    background-color: #009E2FFF;
+    background-color: #2c3e50;
     color: white;
     border: none;
     padding: 10px 20px;
     border-radius: 5px;
     font-weight: bold;
+    font-size: 20px;
 }
 QPushButton:hover {
-    background-color: #2980b9;
+    background-color: #006400;
 }
 QPushButton:disabled {
     background-color: #566573;
@@ -39,11 +41,11 @@ QLabel {
     background-color: transparent;
 }
 QLabel#title {
-    font-size: 24px;
+    font-size: 32px;
     font-weight: bold;
 }
 QLabel#subtitle {
-    font-size: 18px;
+    font-size: 20px;
     font-weight: bold;
 }
 """
@@ -92,7 +94,7 @@ class InstallerWindow(QMainWindow):
     def __init__(self):
         super().__init__()
         self.setWindowTitle("Instalador do RCE Framework")
-        self.setFixedSize(600, 400)
+        self.setFixedSize(800, 500)
 
         self.stacked_widget = QStackedWidget()
         self.setCentralWidget(self.stacked_widget)
@@ -110,6 +112,24 @@ class InstallerWindow(QMainWindow):
 
         self.current_page = 0
         self.stacked_widget.setCurrentIndex(self.current_page)
+    
+    def upload_file(self, img_path):
+        """Carrega uma imagem e retorna um QLabel com a imagem centralizada"""
+        if not os.path.exists(img_path):
+            print(f"Erro: Arquivo não encontrado - {img_path}")
+            return QLabel("Imagem não encontrada")
+        
+        imagem = QPixmap(img_path)
+        if imagem.isNull():
+            print(f"Erro: Não foi possível carregar a imagem - {img_path}")
+            return QLabel("Erro ao carregar imagem")
+        
+        rotulo_imagem = QLabel()
+        rotulo_imagem.setPixmap(imagem)
+        rotulo_imagem.setAlignment(Qt.AlignCenter)
+        rotulo_imagem.setFixedSize(imagem.size())
+        
+        return rotulo_imagem
 
     def create_welcome_page(self):
         page = QWidget()
@@ -120,17 +140,22 @@ class InstallerWindow(QMainWindow):
         title.setObjectName("title")
         
         description = QLabel(
-            "Este assistente irá instalar as dependências necessárias e "
-            "iniciar a aplicação RCE Framework."
+            "Este aplicativo desktop irá instalar as dependências necessárias do projeto Python e "
+            "iniciar o Laucher.py da aplicação RCE Framework."
         )
         description.setWordWrap(True)
         description.setAlignment(Qt.AlignCenter)
 
+        # Adiciona logo da UFF usando a função upload_file
+        logo_path = os.path.join(self.base_dir, 'assets', 'uff_logo.jpg')
+        logo_label = self.upload_file(logo_path)
+        
         next_button = QPushButton("Avançar >")
         next_button.clicked.connect(self.next_page)
 
         layout.addWidget(title)
         layout.addWidget(description)
+        layout.addWidget(logo_label)  # Adiciona a logo ao layout
         layout.addStretch()
         layout.addWidget(next_button, alignment=Qt.AlignRight)
         
