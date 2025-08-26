@@ -8,19 +8,13 @@ from IPython.display import display
 from rich.console import Console
 from rich.theme import Theme
 from rich.traceback import install
-import logging
 
 from pandapower.plotting import simple_plot, simple_plotly, pf_res_plotly
 import plotly.graph_objects as go
 from plotly.subplots import make_subplots
 import plotly.io as pio
 
-logging.basicConfig(
-    filename='logs.txt',
-    format='%(asctime)s - %(levelname)s - %(message)s',
-    filemode='w',
-    level=logging.DEBUG
-)
+
 
 install()
 
@@ -33,7 +27,6 @@ class Logger:
             "info": "white"  # Added "info" level for default blue color
         }))
 
-        #self.logger = logging.getLogger()
 
 
 
