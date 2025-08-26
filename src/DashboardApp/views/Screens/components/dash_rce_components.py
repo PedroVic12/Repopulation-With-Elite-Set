@@ -44,7 +44,7 @@ class CardSolutions:
                 box-shadow: 0 6px 12px rgba(0,0,0,0.1) !important;
             }
             .solution-card {
-                background: white;
+                background: grey;
                 border-radius: 12px;
                 padding: 16px;
                 margin-bottom: 16px;
@@ -58,9 +58,11 @@ class CardSolutions:
             .var-value {
                 font-weight: 600;
                 color: #2c3e50;
+                font-size: 1rem;
+
             }
             .var-label {
-                font-size: 0.8rem;
+                font-size: 1rem;
                 color: #6c757d;
                 margin-bottom: 4px;
             }
@@ -81,7 +83,7 @@ class CardSolutions:
             st.metric("📊 Melhor Geração", best_gen_idx)
 
         with col2:
-            st.markdown("<h6>Variáveis de Decisão</h6>", unsafe_allow_html=True)
+            st.markdown("<h4>Variáveis de Decisão</h4>", unsafe_allow_html=True)
             
             vars_to_display = decision_vars or {}
             if not vars_to_display and isinstance(best_vars, (list, tuple)) and best_vars:

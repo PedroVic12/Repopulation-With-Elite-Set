@@ -32,7 +32,7 @@ def rede_template_view(html_path: str | None = None, height: int = 1200):
         height: Altura do iframe em pixels.
     """
     # Caminho padrão: src/DashboardApp/plot_rede_IEEE_template_dashboard.html
-    st.write(BASE_DIR)
+    #st.write(BASE_DIR)
     if html_path is None:
         html_path = BASE_DIR / "resultados - Artigo PIBIC" / "plot_rede_IEEE_template_dashboard.html"
     try:
@@ -127,6 +127,7 @@ class FrameworkRCEDashboard:
         df = st.session_state.df_consolidado
         if df is None or df.empty: return {}
         config_col, exec_col = self._validate_required_columns(df)
+        st.sidebar.write(config_col, exec_col)
         if not config_col or not exec_col: 
             st.error("O arquivo consolidado não contém as colunas de configuração ou execução.")
             return {}
@@ -296,198 +297,88 @@ class FrameworkRCEDashboard:
                 results_data['best_vars'] = best_vars_list
                 results_data['decision_vars'] = {f'VAR {i+1}': v for i, v in enumerate(best_vars_list)}
 
-        # Get visualization data and convert to DataFrame once
         viz_data_list = self.db_controller.get_visualization_data_for_run(config_num, exec_num)
-        df_viz = pd.DataFrame(viz_data_list) if viz_data_list else pd.DataFrame() # Create empty DataFrame if list is empty
+        df_viz = pd.DataFrame(viz_data_list) if viz_data_list else pd.DataFrame()
 
-        # Usa nomes de tabs das configurações
-        tab_names = [
-            self.config.TAB_NAMES["solution"],
-            self.config.TAB_NAMES["convergence"],
-            self.config.TAB_NAMES["statistics"],
-            self.config.TAB_NAMES["scheduling"]
-        ]
-        tab1, tab2, tab3, tab4 = st.tabs(tab_names)
+        tab_solucao, tab_graficos, tab_pop_final, tab_agendamento = st.tabs([
+            "Solução", "Gráficos de Convergência", "População Final", "Agendamento de Rede"
+        ])
 
-        with tab1:
+        with tab_solucao:
             try:
                 CardSolutions.render(results_data, exec_num)
-                st.markdown("---")
-                AgendamentoRedePage(key_prefix=f"agend_{config_num}_{exec_num}", selected_exec=exec_num, solution_vars=results_data.get('best_variables'))
             except Exception as e:
-                st.error(f"Erro ao renderizar aba de Solução: {e}")
+                st.error(f"Erro ao renderizar a aba de Solução: {e}")
                 st.info("Tente recarregar a página ou verificar se todos os componentes estão disponíveis.")
 
-        with tab2:
-            st.subheader("Gráfico de Convergência")
-
-            try:
-                                # Usa nomes de tabs das configurações
-                tab_names = self.tab_pinning_controller.get_filtered_tab_names()
-                tab_keys = self.tab_pinning_controller.get_filtered_tab_keys()
-                
-                tabs = st.tabs(tab_names)
-
-                # Map tab keys to their corresponding tab objects
-                tab_map = {key: tab_obj for key, tab_obj in zip(tab_keys, tabs)}
-
-                if "solution" in tab_keys:
-                    with tab_map["solution"]:
-                        try:
-                            CardSolutions.render(results_data, exec_num)
-                            st.markdown("---")
-                            AgendamentoRedePage(key_prefix=f"agend_{config_num}_{exec_num}", selected_exec=exec_num, solution_vars=results_data.get('best_variables'))
-                        except Exception as e:
-                            st.error(f"Erro ao renderizar aba de Solução: {e}")
-                            st.info("Tente recarregar a página ou verificar se todos os componentes estão disponíveis.")
-
-                if "convergence" in tab_keys:
-                    with tab_map["convergence"]:
-                        st.subheader("Gráfico de Convergência")
-
-                        try:
-                            html_path = "/home/pedrov12/Documentos/GitHub/Repopulation-With-Elite-Set/src/output/grafico_execucao_config1_exec1.html"
-
-                            with open(html_path, "r", encoding="utf-8") as f:
-                                html_content = f.read()
-                        except FileNotFoundError:
-                            st.error(f"Arquivo HTML não encontrado: {os.path.abspath(html_path)}")
-
-                        if not df_viz.empty: # Check if df_viz is not empty
-                            try:
-                                if 'gen' in df_viz.columns:
-                                    stats_df = df_viz.rename(columns={'gen': 'Generation', 'avg': 'Média', 'min': 'Mínimo', 'max': 'Máximo'})
-                                    st.line_chart(stats_df, x='Generation', y=['Média', 'Mínimo', 'Máximo'], height=self.config.CHART_HEIGHT)
-                                elif 'Generations' in df_viz.columns:
-                                    stats_df = df_viz.groupby('Generations')['Fitness'].agg(['mean', 'min', 'max']).reset_index()
-                                    stats_df = stats_df.rename(columns={'Generations': 'Generation', 'mean': 'Média', 'min': 'Mínimo', 'max': 'Máximo'})
-                                    st.line_chart(stats_df, x='Generation', y=['Média', 'Mínimo', 'Máximo'], height=self.config.CHART_HEIGHT)
-                                else:
-                                    st.warning("Colunas 'gen' ou 'Generations' não encontradas para o gráfico de convergência.")
-                            except Exception as e:
-                                st.error(f"Erro ao renderizar gráfico: {e}")
-                                st.info(self.config.get_message("info", "try_reload"))
-                        else:
-                            st.warning("Dados de visualização não disponíveis.")
-
-                if "statistics" in tab_keys:
-                    with tab_map["statistics"]:
-                        st.subheader("Tabela de Estatísticas")
-                        try:
-                            if 'StatisticsTableComponent' in globals() and self.config.is_component_enabled("StatisticsTableComponent"):
-                                if not df_viz.empty: # Check if df_viz is not empty
-                                    StatisticsTableComponent.render(df_viz) # Pass df_viz
-                                else:
-                                    st.warning("Dados de estatísticas não disponíveis.")
-                            else:
-                                # Implementação básica de estatísticas
-                                if not df_viz.empty: # Check if df_viz is not empty
-                                    st.write("**Estatísticas dos Dados:**")
-                                    st.dataframe(df_viz.describe()) # Use df_viz
-                                    st.write("**Primeiros Registros:**")
-                                    st.dataframe(df_viz.head(20)) # Use df_viz
-                                else:
-                                    st.warning("Dados de estatísticas não disponíveis.")
-
-                        except Exception as e:
-                            st.error(f"Erro ao renderizar estatísticas: {e}")
-                            st.info("Estatísticas não disponíveis.")
-
-                if "scheduling" in tab_keys:
-                    with tab_map["scheduling"]:
-                        st.warning("População Final não implementada nesta visualização.")
-                        st.info("Esta funcionalidade será implementada em versões futuras.")
-
-                        # Adiciona informações sobre população final se o arquivo existir
-                        pop_final_path = self.config.POP_FINAL_FILE
-                        if pop_final_path.exists():
-                            try:
-                                pop_df = pd.read_excel(pop_final_path)
-                                st.success(f"✅ Arquivo de população final encontrado: {len(pop_df)} indivíduos")
-
-                                with st.expander("📋 Visualizar População Final"):
-                                    st.dataframe(pop_df.head(self.config.MAX_ROWS_IN_TABLE))
-
-                            except Exception as e:
-                                st.error(f"Erro ao ler população final: {e}")
-                        else:
-                            st.info("Arquivo de população final não encontrado.")
-
-                        # Adiciona informações do orquestrador
-                        with st.expander("🔍 Informações do Orquestrador", expanded=False):
-                            try:
-                                summary = self.db_controller.get_execution_summary()
-                                st.write("**Resumo das Execuções:**")
-                                st.write(f"  • Total de execuções: {summary['total_runs']}")
-                                st.write(f"  • Total de arquivos: {sum(summary['file_counts'].values())}")
-
-                                # Lista arquivos por tipo
-                                st.write("**Arquivos por Tipo:**")
-                                for file_type, count in summary['file_counts'].items():
-                                    st.write(f"  • {file_type.upper()}: {count}")
-
-                            except Exception as e:
-                                                st.write(f"Erro ao obter informações do orquestrador: {e}")
-            except Exception as e:
-                st.error(f"Erro ao renderizar abas: {e}")
-                st.info("Tente recarregar a página ou verificar se todos os componentes estão disponíveis.")
-
-        with tab3:
-            st.subheader("Tabela de Estatísticas")
-            try:
-                if 'StatisticsTableComponent' in globals() and self.config.is_component_enabled("StatisticsTableComponent"):
-                    if not df_viz.empty: # Check if df_viz is not empty
-                        StatisticsTableComponent.render(df_viz) # Pass df_viz
+        with tab_graficos:
+            st.subheader("Gráfico de Convergência (Estatísticas)")
+            if not df_viz.empty:
+                try:
+                    if 'gen' in df_viz.columns:
+                        stats_df = df_viz.rename(columns={'gen': 'Generation', 'avg': 'Média', 'min': 'Mínimo', 'max': 'Máximo'})
+                        st.line_chart(stats_df, x='Generation', y=['Média', 'Mínimo', 'Máximo'], height=self.config.CHART_HEIGHT)
+                    elif 'Generations' in df_viz.columns:
+                        stats_df = df_viz.groupby('Generations')['Fitness'].agg(['mean', 'min', 'max']).reset_index()
+                        stats_df = stats_df.rename(columns={'Generations': 'Generation', 'mean': 'Média', 'min': 'Mínimo', 'max': 'Máximo'})
+                        st.line_chart(stats_df, x='Generation', y=['Média', 'Mínimo', 'Máximo'], height=self.config.CHART_HEIGHT)
                     else:
-                        st.warning("Dados de estatísticas não disponíveis.")
-                else:
-                    # Implementação básica de estatísticas
-                    if not df_viz.empty: # Check if df_viz is not empty
-                        st.write("**Estatísticas dos Dados:**")
-                        st.dataframe(df_viz.describe()) # Use df_viz
-                        st.write("**Primeiros Registros:**")
-                        st.dataframe(df_viz.head(20)) # Use df_viz
-                    else:
-                        st.warning("Dados de estatísticas não disponíveis.")
+                        st.warning("Colunas 'gen' ou 'Generations' não encontradas para o gráfico de convergência.")
+                except Exception as e:
+                    st.error(f"Erro ao renderizar gráfico: {e}")
+                    st.info(self.config.get_message("info", "try_reload"))
+            else:
+                st.warning("Dados de visualização não disponíveis para o gráfico de estatísticas.")
 
+            st.markdown("---")
+            st.subheader("Gráfico de Convergência (Interativo)")
+            try:
+                # O caminho do HTML pode ser dinâmico no futuro
+                html_path = self.db_controller.output_dir / f"grafico_execucao_config{config_num}_exec{exec_num}.html"
+                if not html_path.exists():
+                     html_path = "/home/pedrov12/Documentos/GitHub/Repopulation-With-Elite-Set/src/output/grafico_execucao_config1_exec1.html"
+
+                with open(html_path, "r", encoding="utf-8") as f:
+                    html_content = f.read()
+                components.html(html_content, height=self.config.CHART_HEIGHT + 100, scrolling=True)
+            except FileNotFoundError:
+                st.error(f"Arquivo HTML do gráfico não encontrado em: {html_path}")
             except Exception as e:
-                st.error(f"Erro ao renderizar estatísticas: {e}")
-                st.info("Estatísticas não disponíveis.")
+                st.error(f"Erro ao renderizar o gráfico interativo: {e}")
 
-        with tab4:
-            st.warning("População Final não implementada nesta visualização.")
-            st.info("Esta funcionalidade será implementada em versões futuras.")
 
-            # Adiciona informações sobre população final se o arquivo existir
+        with tab_pop_final:
+            st.subheader("Análise da População Final")
             pop_final_path = self.config.POP_FINAL_FILE
             if pop_final_path.exists():
                 try:
                     pop_df = pd.read_excel(pop_final_path)
                     st.success(f"✅ Arquivo de população final encontrado: {len(pop_df)} indivíduos")
-
                     with st.expander("📋 Visualizar População Final"):
                         st.dataframe(pop_df.head(self.config.MAX_ROWS_IN_TABLE))
-
                 except Exception as e:
                     st.error(f"Erro ao ler população final: {e}")
             else:
                 st.info("Arquivo de população final não encontrado.")
 
-            # Adiciona informações do orquestrador
             with st.expander("🔍 Informações do Orquestrador", expanded=False):
                 try:
                     summary = self.db_controller.get_execution_summary()
                     st.write("**Resumo das Execuções:**")
                     st.write(f"  • Total de execuções: {summary['total_runs']}")
                     st.write(f"  • Total de arquivos: {sum(summary['file_counts'].values())}")
-
-                    # Lista arquivos por tipo
                     st.write("**Arquivos por Tipo:**")
                     for file_type, count in summary['file_counts'].items():
                         st.write(f"  • {file_type.upper()}: {count}")
-
                 except Exception as e:
                     st.write(f"Erro ao obter informações do orquestrador: {e}")
+
+        with tab_agendamento:
+            try:
+                AgendamentoRedePage(key_prefix=f"agend_{config_num}_{exec_num}", selected_exec=exec_num, solution_vars=results_data.get('best_variables'))
+            except Exception as e:
+                st.error(f"Erro ao renderizar a página de Agendamento: {e}")
+                st.info("Tente recarregar a página ou verificar se o componente está disponível.")
                     
     def showSystemInfo(self):
         """Mostra informações detalhadas do sistema usando configurações."""

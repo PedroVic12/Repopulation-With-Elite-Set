@@ -430,7 +430,10 @@ class ConsolidationManager:
                 print(f"❌ Diretório de saída não encontrado: {self.output_dir}")
                 return False
             
-            consolidar_resultados()
+            # Executa a consolidação
+            consolidar_resultados(self.output_dir)
+            salvar_excel(self._gather_all_results(), self.output_dir)
+            return True
 
         except Exception as e:
             print(f"❌ Erro durante a consolidação: {e}")
