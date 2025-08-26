@@ -9,7 +9,7 @@ from AlgEvolutivoRCE_backup.Setup import Setup
 from AlgEvolutivoRCE_backup.alg_evolutivo_rce import AlgoritimoEvolutivoRCE
 #from RedeEletrica_backup.rede_eletrica import RedeEletricaPandaPower
 
-# Utils
+# Utils - Trazer esses codigos para esse unico arquivo
 from config_backup import FOLDER_NAME, entrada_de_dados, format_elapsed_time
 
 
@@ -147,6 +147,7 @@ def run_framework_many_executions(function_bechmarking=False):
             alg = AlgoritimoEvolutivoRCE(setup, DEBUG=False)
             print("Algoritmo Evolutivo iniciado.")
             pop_with_repopulation, logbook_with_repopulation, best_individual, all_individual_values = alg.run(RCE=True)
+            best_variables = list(best_individual)
 
             #! 7) Visualize os Resultados do Primeiro Dashboard do Alg.dashbord aqui
             print("\nEvolução concluída  - 100%")
@@ -158,13 +159,13 @@ def run_framework_many_executions(function_bechmarking=False):
                 execution_num=exec_num,
             )
 
-            best_variables = list(best_individual)
 
             # Passando os valores do array direto no dataframe com os index como chave (hash = chave, valor)
             hash_df1 = pd.DataFrame(setupobj.tabela_hash, columns=['Fitness'])
             hash_df1.sort_values(by='Fitness', ascending=False, inplace=True)
             hash_df1.to_excel("hash_table.xlsx", index=False)
 
+            # Verificação de velocidade com hashtable
             print(f"\nObjective function runs : {setupobj.objectiveruns}")
             print(f"Hash table reads : {setupobj.hashtablereads}")
 
@@ -204,7 +205,7 @@ def run_framework_many_executions(function_bechmarking=False):
                 "best_variables": best_variables,
                 "best_fitness": best_fitness,
                 "best_gen_idx": best_solution_generation,
-                "time":formatted_time
+                "time":formatted_time.total_seconds()
             }
             
             output_path = config_dir / f"config_{config_num}_exec_{exec_num}_results.json"
@@ -224,24 +225,25 @@ def run_framework_many_executions(function_bechmarking=False):
     try:
         import subprocess
         import sys
-        
-        # Caminho para o script de consolidação
-        consolidar_script = BASE_DIR.parent / "consolidar_resultados.py"
-        
-        if consolidar_script.exists():
-            print(f"Executando consolidação: {consolidar_script}")
-            result = subprocess.run([sys.executable, str(consolidar_script)], 
-                                      capture_output=True, text=True, cwd=str(BASE_DIR.parent))
+        def run_sript_consolidar_resultados():
+            # Caminho para o script de consolidação
+            consolidar_script = BASE_DIR.parent / "consolidar_resultados.py"
             
-            if result.returncode == 0:
-                print("✅ Consolidação executada com sucesso!")
-                if result.stdout:
-                    print("Saída da consolidação:")
-                    print(result.stdout)
+            if consolidar_script.exists():
+                print(f"Executando consolidação: {consolidar_script}")
+                result = subprocess.run([sys.executable, str(consolidar_script)], 
+                                        capture_output=True, text=True, cwd=str(BASE_DIR.parent))
+                
+                if result.returncode == 0:
+                    print("✅ Consolidação executada com sucesso!")
+                    if result.stdout:
+                        print("Saída da consolidação:\n")
+                        print(result.stdout)
+                else:
+                    print(f"❌ Erro na consolidação: {result.stderr}")
             else:
-                print(f"❌ Erro na consolidação: {result.stderr}")
-        else:
-            print(f"⚠️ Script de consolidação não encontrado em: {consolidar_script}")
+                print(f"⚠️ Script de consolidação não encontrado em: {consolidar_script}")
+        run_sript_consolidar_resultados()
             
     except Exception as e:
         print(f"❌ Erro ao executar consolidação: {e}")
