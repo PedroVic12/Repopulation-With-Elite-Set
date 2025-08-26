@@ -222,7 +222,7 @@ class NetworkCanvas(FigureCanvas):
 
                 # Coleção de Barras com cores baseadas na tensão
                 bc = plot.create_bus_collection(net, size=0.02, zorder=10, 
-                                                cmap=cmap, norm=norm, bus_geodata=net.bus.vn_kv)
+                                                cmap=cmap, norm=norm)
                 collections.append(bc)
 
                 # Outras coleções com tamanhos ajustados
