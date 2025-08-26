@@ -49,6 +49,33 @@ def rede_template_view(html_path: str | None = None, height: int = 1200):
     components.html(html_content, height=height, scrolling=True)
 
 
+class TabPinningController:
+    def __init__(self, config):
+        self.config = config
+        self.fixed_tab_keys = ["solution", "convergence", "statistics", "scheduling"]
+        if "pin_tabs_active" not in st.session_state:
+            st.session_state.pin_tabs_active = False
+
+    def render_toggle(self):
+        st.session_state.pin_tabs_active = st.toggle(
+            "📌 Fixar Abas Essenciais",
+            value=st.session_state.pin_tabs_active,
+            help="Ativa/desativa a visualização apenas das abas de Solução, Convergência, Estatísticas e Agendamento."
+        )
+
+    def get_filtered_tab_names(self):
+        if st.session_state.pin_tabs_active:
+            return [self.config.TAB_NAMES[key] for key in self.fixed_tab_keys]
+        else:
+            return [self.config.TAB_NAMES[key] for key in self.config.TAB_NAMES.keys()]
+
+    def get_filtered_tab_keys(self):
+        if st.session_state.pin_tabs_active:
+            return self.fixed_tab_keys
+        else:
+            return list(self.config.TAB_NAMES.keys())
+
+
 class FrameworkRCEDashboard:
     """Dashboard principal, restaurado e corrigido para incluigr todas as funcionalidades solicitadas."""
 
@@ -56,6 +83,7 @@ class FrameworkRCEDashboard:
         self.db_controller = DatabaseController(base_dir=BASE_DIR)
         self.consolidation_manager = ConsolidationManager(base_dir=BASE_DIR)  # Gerenciador de consolidação
         self.config = get_config()  # Carrega configurações
+        self.tab_pinning_controller = TabPinningController(self.config) # Add this line
         self._init_state()
 
     def _init_state(self):
@@ -95,7 +123,7 @@ class FrameworkRCEDashboard:
         df[exec_col] = df[exec_col].astype(str)
         return df.groupby(config_col)[exec_col].apply(lambda x: sorted(x.unique())).to_dict()
 
-    def render_header(self):
+    def renderHeader(self):
         st.title(f"{self.config.PAGE_TITLE} (Versão Completa)")
         st.markdown("Análise de resultados de otimização com Repopulation-With-Elite-Set.")
         
@@ -135,6 +163,9 @@ class FrameworkRCEDashboard:
                             st.error("❌ Falha na consolidação. Verifique os logs.")
                     except Exception as e:
                         st.error(f"{self.config.get_message('error', 'consolidation_error')}: {e}")
+            
+            # Add the tab pinning toggle here
+            self.tab_pinning_controller.render_toggle()
 
         # Separador
         st.markdown("---")
@@ -166,7 +197,7 @@ class FrameworkRCEDashboard:
         
         st.markdown("---")
 
-    def render_footer(self):
+    def renderFooter(self):
         st.markdown("---")
         
         # Funcionalidades de exportação e utilitários
@@ -177,15 +208,15 @@ class FrameworkRCEDashboard:
         
         with col2:
             if st.button("📥 Exportar Dados", key="export_btn"):
-                self._export_data()
+                self.exportData()
         
         with col3:
             if st.button("🧹 Limpar Cache", key="clear_cache_btn"):
-                self._clear_cache()
+                self.clearCache()
         
         with col4:
             if st.button("📋 Relatório", key="report_btn"):
-                self._generate_report()
+                self.generateReport()
         
         # Informações de contato e suporte
         with st.expander("📞 Contato e Suporte", expanded=False):
@@ -194,12 +225,12 @@ class FrameworkRCEDashboard:
             st.write("**Universidade:** Universidade Federal Fluminense (UFF)")
             st.write("**Programa:** PIBIC - Programa Institucional de Bolsas de Iniciação Científica")
 
-    def _export_data(self):
+    def exportData(self):
         """Exporta dados do dashboard. (Funcionalidade simplificada)"""
         st.info("A funcionalidade de exportação de dados completa não está disponível nesta versão simplificada do controlador de banco de dados.")
         st.info("Você pode acessar os resultados consolidados diretamente em: `src/output/resultados_consolidados.xlsx`")
 
-    def _clear_cache(self):
+    def clearCache(self):
         """Limpa o cache da sessão."""
         try:
             # Limpa dados da sessão
@@ -213,7 +244,7 @@ class FrameworkRCEDashboard:
         except Exception as e:
             st.error(f"{self.config.get_message('error', 'cache_error')}: {e}")
 
-    def _generate_report(self):
+    def generateReport(self):
         """Gera relatório detalhado do sistema. (Funcionalidade simplificada)"""
         st.info("A funcionalidade de geração de relatório detalhado não está disponível nesta versão simplificada do controlador de banco de dados.")
         st.info("Para um resumo, consulte a seção 'Informações do Sistema'.")
@@ -235,7 +266,7 @@ class FrameworkRCEDashboard:
         except Exception as e:
             st.write(f"  • Erro ao obter resumo do controlador: {e}")
 
-    def render_execution_details(self, config_num, exec_num):
+    def renderExecutionDetails(self, config_num, exec_num):
         results_data = self.db_controller.get_run_data(config_num, exec_num) or {}
         df_consolidado = st.session_state.df_consolidado
 
@@ -280,31 +311,115 @@ class FrameworkRCEDashboard:
             st.subheader("Gráfico de Convergência")
 
             try:
-                html_path = "/home/pedrov12/Documentos/GitHub/Repopulation-With-Elite-Set/src/output/grafico_execucao_config1_exec1.html"
+                                # Usa nomes de tabs das configurações
+                tab_names = self.tab_pinning_controller.get_filtered_tab_names()
+                tab_keys = self.tab_pinning_controller.get_filtered_tab_keys()
+                
+                tabs = st.tabs(tab_names)
 
-                with open(html_path, "r", encoding="utf-8") as f:
-                    html_content = f.read()
-            except FileNotFoundError:
-                st.error(f"Arquivo HTML não encontrado: {os.path.abspath(html_path)}")
+                # Map tab keys to their corresponding tab objects
+                tab_map = {key: tab_obj for key, tab_obj in zip(tab_keys, tabs)}
 
-            if not df_viz.empty: # Check if df_viz is not empty
-                #st.write("**Dados de Visualização:**")
-                #st.dataframe(df_viz.head(self.config.MAX_ROWS_IN_TABLE), use_container_width=True)
-                try:
-                    if 'gen' in df_viz.columns:
-                        stats_df = df_viz.rename(columns={'gen': 'Generation', 'avg': 'Média', 'min': 'Mínimo', 'max': 'Máximo'})
-                        st.line_chart(stats_df, x='Generation', y=['Média', 'Mínimo', 'Máximo'], height=self.config.CHART_HEIGHT)
-                    elif 'Generations' in df_viz.columns:
-                        stats_df = df_viz.groupby('Generations')['Fitness'].agg(['mean', 'min', 'max']).reset_index()
-                        stats_df = stats_df.rename(columns={'Generations': 'Generation', 'mean': 'Média', 'min': 'Mínimo', 'max': 'Máximo'})
-                        st.line_chart(stats_df, x='Generation', y=['Média', 'Mínimo', 'Máximo'], height=self.config.CHART_HEIGHT)
-                    else:
-                        st.warning("Colunas 'gen' ou 'Generations' não encontradas para o gráfico de convergência.")
-                except Exception as e:
-                    st.error(f"Erro ao renderizar gráfico: {e}")
-                    st.info(self.config.get_message("info", "try_reload"))
-            else:
-                st.warning("Dados de visualização não disponíveis.")
+                if "solution" in tab_keys:
+                    with tab_map["solution"]:
+                        try:
+                            CardSolutions.render(results_data, exec_num)
+                            st.markdown("---")
+                            AgendamentoRedePage(key_prefix=f"agend_{config_num}_{exec_num}", selected_exec=exec_num, solution_vars=results_data.get('best_variables'))
+                        except Exception as e:
+                            st.error(f"Erro ao renderizar aba de Solução: {e}")
+                            st.info("Tente recarregar a página ou verificar se todos os componentes estão disponíveis.")
+
+                if "convergence" in tab_keys:
+                    with tab_map["convergence"]:
+                        st.subheader("Gráfico de Convergência")
+
+                        try:
+                            html_path = "/home/pedrov12/Documentos/GitHub/Repopulation-With-Elite-Set/src/output/grafico_execucao_config1_exec1.html"
+
+                            with open(html_path, "r", encoding="utf-8") as f:
+                                html_content = f.read()
+                        except FileNotFoundError:
+                            st.error(f"Arquivo HTML não encontrado: {os.path.abspath(html_path)}")
+
+                        if not df_viz.empty: # Check if df_viz is not empty
+                            try:
+                                if 'gen' in df_viz.columns:
+                                    stats_df = df_viz.rename(columns={'gen': 'Generation', 'avg': 'Média', 'min': 'Mínimo', 'max': 'Máximo'})
+                                    st.line_chart(stats_df, x='Generation', y=['Média', 'Mínimo', 'Máximo'], height=self.config.CHART_HEIGHT)
+                                elif 'Generations' in df_viz.columns:
+                                    stats_df = df_viz.groupby('Generations')['Fitness'].agg(['mean', 'min', 'max']).reset_index()
+                                    stats_df = stats_df.rename(columns={'Generations': 'Generation', 'mean': 'Média', 'min': 'Mínimo', 'max': 'Máximo'})
+                                    st.line_chart(stats_df, x='Generation', y=['Média', 'Mínimo', 'Máximo'], height=self.config.CHART_HEIGHT)
+                                else:
+                                    st.warning("Colunas 'gen' ou 'Generations' não encontradas para o gráfico de convergência.")
+                            except Exception as e:
+                                st.error(f"Erro ao renderizar gráfico: {e}")
+                                st.info(self.config.get_message("info", "try_reload"))
+                        else:
+                            st.warning("Dados de visualização não disponíveis.")
+
+                if "statistics" in tab_keys:
+                    with tab_map["statistics"]:
+                        st.subheader("Tabela de Estatísticas")
+                        try:
+                            if 'StatisticsTableComponent' in globals() and self.config.is_component_enabled("StatisticsTableComponent"):
+                                if not df_viz.empty: # Check if df_viz is not empty
+                                    StatisticsTableComponent.render(df_viz) # Pass df_viz
+                                else:
+                                    st.warning("Dados de estatísticas não disponíveis.")
+                            else:
+                                # Implementação básica de estatísticas
+                                if not df_viz.empty: # Check if df_viz is not empty
+                                    st.write("**Estatísticas dos Dados:**")
+                                    st.dataframe(df_viz.describe()) # Use df_viz
+                                    st.write("**Primeiros Registros:**")
+                                    st.dataframe(df_viz.head(20)) # Use df_viz
+                                else:
+                                    st.warning("Dados de estatísticas não disponíveis.")
+
+                        except Exception as e:
+                            st.error(f"Erro ao renderizar estatísticas: {e}")
+                            st.info("Estatísticas não disponíveis.")
+
+                if "scheduling" in tab_keys:
+                    with tab_map["scheduling"]:
+                        st.warning("População Final não implementada nesta visualização.")
+                        st.info("Esta funcionalidade será implementada em versões futuras.")
+
+                        # Adiciona informações sobre população final se o arquivo existir
+                        pop_final_path = self.config.POP_FINAL_FILE
+                        if pop_final_path.exists():
+                            try:
+                                pop_df = pd.read_excel(pop_final_path)
+                                st.success(f"✅ Arquivo de população final encontrado: {len(pop_df)} indivíduos")
+
+                                with st.expander("📋 Visualizar População Final"):
+                                    st.dataframe(pop_df.head(self.config.MAX_ROWS_IN_TABLE))
+
+                            except Exception as e:
+                                st.error(f"Erro ao ler população final: {e}")
+                        else:
+                            st.info("Arquivo de população final não encontrado.")
+
+                        # Adiciona informações do orquestrador
+                        with st.expander("🔍 Informações do Orquestrador", expanded=False):
+                            try:
+                                summary = self.db_controller.get_execution_summary()
+                                st.write("**Resumo das Execuções:**")
+                                st.write(f"  • Total de execuções: {summary['total_runs']}")
+                                st.write(f"  • Total de arquivos: {sum(summary['file_counts'].values())}")
+
+                                # Lista arquivos por tipo
+                                st.write("**Arquivos por Tipo:**")
+                                for file_type, count in summary['file_counts'].items():
+                                    st.write(f"  • {file_type.upper()}: {count}")
+
+                            except Exception as e:
+                                                st.write(f"Erro ao obter informações do orquestrador: {e}")
+            except Exception as e:
+                st.error(f"Erro ao renderizar abas: {e}")
+                st.info("Tente recarregar a página ou verificar se todos os componentes estão disponíveis.")
 
         with tab3:
             st.subheader("Tabela de Estatísticas")
@@ -363,7 +478,7 @@ class FrameworkRCEDashboard:
                 except Exception as e:
                     st.write(f"Erro ao obter informações do orquestrador: {e}")
                     
-    def _show_system_info(self):
+    def showSystemInfo(self):
         """Mostra informações detalhadas do sistema usando configurações."""
         with st.expander("ℹ️ Informações do Sistema", expanded=True):
             st.write(f"**Versão:** {self.config.PAGE_TITLE} v2.0")
@@ -423,7 +538,7 @@ class FrameworkRCEDashboard:
                 st.write(f"  • Erro ao verificar status: {e}")
 
     def run(self):
-        self.render_header()
+        self.renderHeader()
 
         executions_map = st.session_state.executions_map
         if not executions_map:
@@ -442,36 +557,18 @@ class FrameworkRCEDashboard:
             st.warning("Nenhum resultado consolidado encontrado. Execute a consolidação através do Launcher.")
             st.stop()
 
-        # Lógica do Toggle para fixar a visualização
-        if st.session_state.locked_config:
-            if st.button(f"🔓 Desfixar Configuração {st.session_state.locked_config}"):
-                st.session_state.locked_config = None
-                st.rerun()
-            
-            config_num = st.session_state.locked_config
-            st.header(f"Configuração {config_num} (Fixada)")
-            exec_numbers = executions_map.get(config_num, [])
-            exec_tabs = st.tabs([f"Execução {en}" for en in exec_numbers])
-            for j, exec_tab in enumerate(exec_tabs):
-                with exec_tab:
-                    self.render_execution_details(config_num, exec_numbers[j])
-        else:
-            config_keys = sorted(executions_map.keys())
-            config_tabs = st.tabs([f"Config {cfg}" for cfg in config_keys])
+        config_keys = sorted(executions_map.keys())
+        config_tabs = st.tabs([f"Config {cfg}" for cfg in config_keys])
 
-            for i, tab in enumerate(config_tabs):
-                with tab:
-                    config_num = config_keys[i]
-                    if st.button(f"📌 Fixar Configuração {config_num}", key=f"pin_{config_num}"):
-                        st.session_state.locked_config = config_num
-                        st.rerun()
-                    
-                    exec_numbers = executions_map.get(config_num, [])
-                    exec_tabs = st.tabs([f"Execução {en}" for en in exec_numbers])
-                    for j, exec_tab in enumerate(exec_tabs):
-                        with exec_tab:
-                            self.render_execution_details(config_num, exec_numbers[j])
+        for i, tab in enumerate(config_tabs):
+            with tab:
+                config_num = config_keys[i]
+                exec_numbers = executions_map.get(config_num, [])
+                exec_tabs = st.tabs([f"Execução {en}" for en in exec_numbers])
+                for j, exec_tab in enumerate(exec_tabs):
+                    with exec_tab:
+                        self.renderExecutionDetails(config_num, exec_numbers[j])
         
 
-        self.render_footer()
+        self.renderFooter()
 
