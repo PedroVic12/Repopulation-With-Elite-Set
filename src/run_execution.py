@@ -37,16 +37,18 @@ BASE_DIR = pathlib.Path(__file__).resolve().parent
 
 
 # Entrada de dados do usuario
-print("\n\n--------------------------------")
-choice = input("Digite o número da função objetivo: ")
 print("\n--------------------------------")
 for i in range(len(ARRAY_FITNESS_FUNCTIONS)):
     print(f"{i} - {ARRAY_FITNESS_FUNCTIONS[i].__name__}")
-print("--------------------------------\n\n")
+print("--------------------------------\n")
+choice = input("Digite o número da função objetivo: ")
 NUMERO = int(choice)
 
-choice_benchmarking = input("Deseja usar o modo benchmarking? (S/N): default (N) ")
+choice_benchmarking = input("\nDeseja usar o modo benchmarking? (S/N): default (N) ")
 BECHMARKING_MODE = True if choice_benchmarking.lower() == "s" else False
+
+debug_mode = input("\nDeseja usar o modo debug? (S/N): default (N) ")
+DEBUG_MODE = True if debug_mode.lower() == "s" else False
 
 print("Lets rock!")
 
@@ -178,7 +180,7 @@ def run_framework_many_executions(function_bechmarking=False):
 
 
             #! 6) Executa algoritmo
-            alg = AlgoritimoEvolutivoRCE(setup, DEBUG=False)
+            alg = AlgoritimoEvolutivoRCE(setup, DEBUG=DEBUG_MODE)
             print("Algoritmo Evolutivo iniciado.")
             pop_with_repopulation, logbook_with_repopulation, best_individual, all_individual_values = alg.run(RCE=True)
             best_variables = list(best_individual)

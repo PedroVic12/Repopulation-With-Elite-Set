@@ -3,8 +3,12 @@
 import os
 import sys
 import pandas as pd
+import pathlib
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..')))
+
+BASE_DIR = pathlib.Path(__file__).resolve().parent
+HASH_TABLE_PATH = BASE_DIR / "hash_table.xlsx"
 
 from RedeEletrica_backup.rede_eletrica import RedeEletricaPandaPower
 from AlgEvolutivoRCE_backup.Setup import Setup
@@ -145,7 +149,7 @@ def funcao_objetivo_IEEE14(individuo, setupobj, _debug = False):
                     setupobj.objectiveruns += 1
 
                     #save hash key in excel
-                    #pd.DataFrame(list(setupobj.tabela_hash.items())).to_excel("hash_table.xlsx", index=False)
+                    pd.DataFrame(list(setupobj.tabela_hash.items())).to_excel(HASH_TABLE_PATH, index=False)
                         
                         
 

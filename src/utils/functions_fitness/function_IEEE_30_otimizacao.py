@@ -3,11 +3,15 @@
 import os
 import sys
 import pandas as pd
+import pathlib
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..')))
 
 from RedeEletrica_backup.rede_eletrica import RedeEletricaPandaPower
 from AlgEvolutivoRCE_backup.Setup import Setup
+
+BASE_DIR = pathlib.Path(__file__).resolve().parent
+HASH_TABLE_PATH = BASE_DIR / "hash_table.xlsx"
 
 
 def your_fitness_function(ind):
@@ -148,7 +152,7 @@ def funcao_objetivo_IEEE30(individuo, _debug = False):
         hash_df = pd.DataFrame(bd_aptidao_cenario, columns=[ 'Fitness'])
         filtered_hash_table = hash_df.loc[hash_df['Fitness'] > 0]
 
-        hash_df.to_excel("hash_table.xlsx", index=False)
+        hash_df.to_excel(HASH_TABLE_PATH, index=False)
 
         # 12) Calcular fitness final com somatorio das vioações com pesos de todos os cenarios
         fitness_final = sum(violacoes_total)
@@ -159,10 +163,16 @@ def funcao_objetivo_IEEE30(individuo, _debug = False):
     except Exception as e:
         print(f"\nErro: {e}")
 
-funcao_objetivo_IEEE30(
-    #agendamento proposto em Zanghi(2016)
-    #individuo=[15,15,14,18,15,14,10,14,18,15],
-    #agendamento ótimo em Zanghi(2016)
-    individuo=[15,15,10,21,16,13,10,14,17,18],
-    _debug = False
-)
+
+
+def test_funcao_objetivo_IEEE30():
+    funcao_objetivo_IEEE30(
+        
+        #agendamento proposto em Zanghi(2016)
+        #individuo=[15,15,14,18,15,14,10,14,18,15],
+
+        # PVRV - Tentativa de fluxo de potencia convergindo
+        #! Agendamento ótimo em Zanghi(2016)
+        individuo=[15,15,10,21,16,13,10,14,17,18],
+        _debug = False
+    )

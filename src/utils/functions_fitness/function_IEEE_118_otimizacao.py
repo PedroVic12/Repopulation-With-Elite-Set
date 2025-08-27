@@ -5,11 +5,15 @@
 import os
 import sys
 import pandas as pd
+import pathlib
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..')))
 
 from RedeEletrica_backup.rede_eletrica import RedeEletricaPandaPower
 from AlgEvolutivoRCE_backup.Setup import Setup
+
+BASE_DIR = pathlib.Path(__file__).resolve().parent
+HASH_TABLE_PATH = BASE_DIR / "hash_table.xlsx"
 
 
 def your_fitness_function(ind):
@@ -146,7 +150,7 @@ def funcao_objetivo_IEEE118(individuo, _debug = False):
         hash_df = pd.DataFrame(bd_aptidao_cenario, columns=[ 'Fitness'])
         filtered_hash_table = hash_df.loc[hash_df['Fitness'] > 0]
 
-        hash_df.to_excel("hash_table.xlsx", index=False)
+        hash_df.to_excel(HASH_TABLE_PATH, index=False)
 
         # 12) Calcular fitness final com somatorio das vioações com pesos de todos os cenarios
         fitness_final = sum(violacoes_total)
@@ -172,4 +176,7 @@ def run_fitness_function():
     )
 
     print(fitness)
+
+
+
 #run_fitness_function()
