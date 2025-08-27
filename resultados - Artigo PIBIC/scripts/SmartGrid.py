@@ -75,7 +75,10 @@ class SmartGrid:
 
         # Criando os barramentos
         for i, nome in enumerate(nomes_barras):
-            pp.create_bus(net, vn_kv=20., name=nome, geodata=coords[i])
+            pp.create_bus(net, vn_kv=20., name=nome)
+
+        # Assign geodata after all buses are created
+        net.bus_geodata = pd.DataFrame(coords, index=net.bus.index, columns=['x', 'y'])
 
         # Criando linhas (exemplo de topologia)
         pp.create_line(net, from_bus=0, to_bus=1, length_km=1., std_type="NA2XS2Y 1x240 RM/25 12/20 kV")
@@ -191,8 +194,11 @@ class SmartGrid:
         p_net = res_bus['p_mw']
         q_net = res_bus['q_mvar']
         
-        ax.quiver(bus_geodata.x, bus_geodata.y, p_net, 0, color=cor_p, angles='xy', scale_units='xy', scale=1/0.1, label='Potência Ativa (P)')
-        ax.quiver(bus_geodata.x, bus_geodata.y, 0, q_net, color=cor_q, angles='xy', scale_units='xy', scale=1/0.1, label='Potência Reativa (Q)')
+        # Create arrays of zeros with the same size as p_net and q_net
+        zeros_array = np.zeros_like(p_net)
+        
+        ax.quiver(bus_geodata.x, bus_geodata.y, p_net, zeros_array, color=cor_p, angles='xy', scale_units='xy', scale=1/0.1, label='Potência Ativa (P)')
+        ax.quiver(bus_geodata.x, bus_geodata.y, zeros_array, q_net, color=cor_q, angles='xy', scale_units='xy', scale=1/0.1, label='Potência Reativa (Q)')
         
         ax.plot(bus_geodata.x, bus_geodata.y, 'ko', markersize=5)
         ax.legend()
