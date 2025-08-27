@@ -13,7 +13,7 @@ from RedeEletrica_backup.rede_eletrica import RedeEletricaPandaPower
 from AlgEvolutivoRCE_backup.Setup import Setup
 
 BASE_DIR = pathlib.Path(__file__).resolve().parent
-HASH_TABLE_PATH = BASE_DIR / "hash_table.xlsx"
+HASH_TABLE_PATH = BASE_DIR.parent.parent / "output" / "hash_table.xlsx"
 
 
 def your_fitness_function(ind):

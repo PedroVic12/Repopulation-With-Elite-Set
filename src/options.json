@@ -1,3 +1,12 @@
 {
-    "repeticoes_por_config": 5
+    "repeticoes_por_config": 3,
+    "MUTACAO": [
+        0.9,
+        0.1,
+        50.0
+    ],
+    "CROSSOVER": [
+        0.1,
+        0.9
+    ]
 }

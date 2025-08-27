@@ -35,9 +35,11 @@ from datetime import datetime
 ARRAY_FITNESS_FUNCTIONS = [funcao_objetivo_IEEE14,funcao_objetivo_IEEE118,funcao_objetivo_IEEE30, funcao_objetivo_IEEE57]
 BASE_DIR = pathlib.Path(__file__).resolve().parent
 
-CLI = True
+# variaveis de controle
+CLI = False
 DEBUG_MODE = False
 BECHMARKING_MODE = False
+SHOW_SETTINGS = False
 
 # Entrada de dados do usuario
 print("\n--------------------------------")
@@ -47,6 +49,7 @@ print("--------------------------------\n")
 
 
 if CLI:
+    print("Responda no terminal onde o seu laucher.py esta sendo executado")
     choice = input("Digite o número da função objetivo: ")
     NUMERO = int(choice)
     print("\n")
@@ -92,7 +95,6 @@ def convert_values_to_int(params):
 # Função principal para executar o framework com múltiplas execuções
 def run_framework_many_executions(function_bechmarking=False):
 
-    SHOW_SETTINGS = True
 
     if function_bechmarking:
         print("Função objetivo selecionada: Rastrigin")
