@@ -229,21 +229,20 @@ class Setup:
     ):
         self.__fitness_function = fitness_function
         
-        # Create a closure that captures the setup instance
-        setup = self
+
         
         # Define the fitness function with proper closure
         def fitness_func(individual):
             try:
-                if setup.funcao_objetivo:
+                if self.funcao_objetivo:
                     # If the function is a benchmark function, only pass the individual
-                    if setup.funcao_objetivo.__name__ in ['rastrigin', 'rosenbrock_benchmark', 'esfera_benchmark']:
-                        result = setup.funcao_objetivo(individual)
+                    if self.funcao_objetivo.__name__ in ['rastrigin', 'rosenbrock_benchmark', 'esfera_benchmark']:
+                        result = self.funcao_objetivo(individual)
                     else:
                         # Otherwise, pass both individual and setup
-                        result = setup.funcao_objetivo(individual, setup)
+                        result = self.funcao_objetivo(individual, self)
                 else:
-                    result = setup.rastrigin(individual)
+                    result = self.rastrigin(individual)
                 
                 # Ensure we return a flat tuple of numbers
                 if isinstance(result, (int, float)):
@@ -262,7 +261,7 @@ class Setup:
             except Exception as e:
                 print(f"Error in fitness_func: {e}")
                 print(f"Individual: {individual}")
-                print(f"Function: {setup.funcao_objetivo.__name__ if setup.funcao_objetivo else 'rastrigin'}")
+                print(f"Function: {self.funcao_objetivo.__name__ if self.funcao_objetivo else 'rastrigin'}")
                 print("\nVERIFIQUE O TAMANHO DAS VÁRIAVEIS DE DECISÃO do params.json e configure corretamente o tamanho do seu individuo no Laucher.py")
                 return (float('inf'),)  # Return worst possible fitness on error
 

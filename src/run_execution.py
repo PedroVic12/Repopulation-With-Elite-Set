@@ -41,7 +41,8 @@ CLI = False
 DEBUG_MODE = False
 BECHMARKING_MODE = False
 SHOW_SETTINGS = False
-NUMERO = 3
+
+NUMERO = 1
 
 # Entrada de dados do usuario
 print("\nNo arquivo:", BASE_DIR / "utils" / "functions_fitness")
@@ -54,7 +55,7 @@ print("--------------------------------\n")
 
 if CLI:
     print("Responda no terminal onde o seu laucher.py esta sendo executado")
-    choice = input("Digite o número da função objetivo: ")
+    choice = input("Digite o número da funcao objetivo: ")
     NUMERO = int(choice)
     print("\n")
     choice_benchmarking = input("Deseja usar o modo benchmarking? (S/N): default (N) ")
