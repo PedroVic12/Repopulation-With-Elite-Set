@@ -1,5 +1,4 @@
 
-
 # File: Repopulation-With-Elite-Set/src/utils/functions_fitness/
 import os
 import sys
@@ -15,10 +14,29 @@ BASE_DIR = pathlib.Path(__file__).resolve().parent
 HASH_TABLE_PATH = BASE_DIR.parent.parent / "output" / "hash_table.xlsx"
 
 
-def funcao_objetivo_IEEE57(individuo, _debug = False):
+def your_fitness_function(ind):
+    """Here you create your objetive function with your decision variable (ind) """
+    pass
+
+
+def funcao_objetivo_IEEE57(individuo, setupobj, _debug = False):
+
+    """    
+    # Esta função avalia o agendamento de desligamentos e contingências na rede elétrica, calculando o fitness baseado em violações de tensões e carregamentos.
+    # A função utiliza a classe RedeEletricaPandaPower para simular o fluxo de carga e calcular as violações com base em um agendamento fornecido.
+    # a função retorna o fitness total do agendamento, que é a soma das violações de todos os cenários avaliados.
+    ## A função também utiliza uma tabela hash para armazenar os resultados de cenários já avaliados, evitando cálculos redundantes.
+    # 
+
+
+    Returns:
+        float/int: fitness_result
+    """
+    # Função objetivo para o problema de otimização da rede elétrica IEEE 57 barras
 
     #! 1) Criar a rede elétrica IEEE 14 barras, Inicializar a classe com a rede e carrega a tabela de agendamento
     rede = RedeEletricaPandaPower("57", debug=_debug)
+
 
     #! Colocando pesos como input do usuario e os dados de entrada do agendamento
     rede.pesos["tensao"] = {"min": 100, "max": 100}
@@ -79,10 +97,8 @@ def funcao_objetivo_IEEE57(individuo, _debug = False):
     contingencias = contingencia_df['contingencia'].to_list()
     num_carregamentos = 3
     num_contingencias = len(contingencias) # 3
-    num_desligamentos = len(agendamento_df) # 5
+    num_desligamentos = len(agendamento_df) # 10
 
-    # FAZENDO UM BANCO EM MEMORIA DE EXECUÇÃO
-    bd_aptidao_cenario =[-1.0]*(num_contingencias* num_carregamentos*(2**num_desligamentos) )
 
     try:
         # 3) Processar cada cenário da matriz de cenários
@@ -99,59 +115,71 @@ def funcao_objetivo_IEEE57(individuo, _debug = False):
             for contingencia_atual in range(num_contingencias):
                 contingencia_atual += 1
 
-                #5)  Ligar todos os ramos antes de aplicar mudanças
-                rede.religar_todos_os_ramos_agendamento()
-
-                # 6) Fazendo os deligamentos com base na tabela em .xlsx e nos cenários calculados
-                rede.desligar_elementos_agendamento(estado_ramos)
-
-                # 7) Identifica ramos afetados pela contingência
-                ramo_contingencia = list(contingencia_df.loc[contingencia_df['contingencia'] == contingencia_atual, ['from', 'to']].values[0])
-                rede.log(f"\n{contingencia_atual}) Ramo da contingencia = { ramo_contingencia}\n")
-
-                # 8) Desliga os ramos afetados
-                rede.desligar_contingencia(ramo_contingencia)
-
-                # 9) Executar fluxo de potência para o cenário com contingência
-                if rede.executar_fluxo_de_carga():
-
-                    # 10) Calcular violações com pesos e armazenar os resultados
-                    fitness, violacoes_df = rede.calcular_violacoes_fitness()
-                    violacoes_total.append(fitness)
-
-                else:
-                    fitness = rede.pesos["demanda"] # penalidade com valor default de 99
-
-                # 11) Store violation in the hash table
+                # Uso da hash key para ja utilizar cenarios calculados
                 hash_key = rede.hashtableindex(perfil, num_carregamentos, contingencia_atual, num_contingencias, estado_ramos)
+                
+                if _debug:
+                    print("minha tabela hash:", len(setupobj.tabela_hash))
+                #setupobj.tamanho_hash = hash_key
+                
+                #! RZ_01jun2025 - verifica se o cenário já foi calculado na tabela hash
+                if setupobj.tabela_hash[hash_key] < 0.0:
 
-                violacoes_hash_table[hash_key] = fitness
+                    #5)  Ligar todos os ramos antes de aplicar mudanças
+                    rede.religar_todos_os_ramos_agendamento()
 
-                bd_aptidao_cenario[hash_key] = fitness
-                rede.log(f"Hash key = { hash_key}\n")
+                    # 6) Fazendo os deligamentos com base na tabela em .xlsx e nos cenários calculados
+                    rede.desligar_elementos_agendamento(estado_ramos)
 
+                    # 7) Identifica ramos afetados pela contingência
+                    ramo_contingencia = list(contingencia_df.loc[contingencia_df['contingencia'] == contingencia_atual, ['from', 'to']].values[0])
+                    rede.log(f"\n{contingencia_atual}) Ramo da contingencia = { ramo_contingencia}\n")
+
+                    # 8) Desliga os ramos afetados
+                    rede.desligar_contingencia(ramo_contingencia)
+
+                    # 9) Executar fluxo de potência para o cenário com contingência
+                    if rede.executar_fluxo_de_potencia():
+                        # 10) Calcular violações com pesos e armazenar os resultados
+                        fitness, violacoes_df = rede.calcular_violacoes_fitness()
+
+                    else:
+                        fitness = rede.pesos["demanda"] # penalidade com valor default de 99
+
+
+
+                    # 11) Store violation in the hash table
+                    setupobj.tabela_hash[hash_key] = fitness
+                    rede.log(f"Hash key = { hash_key}\n")
+                    
+                    # incrementa contador de execuções da função objetivo
+                    setupobj.objectiveruns += 1
+
+                    #save hash key in excel
+                    #pd.DataFrame(list(setupobj.tabela_hash.items())).to_excel("hash_table.xlsx", index=False)
+                        
+                        
+
+                #! 12) Retorna o valores calculados de fluxo de potencia na variavel fitness
+                else:
+                  fitness = setupobj.tabela_hash[hash_key]
+                  if _debug:
+                      print("Fitness do cenario = ", fitness)
+                  setupobj.hashtablereads += 1
+
+                violacoes_total.append(fitness)
 
             #! Ver apenas o true in service de barras e transformadores
             rede.show_status()
 
-        #! Usando dicionario nos temos os valores acumulando tirando os valores nulos
-        hash_df2 = pd.DataFrame(violacoes_hash_table.items(), columns=['Hash Key', 'Fitness'])
-
-        # Passando os valores do array direto no dataframe com os index como chave (hash = chave, valor)
-        hash_df = pd.DataFrame(bd_aptidao_cenario, columns=[ 'Fitness'])
-        filtered_hash_table = hash_df.loc[hash_df['Fitness'] > 0]
-
-        hash_df.to_excel(HASH_TABLE_PATH, index=False)
-
         # 12) Calcular fitness final com somatorio das vioações com pesos de todos os cenarios
         fitness_final = sum(violacoes_total)
-        rede.log(f"\nFitness do agendamento = {fitness_final:.2f}\n")
+        rede.log(f"\nFitness do agendamento = {fitness_final:.2f}\n", level = "success")
+
         return fitness_final
 
-
     except Exception as e:
-        print(f"\nErro: {e}")
-        
+        print(f"\nErro ao calcular a função objetivo: {e}")
 
 def run():
     funcao_objetivo_IEEE57(

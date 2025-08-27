@@ -32,7 +32,8 @@ from datetime import datetime
 
 
 # VARIAVEIS GLOBAIS
-ARRAY_FITNESS_FUNCTIONS = [funcao_objetivo_IEEE14,funcao_objetivo_IEEE118,funcao_objetivo_IEEE30, funcao_objetivo_IEEE57]
+ARRAY_FITNESS_FUNCTIONS = [funcao_objetivo_IEEE14,funcao_objetivo_IEEE30, funcao_objetivo_IEEE57, funcao_objetivo_IEEE118]
+
 BASE_DIR = pathlib.Path(__file__).resolve().parent
 
 # variaveis de controle
@@ -40,8 +41,12 @@ CLI = False
 DEBUG_MODE = False
 BECHMARKING_MODE = False
 SHOW_SETTINGS = False
+NUMERO = 1
 
 # Entrada de dados do usuario
+print("\n--------------------------------")
+print("No arquivo:", BASE_DIR / "utils" / "functions_fitness")
+print("SELECIONE O SEU CASO DE SIMULAÇÃO DE AGENDAMENTO DE DESLIGAMENTOS DE CONTINGENCIAS E OTIMIZAÇÃO PARA REDES ELÉTRICAS")
 print("\n--------------------------------")
 for i in range(len(ARRAY_FITNESS_FUNCTIONS)):
     print(f"{i} - {ARRAY_FITNESS_FUNCTIONS[i].__name__}")
@@ -59,7 +64,7 @@ if CLI:
     debug_mode = input("Deseja usar o modo debug? (S/N): default (N) ")
     DEBUG_MODE = True if debug_mode.lower() == "s" else False
 
-print("Lets rock!")
+print("\nLet's rock!\n")
 
 # Funções auxiliares
 def load_params(file_path):
@@ -183,7 +188,7 @@ def run_framework_many_executions(function_bechmarking=False):
                     hash_excel = pd.read_excel(HASH_TABLE_PATH)
                     if not hash_excel.empty:
                         setup.tabela_hash = hash_excel['Fitness'].to_dict()
-                        print("Tabela hash carregada com sucesso!")
+                        print("Tabela hash carregada!")
                 except Exception as e:
                     print(f"Erro ao carregar hash_table.xlsx: {e}")
         consultaHashTable()
@@ -208,16 +213,6 @@ def run_framework_many_executions(function_bechmarking=False):
                 execution_num=exec_num,
             )
 
-            print("\n--- [INICIO] VALORES DA FUNCAO OBJETIVO (MELHOR POR GERACAO) ---")
-            try:
-                # O logbook geralmente contém estatísticas por geração (min, max, avg, std)
-                # Assumindo que o objetivo é minimizar, pegamos a coluna 'min'
-                gen_data = logbook_with_repopulation.select("gen", "min")
-                for gen in gen_data:
-                    print(f"Geracao: {gen['gen']}, Melhor Fitness: {gen['min']:.6f}")
-            except Exception as e:
-                print(f"Nao foi possivel extrair dados do logbook: {e}")
-            print("--- [FIM] VALORES DA FUNCAO OBJETIVO ---")
 
 
             # Passando os valores do array direto no dataframe com os index como chave (hash = chave, valor)
