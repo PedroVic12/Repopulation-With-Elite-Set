@@ -41,13 +41,12 @@ CLI = False
 DEBUG_MODE = False
 BECHMARKING_MODE = False
 SHOW_SETTINGS = False
-NUMERO = 1
+NUMERO = 3
 
 # Entrada de dados do usuario
-print("\n--------------------------------")
-print("No arquivo:", BASE_DIR / "utils" / "functions_fitness")
-print("SELECIONE O SEU CASO DE SIMULAÇÃO DE AGENDAMENTO DE DESLIGAMENTOS DE CONTINGENCIAS E OTIMIZAÇÃO PARA REDES ELÉTRICAS")
-print("\n--------------------------------")
+print("\nNo arquivo:", BASE_DIR / "utils" / "functions_fitness")
+print("\nSELECIONE O SEU CASO DE SIMULAÇÃO DE AGENDAMENTO DE DESLIGAMENTOS DE CONTINGENCIAS E OTIMIZAÇÃO PARA REDES ELÉTRICAS")
+print("--------------------------------")
 for i in range(len(ARRAY_FITNESS_FUNCTIONS)):
     print(f"{i} - {ARRAY_FITNESS_FUNCTIONS[i].__name__}")
 print("--------------------------------\n")
@@ -260,7 +259,8 @@ def run_framework_many_executions(function_bechmarking=False):
                 "best_variables": best_variables,
                 "best_fitness": best_fitness,
                 "best_gen_idx": best_solution_generation,
-                "time":formatted_time
+                "time":formatted_time,
+                "fitness_function": fitness_func.__name__
             }
             
             output_path = config_dir / f"config_{config_num}_exec_{exec_num}_results.json"
