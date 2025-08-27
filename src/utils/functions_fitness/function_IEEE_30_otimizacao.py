@@ -34,7 +34,7 @@ def funcao_objetivo_IEEE30(individuo, setupobj, _debug = False):
     # Função objetivo para o problema de otimização da rede elétrica IEEE 30 barras
 
     #! 1) Criar a rede elétrica IEEE 30 barras, Inicializar a classe com a rede e carrega a tabela de agendamento
-    rede = RedeEletricaPandaPower("30", debug=_debug)
+    rede = RedeEletricaPandaPower("30", debug=False)
 
     #! Colocando pesos como input do usuario e os dados de entrada do agendamento
     rede.pesos["tensao"] = {"min": 100, "max": 100}

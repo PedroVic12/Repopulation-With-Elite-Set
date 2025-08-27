@@ -64,7 +64,7 @@ if CLI:
     debug_mode = input("Deseja usar o modo debug? (S/N): default (N) ")
     DEBUG_MODE = True if debug_mode.lower() == "s" else False
 
-MSG_TERMINAL = """
+MSG_TERMINAL ="""
  __       _______ .___________. __      _______.   .______        ______     ______  __  ___  __  
 |  |     |   ____||           |(_ )    /       |   |   _  \      /  __  \   /      ||  |/  / |  | 
 |  |     |  |__   `---|  |----` |/    |   (----`   |  |_)  |    |  |  |  | |  ,----'|  '  /  |  | 
