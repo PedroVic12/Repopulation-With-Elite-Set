@@ -20,8 +20,6 @@ Data: 17/08/2025
 #----
 
 
-
-
 # --- Importações Essenciais ---
 import pandapower as pp
 import pandas as pd
