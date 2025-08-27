@@ -1,11 +1,11 @@
-flowchartTD
+graph TD
 
-A[Launcher.py-PySide6] --> B[run_framework_backup.py-Execuçãoprincipal]
+A[Launcher.py - GUI em PySide6] --> B[run.py - Execução principal]
 
-B--> C[ProcessamentoeCálculosRCE]
+B--> C[Algorítimo Genético com dados de entrada do problema]
 
-C--> D[SalvarResultadoseGráficosnapasta 'output']
+C--> D[Salva Resultados e Gráficos na pasta 'output']
 
-D--> E[RCE_Framework_Page.py-Streamlit]
+D--> E[dashboard_RCE_APP.py - Streamlit]
 
-E--> F[AtualizaDashboardcombasenosarquivosem 'output']
+E--> F[Atualiza Dashboard com base nos arquivos em 'output']
