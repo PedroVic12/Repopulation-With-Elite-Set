@@ -207,7 +207,6 @@ class DashboardApp:
                 json.dump(all_results, f, indent=4, ensure_ascii=False)
    
             print(f"\n[INFO]: Dados e figura para execução {execution_num} salvos com sucesso.")
-            print(fig_filename)
 
         except Exception as e:
             print(f"\n\n\nERRO em visualize (Execução {execution_num}): {e}")

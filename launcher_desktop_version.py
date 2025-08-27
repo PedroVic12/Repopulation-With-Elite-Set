@@ -46,7 +46,7 @@ from PySide6.QtGui import QFont, QIcon, QIntValidator, QDoubleValidator
 # --- CONFIGURAÇÃO ---
 # pasta raiz do projeto
 BASE_DIR = Path(__file__).parent
-SRC_DIR = BASE_DIR / "rce_framework"
+SRC_DIR = BASE_DIR / "src"
 
 # arquivos de configuração .json para AG
 PARAMS_FILE = SRC_DIR / "params.json"

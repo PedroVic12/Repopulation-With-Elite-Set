@@ -94,7 +94,7 @@ class InstallerWindow(QMainWindow):
     def __init__(self):
         super().__init__()
         self.setWindowTitle("Instalador do RCE Framework")
-        self.setFixedSize(800, 500)
+        self.setFixedSize(700, 500)
 
         self.stacked_widget = QStackedWidget()
         self.setCentralWidget(self.stacked_widget)
@@ -102,7 +102,7 @@ class InstallerWindow(QMainWindow):
         # Paths
         self.base_dir = os.path.dirname(os.path.abspath(__file__))
         self.requirements_path = os.path.join(self.base_dir,  'DashboardApp', 'requirements.txt')
-        self.launcher_path = os.path.join(self.base_dir, '..', 'laucher_revised.py')
+        self.launcher_path = os.path.join(self.base_dir, '..', 'launcher.py')
 
         # Create pages
         self.create_welcome_page()
@@ -154,6 +154,7 @@ class InstallerWindow(QMainWindow):
         libs_path = os.path.join(self.base_dir, 'assets', 'logo_libs_framework.png')
         libs_label = self.upload_file(libs_path)
 
+        
         # Botão Avançar
         next_button = QPushButton("Avançar >")
         next_button.clicked.connect(self.next_page)
@@ -200,7 +201,7 @@ class InstallerWindow(QMainWindow):
 
         description = QLabel(
             "A instalação foi concluída. Clique em 'Iniciar' para abrir o "
-            "RCE Framework Launcher."
+            "RCE Framework Launcher.py"
         )
         description.setWordWrap(True)
         description.setAlignment(Qt.AlignCenter)
