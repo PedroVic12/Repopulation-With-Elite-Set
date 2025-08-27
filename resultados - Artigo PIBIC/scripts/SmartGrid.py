@@ -197,8 +197,8 @@ class SmartGrid:
         # Create arrays of zeros with the same size as p_net and q_net
         zeros_array = np.zeros_like(p_net)
         
-        ax.quiver(bus_geodata.x, bus_geodata.y, p_net, zeros_array, color=cor_p, angles='xy', scale_units='xy', scale=1/0.1, label='Potência Ativa (P)')
-        ax.quiver(bus_geodata.x, bus_geodata.y, zeros_array, q_net, color=cor_q, angles='xy', scale_units='xy', scale=1/0.1, label='Potência Reativa (Q)')
+        ax.quiver(bus_geodata.x, bus_geodata.y, p_net, zeros_array, color=cor_p, angles='xy', scale_units='xy', scale=None, label='Potência Ativa (P)')
+        ax.quiver(bus_geodata.x, bus_geodata.y, zeros_array, q_net, color=cor_q, angles='xy', scale_units='xy', scale=None, label='Potência Reativa (Q)')
         
         ax.plot(bus_geodata.x, bus_geodata.y, 'ko', markersize=5)
         ax.legend()
@@ -336,25 +336,55 @@ if __name__ == "__main__":
     # --- FIM DA HISTÓRIA: GERAÇÃO DOS 7 GRÁFICOS ---
     print("\n--- GERANDO GRÁFICOS PARA O ARTIGO ---")
     
-    # Criando uma figura para conter todos os plots
-    fig, axes = plt.subplots(4, 2, figsize=(20, 35))
-    fig.suptitle("Análise Completa da Rede 'Canarinho'", fontsize=24)
-    
-    # Desativando o último eixo que não será usado
-    axes[3, 1].axis('off')
+    # Plotando cada gráfico separadamente
+    fig1 = plt.figure(figsize=(12, 10))
+    ax1 = fig1.add_subplot(111)
+    rede_inteligente.plotar_grafico_1_topologia_rede(ax=ax1)
+    plt.tight_layout()
+    plt.savefig("grafico_1_topologia_rede.png")
+    plt.close(fig1)
 
-    # Plotando cada gráfico em seu respectivo eixo
-    rede_inteligente.plotar_grafico_1_topologia_rede(ax=axes[0, 0])
-    rede_inteligente.plotar_grafico_2_fluxo_base(ax=axes[0, 1])
-    rede_inteligente.plotar_grafico_3_tensoes_base(ax=axes[1, 0])
-    rede_inteligente.plotar_grafico_4_fluxo_contingencia(ax=axes[1, 1])
-    rede_inteligente.plotar_grafico_5_tensoes_contingencia(ax=axes[2, 0])
-    rede_inteligente.plotar_grafico_6_comparativo_tensoes(ax=axes[2, 1])
-    rede_inteligente.plotar_grafico_7_comparativo_carregamento(ax=axes[3, 0])
-    
-    plt.tight_layout(rect=[0, 0.03, 1, 0.97])
-    plt.savefig("analise_completa_smartgrid.png")
-    plt.show()
+    fig2 = plt.figure(figsize=(12, 10))
+    ax2 = fig2.add_subplot(111)
+    rede_inteligente.plotar_grafico_2_fluxo_base(ax=ax2)
+    plt.tight_layout()
+    plt.savefig("grafico_2_fluxo_base.png")
+    plt.close(fig2)
+
+    fig3 = plt.figure(figsize=(12, 8))
+    ax3 = fig3.add_subplot(111)
+    rede_inteligente.plotar_grafico_3_tensoes_base(ax=ax3)
+    plt.tight_layout()
+    plt.savefig("grafico_3_tensoes_base.png")
+    plt.close(fig3)
+
+    fig4 = plt.figure(figsize=(12, 10))
+    ax4 = fig4.add_subplot(111)
+    rede_inteligente.plotar_grafico_4_fluxo_contingencia(ax=ax4)
+    plt.tight_layout()
+    plt.savefig("grafico_4_fluxo_contingencia.png")
+    plt.close(fig4)
+
+    fig5 = plt.figure(figsize=(12, 8))
+    ax5 = fig5.add_subplot(111)
+    rede_inteligente.plotar_grafico_5_tensoes_contingencia(ax=ax5)
+    plt.tight_layout()
+    plt.savefig("grafico_5_tensoes_contingencia.png")
+    plt.close(fig5)
+
+    fig6 = plt.figure(figsize=(14, 8))
+    ax6 = fig6.add_subplot(111)
+    rede_inteligente.plotar_grafico_6_comparativo_tensoes(ax=ax6)
+    plt.tight_layout()
+    plt.savefig("grafico_6_comparativo_tensoes.png")
+    plt.close(fig6)
+
+    fig7 = plt.figure(figsize=(14, 8))
+    ax7 = fig7.add_subplot(111)
+    rede_inteligente.plotar_grafico_7_comparativo_carregamento(ax=ax7)
+    plt.tight_layout()
+    plt.savefig("grafico_7_comparativo_carregamento.png")
+    plt.close(fig7)
 
     # Resetar a rede para o estado original para futuras simulações
     rede_inteligente.resetar_rede()

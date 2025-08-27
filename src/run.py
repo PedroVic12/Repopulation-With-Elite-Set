@@ -11,7 +11,6 @@ from AlgEvolutivoRCE_backup.alg_evolutivo_rce import AlgoritimoEvolutivoRCE
 # Utils - Trazer esses codigos para esse unico arquivo
 from config_backup import FOLDER_NAME, format_elapsed_time
 
-
 #! Importando a minha função objetivo dentro do projeto
 from utils.functions_fitness.functions_benchmarking import rastrigin
 from utils.functions_fitness.function_IEEE_14_contigencias import funcao_objetivo_IEEE14, HASH_TABLE_PATH
@@ -185,13 +184,7 @@ def run_framework_many_executions(function_bechmarking=False):
             tamanho_hash=get_hash_table_size(params)
         )
 
-        # Reseta contadores para a nova execução
-        # if hasattr(setup, 'objectiveruns'):
-        #     setup.objectiveruns = 0
-        # if hasattr(setup, 'hashtablereads'):
-        #     setup.hashtablereads = 0
-
-        print("Classe Setup iniciada para a configuração.")
+        print("\nClasse Setup iniciada para a configuração.")
 
         def consultaHashTable():
             # Consulta hash_table se existir (sub rotina)
@@ -215,7 +208,6 @@ def run_framework_many_executions(function_bechmarking=False):
                 print(f"Tabela hash com {len(setup.tabela_hash)} posições não existia e foi criada!")
 
         consultaHashTable()
-
 
         for exec_num in range(1, repeticoes + 1):
             print(f"\n--- Iniciando execução {exec_num}/{repeticoes} ---")
