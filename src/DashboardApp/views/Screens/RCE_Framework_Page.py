@@ -108,7 +108,7 @@ class FrameworkRCEDashboard:
         # logo da UFF
         st.sidebar.image("https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRHVsZ1z9B-HIP8Ddsks0mP3aETeG1CkYixtA&s", width=800)
         st.sidebar.markdown("---")  # Separador visual
-
+        st.info("EM DESENVOLVIMENTO")
 
     def _init_state(self):
         """Inicializa o estado da sessão do Streamlit."""

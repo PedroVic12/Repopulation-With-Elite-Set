@@ -291,4 +291,4 @@ def run_utils_test():
     print("Arquivos HTML encontrados na pasta:", files)
     print("Caminho da pasta de saída:", FOLDER_NAME)
 
-run_utils_test()
+#run_utils_test()
