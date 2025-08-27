@@ -34,7 +34,7 @@ def funcao_objetivo_IEEE30(individuo, setupobj, _debug = False):
     # Função objetivo para o problema de otimização da rede elétrica IEEE 30 barras
 
     #! 1) Criar a rede elétrica IEEE 30 barras, Inicializar a classe com a rede e carrega a tabela de agendamento
-    rede = RedeEletricaPandaPower("30", debug=_debug)
+    rede = RedeEletricaPandaPower("30", debug=False)
 
     #! Colocando pesos como input do usuario e os dados de entrada do agendamento
     rede.pesos["tensao"] = {"min": 100, "max": 100}
@@ -100,7 +100,6 @@ def funcao_objetivo_IEEE30(individuo, setupobj, _debug = False):
     num_contingencias = len(contingencias) # 3
     num_desligamentos = len(agendamento_df) # 10
 
-    #bd_aptidao_cenario =[-1.0]*(num_contingencias* num_carregamentos*(2**num_desligamentos) )
 
 
     try:
@@ -123,7 +122,7 @@ def funcao_objetivo_IEEE30(individuo, setupobj, _debug = False):
                 
                 if _debug:
                     print("minha tabela hash:", len(setupobj.tabela_hash))
-                #setupobj.tamanho_hash = hash_key
+                setupobj.tamanho_hash = hash_key
                 
                 #! RZ_01jun2025 - verifica se o cenário já foi calculado na tabela hash
                 if setupobj.tabela_hash[hash_key] < 0.0:
@@ -173,7 +172,7 @@ def funcao_objetivo_IEEE30(individuo, setupobj, _debug = False):
                 violacoes_total.append(fitness)
 
             #! Ver apenas o true in service de barras e transformadores
-            rede.show_status()
+            # rede.show_status() #! Comentado: Gera muito output. Descomente para debug detalhado de um cenário.
         # 12) Calcular fitness final com somatorio das vioações com pesos de todos os cenarios
         fitness_final = sum(violacoes_total)
         rede.log(f"\nFitness do agendamento = {fitness_final:.2f}\n", level = "success")

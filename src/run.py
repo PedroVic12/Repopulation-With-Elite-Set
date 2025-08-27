@@ -179,17 +179,23 @@ def run_framework_many_executions(function_bechmarking=False):
             # Consulta hash_table se existir (sub rotina)
             if os.path.exists(HASH_TABLE_PATH):
                 try:
-                    hash_excel = pd.read_excel(HASH_TABLE_PATH)
+                    # Read from Excel, using the first column as the index (our hash key)
+                    hash_excel = pd.read_excel(HASH_TABLE_PATH, index_col=0)
                     if not hash_excel.empty:
-                        setup.tabela_hash = hash_excel['Fitness'].to_dict()
-                        print("Tabela hash carregada!")
+                        # Update the list-based hash table from the loaded dictionary
+                        for key, value in hash_excel['Fitness'].items():
+                            if isinstance(key, int) and key < len(setup.tabela_hash):
+                                setup.tabela_hash[key] = value
+                        print(f"Tabela hash carregada e atualizada com {len(hash_excel)} registros!")
                 except Exception as e:
                     print(f"Erro ao carregar hash_table.xlsx: {e}")
             else:
-                hash_excel = pd.DataFrame(data = setup.tabela_hash, columns = ['Fitness'])
-                hash_excel.to_excel(HASH_TABLE_PATH)
+                # If the file doesn't exist, create it from the initial hash table
+                hash_df = pd.DataFrame(data=setup.tabela_hash, columns=['Fitness'])
+                hash_df.index.name = 'HashKey'
+                hash_df.to_excel(HASH_TABLE_PATH, index=True)
                 print(f"Tabela hash com {len(setup.tabela_hash)} posições não existia e foi criada!")
-                
+
         consultaHashTable()
 
         for exec_num in range(1, repeticoes + 1):
@@ -214,10 +220,10 @@ def run_framework_many_executions(function_bechmarking=False):
 
 
 
-            # Passando os valores do array direto no dataframe com os index como chave (hash = chave, valor)
-            hash_df1 = pd.DataFrame(setup.tabela_hash, columns=['Fitness'])
-            hash_df1.sort_values(by='Fitness', ascending=False, inplace=True)
-            hash_df1.to_excel(HASH_TABLE_PATH, index=False)
+            # Convert the list to a DataFrame, preserving the index as the hash key
+            hash_df1 = pd.DataFrame(data=setup.tabela_hash, columns=['Fitness'])
+            hash_df1.index.name = 'HashKey'
+            hash_df1.to_excel(HASH_TABLE_PATH, index=True)
 
             # Verificação de velocidade com hashtable
             print(f"\nObjective function runs : {setup.objectiveruns}")
