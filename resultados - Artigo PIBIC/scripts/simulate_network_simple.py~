@@ -9,6 +9,7 @@ def simulate_NEW_network():
     # Criando a rede elétrica vazia
     net = pp.create_empty_network()
 
+
     # Dados fictícios para as barras (12 barras: 6 à esquerda, 6 à direita)
     barras = [
         {"id": 0, "nome": "Barra 1E", "tensao": 1.05},  # Barra de referência (Slack)
@@ -33,7 +34,6 @@ def simulate_NEW_network():
         {"de": 2, "para": 3, "r_ohm_per_km": 0.01, "x_ohm_per_km": 0.03, "c_nf_per_km": 10, "max_i_ka": 0.2, "comprimento_km": 1.0},
         {"de": 3, "para": 4, "r_ohm_per_km": 0.01, "x_ohm_per_km": 0.03, "c_nf_per_km": 10, "max_i_ka": 0.2, "comprimento_km": 1.0},
         {"de": 4, "para": 5, "r_ohm_per_km": 0.01, "x_ohm_per_km": 0.03, "c_nf_per_km": 10, "max_i_ka": 0.2, "comprimento_km": 1.0},
-        
         # Lado Direito (D)
         {"de": 6, "para": 7, "r_ohm_per_km": 0.01, "x_ohm_per_km": 0.03, "c_nf_per_km": 10, "max_i_ka": 0.2, "comprimento_km": 1.0},
         {"de": 7, "para": 8, "r_ohm_per_km": 0.01, "x_ohm_per_km": 0.03, "c_nf_per_km": 10, "max_i_ka": 0.2, "comprimento_km": 1.0},
@@ -115,6 +115,7 @@ def plot_results(net):
     # Plot das tensões nas barras
     fig = go.Figure()
     fig.add_trace(go.Bar(x=net.res_bus.index, y=net.res_bus.vm_pu, name="Tensão (pu)"))
+    #fig.add_trace(go.Pie(x=net.res_line, y=net.res_bus.vm_pu, name="Ângulo (graus)", textinfo='label+percent'))
     fig.update_layout(title="Tensões nas Barras", xaxis_title="Barras", yaxis_title="Tensão (pu)")
     fig.show()
 
@@ -130,6 +131,7 @@ def plot_results(net):
     fig.update_layout(title="Potências Ativas nas Cargas", xaxis_title="Cargas", yaxis_title="Potência Ativa (MW)")
     fig.show()
 
+    
     fig.to_html("./network_results.html")
 
 
