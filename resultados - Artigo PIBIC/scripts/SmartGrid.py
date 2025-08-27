@@ -89,12 +89,25 @@ class SmartGrid:
         pp.create_line(net, from_bus=5, to_bus=6, length_km=1., std_type="NA2XS2Y 1x240 RM/25 12/20 kV")
         pp.create_line(net, from_bus=6, to_bus=7, length_km=1., std_type="NA2XS2Y 1x240 RM/25 12/20 kV")
         pp.create_line(net, from_bus=1, to_bus=4, length_km=2., std_type="NA2XS2Y 1x240 RM/25 12/20 kV")
-        # ... adicionar mais linhas para conectar a rede
+        
+        # Adicionando mais linhas para conectar a rede
+        pp.create_line(net, from_bus=7, to_bus=8, length_km=1.5, std_type="NA2XS2Y 1x240 RM/25 12/20 kV")
+        pp.create_line(net, from_bus=8, to_bus=9, length_km=1., std_type="NA2XS2Y 1x240 RM/25 12/20 kV")
+        pp.create_line(net, from_bus=9, to_bus=10, length_km=1., std_type="NA2XS2Y 1x240 RM/25 12/20 kV")
+        pp.create_line(net, from_bus=10, to_bus=11, length_km=1., std_type="NA2XS2Y 1x240 RM/25 12/20 kV")
+        pp.create_line(net, from_bus=11, to_bus=12, length_km=1., std_type="NA2XS2Y 1x240 RM/25 12/20 kV")
+        pp.create_line(net, from_bus=12, to_bus=13, length_km=1., std_type="NA2XS2Y 1x240 RM/25 12/20 kV")
+        pp.create_line(net, from_bus=13, to_bus=14, length_km=1., std_type="NA2XS2Y 1x240 RM/25 12/20 kV")
+        pp.create_line(net, from_bus=14, to_bus=15, length_km=1., std_type="NA2XS2Y 1x240 RM/25 12/20 kV")
+        pp.create_line(net, from_bus=0, to_bus=8, length_km=2., std_type="NA2XS2Y 1x240 RM/25 12/20 kV")
+        pp.create_line(net, from_bus=4, to_bus=12, length_km=2.5, std_type="NA2XS2Y 1x240 RM/25 12/20 kV")
+        pp.create_line(net, from_bus=3, to_bus=11, length_km=1.8, std_type="NA2XS2Y 1x240 RM/25 12/20 kV")
+        pp.create_line(net, from_bus=5, to_bus=13, length_km=1.2, std_type="NA2XS2Y 1x240 RM/25 12/20 kV")
 
         # Criando cargas (exemplo)
-        pp.create_load(net, bus=3, p_mw=0.1, q_mvar=0.05, name="Carga Canário")
-        pp.create_load(net, bus=7, p_mw=0.15, q_mvar=0.08, name="Carga Ema")
-        pp.create_load(net, bus=10, p_mw=0.2, q_mvar=0.1, name="Carga Andorinha")
+        pp.create_load(net, bus=3, p_mw=10.0, q_mvar=5.0, name="Carga Canário")
+        pp.create_load(net, bus=7, p_mw=15.0, q_mvar=8.0, name="Carga Ema")
+        pp.create_load(net, bus=10, p_mw=20.0, q_mvar=10.0, name="Carga Andorinha")
 
         # Criando geradores (exemplo)
         pp.create_gen(net, bus=0, p_mw=0.5, vm_pu=1.02, name="Gerador Arara-Azul")
@@ -184,27 +197,26 @@ class SmartGrid:
         return ax
 
     def _plotar_vetores_potencia(self, ax, resultados, titulo, cor_p='red', cor_q='blue'):
-        """Função auxiliar para plotar vetores de potência."""
+        """Função auxiliar para plotar vetores de potência como gráficos de barras."""
         ax.set_title(titulo, fontsize=16)
         
-        bus_geodata = self.net.bus_geodata
         res_bus = resultados['bus']
-        
-        # Potência líquida em cada barra (Geração - Carga)
+        barras = self.net.bus.name
         p_net = res_bus['p_mw']
         q_net = res_bus['q_mvar']
         
-        # Create arrays of zeros with the same size as p_net and q_net
-        zeros_array = np.zeros_like(p_net)
+        x = np.arange(len(barras))
+        width = 0.35
         
-        ax.quiver(bus_geodata.x, bus_geodata.y, p_net, zeros_array, color=cor_p, angles='xy', scale_units='xy', scale=None, label='Potência Ativa (P)')
-        ax.quiver(bus_geodata.x, bus_geodata.y, zeros_array, q_net, color=cor_q, angles='xy', scale_units='xy', scale=None, label='Potência Reativa (Q)')
+        ax.bar(x - width/2, p_net, width, label='Potência Ativa (P)', color=cor_p)
+        ax.bar(x + width/2, q_net, width, label='Potência Reativa (Q)', color=cor_q)
         
-        ax.plot(bus_geodata.x, bus_geodata.y, 'ko', markersize=5)
+        ax.set_ylabel("Potência (MW/Mvar)")
+        ax.set_xlabel("Barramentos")
+        ax.set_xticks(x)
+        ax.set_xticklabels(barras, rotation=90)
         ax.legend()
-        ax.grid(True, linestyle='--', alpha=0.5)
-        ax.set_xlabel("Coordenada X")
-        ax.set_ylabel("Coordenada Y")
+        ax.grid(axis='y', linestyle='--', alpha=0.7)
 
     def plotar_grafico_2_fluxo_base(self, ax=None):
         """GRÁFICO 2: Vetores de fluxo de potência (P e Q) no caso base."""
