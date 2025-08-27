@@ -252,7 +252,7 @@ def run_framework_many_executions(function_bechmarking=False):
             end = datetime.now()
             elapsed = end - start
             formatted_time = format_elapsed_time(elapsed)
-            print(f"\nElapsed Time in execution : {formatted_time}\n\n")
+            print(f"\nElapsed Time in execution : {formatted_time}\n")
 
 
             #! 8) Salva os dados de  cada visualização
@@ -270,7 +270,7 @@ def run_framework_many_executions(function_bechmarking=False):
 
                 with open(vis_output_path, 'w', encoding='utf-8') as f:
                     json.dump(all_individual_values, f, indent=4, ensure_ascii=False)
-                print(f"\nDados de visualização salvos em: {vis_output_path}")
+                #print(f"\nDados de visualização salvos em: {vis_output_path}")
             except Exception as e:
                 print(f"Erro ao salvar dados de visualização para config {config_num}, exec {exec_num}: {e}")
 
@@ -292,9 +292,11 @@ def run_framework_many_executions(function_bechmarking=False):
             try:
                 with open(output_path, 'w', encoding='utf-8') as f:
                     json.dump(result, f, indent=4, ensure_ascii=False)
-                print(f"Resultado salvo em: {output_path}")
+                #print(f"Resultado salvo em: {output_path}")
             except Exception as e:
                 print(f"Erro ao salvar resultado para config {config_num}, exec {exec_num}: {e}")
+            
+            print("Resultados e visualizações salvos com sucesso.")
 
         config_num += 1
     
