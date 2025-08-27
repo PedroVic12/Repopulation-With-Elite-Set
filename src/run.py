@@ -7,10 +7,9 @@ PVRV - 20/08/2025
 # Imports principais do framework
 from AlgEvolutivoRCE_backup.Setup import Setup
 from AlgEvolutivoRCE_backup.alg_evolutivo_rce import AlgoritimoEvolutivoRCE
-#from RedeEletrica_backup.rede_eletrica import RedeEletricaPandaPower
 
 # Utils - Trazer esses codigos para esse unico arquivo
-from config_backup import FOLDER_NAME, entrada_de_dados, format_elapsed_time
+from config_backup import FOLDER_NAME, format_elapsed_time
 
 
 #! Importando a minha função objetivo dentro do projeto

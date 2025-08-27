@@ -192,3 +192,32 @@ def simulate_IEEE_30_cenario():
         _debug = False
     )
     return f"Fitness: {fitness}"
+    
+def hashtablesize():
+     #! Tabela agendamentos em xlsx hardcoded
+    agendamento_df = pd.DataFrame([
+        {"ramo": [1, 3], "inicio": "15:00", "duracao": 6 ,"prioridade": 4},
+        {"ramo": [1, 5], "inicio": "15:00", "duracao": 5, "prioridade": 1},
+        {"ramo": [5, 8], "inicio": "14:00", "duracao": 6, "prioridade": 1},
+        {"ramo": [13, 14], "inicio": "18:00", "duracao": 6, "prioridade": 1},
+        {"ramo": [15, 16], "inicio": "15:00", "duracao": 4, "prioridade": 1},
+        {"ramo": [21, 23], "inicio": "14:00", "duracao": 5, "prioridade": 1},
+        {"ramo": [7, 27], "inicio": "10:00", "duracao": 6, "prioridade": 1},
+        {"ramo": [26, 28], "inicio": "14:00", "duracao": 5, "prioridade": 1},
+        {"ramo": [9, 21], "inicio": "18:00", "duracao": 4, "prioridade": 1},
+        {"ramo": [14, 17], "inicio": "15:00", "duracao": 5, "prioridade": 1},
+
+    ])
+
+    contingencia_df = pd.DataFrame([
+            {"contingencia":1,  "from":1 , "to": 3},
+            {"contingencia":2,  "from":11 , "to": 14},
+            {"contingencia":3,  "from":14 , "to": 17},
+    ])
+
+    contingencias = contingencia_df['contingencia'].to_list()
+    num_carregamentos = 3
+    num_contingencias = len(contingencias) # 3
+    num_desligamentos = len(agendamento_df) # 10
+
+    return num_contingencias* num_carregamentos*(2**num_desligamentos)
