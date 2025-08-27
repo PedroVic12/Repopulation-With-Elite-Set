@@ -16,7 +16,7 @@ from config_backup import FOLDER_NAME, format_elapsed_time
 from utils.functions_fitness.functions_benchmarking import rastrigin
 from utils.functions_fitness.function_IEEE_14_contigencias import funcao_objetivo_IEEE14, HASH_TABLE_PATH
 from utils.functions_fitness.function_IEEE_118_otimizacao import funcao_objetivo_IEEE118, HASH_TABLE_PATH
-from utils.functions_fitness.function_IEEE_30_otimizacao import funcao_objetivo_IEEE30, HASH_TABLE_PATH, hashtablesize
+from utils.functions_fitness.function_IEEE_30_otimizacao import funcao_objetivo_IEEE30, HASH_TABLE_PATH
 from utils.functions_fitness.function_IEEE_57_otimizacao import funcao_objetivo_IEEE57, HASH_TABLE_PATH
 
 # Bibliotecas padrão
@@ -26,6 +26,7 @@ import pandas as pd
 import numpy as np
 import os
 from datetime import datetime
+import importlib
 
 
 
@@ -40,7 +41,7 @@ CLI = False
 DEBUG_MODE = False
 BECHMARKING_MODE = False
 SHOW_SETTINGS = False
-NUMERO = 1
+NUMERO = 0
 
 # Entrada de dados do usuario
 print("\n--------------------------------")
@@ -134,6 +135,24 @@ def run_framework_many_executions(function_bechmarking=False):
     os.makedirs(main_output_dir, exist_ok=True)
     #print(f"\nSalvando resultados em: {main_output_dir}")
 
+    def get_hash_table_size(parameters):
+        """Calcula o tamanho da tabela hash com base nos parâmetros (IND_SIZE)."""
+        try:
+            num_desligamentos = parameters['IND_SIZE']
+            # Valores baseados nas funções de fitness existentes (IEEE14 e IEEE30)
+            num_carregamentos = 3
+            num_contingencias = 3 
+            
+            size = num_contingencias * num_carregamentos * (2**num_desligamentos)
+            print(f"Tamanho da tabela hash calculado: {size} (baseado em IND_SIZE={num_desligamentos})")
+            return size
+        except KeyError:
+            print("Aviso: 'IND_SIZE' não encontrado nos parâmetros. Usando tamanho de hash de fallback.")
+            return 3072 # Fallback size
+        except Exception as e:
+            print(f"Erro ao calcular o tamanho da hash: {e}. Usando tamanho de fallback.")
+            return 3072
+
     config_num = 1
     for combo in combinations:
 
@@ -154,7 +173,7 @@ def run_framework_many_executions(function_bechmarking=False):
         setup = Setup(
             params,
             fitness_function=fitness_func,
-            tamanho_hash=hashtablesize())
+            tamanho_hash=get_hash_table_size(params))
 
         # Reseta contadores para a nova execução
         # if hasattr(setup, 'objectiveruns'):
@@ -197,6 +216,7 @@ def run_framework_many_executions(function_bechmarking=False):
                 print(f"Tabela hash com {len(setup.tabela_hash)} posições não existia e foi criada!")
 
         consultaHashTable()
+
 
         for exec_num in range(1, repeticoes + 1):
             print(f"\n--- Iniciando execução {exec_num}/{repeticoes} ---")

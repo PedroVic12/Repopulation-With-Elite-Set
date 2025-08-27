@@ -14,7 +14,28 @@ from RedeEletrica_backup.rede_eletrica import RedeEletricaPandaPower
 from AlgEvolutivoRCE_backup.Setup import Setup
 
 
-#! TODO -> (10/07/25) Função implementada em Março mas precisa de paralelismo para ficar mais eficiente e melhor uso da hash table
+def get_info():
+    """Retorna informações específicas do caso IEEE 14."""
+    # Tabela agendamentos em xlsx hardcoded
+    agendamento_df = pd.DataFrame([
+        {"ramo": [1, 4], "inicio": "14:00", "duracao": 6 ,"prioridade": 4},
+        {"ramo": [1, 3], "inicio": "15:00", "duracao": 5, "prioridade": 1},
+        {"ramo": [3, 6], "inicio": "14:00", "duracao": 6, "prioridade": 1},
+        {"ramo": [11, 12], "inicio": "18:00", "duracao": 6, "prioridade": 1},
+        {"ramo": [9, 10], "inicio": "15:00", "duracao": 4, "prioridade": 1}
+    ])
+
+    contingencia_df = pd.DataFrame([
+            {"contingencia":1,  "from":2 , "to": 3},
+            {"contingencia":2,  "from":5 , "to": 12},
+            {"contingencia":3,  "from":12 , "to": 13},
+    ])
+    return {
+        "ind_size": len(agendamento_df),
+        "num_contingencias": len(contingencia_df),
+        "num_carregamentos": 3
+    }
+
 def funcao_objetivo_IEEE14(individuo, setupobj, _debug = False):
     
     """    
