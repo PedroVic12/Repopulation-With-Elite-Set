@@ -28,10 +28,29 @@ import os
 from datetime import datetime
 
 
+
+
+# VARIAVEIS GLOBAIS
+ARRAY_FITNESS_FUNCTIONS = [funcao_objetivo_IEEE14,funcao_objetivo_IEEE118,funcao_objetivo_IEEE30]
 BASE_DIR = pathlib.Path(__file__).resolve().parent
 
-ARRAY_FITNESS_FUNCTIONS = [funcao_objetivo_IEEE14,funcao_objetivo_IEEE118,funcao_objetivo_IEEE30]
 
+
+# Entrada de dados do usuario
+print("\n\n--------------------------------")
+choice = input("Digite o número da função objetivo: ")
+print("\n--------------------------------")
+for i in range(len(ARRAY_FITNESS_FUNCTIONS)):
+    print(f"{i} - {ARRAY_FITNESS_FUNCTIONS[i].__name__}")
+print("--------------------------------\n\n")
+NUMERO = int(choice)
+
+choice_benchmarking = input("Deseja usar o modo benchmarking? (S/N): default (N) ")
+BECHMARKING_MODE = True if choice_benchmarking.lower() == "s" else False
+
+print("Lets rock!")
+
+# Funções auxiliares
 def load_params(file_path):
     """Carrega parâmetros de um arquivo JSON."""
     with open(file_path, "r") as file:
@@ -62,8 +81,14 @@ def convert_values_to_int(params):
             pass
     return params
 
-
+# Função principal para executar o framework com múltiplas execuções
 def run_framework_many_executions(function_bechmarking=False):
+
+    if function_bechmarking:
+        print("Função objetivo selecionada: Rastrigin")
+    else:
+        print(f"Função objetivo selecionada: {ARRAY_FITNESS_FUNCTIONS[NUMERO]}")
+
     print("Função principal para executar o framework com múltiplas execuções.")
 
     # 1. Carrega parâmetros base e opções
@@ -106,7 +131,7 @@ def run_framework_many_executions(function_bechmarking=False):
         params = convert_values_to_int(params)
 
         #! 4) Define função objetivo
-        fitness_func = ARRAY_FITNESS_FUNCTIONS[1] if not function_bechmarking else rastrigin
+        fitness_func = ARRAY_FITNESS_FUNCTIONS[NUMERO] if not function_bechmarking else rastrigin
 
         #! 5) Instancia Setup uma vez por configuração
         print(f"\n\nIniciando configuração {config_num}: {params}")
@@ -127,6 +152,14 @@ def run_framework_many_executions(function_bechmarking=False):
         #     setup.hashtablereads = 0
 
         print("Classe Setup iniciada para a configuração.")
+
+        print("--- [INICIO] ATRIBUTOS DO OBJETO SETUP ---")
+        try:
+            # Usando json.dumps para uma visualização bonita e segura
+            print(json.dumps(vars(setup), indent=4, default=str))
+        except Exception as e:
+            print(f"Nao foi possivel serializar o objeto Setup: {e}")
+        print("--- [FIM] ATRIBUTOS DO OBJETO SETUP ---")
 
         def consultaHashTable():
             # Consulta hash_table se existir (sub rotina)
@@ -159,6 +192,17 @@ def run_framework_many_executions(function_bechmarking=False):
                 config_num=config_num,
                 execution_num=exec_num,
             )
+
+            print("\n--- [INICIO] VALORES DA FUNCAO OBJETIVO (MELHOR POR GERACAO) ---")
+            try:
+                # O logbook geralmente contém estatísticas por geração (min, max, avg, std)
+                # Assumindo que o objetivo é minimizar, pegamos a coluna 'min'
+                gen_data = logbook_with_repopulation.select("gen", "min")
+                for gen in gen_data:
+                    print(f"Geracao: {gen['gen']}, Melhor Fitness: {gen['min']:.6f}")
+            except Exception as e:
+                print(f"Nao foi possivel extrair dados do logbook: {e}")
+            print("--- [FIM] VALORES DA FUNCAO OBJETIVO ---")
 
 
             # Passando os valores do array direto no dataframe com os index como chave (hash = chave, valor)
@@ -251,4 +295,6 @@ def run_framework_many_executions(function_bechmarking=False):
 
 
 if __name__ == "__main__":
-    run_framework_many_executions(function_bechmarking=False)
+    run_framework_many_executions(function_bechmarking=BECHMARKING_MODE)
+
+

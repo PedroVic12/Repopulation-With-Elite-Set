@@ -254,6 +254,7 @@ class ParamsAGTab(QWidget):
     def init_ui(self):
         layout = QVBoxLayout(self)
         self.table = QTableWidget()
+        self.table.setAlternatingRowColors(True)
         self.table.setColumnCount(2)
         self.table.setHorizontalHeaderLabels(["Parâmetro", "Valor"])
         self.table.horizontalHeader().setSectionResizeMode(QHeaderView.ResizeMode.Stretch)
@@ -298,6 +299,17 @@ class ParamsAGTab(QWidget):
                 else:
                     params[key] = value_str
         
+        # --- Validação: ind_size vs array_var ---
+        ind_size = params.get("ind_size")
+        array_var = params.get("array_var")
+
+        # Garante que a validação só ocorra se ambos os valores existirem e forem dos tipos corretos
+        if isinstance(ind_size, int) and isinstance(array_var, list):
+            if len(array_var) != ind_size:
+                msg = f"Atenção: O tamanho do 'array_var' ({len(array_var)}) é diferente do 'ind_size' ({ind_size}).\n\nO salvamento prosseguirá, mas isso pode causar erros na execução."
+                QMessageBox.warning(self, "Validação de Parâmetros", msg)
+        # --- Fim da Validação ---
+
         if self.config_manager.db_controller.save_params(params):
             QMessageBox.information(self, "Sucesso", "Parâmetros salvos.")
         else:

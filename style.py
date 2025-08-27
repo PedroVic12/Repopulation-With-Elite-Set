@@ -1,3 +1,4 @@
+ 
 """Estilos QSS globais do app (PySide6)
 
 Este arquivo define o tema e os estilos dos componentes do app.
@@ -161,5 +162,30 @@ QScrollBar::handle:horizontal:hover {
 QScrollBar::add-line:horizontal, QScrollBar::sub-line:horizontal {
     background: transparent;
     width: 0px; /* oculta botões */
+}
+
+/* ========================================
+   Tabela (QTableWidget)
+   ======================================== */
+QTableWidget {
+    background-color: #2d2d2d; /* Mesmo cinza dos inputs */
+    border: 1px solid #404040;
+    gridline-color: #404040; /* Cor da grade */
+    alternate-background-color: #3a3a3a; /* Cor para linhas alternadas */
+    selection-background-color: #007acc; /* Azul de seleção */
+}
+
+QHeaderView::section {
+    background-color: #007acc; /* Azul dos botões para consistência */
+    color: white;
+    padding: 8px;
+    border: 1px solid #404040;
+    font-weight: bold;
+    font-size: 13px;
+}
+
+QTableWidget::item {
+    padding: 6px;
+    border-bottom: 1px solid #404040;
 }
 """
