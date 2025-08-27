@@ -16,7 +16,7 @@ from config_backup import FOLDER_NAME, format_elapsed_time
 from utils.functions_fitness.functions_benchmarking import rastrigin
 from utils.functions_fitness.function_IEEE_14_contigencias import funcao_objetivo_IEEE14, HASH_TABLE_PATH
 from utils.functions_fitness.function_IEEE_118_otimizacao import funcao_objetivo_IEEE118, HASH_TABLE_PATH
-from utils.functions_fitness.function_IEEE_30_otimizacao import funcao_objetivo_IEEE30, HASH_TABLE_PATH
+from utils.functions_fitness.function_IEEE_30_otimizacao import funcao_objetivo_IEEE30, HASH_TABLE_PATH, hashtablesize
 from utils.functions_fitness.function_IEEE_57_otimizacao import funcao_objetivo_IEEE57, HASH_TABLE_PATH
 
 # Bibliotecas padrão
@@ -41,7 +41,7 @@ CLI = False
 DEBUG_MODE = False
 BECHMARKING_MODE = False
 SHOW_SETTINGS = False
-NUMERO = 0
+NUMERO = 1
 
 # Entrada de dados do usuario
 print("\n--------------------------------")
@@ -64,7 +64,16 @@ if CLI:
     debug_mode = input("Deseja usar o modo debug? (S/N): default (N) ")
     DEBUG_MODE = True if debug_mode.lower() == "s" else False
 
-print("\nLet's rock!\n")
+MSG_TERMINAL = """
+ __       _______ .___________. __      _______.   .______        ______     ______  __  ___  __  
+|  |     |   ____||           |(_ )    /       |   |   _  \      /  __  \   /      ||  |/  / |  | 
+|  |     |  |__   `---|  |----` |/    |   (----`   |  |_)  |    |  |  |  | |  ,----'|  '  /  |  | 
+|  |     |   __|      |  |             \   \       |      /     |  |  |  | |  |     |    <   |  | 
+|  `----.|  |____     |  |         .----)   |      |  |\  \----.|  `--'  | |  `----.|  .  \  |__| 
+|_______||_______|    |__|         |_______/       | _| `._____| \______/   \______||__|\__\ (__) 
+                                                                                                  
+"""
+print(f"\n{MSG_TERMINAL}\n")
 
 # Funções auxiliares
 def load_params(file_path):
@@ -173,7 +182,8 @@ def run_framework_many_executions(function_bechmarking=False):
         setup = Setup(
             params,
             fitness_function=fitness_func,
-            tamanho_hash=get_hash_table_size(params))
+            tamanho_hash=get_hash_table_size(params)
+        )
 
         # Reseta contadores para a nova execução
         # if hasattr(setup, 'objectiveruns'):
@@ -182,17 +192,6 @@ def run_framework_many_executions(function_bechmarking=False):
         #     setup.hashtablereads = 0
 
         print("Classe Setup iniciada para a configuração.")
-
-        if SHOW_SETTINGS:
-            print("\n")
-            print("--- [INICIO] ATRIBUTOS DO OBJETO SETUP ---")
-            try:
-                # Usando json.dumps para uma visualização bonita e segura
-                print(json.dumps(vars(setup), indent=4, default=str))
-            except Exception as e:
-                print(f"Nao foi possivel serializar o objeto Setup: {e}")
-            print("--- [FIM] ATRIBUTOS DO OBJETO SETUP ---")
-
 
         def consultaHashTable():
             # Consulta hash_table se existir (sub rotina)
@@ -242,7 +241,7 @@ def run_framework_many_executions(function_bechmarking=False):
 
             # Convert the list to a DataFrame, preserving the index as the hash key
             hash_df1 = pd.DataFrame(data=setup.tabela_hash, columns=['Fitness'])
-            hash_df1.index.name = 'HashKey'
+            #hash_df1.index.name = 'HashKey'
             hash_df1.to_excel(HASH_TABLE_PATH, index=True)
 
             # Verificação de velocidade com hashtable
