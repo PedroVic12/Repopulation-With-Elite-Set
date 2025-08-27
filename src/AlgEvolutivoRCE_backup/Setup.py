@@ -262,7 +262,7 @@ class Setup:
                 print(f"Error in fitness_func: {e}")
                 print(f"Individual: {individual}")
                 print(f"Function: {self.funcao_objetivo.__name__ if self.funcao_objetivo else 'rastrigin'}")
-                print("\nVERIFIQUE O TAMANHO DAS VÁRIAVEIS DE DECISÃO do params.json e configure corretamente o tamanho do seu individuo no Laucher.py")
+                print("\nVERIFIQUE O TAMANHO DAS VARIAVEIS DE DECISAO do params.json e configure corretamente o tamanho do seu individuo no Laucher.py")
                 return (float('inf'),)  # Return worst possible fitness on error
 
         # Register the fitness function with the toolbox
