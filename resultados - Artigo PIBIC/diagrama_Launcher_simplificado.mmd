@@ -1,0 +1,95 @@
+graph TD
+  subgraph App[QApplication]
+    LW[LauncherWindow QMainWindow]
+  end
+
+  LW -->|cria| Tabs[QTabWidget]
+  Tabs --> CT[ConfigTab]
+  Tabs --> PT[ParamsAGTab]
+  Tabs --> ET[ExecutionTab]
+
+  subgraph CFGM[ConfigManager]
+    CM_load_params[load_json params.json]
+    CM_load_options[load_json options.json]
+    CM_clean_options[clean_options manter chaves e dedup]
+    CM_save_json[save_json]
+  end
+
+  LW -->|instancia| CFGM
+  CFGM --> CM_load_params
+  CFGM --> CM_load_options
+  CM_load_options --> CM_clean_options
+
+  PFILE[(src/params.json)]
+  OFILE[(src/options.json)]
+  FFUSER[(src/fitness_function_user.py)]
+  RUN[(src/run_framework_backup.py)]
+  DASH[(src/DashboardApp/dashboard_RCE_APP.py)]
+
+  CM_load_params --- PFILE
+  CM_load_options --- OFILE
+  CM_save_json --- PFILE
+  CM_save_json --- OFILE
+
+  subgraph CTG[ConfigTab]
+    CT_UI[Inputs MUTACAO CROSSOVER NUM_GENERATIONS POP_SIZE]
+    CT_runs[Spin repeticoes_por_config]
+    CT_summary[Resumo dinamico]
+    CT_update[update_summary ler options]
+    CT_prepare[prepare_and_run salvar options e executar]
+  end
+
+  CT --> CT_UI
+  CT --> CT_runs
+  CT --> CT_summary
+  CT_update -->|ler| OFILE
+  CT_prepare -->|salvar| OFILE
+  CT_prepare -->|configs geradas| ET
+
+  subgraph PTG[ParamsAGTab]
+    PT_table[QTableWidget params nao variaveis]
+    PT_buttons[Botoes ao lado direito]
+    PT_reload[reload ler jsons]
+    PT_save[save gravar params e arrays]
+
+    PT_code[QPlainTextEdit editor Python]
+    PT_code_btns[Botoes codigo a direita]
+    PT_reload_code[reload_code ler fitness]
+    PT_save_code[save_code gravar fitness]
+  end
+
+  PT --> PT_table
+  PT --> PT_buttons
+  PT_buttons --> PT_reload
+  PT_buttons --> PT_save
+  PT_reload --> PFILE
+  PT_reload --> OFILE
+  PT_save --> PFILE
+  PT_save --> OFILE
+
+  PT --> PT_code
+  PT --> PT_code_btns
+  PT_code_btns --> PT_reload_code
+  PT_code_btns --> PT_save_code
+  PT_reload_code --- FFUSER
+  PT_save_code --- FFUSER
+
+  subgraph ETG[ExecutionTab]
+    ET_queue[Fila de execucoes]
+    ET_thread[ExecutionThread QThread]
+    ET_proc[Subprocesso Python]
+    ET_logs[QTextEdit logs]
+    ET_progress[QProgressBar]
+  end
+
+  ET --> ET_queue
+  ET --> ET_thread
+  ET --> ET_logs
+  ET --> ET_progress
+
+  ET_thread -->|spawn| ET_proc
+  ET_proc -->|python| RUN
+  ET_thread -->|signals| ET_logs
+  ET_thread -->|signals| ET_progress
+
+  LW -->|abrir dashboard| DASH

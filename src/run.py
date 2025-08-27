@@ -46,7 +46,7 @@ NUMERO = 1
 # Entrada de dados do usuario
 print("\n--------------------------------")
 print("No arquivo:", BASE_DIR / "utils" / "functions_fitness")
-print("SELECIONE O SEU CASO DE SIMULAÇÃO DE AGENDAMENTO DE DESLIGAMENTOS DE CONTINGENCIAS E OTIMIZAÇÃO PARA REDES ELÉTRICAS")
+print("\nSELECIONE O SEU CASO DE SIMULAÇÃO DE AGENDAMENTO DE DESLIGAMENTOS DE CONTINGENCIAS E OTIMIZAÇÃO PARA REDES ELÉTRICAS")
 print("\n--------------------------------")
 for i in range(len(ARRAY_FITNESS_FUNCTIONS)):
     print(f"{i} - {ARRAY_FITNESS_FUNCTIONS[i].__name__}")
@@ -116,7 +116,6 @@ def run_framework_many_executions(function_bechmarking=False):
     else:
         print(f"Função objetivo selecionada: {ARRAY_FITNESS_FUNCTIONS[NUMERO]}")
 
-    print("Função principal para executar o framework com múltiplas execuções.")
 
     # 1. Carrega parâmetros base e opções
     params_base = load_params(f"{BASE_DIR}/params.json")
@@ -179,7 +178,7 @@ def run_framework_many_executions(function_bechmarking=False):
         fitness_func = ARRAY_FITNESS_FUNCTIONS[NUMERO] if not function_bechmarking else rastrigin
 
         #! 5) Instancia Setup uma vez por configuração
-        print(f"\n\nIniciando configuração {config_num}: {params}")
+        print(f"\n\nIniciando configuração {config_num} com os params.json:\n{params}\n")
         setup = Setup(
             params,
             fitness_function=fitness_func,

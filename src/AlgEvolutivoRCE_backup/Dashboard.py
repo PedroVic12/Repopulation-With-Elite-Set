@@ -166,7 +166,7 @@ class DashboardApp:
                 print("WARN: Visualize - Lógica para 'best_solution_variables' sem repopulação usa fallback.")
                 best_solution_variables = pop[0] if pop else []
 
-            print("\n\n")
+            print("\n")
             print("="*90)
             print(f"  >>> Soluções do problema (Execução {execution_num} - Console Output) <<<")
             print("="*90)
@@ -177,7 +177,6 @@ class DashboardApp:
 
             grafico_RCE = self.graficoRCE(generation, array_values, repopulation=repopulation)
             
-            print(f"\n[INFO]: Salvando dados .json e figura .html para Config {config_num} / Execução {execution_num}...")
             output_path = f"{FOLDER_NAME}"
             data_file = f"{output_path}/dashboard_data_config{config_num}_exec{execution_num}.json"
 
@@ -205,8 +204,9 @@ class DashboardApp:
             # Salva a lista completa de resultados
             with open(data_file, 'w') as f:
                 json.dump(all_results, f, indent=4, ensure_ascii=False)
-   
-            print(f"\n[INFO]: Dados e figura para execução {execution_num} salvos com sucesso.")
+                
+            print(f"\n[INFO]: Salvando dados .json e figura .html para Config {config_num} / Execução {execution_num} na pasta output")
+
 
         except Exception as e:
             print(f"\n\n\nERRO em visualize (Execução {execution_num}): {e}")
