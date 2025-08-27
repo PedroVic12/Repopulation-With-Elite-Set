@@ -17,7 +17,7 @@ from config_backup import FOLDER_NAME, entrada_de_dados, format_elapsed_time
 from utils.functions_fitness.functions_benchmarking import rastrigin
 from utils.functions_fitness.function_IEEE_14_contigencias import funcao_objetivo_IEEE14, HASH_TABLE_PATH
 from utils.functions_fitness.function_IEEE_118_otimizacao import funcao_objetivo_IEEE118, HASH_TABLE_PATH
-from utils.functions_fitness.function_IEEE_30_otimizacao import funcao_objetivo_IEEE30, HASH_TABLE_PATH
+from utils.functions_fitness.function_IEEE_30_otimizacao import funcao_objetivo_IEEE30, HASH_TABLE_PATH, hashtablesize
 from utils.functions_fitness.function_IEEE_57_otimizacao import funcao_objetivo_IEEE57, HASH_TABLE_PATH
 
 # Bibliotecas padrão
@@ -41,13 +41,13 @@ CLI = False
 DEBUG_MODE = False
 BECHMARKING_MODE = False
 SHOW_SETTINGS = False
-
 NUMERO = 1
 
 # Entrada de dados do usuario
-print("\nNo arquivo:", BASE_DIR / "utils" / "functions_fitness")
-print("\nSELECIONE O SEU CASO DE SIMULAÇÃO DE AGENDAMENTO DE DESLIGAMENTOS DE CONTINGENCIAS E OTIMIZAÇÃO PARA REDES ELÉTRICAS")
-print("--------------------------------")
+print("\n--------------------------------")
+print("No arquivo:", BASE_DIR / "utils" / "functions_fitness")
+print("SELECIONE O SEU CASO DE SIMULAÇÃO DE AGENDAMENTO DE DESLIGAMENTOS DE CONTINGENCIAS E OTIMIZAÇÃO PARA REDES ELÉTRICAS")
+print("\n--------------------------------")
 for i in range(len(ARRAY_FITNESS_FUNCTIONS)):
     print(f"{i} - {ARRAY_FITNESS_FUNCTIONS[i].__name__}")
 print("--------------------------------\n")
@@ -55,7 +55,7 @@ print("--------------------------------\n")
 
 if CLI:
     print("Responda no terminal onde o seu laucher.py esta sendo executado")
-    choice = input("Digite o número da funcao objetivo: ")
+    choice = input("Digite o número da função objetivo: ")
     NUMERO = int(choice)
     print("\n")
     choice_benchmarking = input("Deseja usar o modo benchmarking? (S/N): default (N) ")
@@ -63,7 +63,6 @@ if CLI:
     print("\n")
     debug_mode = input("Deseja usar o modo debug? (S/N): default (N) ")
     DEBUG_MODE = True if debug_mode.lower() == "s" else False
-
 
 print("\nLet's rock!\n")
 
@@ -156,12 +155,7 @@ def run_framework_many_executions(function_bechmarking=False):
         setup = Setup(
             params,
             fitness_function=fitness_func,
-            tamanho_hash=(
-                entrada_de_dados()["num_contingencias"]
-                * entrada_de_dados()["num_carregamentos"]
-                * (2 ** entrada_de_dados()["num_desligamentos"])
-            )
-        )
+            tamanho_hash=hashtablesize())
 
         # Reseta contadores para a nova execução
         # if hasattr(setup, 'objectiveruns'):
@@ -192,6 +186,11 @@ def run_framework_many_executions(function_bechmarking=False):
                         print("Tabela hash carregada!")
                 except Exception as e:
                     print(f"Erro ao carregar hash_table.xlsx: {e}")
+            else:
+                hash_excel = pd.DataFrame(data = setup.tabela_hash, columns = ['Fitness'])
+                hash_excel.to_excel(HASH_TABLE_PATH)
+                print(f"Tabela hash com {len(setup.tabela_hash)} posições não existia e foi criada!")
+                
         consultaHashTable()
 
         for exec_num in range(1, repeticoes + 1):
@@ -261,8 +260,7 @@ def run_framework_many_executions(function_bechmarking=False):
                 "best_variables": best_variables,
                 "best_fitness": best_fitness,
                 "best_gen_idx": best_solution_generation,
-                "time":formatted_time,
-                "fitness_function": fitness_func.__name__
+                "time":formatted_time
             }
             
             output_path = config_dir / f"config_{config_num}_exec_{exec_num}_results.json"
@@ -291,22 +289,21 @@ def run_framework_many_executions(function_bechmarking=False):
                                         capture_output=True, text=True, cwd=str(BASE_DIR.parent))
                 
                 if result.returncode == 0:
-                    print("✅ Consolidação executada com sucesso!")
+                    print(" Consolidação executada com sucesso!")
                     if result.stdout:
                         print("Saída da consolidação:\n")
                         print(result.stdout)
                 else:
-                    print(f"❌ Erro na consolidação: {result.stderr}")
+                    print(f" Erro na consolidação: {result.stderr}")
             else:
-                print(f"⚠️ Script de consolidação não encontrado em: {consolidar_script}")
+                print(f" Script de consolidação não encontrado em: {consolidar_script}")
         run_sript_consolidar_resultados()
             
     except Exception as e:
-        print(f"❌ Erro ao executar consolidação: {e}")
+        print(f" Erro ao executar consolidação: {e}")
         print("Execute manualmente: python3 consolidar_resultados.py")
 
 
 if __name__ == "__main__":
     run_framework_many_executions(function_bechmarking=BECHMARKING_MODE)
-
 
