@@ -15,9 +15,10 @@ from config_backup import FOLDER_NAME, entrada_de_dados, format_elapsed_time
 
 #! Importando a minha função objetivo dentro do projeto
 from utils.functions_fitness.functions_benchmarking import rastrigin
-from utils.functions_fitness.function_IEEE_14_contigencias import funcao_objetivo_IEEE14
-from utils.functions_fitness.function_IEEE_118_otimizacao import funcao_objetivo_IEEE118
-from utils.functions_fitness.function_IEEE_30_otimizacao import funcao_objetivo_IEEE30
+from utils.functions_fitness.function_IEEE_14_contigencias import funcao_objetivo_IEEE14, HASH_TABLE_PATH
+from utils.functions_fitness.function_IEEE_118_otimizacao import funcao_objetivo_IEEE118, HASH_TABLE_PATH
+from utils.functions_fitness.function_IEEE_30_otimizacao import funcao_objetivo_IEEE30, HASH_TABLE_PATH
+from utils.functions_fitness.function_IEEE_57_otimizacao import funcao_objetivo_IEEE57, HASH_TABLE_PATH
 
 # Bibliotecas padrão
 import json
@@ -31,24 +32,29 @@ from datetime import datetime
 
 
 # VARIAVEIS GLOBAIS
-ARRAY_FITNESS_FUNCTIONS = [funcao_objetivo_IEEE14,funcao_objetivo_IEEE118,funcao_objetivo_IEEE30]
+ARRAY_FITNESS_FUNCTIONS = [funcao_objetivo_IEEE14,funcao_objetivo_IEEE118,funcao_objetivo_IEEE30, funcao_objetivo_IEEE57]
 BASE_DIR = pathlib.Path(__file__).resolve().parent
 
-
+CLI = True
+DEBUG_MODE = False
+BECHMARKING_MODE = False
 
 # Entrada de dados do usuario
 print("\n--------------------------------")
 for i in range(len(ARRAY_FITNESS_FUNCTIONS)):
     print(f"{i} - {ARRAY_FITNESS_FUNCTIONS[i].__name__}")
 print("--------------------------------\n")
-choice = input("Digite o número da função objetivo: ")
-NUMERO = int(choice)
 
-choice_benchmarking = input("\nDeseja usar o modo benchmarking? (S/N): default (N) ")
-BECHMARKING_MODE = True if choice_benchmarking.lower() == "s" else False
 
-debug_mode = input("\nDeseja usar o modo debug? (S/N): default (N) ")
-DEBUG_MODE = True if debug_mode.lower() == "s" else False
+if CLI:
+    choice = input("Digite o número da função objetivo: ")
+    NUMERO = int(choice)
+    print("\n")
+    choice_benchmarking = input("Deseja usar o modo benchmarking? (S/N): default (N) ")
+    BECHMARKING_MODE = True if choice_benchmarking.lower() == "s" else False
+    print("\n")
+    debug_mode = input("Deseja usar o modo debug? (S/N): default (N) ")
+    DEBUG_MODE = True if debug_mode.lower() == "s" else False
 
 print("Lets rock!")
 
@@ -85,6 +91,8 @@ def convert_values_to_int(params):
 
 # Função principal para executar o framework com múltiplas execuções
 def run_framework_many_executions(function_bechmarking=False):
+
+    SHOW_SETTINGS = True
 
     if function_bechmarking:
         print("Função objetivo selecionada: Rastrigin")
@@ -155,19 +163,22 @@ def run_framework_many_executions(function_bechmarking=False):
 
         print("Classe Setup iniciada para a configuração.")
 
-        print("--- [INICIO] ATRIBUTOS DO OBJETO SETUP ---")
-        try:
-            # Usando json.dumps para uma visualização bonita e segura
-            print(json.dumps(vars(setup), indent=4, default=str))
-        except Exception as e:
-            print(f"Nao foi possivel serializar o objeto Setup: {e}")
-        print("--- [FIM] ATRIBUTOS DO OBJETO SETUP ---")
+        if SHOW_SETTINGS:
+            print("\n")
+            print("--- [INICIO] ATRIBUTOS DO OBJETO SETUP ---")
+            try:
+                # Usando json.dumps para uma visualização bonita e segura
+                print(json.dumps(vars(setup), indent=4, default=str))
+            except Exception as e:
+                print(f"Nao foi possivel serializar o objeto Setup: {e}")
+            print("--- [FIM] ATRIBUTOS DO OBJETO SETUP ---")
+
 
         def consultaHashTable():
             # Consulta hash_table se existir (sub rotina)
-            if os.path.exists("hash_table.xlsx"):
+            if os.path.exists(HASH_TABLE_PATH):
                 try:
-                    hash_excel = pd.read_excel("hash_table.xlsx")
+                    hash_excel = pd.read_excel(HASH_TABLE_PATH)
                     if not hash_excel.empty:
                         setup.tabela_hash = hash_excel['Fitness'].to_dict()
                         print("Tabela hash carregada com sucesso!")
@@ -210,7 +221,7 @@ def run_framework_many_executions(function_bechmarking=False):
             # Passando os valores do array direto no dataframe com os index como chave (hash = chave, valor)
             hash_df1 = pd.DataFrame(setup.tabela_hash, columns=['Fitness'])
             hash_df1.sort_values(by='Fitness', ascending=False, inplace=True)
-            hash_df1.to_excel("hash_table.xlsx", index=False)
+            hash_df1.to_excel(HASH_TABLE_PATH, index=False)
 
             # Verificação de velocidade com hashtable
             print(f"\nObjective function runs : {setup.objectiveruns}")
