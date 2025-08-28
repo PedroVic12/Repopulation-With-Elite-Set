@@ -1,95 +1,46 @@
-flowchart TD
-  subgraph App[QApplication]
-    LW[LauncherWindow QMainWindow]
-  end
+flowchart TB
+    %% --- Usuário
+    subgraph U["Usuário"]
+        A["Launcher PySide6"]:::launcher
+    end
 
-  LW -->|cria| Tabs[QTabWidget]
-  Tabs --> CT[ConfigTab]
-  Tabs --> PT[ParamsAGTab]
-  Tabs --> ET[ExecutionTab]
+    %% --- Backend
+    subgraph B["Backend (Execução)"]
+        B1["run_execution.py"]
+        B2{"Loop de Otimização DEAP"}
+        B3["Cálculo de Fluxo de Potência com Pandapower"]
+    end
 
-  subgraph CFGM[ConfigManager]
-    CM_load_params[load_json params.json]
-    CM_load_options[load_json options.json]
-    CM_clean_options[clean_options manter chaves e dedup]
-    CM_save_json[save_json]
-  end
+    %% --- Visualização
+    subgraph V["Visualização"]
+        C["Dashboard Streamlit"]:::streamlit
+    end
 
-  LW -->|instancia| CFGM
-  CFGM --> CM_load_params
-  CFGM --> CM_load_options
-  CM_load_options --> CM_clean_options
+    %% --- Armazenamento
+    subgraph S["Armazenamento"]
+        S1["Arquivos de Configuração .json"]:::storage
+        S2["Arquivos de Resultado .json/.pkl"]:::storage
+        S3["Resultados Consolidados .xlsx"]:::storage
+    end
 
-  PFILE[(src/params.json)]
-  OFILE[(src/options.json)]
-  FFUSER[(src/fitness_function_user.py)]
-  RUN[(src/run_framework_backup.py)]
-  DASH[(src/DashboardApp/dashboard_RCE_APP.py)]
+    %% Fluxos principais
+    A -->|"Executa"| B1
+    A -->|"Salva"| S1
+    A -->|"Exibe"| C
 
-  CM_load_params --- PFILE
-  CM_load_options --- OFILE
-  CM_save_json --- PFILE
-  CM_save_json --- OFILE
+    B1 -->|"Carrega Configs"| S1
+    B1 --> B2
 
-  subgraph CTG[ConfigTab]
-    CT_UI[Inputs MUTACAO CROSSOVER NUM_GENERATIONS POP_SIZE]
-    CT_runs[Spin repeticoes_por_config]
-    CT_summary[Resumo dinamico]
-    CT_update[update_summary ler options]
-    CT_prepare[prepare_and_run salvar options e executar]
-  end
+    B2 -->|"Para cada indivíduo"| B3
+    B3 -->|"Retorna Fitness"| B2
+    B2 -->|"Salva Parâmetros"| S1
+    B2 -->|"Gera Resultados"| S2
 
-  CT --> CT_UI
-  CT --> CT_runs
-  CT --> CT_summary
-  CT_update -->|ler| OFILE
-  CT_prepare -->|salvar| OFILE
-  CT_prepare -->|configs geradas| ET
+    C -->|"Lê Configs"| S1
+    C -->|"Exibe Resultados"| S2
+    C -->|"Gera e Exibe"| S3
 
-  subgraph PTG[ParamsAGTab]
-    PT_table[QTableWidget params nao variaveis]
-    PT_buttons[Botoes ao lado direito]
-    PT_reload[reload ler jsons]
-    PT_save[save gravar params e arrays]
-
-    PT_code[QPlainTextEdit editor Python]
-    PT_code_btns[Botoes codigo a direita]
-    PT_reload_code[reload_code ler fitness]
-    PT_save_code[save_code gravar fitness]
-  end
-
-  PT --> PT_table
-  PT --> PT_buttons
-  PT_buttons --> PT_reload
-  PT_buttons --> PT_save
-  PT_reload --> PFILE
-  PT_reload --> OFILE
-  PT_save --> PFILE
-  PT_save --> OFILE
-
-  PT --> PT_code
-  PT --> PT_code_btns
-  PT_code_btns --> PT_reload_code
-  PT_code_btns --> PT_save_code
-  PT_reload_code --- FFUSER
-  PT_save_code --- FFUSER
-
-  subgraph ETG[ExecutionTab]
-    ET_queue[Fila de execucoes]
-    ET_thread[ExecutionThread QThread]
-    ET_proc[Subprocesso Python]
-    ET_logs[QTextEdit logs]
-    ET_progress[QProgressBar]
-  end
-
-  ET --> ET_queue
-  ET --> ET_thread
-  ET --> ET_logs
-  ET --> ET_progress
-
-  ET_thread -->|spawn| ET_proc
-  ET_proc -->|python| RUN
-  ET_thread -->|signals| ET_logs
-  ET_thread -->|signals| ET_progress
-
-  LW -->|abrir dashboard| DASH
+    %% --- Estilos
+    classDef launcher fill:#c6e6fa,stroke:#036,stroke-width:2px;
+    classDef streamlit fill:#9fffb2,stroke:#060,stroke-width:2px;
+    classDef storage fill:#fff7a8,stroke:#660,stroke-width:2px;

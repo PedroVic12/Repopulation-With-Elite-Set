@@ -40,7 +40,9 @@ CLI = False
 DEBUG_MODE = False
 BECHMARKING_MODE = False
 SHOW_SETTINGS = False
-NUMERO = 3
+NUMERO = 1
+
+
 
 # Entrada de dados do usuario
 print("\n--------------------------------")

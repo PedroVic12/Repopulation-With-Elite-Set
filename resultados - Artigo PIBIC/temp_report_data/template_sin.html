@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Relatório de Análise da Rede Elétrica</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        .tab-content > .tab-pane { display: none; }
+        .tab-content > .active { display: block; }
+    </style>
+</head>
+<body class="bg-gray-100 text-gray-800 font-sans p-8">
+
+    <div class="container mx-auto bg-white rounded-lg shadow-xl p-8">
+        
+        <div class="mb-8">
+            <h1 class="text-4xl font-bold text-gray-900 mb-2">Relatório de Análise da Rede Elétrica</h1>
+            <p class="text-lg text-gray-600">Visualização interativa e análise de dados do sistema elétrico.</p>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-8">
+            <div class="lg:col-span-2 p-6 bg-gray-50 rounded-lg">
+                <h2 class="text-2xl font-semibold mb-4">Contextualização</h2>
+                <p class="mb-2">O <strong>Sistema Interligado Nacional (SIN)</strong> é a espinha dorsal do sistema elétrico brasileiro, uma vasta rede que conecta usinas e consumidores por todo o país, permitindo o compartilhamento de energia entre as regiões e garantindo a segurança e a eficiência do fornecimento.</p>
+                <p>Este relatório analisa uma representação deste sistema, conhecida como <strong>SIN 45 Barras</strong>, que modela uma parte crucial da rede nas regiões Sudeste/Centro-Oeste, permitindo estudos de fluxo de potência, contingências e estabilidade.</p>
+            </div>
+            <div class="p-6 bg-gray-50 rounded-lg">
+                <h2 class="text-2xl font-semibold mb-4">Legenda</h2>
+                {legend_table}
+            </div>
+        </div>
+
+        <div>
+            <div class="border-b border-gray-200">
+                <nav class="-mb-px flex space-x-8" id="myTab">
+                    <!-- Tab buttons will be inserted here -->
+                    {tab_buttons}
+                </nav>
+            </div>
+            <div class="mt-4 tab-content" id="myTabContent">
+                <!-- Tab content will be inserted here -->
+                {tab_contents}
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        const tabs = document.querySelectorAll('#myTab button');
+        const tabContents = document.querySelectorAll('#myTabContent .tab-pane');
+
+        tabs.forEach(tab => {
+            tab.addEventListener('click', () => {
+                // Deactivate all tabs and content
+                tabs.forEach(t => t.classList.remove('border-indigo-500', 'text-indigo-600'));
+                tabContents.forEach(c => c.classList.remove('active'));
+
+                // Activate clicked tab and content
+                tab.classList.add('border-indigo-500', 'text-indigo-600');
+                const target = document.querySelector(tab.dataset.target);
+                target.classList.add('active');
+            });
+        });
+    </script>
+</body>
+</html>

@@ -1,5 +1,6 @@
 import sys
 import os
+import webbrowser
 
 # --- CORREÇÃO IMPORTANTE ---
 # Adicione esta linha ANTES de importar matplotlib ou PySide6.
@@ -20,6 +21,8 @@ from PySide6.QtWidgets import (
 )
 from PySide6.QtCore import Qt
 from PySide6.QtGui import QFont
+import plotly.graph_objects as go
+import subprocess
 
 # =============================================================================
 # 1. MODELO (Lógica de Dados e Pandapower)
@@ -250,12 +253,17 @@ class NetworkCanvas(FigureCanvas):
 
                 # Outras coleções com tamanhos ajustados
                 collections.append(plot.create_line_collection(net, color="grey", linewidth=2.0))
+                if len(net.shunt) > 0:
+                    # Reatores/Shunts apontando para cima (orientação 0)
+                    collections.append(plot.create_shunt_collection(net, size=0.14, orientation=0, color='cyan'))
                 if len(net.load) > 0:
                     collections.append(plot.create_load_collection(net, size=0.14, orientation=45, color="red"))
                 if len(net.gen) > 0:
-                    collections.append(plot.create_gen_collection(net, size=0.14, orientation=45, color='green'))
+                    # Geradores apontando para baixo (orientação 180)
+                    collections.append(plot.create_gen_collection(net, size=0.14, orientation=180, color='green'))
                 if len(net.ext_grid) > 0:
-                    collections.append(plot.create_ext_grid_collection(net, size=0.14, orientation=45, color='orange'))
+                    # Grid externo apontando para baixo (orientação 180)
+                    collections.append(plot.create_ext_grid_collection(net, size=0.14, orientation=180, color='orange'))
                 if len(net.trafo) > 0:
                     collections.append(plot.create_trafo_collection(net, size=0.14, color='purple'))
                     
@@ -272,6 +280,7 @@ class NetworkCanvas(FigureCanvas):
                 # --- MELHORIA: Legenda customizada ---
                 handles = [
                     plt.Line2D([0], [0], color='grey', lw=2, label='Linhas'),
+                    plt.Line2D([0], [0], marker='v', color='cyan', lw=0, markersize=8, label='Reatores (Shunt)'),
                     plt.Line2D([0], [0], marker='>', color='red', lw=0, markersize=8, label='Cargas'),
                     plt.Line2D([0], [0], marker='o', color='green', lw=0, markersize=8, label='Geradores'),
                     plt.Line2D([0], [0], marker='s', color='orange', lw=0, markersize=8, label='Grid Externo'),
@@ -330,12 +339,14 @@ class MainWindow(QMainWindow):
         self.btn_export = QPushButton("Exportar XLSX")
         self.btn_run_pf = QPushButton("▶ Executar Fluxo de Potência")
         self.btn_run_pf.setStyleSheet("background-color: #4CAF50; color: white; font-weight: bold;")
+        self.btn_plot_plotly = QPushButton("📈 Plot Interativo (Plotly)")
         
         controls_layout.addWidget(self.btn_generate_sin45)
         controls_layout.addWidget(self.btn_import)
         controls_layout.addWidget(self.btn_export)
         controls_layout.addStretch()
         controls_layout.addWidget(self.btn_run_pf)
+        controls_layout.addWidget(self.btn_plot_plotly)
         left_layout.addWidget(controls_group)
 
         self.tabs = QTabWidget()
@@ -391,6 +402,7 @@ class AppController:
         self.view.btn_import.clicked.connect(self.import_from_excel)
         self.view.btn_export.clicked.connect(self.export_to_excel)
         self.view.btn_run_pf.clicked.connect(self.run_power_flow)
+        self.view.btn_plot_plotly.clicked.connect(self.plot_interactive)
 
     def run(self):
         sys.exit(self.app.exec())
@@ -431,6 +443,67 @@ class AppController:
                 QMessageBox.information(self.view, "Sucesso", f"Dados exportados com sucesso para:\n{filepath}")
             except Exception as e:
                 QMessageBox.critical(self.view, "Erro de Exportação", str(e))
+
+    def plot_interactive(self):
+        if not (self.model.net and self.model.net.res_bus is not None and not self.model.net.res_bus.empty):
+            QMessageBox.warning(self.view, "Aviso", "É necessário carregar os dados e executar o fluxo de potência primeiro.")
+            return
+
+        try:
+            QMessageBox.information(self.view, "Relatório Interativo", "Gerando relatório e logs...")
+            
+            # --- 1. Definir todos os caminhos de arquivo ---
+            base_dir = os.getcwd()
+            temp_dir = os.path.join(base_dir, "temp_report_data")
+            os.makedirs(temp_dir, exist_ok=True)
+            print("Analisando diretório:", temp_dir)
+
+            net_file = os.path.join(temp_dir, "net.json")
+            data_file = os.path.join(temp_dir, "report_data.xlsx")
+            template_file = os.path.join(base_dir, "template_sin.html")
+            output_file = os.path.join(base_dir, "pandapower_report.html")
+            log_file = os.path.join(base_dir, "logs.txt")
+
+            if not os.path.exists(template_file):
+                QMessageBox.critical(self.view, "Erro Crítico", f"Arquivo de template não encontrado!\nCrie um arquivo chamado 'template_sin.html' na pasta do projeto.")
+                return
+
+            # --- 2. Salvar todos os dados necessários ---
+            pp.to_json(self.model.net, net_file)
+            result_dfs = {
+                'res_bus': self.model.net.res_bus,
+                'res_line': self.model.net.res_line
+            }
+            all_dfs = {**self.model.dataframes, **result_dfs}
+            with pd.ExcelWriter(data_file, engine='openpyxl') as writer:
+                for name, df in all_dfs.items():
+                    if df is not None and not df.empty:
+                        df.to_excel(writer, sheet_name=name, index=False)
+
+            # --- 3. Chamar o script gerador de log ---
+            script_path = os.path.join(os.path.dirname(__file__), "report_generator.py")
+            command = [sys.executable, script_path, net_file, data_file, template_file, output_file, log_file]
+            
+            subprocess.run(command, text=True, encoding='utf-8')
+
+            # --- 4. Ler e exibir o arquivo de log, SEMPRE ---
+            if os.path.exists(log_file):
+                with open(log_file, 'r', encoding='utf-8') as f:
+                    log_contents = f.read()
+                
+                error_dialog = QMessageBox(self.view)
+                error_dialog.setWindowTitle("Log de Geração do Relatório")
+                error_dialog.setText(log_contents)
+                error_dialog.setStyleSheet("QTextEdit{min-width: 800px; min-height: 600px;}")
+                error_dialog.exec()
+
+                if "SUCESSO" in log_contents:
+                    webbrowser.open(f"file://{output_file}")
+            else:
+                QMessageBox.warning(self.view, "Log não encontrado", "O arquivo de log não foi criado, um erro grave ocorreu.")
+
+        except Exception as e:
+            QMessageBox.critical(self.view, "Erro Crítico", f"Ocorreu um erro inesperado no processo: {e}")
 
     def run_power_flow(self):
         try:
