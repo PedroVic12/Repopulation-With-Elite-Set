@@ -136,10 +136,33 @@ class PowerSystemModel:
                 b_siemens = row['B(pu)'] * y_base_siemens
                 c_nf = (b_siemens / (2 * 3.14159 * 60)) * 1e9 if b_siemens > 0 else 0
                 
-                length_km = 1.0
-                pp.create_line_from_parameters(self.net, from_bus=from_bus, to_bus=to_bus, length_km=length_km,
-                                               r_ohm_per_km=r_ohm/length_km, x_ohm_per_km=x_ohm/length_km,
-                                               c_nf_per_km=c_nf/length_km, max_i_ka=0.5)
+                length_km = 1.0 # Comprimento arbitrário pois os parâmetros já estão totais
+                
+                from_vn_kv = self.net.bus.vn_kv.at[from_bus]
+                to_vn_kv = self.net.bus.vn_kv.at[to_bus]
+
+                # Se as tensões das barras forem diferentes, é um transformador
+                if abs(from_vn_kv - to_vn_kv) > 1e-3: # Usar uma tolerância para comparação de float
+                    hv_bus, lv_bus = (from_bus, to_bus) if from_vn_kv > to_vn_kv else (to_bus, from_bus)
+                    
+                    pp.create_transformer_from_parameters(
+                        self.net,
+                        hv_bus=hv_bus,
+                        lv_bus=lv_bus,
+                        sn_mva=s_base_mva,
+                        vn_hv_kv=max(from_vn_kv, to_vn_kv),
+                        vn_lv_kv=min(from_vn_kv, to_vn_kv),
+                        vkr_percent=row['R(pu)'] * 100.0,
+                        vk_percent=row['X(pu)'] * 100.0,
+                        pfe_kw=0,      # Sem dados para perdas no ferro
+                        i0_percent=0,  # Sem dados para corrente de excitação
+                        name=f"Trafo {row['De']}-{row['Para']}"
+                    )
+                else: # Caso contrário, é uma linha de transmissão
+                    pp.create_line_from_parameters(self.net, from_bus=from_bus, to_bus=to_bus, length_km=length_km,
+                                                   r_ohm_per_km=r_ohm/length_km, x_ohm_per_km=x_ohm/length_km,
+                                                   c_nf_per_km=c_nf/length_km, max_i_ka=0.5,
+                                                   name=f"Linha {row['De']}-{row['Para']}")
 
         return self.net
 
@@ -201,7 +224,7 @@ class MetricsWidget(QWidget):
 class NetworkCanvas(FigureCanvas):
     """Widget para exibir o gráfico da rede Matplotlib."""
     def __init__(self, parent=None):
-        self.fig, self.ax = plt.subplots(figsize=(10, 8))
+        self.fig, self.ax = plt.subplots(figsize=(16, 12))
         super().__init__(self.fig)
         self.setParent(parent)
         self.ax.set_title("Diagrama Unifilar da Rede")
@@ -237,6 +260,14 @@ class NetworkCanvas(FigureCanvas):
                     collections.append(plot.create_trafo_collection(net, size=0.15, color='purple'))
                     
                 plot.draw_collections(collections, ax=self.ax)
+
+                # --- MELHORIA: Adicionar números das barras ---
+                if 'bus_geodata' in net and not net.bus_geodata.empty:
+                    for i, bus in net.bus_geodata.iterrows():
+                        self.ax.text(bus.x, bus.y + 0.05, f'{i}',
+                                     fontdict={'size': 8, 'color': 'black', 'weight': 'bold'},
+                                     bbox=dict(boxstyle='round,pad=0.2', fc='yellow', alpha=0.7),
+                                     zorder=20, ha='center', va='bottom')
 
                 # --- MELHORIA: Legenda customizada ---
                 handles = [
