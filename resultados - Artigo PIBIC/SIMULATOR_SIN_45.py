@@ -482,9 +482,10 @@ class AppController:
 
             # --- 3. Chamar o script gerador de log ---
             script_path = os.path.join(os.path.dirname(__file__), "report_generator.py")
-            command = [sys.executable, script_path, net_file, data_file, template_file, output_file, log_file]
+            command = [sys.executable, script_path, net_file, output_file]
             
-            subprocess.run(command, text=True, encoding='utf-8')
+            with open(log_file, 'w', encoding='utf-8') as log_f:
+                result = subprocess.run(command, stdout=log_f, stderr=log_f, text=True, encoding='utf-8')
 
             # --- 4. Ler e exibir o arquivo de log, SEMPRE ---
             if os.path.exists(log_file):
@@ -497,8 +498,11 @@ class AppController:
                 error_dialog.setStyleSheet("QTextEdit{min-width: 800px; min-height: 600px;}")
                 error_dialog.exec()
 
-                if "SUCESSO" in log_contents:
+                # Se o subprocesso falhou, não abre o navegador
+                if result.returncode == 0:
                     webbrowser.open(f"file://{output_file}")
+                else:
+                    QMessageBox.critical(self.view, "Erro no Relatório", "O script gerador de relatório falhou. Verifique o log acima.")
             else:
                 QMessageBox.warning(self.view, "Log não encontrado", "O arquivo de log não foi criado, um erro grave ocorreu.")
 
