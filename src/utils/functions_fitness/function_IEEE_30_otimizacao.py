@@ -123,7 +123,7 @@ def funcao_objetivo_IEEE30(individuo, setupobj, _debug = False):
                 
                 if _debug:
                     print("minha tabela hash:", len(setupobj.tabela_hash))
-                setupobj.tamanho_hash = hash_key
+                #setupobj.tamanho_hash = hash_key
                 
                 #! RZ_01jun2025 - verifica se o cenário já foi calculado na tabela hash
                 if setupobj.tabela_hash[hash_key] < 0.0:

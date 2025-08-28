@@ -344,7 +344,7 @@ if __name__ == "__main__":
         rede_inteligente.salvar_resultados('contingencia')
 
     # --- FIM DA HISTÓRIA: GERAÇÃO DOS 7 GRÁFICOS ---
-    print("\n--- GERANDO GRÁFICOS ---")
+    print("\n--- GERANDO GRÁFICOS PARA O ARTIGO ---")
     
     # Plotando cada gráfico separadamente
     fig1 = plt.figure(figsize=(12, 10))
