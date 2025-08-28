@@ -449,12 +449,12 @@ class ExecutionTab(QWidget):
             self.append_log(f"Erro durante a consolidação: {e}")
             QMessageBox.critical(self, "Erro", f"Falha ao consolidar resultados: {e}")
 
-    def run_dashboard(self):
+    def run_dashboard(self, PORTA=8501):
         try:
             #os.system("ls -l && echo 'Comandos executados com sucesso!'") 
-            os.system(f"streamlit run {DASHBOARD_SCRIPT} --server.port 8501 &")
+            os.system(f"streamlit run {DASHBOARD_SCRIPT} --server.port {PORTA} &")
             #subprocess.Popen(["streamlit", "run", str(DASHBOARD_SCRIPT), "--server.port", "8501"], cwd=BASE_DIR)
-            self.append_log("\nDashboard iniciado em http://localhost:8501")
+            self.append_log(f"\nDashboard iniciado em http://localhost:{PORTA}")
         except Exception as e:
             self.append_log(f"Erro ao iniciar dashboard: {e}")
 

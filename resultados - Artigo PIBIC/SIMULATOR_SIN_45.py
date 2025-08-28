@@ -482,7 +482,7 @@ class AppController:
 
             # --- 3. Chamar o script gerador de log ---
             script_path = os.path.join(os.path.dirname(__file__), "report_generator.py")
-            command = [sys.executable, script_path, net_file, output_file]
+            command = [sys.executable, script_path, net_file, data_file, template_file, output_file, log_file]
             
             with open(log_file, 'w', encoding='utf-8') as log_f:
                 result = subprocess.run(command, stdout=log_f, stderr=log_f, text=True, encoding='utf-8')

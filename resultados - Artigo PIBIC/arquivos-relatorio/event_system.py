@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 """
+---------------------------------------
 Event System (Design Pattern: Observer)
 ---------------------------------------
 
@@ -10,6 +11,7 @@ quando um evento específico ocorre.
 Classes:
 - EventPublisher: A classe da qual os "notificadores" devem herdar. Gerencia uma lista de
   observadores e os notifica sobre novos eventos.
+
 - EventObserver: Uma classe base para os "ouvintes". Qualquer classe que queira receber
   notificações deve herdar desta e implementar o método `update`.
 """
