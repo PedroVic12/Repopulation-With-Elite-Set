@@ -397,7 +397,7 @@ class ExecutionTab(QWidget):
         repetition = (self.current_run_number % self.runs_per_config) + 1
         current_config = self.configurations[config_index]
         
-        self.status_label.setText(f"\nExecutando {self.current_run_number + 1}/{self.total_runs} (Config {config_index + 1}, Rep {repetition})")
+        self.status_label.setText(f"Executando {self.current_run_number + 1}/{self.total_runs} (Config {config_index + 1}, Rep {repetition})")
         self.append_log("-" * 80)
         self.append_log(f"Iniciando Config {config_index + 1}, Repetição {repetition}")
 
