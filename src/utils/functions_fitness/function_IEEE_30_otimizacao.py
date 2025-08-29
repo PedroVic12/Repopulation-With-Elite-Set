@@ -206,7 +206,7 @@ def funcao_objetivo_IEEE30(individuo, _debug=False):
                     rede.hashtablereads += 1
 
                 else:
-                    # Ligar tudo e aplicar desligamentos + contingência
+                    # aplicar desligamentos + contingência + fluxo de potencia
                     rede.religar_todos_os_ramos_agendamento()
                     rede.desligar_elementos_agendamento(estado_ramos)
                     ramo_contingencia = list(contingencia_df.loc[
@@ -237,6 +237,29 @@ def funcao_objetivo_IEEE30(individuo, _debug=False):
     except Exception as e:
         print(f"\n[ERRO] na função objetivo: {e}")
         return float("inf"), 0, 0
+
+params_json = {
+    "NUM_GENERATIONS": 40,
+    "CROSSOVER": 0.95,
+    "MUTACAO": 0.25,
+    "POP_SIZE": 5,
+    "IND_SIZE": 5,
+    "RCE_REPOPULATION_GENERATIONS": 50,
+    "NUM_VAR_DIFERENTES": 1,
+    "PORCENTAGEM": 0.2,
+    "DELTA_MIN": 2,
+    "ARRAY_VAR": [
+        14,
+        15,
+        14,
+        18,
+        15
+    ],
+    "LIMITE_VAR": [
+        0,
+        31
+    ]
+}
     
 
 def simulate_IEEE_30_cenario():
