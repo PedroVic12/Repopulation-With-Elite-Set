@@ -73,6 +73,8 @@ def consolidar_resultados():
                     # Extrair fitness e geração
                     linha_resultado['best_fitness'] = dados.get('best_fitness', 'N/A')
                     linha_resultado['best_gen_idx'] = dados.get('best_gen_idx', 'N/A')
+                    linha_resultado["Funcao_objetivo"] = dados.get("fitness function", 'N/A')
+                    linha_resultado["Tempo_total_execucao"] = dados.get("time", 'N/A')
                     
                     resultados_consolidados.append(linha_resultado)
                     

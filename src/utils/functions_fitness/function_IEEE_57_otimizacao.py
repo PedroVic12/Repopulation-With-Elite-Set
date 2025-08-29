@@ -155,10 +155,6 @@ def funcao_objetivo_IEEE57(individuo, setupobj, _debug = False):
                     # incrementa contador de execuções da função objetivo
                     setupobj.objectiveruns += 1
 
-                    #save hash key in excel
-                    #pd.DataFrame(list(setupobj.tabela_hash.items())).to_excel("hash_table.xlsx", index=False)
-                        
-                        
 
                 #! 12) Retorna o valores calculados de fluxo de potencia na variavel fitness
                 else:

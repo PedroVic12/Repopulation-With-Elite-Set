@@ -51,6 +51,7 @@ class RedeEletricaPandaPower:
     def __init__(self, network_name = "", debug=False , tabela_hash = None, tamanho_hash = 0):
         self.net = self.loading_networks_cases(network_name)
         self.debug = debug
+        
         self.console = Logger()
 
         #metodos
@@ -760,10 +761,12 @@ class RedeEletricaPandaPower:
         Retorna:
             bool: True se o fluxo de carga convergiu, False caso contrário.
         """
+        
+        
         try:
             pp.runpp(self.net, algorithm="nr", numba = True)
             self.log("\nFluxo de potência executado com sucesso!",level = "success")
-            print("\n [DEBUG SIMULATOR]Fluxo de potência executado com sucesso!")
+            #print("\n [DEBUG SIMULATOR]Fluxo de potência executado com sucesso!")
             return True
         except pp.LoadflowNotConverged:
             self.console.log("\nErro: Fluxo de potência não convergiu...", level = "error")

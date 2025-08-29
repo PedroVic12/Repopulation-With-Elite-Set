@@ -24,14 +24,6 @@ def your_fitness_function(ind):
 params: Dict,
 fitness_function: Any,
 tamanho_hash: int = 0
-setupobj = Setup(
-    
-)
-setupobj.tabela_hash = [-1.0] * 3072  # Inicializa a tabela hash com -1.0 (indicando cenários não calculados)
-setupobj.objectiveruns = 0
-setupobj.hashtablereads = 0
-
-
 """
 
 #! Tabela agendamentos em xlsx hardcoded - EXEMPLO CASO IEEE 30 BARRAS
@@ -78,109 +70,7 @@ Returns:
 #2) Atualizando hashtbale com Setup e Class RedeEletricaPandaPower
 #3) Testes de simulação 28/08/2025
 
-def funcao_objetivo_IEEE30(individuo, _debug=False):
-    """
-    Avalia o agendamento de desligamentos e contingências na rede IEEE-30 barras.
-    Agora a tabela hash e os contadores estão dentro de RedeEletricaPandaPower.
-    """
-    try:
-        # 1) Criar rede elétrica IEEE-30 barras
-        rede = RedeEletricaPandaPower("30", debug=False)
 
-        # Inicializar hash table dentro da rede
-        tamanho_hash = hashtablesize()
-        rede.tabela_hash = [-1.0] * tamanho_hash
-        rede.objectiveruns = 0
-        rede.hashtablereads = 0
-
-        # Pesos definidos pelo usuário
-        rede.pesos["tensao"] = {"min": 100, "max": 100}
-        rede.pesos["loading_linhas"] = 100
-        rede.pesos["loading_trafos"] = 100
-
-        # Calcular duração total
-        duracao_total_agendamento = (agendamento_df['inicio'] + agendamento_df['duracao']).max()
-        rede.validar_dados(agendamento_df, contingencia_df)
-
-        # Passar indivíduo como início dos desligamentos
-        agendamento_df["inicio"] = individuo
-
-        # 2) Gerar matriz de cenários
-        matriz_cenarios = rede.avalia_cenarios(
-            horas=duracao_total_agendamento,
-            hora_inicio=agendamento_df['inicio'],
-            duracao=agendamento_df['duracao'],
-            ls=0, le=8,
-            ms=8, me=18,
-            hs=18, he=24
-        )
-        if _debug:
-            print("Matriz Cenários do problema")
-            print(matriz_cenarios)
-
-        violacoes_total = []
-
-        contingencias = contingencia_df['contingencia'].to_list()
-        num_carregamentos = 3
-        num_contingencias = len(contingencias)
-        num_desligamentos = len(agendamento_df)
-
-        # 3) Loop de cenários
-        for cenario in matriz_cenarios:
-            perfil = cenario[0]
-            estado_ramos = cenario[1:]
-
-            # 4) Ajustar carregamento
-            rede.ajustar_cargas(perfil)
-
-            # 5) Loop contingências
-            for contingencia_atual in range(1, num_contingencias + 1):
-
-                # Gera hash key
-                hash_key = rede.hashtableindex(
-                    perfil,
-                    num_carregamentos,
-                    contingencia_atual,
-                    num_contingencias,
-                    estado_ramos
-                )
-
-                # Caso já exista em cache
-                if rede.tabela_hash[hash_key] >= 0.0:
-                    fitness = rede.tabela_hash[hash_key]
-                    rede.hashtablereads += 1
-                    if _debug:
-                        print("Fitness recuperado do hash:", fitness)
-                else:
-                    # Ligar tudo e aplicar desligamentos + contingência
-                    rede.religar_todos_os_ramos_agendamento()
-                    rede.desligar_elementos_agendamento(estado_ramos)
-                    ramo_contingencia = list(contingencia_df.loc[
-                        contingencia_df['contingencia'] == contingencia_atual, ['from', 'to']
-                    ].values[0])
-                    rede.desligar_contingencia(ramo_contingencia)
-
-                    # Executa fluxo
-                    if rede.executar_fluxo_de_potencia():
-                        fitness, _ = rede.calcular_violacoes_fitness()
-                    else:
-                        fitness = rede.pesos.get("demanda", 99)
-
-                    # Salva no hash
-                    rede.tabela_hash[hash_key] = fitness
-                    rede.objectiveruns += 1
-
-                violacoes_total.append(fitness)
-
-        # 6) Calcular fitness final
-        fitness_final = sum(violacoes_total)
-        rede.log(f"\nFitness do agendamento = {fitness_final:.2f}\n", level="success")
-        return fitness_final, rede.objectiveruns, rede.hashtablereads
-
-    except Exception as e:
-        print(f"\n[ERRO] na função objetivo: {e}")
-        return float("inf"), 0, 0
-    
     
 def hashtablesize():
     contingencias = contingencia_df['contingencia'].to_list()
@@ -215,6 +105,140 @@ def get_hash_key_size(individuo):
         print(f"Erro ao calcular o tamanho da hash: {e}. Usando tamanho de fallback.")
         return 3072
 
+def consultaHashTable(rede):
+    """Carrega a hash table salva em Excel (coluna única Fitness)."""
+    if os.path.exists(HASH_TABLE_PATH):
+        try:
+            df = pd.read_excel(HASH_TABLE_PATH)  # Apenas 1 coluna "Fitness"
+            if "Fitness" in df.columns:
+                valores = df["Fitness"].tolist()
+                limite = min(len(valores), len(rede.tabela_hash))
+                rede.tabela_hash[:limite] = valores[:limite]
+                print(f"[INFO] Hash table carregada com {limite} registros ")
+        except Exception as e:
+            print(f"[ERRO] ao carregar hash_table.xlsx: {e}")
+    else:
+        # Se não existir, cria um Excel inicial vazio (preenchido com -1.0)
+        df = pd.DataFrame({"Fitness": rede.tabela_hash})
+        df.to_excel(HASH_TABLE_PATH, index=False)
+        print(f"[INFO] Hash table inicial criada com {len(rede.tabela_hash)}")
+
+
+def exportaHashTable(rede):
+    """Exporta a hash table atualizada para Excel (coluna única Fitness)."""
+    df = pd.DataFrame({"Fitness": rede.tabela_hash})
+    df.to_excel(HASH_TABLE_PATH, index=False)
+    print(f"[INFO] Hash table exportada ({len(rede.tabela_hash)} posições) -> {HASH_TABLE_PATH}")
+
+
+
+def funcao_objetivo_IEEE30(individuo, _debug=False):
+    """
+    Avalia o agendamento de desligamentos e contingências na rede IEEE-30 barras.
+    Agora a tabela hash e os contadores estão dentro de RedeEletricaPandaPower.
+    """
+    try:
+        # 1) Criar rede elétrica IEEE-30 barras
+        rede = RedeEletricaPandaPower("30", debug=False)
+
+        # Inicializar hash table dentro da rede
+        tamanho_hash = hashtablesize()
+        rede.tabela_hash = [-1.0] * tamanho_hash
+        rede.objectiveruns = 0
+        rede.hashtablereads = 0
+        
+        # Importar hash do Excel (cache de execuções anteriores)
+        consultaHashTable(rede)
+
+        # Pesos definidos pelo usuário
+        rede.pesos["tensao"] = {"min": 100, "max": 100}
+        rede.pesos["loading_linhas"] = 100
+        rede.pesos["loading_trafos"] = 100
+
+        # Calcular duração total
+        duracao_total_agendamento = (agendamento_df['inicio'] + agendamento_df['duracao']).max()
+        rede.validar_dados(agendamento_df, contingencia_df)
+
+        # Passar indivíduo como início dos desligamentos
+        agendamento_df["inicio"] = individuo
+
+        # 2) Gerar matriz de cenários
+        matriz_cenarios = rede.avalia_cenarios(
+            horas=duracao_total_agendamento,
+            hora_inicio=agendamento_df['inicio'],
+            duracao=agendamento_df['duracao'],
+            ls=0, le=8,
+            ms=8, me=18,
+            hs=18, he=24
+        )
+
+
+        violacoes_total = []
+
+        contingencias = contingencia_df['contingencia'].to_list()
+        num_carregamentos = 3
+        num_contingencias = len(contingencias)
+        num_desligamentos = len(agendamento_df)
+        
+        # 3) Loop de cenários
+        for cenario in matriz_cenarios:
+            perfil = cenario[0]
+            estado_ramos = cenario[1:]
+
+            # 4) Ajustar carregamento
+            rede.ajustar_cargas(perfil)
+
+            # 5) Loop contingências
+            for contingencia_atual in range(1, num_contingencias + 1):
+
+                # Gera hash key
+                hash_key = rede.hashtableindex(
+                    perfil,
+                    num_carregamentos,
+                    contingencia_atual,
+                    num_contingencias,
+                    estado_ramos
+                )
+
+                # Caso já exista em cache
+                if rede.tabela_hash[hash_key] >= 0.0:
+                    fitness = rede.tabela_hash[hash_key]
+                    rede.hashtablereads += 1
+
+                else:
+                    # Ligar tudo e aplicar desligamentos + contingência
+                    rede.religar_todos_os_ramos_agendamento()
+                    rede.desligar_elementos_agendamento(estado_ramos)
+                    ramo_contingencia = list(contingencia_df.loc[
+                        contingencia_df['contingencia'] == contingencia_atual, ['from', 'to']
+                    ].values[0])
+                    rede.desligar_contingencia(ramo_contingencia)
+
+                    # Executa fluxo
+                    if rede.executar_fluxo_de_potencia():
+                        fitness, _ = rede.calcular_violacoes_fitness()
+                    else:
+                        fitness = rede.pesos.get("demanda", 99)
+
+                    # Salva no hash
+                    rede.tabela_hash[hash_key] = fitness
+                    rede.objectiveruns += 1
+
+                violacoes_total.append(fitness)
+
+        # 6) Calcular fitness final
+        #print(f"Número de leituras na tabela hash: {rede.hashtablereads}")
+        #print(f"Número total de calculos de Fluxo de Potencia: {rede.objectiveruns}")
+        fitness_final = sum(violacoes_total)
+        exportaHashTable(rede)
+        rede.log(f"\nFitness do agendamento = {fitness_final:.2f}\n", level="success")
+        return fitness_final 
+
+    except Exception as e:
+        print(f"\n[ERRO] na função objetivo: {e}")
+        return float("inf"), 0, 0
+    
+
 def simulate_IEEE_30_cenario():
 
     fitness = funcao_objetivo_IEEE30(
@@ -224,8 +248,14 @@ def simulate_IEEE_30_cenario():
         individuo=[15,15,10,21,16,13,10,14,17,18],
         _debug = False
     )
-
-
+    
     tabela_hash_size = hashtablesize()
-    return f"Fitness: {fitness}\nTamanho da tabela hash: {tabela_hash_size}"
+    print(f"Fitness: {fitness}\nTamanho da tabela hash: {tabela_hash_size}")
+
+    
+    return fitness
+
+
+#simulate_IEEE_30_cenario()
+
     

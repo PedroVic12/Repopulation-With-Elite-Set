@@ -196,7 +196,8 @@ def run_framework_many_executions(function_bechmarking=False):
                 hash_df.to_excel(HASH_TABLE_PATH, index=False)
                 print(f"Tabela hash INICIAL com {len(setup.tabela_hash)} posições não existia e foi criada! - PVRV")
 
-        consultaHashTable()
+        #!PVRV - Retirando e colocando no inicio de cada funcao objetivo
+        #consultaHashTable()
 
         for exec_num in range(1, repeticoes + 1):
             print(f"\n--- Iniciando execução {exec_num}/{repeticoes} ---")
@@ -273,7 +274,6 @@ def run_framework_many_executions(function_bechmarking=False):
             try:
                 with open(output_path, 'w', encoding='utf-8') as f:
                     json.dump(result, f, indent=4, ensure_ascii=False)
-                #print(f"Resultado salvo em: {output_path}")
             except Exception as e:
                 print(f"Erro ao salvar resultado para config {config_num}, exec {exec_num}: {e}")
             
