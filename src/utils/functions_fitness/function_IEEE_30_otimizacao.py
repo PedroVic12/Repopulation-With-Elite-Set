@@ -114,21 +114,21 @@ def consultaHashTable(rede):
                 valores = df["Fitness"].tolist()
                 limite = min(len(valores), len(rede.tabela_hash))
                 rede.tabela_hash[:limite] = valores[:limite]
-                print(f"[INFO] Hash table carregada com {limite} registros ")
+                #print(f"[INFO] Hash table carregada com {limite} registros ")
         except Exception as e:
             print(f"[ERRO] ao carregar hash_table.xlsx: {e}")
     else:
         # Se não existir, cria um Excel inicial vazio (preenchido com -1.0)
         df = pd.DataFrame({"Fitness": rede.tabela_hash})
         df.to_excel(HASH_TABLE_PATH, index=False)
-        print(f"[INFO] Hash table inicial criada com {len(rede.tabela_hash)}")
+        print(f"[INFO] Hash table INICIAL criada com {len(rede.tabela_hash)}")
 
 
 def exportaHashTable(rede):
     """Exporta a hash table atualizada para Excel (coluna única Fitness)."""
     df = pd.DataFrame({"Fitness": rede.tabela_hash})
     df.to_excel(HASH_TABLE_PATH, index=False)
-    print(f"[INFO] Hash table exportada ({len(rede.tabela_hash)} posições) -> {HASH_TABLE_PATH}")
+    #print(f"[INFO] Hash table exportada ({len(rede.tabela_hash)} posições) -> {HASH_TABLE_PATH}")
 
 
 

@@ -18,6 +18,8 @@ from utils.functions_fitness.function_IEEE_118_otimizacao import funcao_objetivo
 from utils.functions_fitness.function_IEEE_30_otimizacao import funcao_objetivo_IEEE30, HASH_TABLE_PATH, hashtablesize
 from utils.functions_fitness.function_IEEE_57_otimizacao import funcao_objetivo_IEEE57, HASH_TABLE_PATH
 
+from database_controller import run_consolidar_resultados
+
 # Bibliotecas padrão
 import json
 import pathlib
@@ -25,7 +27,6 @@ import pandas as pd
 import numpy as np
 import os
 from datetime import datetime
-import importlib
 
 
 
@@ -287,29 +288,12 @@ def run_framework_many_executions(function_bechmarking=False):
     try:
         import subprocess
         import sys
-        def run_sript_consolidar_resultados():
-            # Caminho para o script de consolidação
-            consolidar_script = BASE_DIR.parent / "consolidar_resultados.py"
-            
-            if consolidar_script.exists():
-                print(f"Executando consolidação: {consolidar_script}")
-                result = subprocess.run([sys.executable, str(consolidar_script)], 
-                                        capture_output=True, text=True, cwd=str(BASE_DIR.parent))
-                
-                if result.returncode == 0:
-                    print(" Consolidação executada com sucesso!")
-                    if result.stdout:
-                        print("Saída da consolidação:\n")
-                        print(result.stdout)
-                else:
-                    print(f" Erro na consolidação: {result.stderr}")
-            else:
-                print(f" Script de consolidação não encontrado em: {consolidar_script}")
-        run_sript_consolidar_resultados()
+        
+        # rodar uma função em subprocesso
+        run_consolidar_resultados()
             
     except Exception as e:
         print(f" Erro ao executar consolidação: {e}")
-        print("Execute manualmente: python3 consolidar_resultados.py")
 
 
 if __name__ == "__main__":

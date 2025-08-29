@@ -51,8 +51,13 @@ def consolidar_resultados(output_dir: Path):
                     for i, var in enumerate(best_vars):
                         linha_resultado[f'best_var_{i+1}'] = var
 
+                    # Extrair fitness e geração
                     linha_resultado['best_fitness'] = dados.get('best_fitness', 'N/A')
                     linha_resultado['best_gen_idx'] = dados.get('best_gen_idx', 'N/A')
+                    linha_resultado["Funcao_objetivo"] = dados.get("fitness function", 'N/A')
+                    linha_resultado["Tempo_total_execucao"] = dados.get("time", 'N/A')
+                    
+                    
                     resultados_consolidados.append(linha_resultado)
                 except Exception as e:
                     print(f"    Erro ao processar {resultado}: {e}")
@@ -573,7 +578,14 @@ class ConsolidationManager:
         return info
 
 
-if __name__ == "__main__":
+def run_consolidar_resultados():
+    base_directory = Path(__file__).resolve().parent
+    controller = DatabaseController(base_dir=base_directory)
+
+    controller.consolidate_results()
+
+
+def run_controller():
     base_directory = Path(__file__).resolve().parent
     controller = DatabaseController(base_dir=base_directory)
     

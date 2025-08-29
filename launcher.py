@@ -4,7 +4,6 @@ import os
 import json
 import subprocess
 import time
-import shutil
 from pathlib import Path
 from itertools import product
 
@@ -18,9 +17,10 @@ from PySide6.QtWidgets import (
 from PySide6.QtCore import Qt, QThread, Signal, QTimer
 from PySide6.QtGui import QFont, QIcon, QIntValidator, QDoubleValidator, QColor
 
+
 # --- IMPORTS DO PROJETO ---
 from style import STYLESHEET
-from database_controller import DatabaseController
+from src.database_controller import DatabaseController
 
 # --- CONFIGURAÇÃO ---
 BASE_DIR = Path(__file__).parent
