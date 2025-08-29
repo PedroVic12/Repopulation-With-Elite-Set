@@ -145,23 +145,7 @@ def run_framework_many_executions(function_bechmarking=False):
     os.makedirs(main_output_dir, exist_ok=True)
     #print(f"\nSalvando resultados em: {main_output_dir}")
 
-    def get_hash_table_size(parameters):
-        """Calcula o tamanho da tabela hash com base nos parâmetros (IND_SIZE)."""
-        try:
-            num_desligamentos = parameters['IND_SIZE']
-            # Valores baseados nas funções de fitness existentes (IEEE14 e IEEE30)
-            num_carregamentos = 3
-            num_contingencias = 3 
-            
-            size = num_contingencias * num_carregamentos * (2**num_desligamentos)
-            print(f"Tamanho da tabela hash calculado: {size} (baseado em IND_SIZE={num_desligamentos})")
-            return size
-        except KeyError:
-            print("Aviso: 'IND_SIZE' não encontrado nos parâmetros. Usando tamanho de hash de fallback.")
-            return 3072 # Fallback size
-        except Exception as e:
-            print(f"Erro ao calcular o tamanho da hash: {e}. Usando tamanho de fallback.")
-            return 3072
+
 
     config_num = 1
     for combo in combinations:
@@ -183,7 +167,7 @@ def run_framework_many_executions(function_bechmarking=False):
         setup = Setup(
             params,
             fitness_function=fitness_func,
-            tamanho_hash=get_hash_table_size(params)
+            tamanho_hash=hashtablesize()
         )
 
         print("\nClasse Setup iniciada para a configuração.")
@@ -192,22 +176,25 @@ def run_framework_many_executions(function_bechmarking=False):
             # Consulta hash_table se existir (sub rotina)
             if os.path.exists(HASH_TABLE_PATH):
                 try:
+                    
                     # Read from Excel, using the first column as the index (our hash key)
                     hash_excel = pd.read_excel(HASH_TABLE_PATH, index_col=0)
                     if not hash_excel.empty:
+                        
                         # Update the list-based hash table from the loaded dictionary
                         for key, value in hash_excel['Fitness'].items():
+                            
                             if isinstance(key, int) and key < len(setup.tabela_hash):
                                 setup.tabela_hash[key] = value
+                                
                         print(f"Tabela hash carregada e atualizada com {len(hash_excel)} registros!")
                 except Exception as e:
                     print(f"Erro ao carregar hash_table.xlsx: {e}")
             else:
                 # If the file doesn't exist, create it from the initial hash table
                 hash_df = pd.DataFrame(data=setup.tabela_hash, columns=['Fitness'])
-                hash_df.index.name = 'HashKey'
-                hash_df.to_excel(HASH_TABLE_PATH, index=True)
-                print(f"Tabela hash com {len(setup.tabela_hash)} posições não existia e foi criada!")
+                hash_df.to_excel(HASH_TABLE_PATH, index=False)
+                print(f"Tabela hash INICIAL com {len(setup.tabela_hash)} posições não existia e foi criada! - PVRV")
 
         consultaHashTable()
 
@@ -217,7 +204,7 @@ def run_framework_many_executions(function_bechmarking=False):
 
             #! 6) Executa algoritmo
             alg = AlgoritimoEvolutivoRCE(setup, DEBUG=DEBUG_MODE)
-            print("Algoritmo Evolutivo iniciado.")
+            print(f"Algoritmo Evolutivo iniciado. DEBUG MODE = {DEBUG_MODE}")
             pop_with_repopulation, logbook_with_repopulation, best_individual, all_individual_values = alg.run(RCE=True)
             best_variables = list(best_individual)
 
@@ -232,16 +219,16 @@ def run_framework_many_executions(function_bechmarking=False):
             )
 
 
-
-            # Convert the list to a DataFrame, preserving the index as the hash key
-            hash_df1 = pd.DataFrame(data=setup.tabela_hash, columns=['Fitness'])
-            #hash_df1.index.name = 'HashKey'
-            hash_df1.to_excel(HASH_TABLE_PATH, index=True)
+    # ! RETIRANDO PARA VER SE PARA DE ACUMULAR A LEITURA DA HASH TABLE A CADA SOLUCAO NOVA
+            #! salvando a nova tabela hash
+            #hash_df1 = pd.DataFrame(data=setup.tabela_hash, columns=['Fitness'])
+            #hash_df1.to_excel(HASH_TABLE_PATH, index=False)
 
             # Verificação de velocidade com hashtable
             print(f"\nObjective function runs : {setup.objectiveruns}")
             print(f"Hash table reads : {setup.hashtablereads}")
 
+            # Tempo calculado
             end = datetime.now()
             elapsed = end - start
             formatted_time = format_elapsed_time(elapsed)
@@ -278,7 +265,8 @@ def run_framework_many_executions(function_bechmarking=False):
                 "best_variables": best_variables,
                 "best_fitness": best_fitness,
                 "best_gen_idx": best_solution_generation,
-                "time":formatted_time
+                "time":formatted_time,  
+                "fitness function": fitness_func.__name__
             }
             
             output_path = config_dir / f"config_{config_num}_exec_{exec_num}_results.json"

@@ -48,10 +48,9 @@ class Logger:
 
 
 class RedeEletricaPandaPower:
-    def __init__(self, network_name = None, debug=False):
+    def __init__(self, network_name = "", debug=False , tabela_hash = None, tamanho_hash = 0):
         self.net = self.loading_networks_cases(network_name)
         self.debug = debug
-        self.nome_rede = ""
         self.console = Logger()
 
         #metodos
@@ -66,12 +65,23 @@ class RedeEletricaPandaPower:
         }
         self.agendamento = pd.DataFrame()
         self.contingencia= pd.DataFrame()
+        
+        
+        ## UPGRADE HASH TABLE
+        #! Inicializa a HashTable na instancia do Objeto Setup!
+        if tamanho_hash > 0:
+            self.tabela_hash = [-1] * tamanho_hash
+        else:
+            self.tabela_hash = None
+            
+        self.objectiveruns = 0
+        self.hashtablereads = 0
 
     def loading_networks_cases(self, network_name = "14"):
         #!todo -> Switch para as redes disponiveis na lib
         match network_name:
             case "14":
-                self.nome_rede = "Case 14"
+                self.network_name = "Case 14"
                 
                 network = pw.case14()
                 
@@ -79,34 +89,34 @@ class RedeEletricaPandaPower:
 
             case "30":
                 #RZ não confundir com case30
-                self.nome_rede = "Case 30"
+                self.network_name = "Case 30"
 
                 network = pw.case_ieee30()
 
             case "57":
                 network = pw.case57()
                 
-                self.nome_rede = "Case 57"
+                self.network_name = "Case 57"
 
 
             case "118":
                 network = pw.case118()
-                self.nome_rede ="Case 118"
+                self.network_name ="Case 118"
                 
 
 
             case "nova":
                 network = pw.create_empty_network()
-                nome_rede = input("Digite o nome da sua rede que voce quer simular")
-                if nome_rede != "":
-                    self.nome_rede = "Nova Rede (desconheçida)"
+                network_name = input("Digite o nome da sua rede que voce quer simular")
+                if network_name != "":
+                    self.network_name = "Nova Rede (desconheçida)"
                 else:
-                    self.nome_rede = nome_rede
+                    self.network_name = network_name
 
 
             case _:
                 print("Rede não encontrada, forneça o numero como string como: IEEE 14 = '14'")
-                print(f"Rede '{network_name}' não reconhecida. Usando 'case14'.")
+                print(f"Rede '{network_name}' não reconhecida. Usando 'IEEE case14' para demosntração...")
                 network = pw.case14()
                 #network = None
 
@@ -380,7 +390,7 @@ class RedeEletricaPandaPower:
     def plot_potencia_ativa_reativa(self):
         figs = []
         net = self.net
-        output_file = f"./potencia_caso_{self.nome_rede}.html"
+        output_file = f"./potencia_caso_{self.network_name}.html"
         
         #fig_diagrama = self.plot_diagrama_cenario()
         figs.append(pf_res_plotly(net))
@@ -424,7 +434,7 @@ class RedeEletricaPandaPower:
             <html>
                 <head><title>Relatório Elétrico</title></head>
                 <body>
-                    <h1>Cáculo de Potencia da Rede - net.nome_rede </h1>
+                    <h1>Cáculo de Potencia da Rede - {self.network_name} </h1>
                     {html_parts}
                 </body>
             </html>
@@ -492,7 +502,7 @@ class RedeEletricaPandaPower:
             <html>
                 <head><title>Relatório Elétrico</title></head>
                 <body>
-                    <h1>Relatório de Resultados Elétricos - {self.nome_rede} </h1>
+                    <h1>Relatório de Resultados Elétricos - {self.network_name} </h1>
                     {html_parts}
                 </body>
             </html>
@@ -751,13 +761,14 @@ class RedeEletricaPandaPower:
             bool: True se o fluxo de carga convergiu, False caso contrário.
         """
         try:
-            pp.runpp(self.net, algorithm="nr", numba = fast)
+            pp.runpp(self.net, algorithm="nr", numba = True)
             self.log("\nFluxo de potência executado com sucesso!",level = "success")
+            print("\n [DEBUG SIMULATOR]Fluxo de potência executado com sucesso!")
             return True
         except pp.LoadflowNotConverged:
             self.console.log("\nErro: Fluxo de potência não convergiu...", level = "error")
             Pdem = 99
-            print("Penalidade de não convergência do fluxo de potência aplicada:", Pdem)
+            print(f"\nATENÇÃO: CASO NAO CONVERGENTE! Penalidade de não convergência do fluxo de potência aplicada: {Pdem}\n")
             self.calcular_violacoes_fitness()
             return False
 
@@ -1040,24 +1051,25 @@ class RedeEletricaPandaPower:
     
 def main_rede_eletrica(simulate = False):
     print("iniciando a simulação de Rede Eleticas...")
-    CASO = "14"  # Exemplo de caso, pode ser alterado para outros casos como "30", "57", etc.
-    network_modelada = RedeEletricaPandaPower(CASO)
-    #network_modelada = network_modelada.loading_networks_cases(CASO)
     
+    CASO = "14"  # Exemplo de caso, pode ser alterado para outros casos como "30", "57", etc.
+    
+    network_modelada = RedeEletricaPandaPower(CASO)
+        
     
     if simulate:
-        print(f"[debug] da classe Model RedeEletricaPandapower =  Simulação {network_modelada.nome_rede} iniciada")
-        #network_modelada.ajustar_cargas(perfil = 2)  # Ajusta para o perfil médio (IEEE 14)
+        print(f"[debug] da classe Model RedeEletricaPandapower =  Simulação {network_modelada.network_name} iniciada")
+        network_modelada.ajustar_cargas(perfil = 2)  # Ajusta para o perfil médio (IEEE 14)
         network_modelada.executar_fluxo_de_potencia(fast = True)
         #network.show_status(debug = True)
         #network.imprimir_resultados() 
         network_modelada.plot_power_data()
         network_modelada.plot_potencia_ativa_reativa()
-        network_modelada.plot_all_results_to_html(output_file="./relatorio_eletrico_{network_modelada.nome_rede}.html")
+        network_modelada.plot_all_results_to_html(output_file=f"./relatorio_eletrico_{network_modelada.network_name}.html")
             #network_modelada.simulate_network_functional()
 
     
-main_rede_eletrica()
+#main_rede_eletrica()
 
 
 

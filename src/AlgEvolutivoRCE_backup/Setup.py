@@ -84,7 +84,6 @@ class Setup:
         self.porcentagem = params["PORCENTAGEM"]
         self.delta = params["DELTA_MIN"]
         self.rede = None
-        self.rede = None
 
         #!Criando individuo pelo deap com seus atributos
         # Create FitnessMin and Individual only if they haven't been created before
@@ -283,31 +282,4 @@ class Setup:
             "evaluations": self.evaluations,
             "NUM_REPOPULATION": self.num_repopulation,
         }
-
-    def rastrigin(self, individual):
-        self.evaluations += 1
-        rastrigin = 10 * self.SIZE_INDIVIDUAL
-
-        for i in range(self.SIZE_INDIVIDUAL):
-            rastrigin += individual[i] * individual[i] - 10 * (
-                math.cos(2 * np.pi * individual[i])
-            )
-        return rastrigin
-
-    def rastrigin_decisionVariables(self, individual ):
-        self.evaluations += 1
-        rastrigin = 10 * len(individual)
-
-        for i in range(len(individual)):
-            rastrigin += individual[i] * individual[i] - 10 * (
-                math.cos(2 * np.pi * individual[i])
-            )
-        return rastrigin
-
-    def rosenbrock(self, x):
-
-        var = np.array(x)
-
-        return np.sum(100 * (var[1:] - var[:-1] ** 2) ** 2 + (1 - var[:-1]) ** 2)
-
 
