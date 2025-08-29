@@ -28,13 +28,15 @@ SRC_DIR = BASE_DIR / "src"
 RUN_FRAMEWORK_SCRIPT = SRC_DIR / "run.py"
 DASHBOARD_SCRIPT = SRC_DIR / "DashboardApp" / "dashboard_RCE_APP.py"
 
+print(SRC_DIR)
+
 # Parâmetros que podem variar via options.json (arrays)
 VARYING_KEYS = {"MUTACAO", "CROSSOVER", "NUM_GENERATIONS", "POP_SIZE"}
 
 class ConfigManager:
     """Gerencia a lógica de configuração, usando o DatabaseController para I/O."""
     def __init__(self):
-        self.db_controller = DatabaseController(BASE_DIR)
+        self.db_controller = DatabaseController(SRC_DIR)
         self.params = self.db_controller.get_params()
         self.options = self.db_controller.get_options()
         self.clean_options()
