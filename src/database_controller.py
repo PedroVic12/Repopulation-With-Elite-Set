@@ -54,7 +54,7 @@ def consolidar_resultados(output_dir: Path):
                     # Extrair fitness e geração
                     linha_resultado['best_fitness'] = dados.get('best_fitness', 'N/A')
                     linha_resultado['best_gen_idx'] = dados.get('best_gen_idx', 'N/A')
-                    linha_resultado["Funcao_objetivo"] = dados.get("fitness function", 'N/A')
+                    linha_resultado["Funcao_objetivo"] = dados.get("fitness_function", 'N/A')
                     linha_resultado["Tempo_total_execucao"] = dados.get("time", 'N/A')
                     
                     
@@ -124,7 +124,7 @@ class DatabaseController:
         else:
             self.base_dir = base_dir
             
-        self.src_dir = self.base_dir / "src"
+        self.src_dir = self.base_dir 
         self.output_dir = self.src_dir / "output"
         self.params_file = self.src_dir / "params.json"
         self.options_file = self.src_dir / "options.json"
@@ -363,7 +363,7 @@ class ConsolidationManager:
         else:
             self.base_dir = base_dir
             
-        self.src_dir = self.base_dir / "src"
+        self.src_dir = self.base_dir 
         self.output_dir = self.src_dir / "output"
         self.consolidated_results_file = self.output_dir / "resultados_consolidados.xlsx"
         
@@ -583,7 +583,7 @@ def run_consolidar_resultados():
     controller = DatabaseController(base_dir=base_directory)
 
     controller.consolidate_results()
-
+run_consolidar_resultados()
 
 def run_controller():
     base_directory = Path(__file__).resolve().parent
