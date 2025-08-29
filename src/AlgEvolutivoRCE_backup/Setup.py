@@ -178,6 +178,7 @@ class Setup:
 
         # Store the original fitness function
         self.funcao_objetivo = fitness_function
+        
         # Use the original function if provided, otherwise use rastrigin
         self.__fitness_function = fitness_function if fitness_function is not None else self.rastrigin
 

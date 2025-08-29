@@ -4,7 +4,6 @@ import os
 import json
 import subprocess
 import time
-import shutil
 from pathlib import Path
 from itertools import product
 
@@ -18,9 +17,10 @@ from PySide6.QtWidgets import (
 from PySide6.QtCore import Qt, QThread, Signal, QTimer
 from PySide6.QtGui import QFont, QIcon, QIntValidator, QDoubleValidator, QColor
 
+
 # --- IMPORTS DO PROJETO ---
 from style import STYLESHEET
-from database_controller import DatabaseController
+from src.database_controller import DatabaseController
 
 # --- CONFIGURAÇÃO ---
 BASE_DIR = Path(__file__).parent
@@ -28,13 +28,14 @@ SRC_DIR = BASE_DIR / "src"
 RUN_FRAMEWORK_SCRIPT = SRC_DIR / "run.py"
 DASHBOARD_SCRIPT = SRC_DIR / "DashboardApp" / "dashboard_RCE_APP.py"
 
+
 # Parâmetros que podem variar via options.json (arrays)
 VARYING_KEYS = {"MUTACAO", "CROSSOVER", "NUM_GENERATIONS", "POP_SIZE"}
 
 class ConfigManager:
     """Gerencia a lógica de configuração, usando o DatabaseController para I/O."""
     def __init__(self):
-        self.db_controller = DatabaseController(BASE_DIR)
+        self.db_controller = DatabaseController(SRC_DIR)
         self.params = self.db_controller.get_params()
         self.options = self.db_controller.get_options()
         self.clean_options()
@@ -122,10 +123,10 @@ class ConfigTab(QWidget):
         ag_layout.setHorizontalSpacing(16)
         ag_layout.setVerticalSpacing(16)
         params_to_render = {
-            "MUTACAO": self.config_manager.params.get("MUTACAO", 0.1),
-            "CROSSOVER": self.config_manager.params.get("CROSSOVER", 0.8),
-            "NUM_GENERATIONS": self.config_manager.params.get("NUM_GENERATIONS", 100),
-            "POP_SIZE": self.config_manager.params.get("POP_SIZE", 50),
+            "MUTAÇÃO": self.config_manager.params.get("MUTACAO", 0.1),
+            "CRUZAMENTO": self.config_manager.params.get("CROSSOVER", 0.8),
+            "NÚMERO DE GERAÇÕES": self.config_manager.params.get("NUM_GENERATIONS", 100),
+            "TAMANHO DA POPULAÇÃO": self.config_manager.params.get("POP_SIZE", 50),
         }
         row, col = 0, 0
         for name, default_val in params_to_render.items():
@@ -245,6 +246,9 @@ class ConfigTab(QWidget):
 
 class ParamsAGTab(QWidget):
     """Aba para editar todos os parâmetros em tabela (UI Original mantida)."""
+    # Parâmetros gerenciados pela outra aba não são mostrados aqui
+    EXCLUDED_PARAMS = {"MUTACAO", "CROSSOVER", "NUM_GENERATIONS", "POP_SIZE"}
+
     def __init__(self, config_manager: 'ConfigManager'):
         super().__init__()
         self.config_manager = config_manager
@@ -270,48 +274,71 @@ class ParamsAGTab(QWidget):
         layout.addLayout(buttons_layout)
 
     def reload(self):
-        params = self.config_manager.db_controller.get_params()
-        self.table.setRowCount(len(params))
-        for r, (key, value) in enumerate(params.items()):
+        """Recarrega os parâmetros do `params.json`, excluindo os gerenciados em outra aba."""
+        self.table.clearContents()
+        
+        all_params = self.config_manager.db_controller.get_params()
+        params_to_show = {
+            k: v for k, v in all_params.items() if k not in self.EXCLUDED_PARAMS
+        }
+        
+        self.table.setRowCount(len(params_to_show))
+        for r, (key, value) in enumerate(params_to_show.items()):
             key_item = QTableWidgetItem(key)
             key_item.setFlags(key_item.flags() & ~Qt.ItemIsEditable)
             self.table.setItem(r, 0, key_item)
-            self.table.setItem(r, 1, QTableWidgetItem(str(value)))
+            
+            # Converte listas e dicionários para uma string JSON para exibição
+            if isinstance(value, (list, dict)):
+                display_value = json.dumps(value)
+            else:
+                display_value = str(value)
+            self.table.setItem(r, 1, QTableWidgetItem(display_value))
 
     def save(self):
-        params = {}
+        """Salva os parâmetros da tabela, preservando os que não são mostrados."""
+        # Carrega o estado atual do arquivo para não sobrescrever parâmetros ocultos
+        params_to_save = self.config_manager.db_controller.get_params()
+
+        # Atualiza com os valores da tabela
         for r in range(self.table.rowCount()):
             key = self.table.item(r, 0).text()
-            value_str = self.table.item(r, 1).text()
-            try:
-                # Tenta converter para int, float, ou mantém como string
-                if '.' in value_str:
-                    params[key] = float(value_str)
-                else:
-                    params[key] = int(value_str)
-            except (ValueError, TypeError):
-                # Lida com listas e outras strings
-                if value_str.startswith('[') and value_str.endswith(']'):
+            value_str = self.table.item(r, 1).text().strip()
+            
+            # Tenta converter para o tipo de dado correto
+            # 1. JSON (listas/dicionários)
+            if (value_str.startswith('[') and value_str.endswith(']')) or \
+               (value_str.startswith('{') and value_str.endswith('}')):
+                try:
+                    value = json.loads(value_str)
+                except json.JSONDecodeError:
+                    value = value_str # Mantém como string se o JSON for inválido
+            else:
+                # 2. Números (int, depois float)
+                try:
+                    value = int(value_str)
+                except ValueError:
                     try:
-                        params[key] = json.loads(value_str)
-                    except json.JSONDecodeError:
-                        params[key] = value_str # Mantém como string se não for JSON válido
-                else:
-                    params[key] = value_str
-        
-        # --- Validação: ind_size vs array_var ---
-        ind_size = params.get("ind_size")
-        array_var = params.get("array_var")
+                        value = float(value_str)
+                    except ValueError:
+                        value = value_str # Se tudo falhar, é uma string
 
-        # Garante que a validação só ocorra se ambos os valores existirem e forem dos tipos corretos
+            params_to_save[key] = value
+        
+        # --- Validação: ind_size vs array_var (código do usuário mantido) ---
+        ind_size = params_to_save.get("ind_size")
+        array_var = params_to_save.get("array_var")
+
         if isinstance(ind_size, int) and isinstance(array_var, list):
             if len(array_var) != ind_size:
                 msg = f"Atenção: O tamanho do 'array_var' ({len(array_var)}) é diferente do 'ind_size' ({ind_size}).\n\nO salvamento prosseguirá, mas isso pode causar erros na execução."
                 QMessageBox.warning(self, "Validação de Parâmetros", msg)
         # --- Fim da Validação ---
 
-        if self.config_manager.db_controller.save_params(params):
+        if self.config_manager.db_controller.save_params(params_to_save):
             QMessageBox.information(self, "Sucesso", "Parâmetros salvos.")
+            # Recarrega a tabela para mostrar os valores formatados corretamente
+            self.reload() 
         else:
             QMessageBox.critical(self, "Erro", "Falha ao salvar parâmetros.")
 
@@ -397,7 +424,7 @@ class ExecutionTab(QWidget):
         repetition = (self.current_run_number % self.runs_per_config) + 1
         current_config = self.configurations[config_index]
         
-        self.status_label.setText(f"Executando {self.current_run_number + 1}/{self.total_runs} (Config {config_index + 1}, Rep {repetition})")
+        self.status_label.setText(f"\nExecutando {self.current_run_number + 1}/{self.total_runs} (Config {config_index + 1}, Rep {repetition})")
         self.append_log("-" * 80)
         self.append_log(f"Iniciando Config {config_index + 1}, Repetição {repetition}")
 
@@ -449,12 +476,12 @@ class ExecutionTab(QWidget):
             self.append_log(f"Erro durante a consolidação: {e}")
             QMessageBox.critical(self, "Erro", f"Falha ao consolidar resultados: {e}")
 
-    def run_dashboard(self):
+    def run_dashboard(self, PORTA=8501):
         try:
             #os.system("ls -l && echo 'Comandos executados com sucesso!'") 
-            os.system(f"streamlit run {DASHBOARD_SCRIPT} --server.port 8501 &")
+            os.system(f"streamlit run {DASHBOARD_SCRIPT} --server.port {PORTA} &")
             #subprocess.Popen(["streamlit", "run", str(DASHBOARD_SCRIPT), "--server.port", "8501"], cwd=BASE_DIR)
-            self.append_log("\nDashboard iniciado em http://localhost:8501")
+            self.append_log(f"\nDashboard iniciado em http://localhost:{PORTA}")
         except Exception as e:
             self.append_log(f"Erro ao iniciar dashboard: {e}")
 
@@ -502,8 +529,8 @@ class LauncherWindow(QMainWindow):
         self.execution_tab = ExecutionTab(self.config_manager)
         
         tab_widget.addTab(self.config_tab, "⚙️ Configuração e Execução")
-        tab_widget.addTab(self.params_ag_tab, "Parametros AG")
-        tab_widget.addTab(self.execution_tab, "📊 Dashboard e Logs")
+        tab_widget.addTab(self.params_ag_tab, "🧬 Parametros AG - RCE")
+        tab_widget.addTab(self.execution_tab, "📈 Dashboard e Logs")
         
         layout.addWidget(tab_widget)
 

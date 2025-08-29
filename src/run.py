@@ -73,7 +73,7 @@ MSG_TERMINAL ="""
 |  |     |  |__   `---|  |----` |/    |   (----`   |  |_)  |    |  |  |  | |  ,----'|  '  /  |  | 
 |  |     |   __|      |  |             \   \       |      /     |  |  |  | |  |     |    <   |  | 
 |  `----.|  |____     |  |         .----)   |      |  |\  \----.|  `--'  | |  `----.|  .  \  |__| 
-|_______||_______|    |__|         |_______/       | _| `._____| \______/   \______||__|\__\ (__) 
+|_______||_______|    |__|         |_______/       | _| `._____| \______/   \______||__|'__\ (__) 
                                                                                                   
 """
 print(f"\n{MSG_TERMINAL}\n")
@@ -171,7 +171,7 @@ def run_framework_many_executions(function_bechmarking=False):
             tamanho_hash=hashtablesize()
         )
 
-        print("\nClasse Setup iniciada para a configuração.")
+        print("Classe Setup iniciada para a configuração.")
 
         def consultaHashTable():
             # Consulta hash_table se existir (sub rotina)
@@ -198,7 +198,7 @@ def run_framework_many_executions(function_bechmarking=False):
                 print(f"Tabela hash INICIAL com {len(setup.tabela_hash)} posições não existia e foi criada! - PVRV")
 
         #!PVRV - Retirando e colocando no inicio de cada funcao objetivo
-        #consultaHashTable()
+        consultaHashTable()
 
         for exec_num in range(1, repeticoes + 1):
             print(f"\n--- Iniciando execução {exec_num}/{repeticoes} ---")
@@ -220,21 +220,15 @@ def run_framework_many_executions(function_bechmarking=False):
                 execution_num=exec_num,
             )
 
-
-    # ! RETIRANDO PARA VER SE PARA DE ACUMULAR A LEITURA DA HASH TABLE A CADA SOLUCAO NOVA
-            #! salvando a nova tabela hash
-            #hash_df1 = pd.DataFrame(data=setup.tabela_hash, columns=['Fitness'])
-            #hash_df1.to_excel(HASH_TABLE_PATH, index=False)
-
-            # Verificação de velocidade com hashtable
-            #print(f"\nObjective function runs : {setup.objectiveruns}")
-            #print(f"Hash table reads : {setup.hashtablereads}")
-
             # Tempo calculado
             end = datetime.now()
             elapsed = end - start
             formatted_time = format_elapsed_time(elapsed)
             print(f"\nElapsed Time in execution : {formatted_time}\n")
+            
+            # Exibe os contadores totais para a configuração
+            print(f"Objective functions runs: {setup.objectiveruns}")
+            print(f"Consultas HashTable: {setup.hashtablereads}")
 
 
             #! 8) Salva os dados de  cada visualização
@@ -258,7 +252,7 @@ def run_framework_many_executions(function_bechmarking=False):
 
             #! 9) Salva resultado individual como JSON
             best_fitness = best_individual.fitness.values[0] if best_individual.fitness.valid else float('inf')
-            best_gen_idx = logbook_with_repopulation.select("gen")[-1] if logbook_with_repopulation else 'N/A'
+            #best_gen_idx = logbook_with_repopulation.select("gen")[-1] if logbook_with_repopulation else 'N/A'
 
             result = {
                 "config_num": config_num,
@@ -280,22 +274,42 @@ def run_framework_many_executions(function_bechmarking=False):
             
             print("Resultados e visualizações salvos com sucesso.")
 
+        # --- FIM DO LOOP DE REPETIÇÕES ---
+
+        # Salva a tabela hash UMA VEZ no final de todas as execuções da configuração
+        print("\n" + "="*60)
+        print(f"FIM DA CONFIGURAÇÃO {config_num}")
+        try:
+            hash_df = pd.DataFrame(data=setup.tabela_hash, columns=['Fitness'])
+            hash_df.to_excel(HASH_TABLE_PATH, index=False)
+            print(f"Salvando tabela hash em {HASH_TABLE_PATH}... com tamanho de {len(setup.tabela_hash)} posições!")
+
+        except Exception as e:
+            print(f"ERRO ao salvar a tabela hash: {e}")
+
+
         config_num += 1
     
     print("\nTodas as execuções foram concluídas.")
     
-    # Consolidar resultados automaticamente
+    # Consolidar resultados automaticamente em um subprocesso
     try:
         import subprocess
         import sys
         
-        # rodar uma função em subprocesso
-        run_consolidar_resultados()
-            
+        command = [
+            sys.executable, # Garante que está usando o mesmo interpretador Python
+            "-c", 
+            "from database_controller import run_consolidar_resultados; run_consolidar_resultados()"
+        ]
+        
+        # Popen não bloqueia, o script principal pode terminar enquanto a consolidação roda.
+        subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+        print("\nIniciando consolidação de resultados em segundo plano...")
+
     except Exception as e:
-        print(f" Erro ao executar consolidação: {e}")
+        print(f" Erro ao iniciar o subprocesso de consolidação: {e}")
 
 
 if __name__ == "__main__":
     run_framework_many_executions(function_bechmarking=BECHMARKING_MODE)
-

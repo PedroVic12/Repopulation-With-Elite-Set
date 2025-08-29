@@ -18,6 +18,8 @@ from utils.functions_fitness.function_IEEE_118_otimizacao import funcao_objetivo
 from utils.functions_fitness.function_IEEE_30_otimizacao import funcao_objetivo_IEEE30, HASH_TABLE_PATH, hashtablesize
 from utils.functions_fitness.function_IEEE_57_otimizacao import funcao_objetivo_IEEE57, HASH_TABLE_PATH
 
+from database_controller import run_consolidar_resultados
+
 # Bibliotecas padrão
 import json
 import pathlib
@@ -25,7 +27,6 @@ import pandas as pd
 import numpy as np
 import os
 from datetime import datetime
-import importlib
 
 
 
@@ -40,7 +41,9 @@ CLI = False
 DEBUG_MODE = False
 BECHMARKING_MODE = False
 SHOW_SETTINGS = False
-NUMERO = -1
+NUMERO = 1
+
+
 
 # Entrada de dados do usuario
 print("\n--------------------------------")
@@ -143,23 +146,7 @@ def run_framework_many_executions(function_bechmarking=False):
     os.makedirs(main_output_dir, exist_ok=True)
     #print(f"\nSalvando resultados em: {main_output_dir}")
 
-    def get_hash_table_size(parameters):
-        """Calcula o tamanho da tabela hash com base nos parâmetros (IND_SIZE)."""
-        try:
-            num_desligamentos = parameters['IND_SIZE']
-            # Valores baseados nas funções de fitness existentes (IEEE14 e IEEE30)
-            num_carregamentos = 3
-            num_contingencias = 3 
-            
-            size = num_contingencias * num_carregamentos * (2**num_desligamentos)
-            print(f"Tamanho da tabela hash calculado: {size} (baseado em IND_SIZE={num_desligamentos})")
-            return size
-        except KeyError:
-            print("Aviso: 'IND_SIZE' não encontrado nos parâmetros. Usando tamanho de hash de fallback.")
-            return 3072 # Fallback size
-        except Exception as e:
-            print(f"Erro ao calcular o tamanho da hash: {e}. Usando tamanho de fallback.")
-            return 3072
+
 
     config_num = 1
     for combo in combinations:
@@ -181,7 +168,7 @@ def run_framework_many_executions(function_bechmarking=False):
         setup = Setup(
             params,
             fitness_function=fitness_func,
-            tamanho_hash=get_hash_table_size(params)
+            tamanho_hash=hashtablesize()
         )
 
         print("\nClasse Setup iniciada para a configuração.")
@@ -190,24 +177,28 @@ def run_framework_many_executions(function_bechmarking=False):
             # Consulta hash_table se existir (sub rotina)
             if os.path.exists(HASH_TABLE_PATH):
                 try:
+                    
                     # Read from Excel, using the first column as the index (our hash key)
                     hash_excel = pd.read_excel(HASH_TABLE_PATH, index_col=0)
                     if not hash_excel.empty:
+                        
                         # Update the list-based hash table from the loaded dictionary
                         for key, value in hash_excel['Fitness'].items():
+                            
                             if isinstance(key, int) and key < len(setup.tabela_hash):
                                 setup.tabela_hash[key] = value
+                                
                         print(f"Tabela hash carregada e atualizada com {len(hash_excel)} registros!")
                 except Exception as e:
                     print(f"Erro ao carregar hash_table.xlsx: {e}")
             else:
                 # If the file doesn't exist, create it from the initial hash table
                 hash_df = pd.DataFrame(data=setup.tabela_hash, columns=['Fitness'])
-                hash_df.index.name = 'HashKey'
-                hash_df.to_excel(HASH_TABLE_PATH, index=True)
-                print(f"Tabela hash com {len(setup.tabela_hash)} posições não existia e foi criada!")
+                hash_df.to_excel(HASH_TABLE_PATH, index=False)
+                print(f"Tabela hash INICIAL com {len(setup.tabela_hash)} posições não existia e foi criada! - PVRV")
 
-        consultaHashTable()
+        #!PVRV - Retirando e colocando no inicio de cada funcao objetivo
+        #consultaHashTable()
 
         for exec_num in range(1, repeticoes + 1):
             print(f"\n--- Iniciando execução {exec_num}/{repeticoes} ---")
@@ -215,7 +206,7 @@ def run_framework_many_executions(function_bechmarking=False):
 
             #! 6) Executa algoritmo
             alg = AlgoritimoEvolutivoRCE(setup, DEBUG=DEBUG_MODE)
-            print("Algoritmo Evolutivo iniciado.")
+            print(f"Algoritmo Evolutivo iniciado. DEBUG MODE = {DEBUG_MODE}")
             pop_with_repopulation, logbook_with_repopulation, best_individual, all_individual_values = alg.run(RCE=True)
             best_variables = list(best_individual)
 
@@ -230,16 +221,16 @@ def run_framework_many_executions(function_bechmarking=False):
             )
 
 
-
-            # Convert the list to a DataFrame, preserving the index as the hash key
-            hash_df1 = pd.DataFrame(data=setup.tabela_hash, columns=['Fitness'])
-            #hash_df1.index.name = 'HashKey'
-            hash_df1.to_excel(HASH_TABLE_PATH, index=True)
+    # ! RETIRANDO PARA VER SE PARA DE ACUMULAR A LEITURA DA HASH TABLE A CADA SOLUCAO NOVA
+            #! salvando a nova tabela hash
+            #hash_df1 = pd.DataFrame(data=setup.tabela_hash, columns=['Fitness'])
+            #hash_df1.to_excel(HASH_TABLE_PATH, index=False)
 
             # Verificação de velocidade com hashtable
-            print(f"\nObjective function runs : {setup.objectiveruns}")
-            print(f"Hash table reads : {setup.hashtablereads}")
+            #print(f"\nObjective function runs : {setup.objectiveruns}")
+            #print(f"Hash table reads : {setup.hashtablereads}")
 
+            # Tempo calculado
             end = datetime.now()
             elapsed = end - start
             formatted_time = format_elapsed_time(elapsed)
@@ -276,14 +267,14 @@ def run_framework_many_executions(function_bechmarking=False):
                 "best_variables": best_variables,
                 "best_fitness": best_fitness,
                 "best_gen_idx": best_solution_generation,
-                "time":formatted_time
+                "time":formatted_time,  
+                "fitness_function": fitness_func.__name__
             }
             
             output_path = config_dir / f"config_{config_num}_exec_{exec_num}_results.json"
             try:
                 with open(output_path, 'w', encoding='utf-8') as f:
                     json.dump(result, f, indent=4, ensure_ascii=False)
-                #print(f"Resultado salvo em: {output_path}")
             except Exception as e:
                 print(f"Erro ao salvar resultado para config {config_num}, exec {exec_num}: {e}")
             
@@ -297,29 +288,12 @@ def run_framework_many_executions(function_bechmarking=False):
     try:
         import subprocess
         import sys
-        def run_sript_consolidar_resultados():
-            # Caminho para o script de consolidação
-            consolidar_script = BASE_DIR.parent / "consolidar_resultados.py"
-            
-            if consolidar_script.exists():
-                print(f"Executando consolidação: {consolidar_script}")
-                result = subprocess.run([sys.executable, str(consolidar_script)], 
-                                        capture_output=True, text=True, cwd=str(BASE_DIR.parent))
-                
-                if result.returncode == 0:
-                    print(" Consolidação executada com sucesso!")
-                    if result.stdout:
-                        print("Saída da consolidação:\n")
-                        print(result.stdout)
-                else:
-                    print(f" Erro na consolidação: {result.stderr}")
-            else:
-                print(f" Script de consolidação não encontrado em: {consolidar_script}")
-        run_sript_consolidar_resultados()
+        
+        # rodar uma função em subprocesso
+        run_consolidar_resultados()
             
     except Exception as e:
         print(f" Erro ao executar consolidação: {e}")
-        print("Execute manualmente: python3 consolidar_resultados.py")
 
 
 if __name__ == "__main__":

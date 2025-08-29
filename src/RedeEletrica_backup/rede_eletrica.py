@@ -69,14 +69,14 @@ class RedeEletricaPandaPower:
         
         
         ## UPGRADE HASH TABLE
-        #! Inicializa a HashTable na instancia do Objeto Setup!
-        if tamanho_hash > 0:
-            self.tabela_hash = [-1] * tamanho_hash
-        else:
-            self.tabela_hash = None
+        #! Inicializa a HashTable na instancia do Objeto !
+        # if tamanho_hash > 0:
+        #     self.tabela_hash = [-1] * tamanho_hash
+        # else:
+        #     self.tabela_hash = None
             
-        self.objectiveruns = 0
-        self.hashtablereads = 0
+        # self.objectiveruns = 0
+        # self.hashtablereads = 0
 
     def loading_networks_cases(self, network_name = "14"):
         #!todo -> Switch para as redes disponiveis na lib
