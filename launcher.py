@@ -123,10 +123,10 @@ class ConfigTab(QWidget):
         ag_layout.setHorizontalSpacing(16)
         ag_layout.setVerticalSpacing(16)
         params_to_render = {
-            "MUTAÇÃO": self.config_manager.params.get("MUTACAO", 0.1),
-            "CRUZAMENTO": self.config_manager.params.get("CROSSOVER", 0.8),
-            "NÚMERO DE GERAÇÕES": self.config_manager.params.get("NUM_GENERATIONS", 100),
-            "TAMANHO DA POPULAÇÃO": self.config_manager.params.get("POP_SIZE", 50),
+            "MUTACAO": self.config_manager.params.get("MUTACAO", 0.1),
+            "CROSSOVER": self.config_manager.params.get("CROSSOVER", 0.8),
+            "POP_SIZE": self.config_manager.params.get("NUM_GENERATIONS", 100),
+            "POP_SIZE": self.config_manager.params.get("POP_SIZE", 50),
         }
         row, col = 0, 0
         for name, default_val in params_to_render.items():
@@ -282,6 +282,9 @@ class ParamsAGTab(QWidget):
             k: v for k, v in all_params.items() if k not in self.EXCLUDED_PARAMS
         }
         
+        
+        print("Parametros editáveis para o AG", params_to_show)
+        
         self.table.setRowCount(len(params_to_show))
         for r, (key, value) in enumerate(params_to_show.items()):
             key_item = QTableWidgetItem(key)
@@ -331,8 +334,8 @@ class ParamsAGTab(QWidget):
 
         if isinstance(ind_size, int) and isinstance(array_var, list):
             if len(array_var) != ind_size:
-                msg = f"Atenção: O tamanho do 'array_var' ({len(array_var)}) é diferente do 'ind_size' ({ind_size}).\n\nO salvamento prosseguirá, mas isso pode causar erros na execução."
-                QMessageBox.warning(self, "Validação de Parâmetros", msg)
+                msg = f"Atenção: O tamanho do 'ARRAY_VAR' ({len(array_var)}) é diferente do 'ind_size' ({ind_size}).\n\n Corrija o tamanho das variáveis de decisão e do tamanho do individuo da sua população."
+                QMessageBox.warning(self, "Validação de Parâmetros!", msg)
         # --- Fim da Validação ---
 
         if self.config_manager.db_controller.save_params(params_to_save):
