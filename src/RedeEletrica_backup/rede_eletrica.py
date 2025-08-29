@@ -326,6 +326,34 @@ class RedeEletricaPandaPower:
 
 
     def show_status(self, debug = False):
+        
+                    #! PLOT DO STATUS DAS LINHAS E TRANSFORMADORES
+        try:
+
+            # Plot do loading percente das linhas
+            #self.plot_trafo_status_only(self.net)
+
+            # Pega os dados estado e lgiados de linhas e trafos
+            trafo_status = self.net.trafo["in_service"].values
+
+
+            # plot que mostra as linhas ligadas
+            self.plot_rede_eletrica_status( trafo_status, line_status)
+
+
+            #! line_status = self.net.line["in_service"].values
+
+            # print("\nStatus Transformadores")
+            #display(self.net.trafo[["hv_bus","lv_bus","in_service"]])
+            #display(self.net.res_trafo[["loading_percent"]])
+
+            #self.plot_trafo_status(self.net)
+            
+            
+        except Exception as erro:
+            print("Erro ao plotar tensões nas barras", erro)
+
+
 
         if self.debug:
             print("="*80)
@@ -335,29 +363,6 @@ class RedeEletricaPandaPower:
             print("\nStatus Linhas")
             display(self.net.line[["from_bus","to_bus","in_service"]])
             #display(self.net.res_line[["loading_percent"]])
-
-            # Plot do loading percente das linhas
-            #self.plot_trafo_status_only(self.net)
-
-            #! PLOT DO STATUS DAS LINHAS E TRANSFORMADORES
-            try:
-
-                # Pega os dados estado e lgiados de linhas e trafos
-                trafo_status = self.net.trafo["in_service"].values
-                line_status = self.net.line["in_service"].values
-
-
-                # plot que mostra as linhas ligadas
-                self.plot_rede_eletrica_status( trafo_status, line_status)
-
-
-                print("\nStatus Transformadores")
-                display(self.net.trafo[["hv_bus","lv_bus","in_service"]])
-                #display(self.net.res_trafo[["loading_percent"]])
-
-                self.plot_trafo_status(self.net)
-            except Exception as erro:
-                print("Erro ao plotar", erro)
 
 
             ## Barramentos

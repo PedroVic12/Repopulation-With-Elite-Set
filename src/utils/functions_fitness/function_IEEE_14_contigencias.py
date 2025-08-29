@@ -14,6 +14,31 @@ from RedeEletrica_backup.rede_eletrica import RedeEletricaPandaPower
 from AlgEvolutivoRCE_backup.Setup import Setup
 
 
+
+#=====================================================
+# Tabela agendamentos em xlsx hardcoded
+agendamento_df = pd.DataFrame([
+    {"ramo": [1, 4], "inicio": "14:00", "duracao": 6 ,"prioridade": 4},
+    {"ramo": [1, 3], "inicio": "15:00", "duracao": 5, "prioridade": 1},
+    {"ramo": [3, 6], "inicio": "14:00", "duracao": 6, "prioridade": 1},
+    {"ramo": [11, 12], "inicio": "18:00", "duracao": 6, "prioridade": 1},
+    {"ramo": [9, 10], "inicio": "15:00", "duracao": 4, "prioridade": 1}
+])
+
+contingencia_df = pd.DataFrame([
+        {"contingencia":1,  "from":2 , "to": 3},
+        {"contingencia":2,  "from":5 , "to": 12},
+        {"contingencia":3,  "from":12 , "to": 13},
+])
+
+# Converter horários de início para horas do dia
+agendamento_df['inicio'] = agendamento_df['inicio'].apply(lambda x: int(x.split(':')[0]))
+
+# Calcular horário de término em horas do dia
+agendamento_df['final'] = agendamento_df.apply(lambda row: (row['inicio'] + row['duracao']) % 24, axis=1)
+
+
+
 def get_info():
     """Retorna informações específicas do caso IEEE 14."""
     # Tabela agendamentos em xlsx hardcoded
@@ -35,6 +60,11 @@ def get_info():
         "num_contingencias": len(contingencia_df),
         "num_carregamentos": 3
     }
+    
+size_hash = get_info()["num_contingencias"] * get_info()["num_carregamentos"] * (2 ** get_info()["ind_size"])
+
+
+
 
 def funcao_objetivo_IEEE14(individuo, setupobj, _debug = False):
     
@@ -60,28 +90,6 @@ def funcao_objetivo_IEEE14(individuo, setupobj, _debug = False):
     rede.pesos["loading_linhas"] = 100
     rede.pesos["loading_trafos"] = 100
 
-
-    #=====================================================
-    # Tabela agendamentos em xlsx hardcoded
-    agendamento_df = pd.DataFrame([
-        {"ramo": [1, 4], "inicio": "14:00", "duracao": 6 ,"prioridade": 4},
-        {"ramo": [1, 3], "inicio": "15:00", "duracao": 5, "prioridade": 1},
-        {"ramo": [3, 6], "inicio": "14:00", "duracao": 6, "prioridade": 1},
-        {"ramo": [11, 12], "inicio": "18:00", "duracao": 6, "prioridade": 1},
-        {"ramo": [9, 10], "inicio": "15:00", "duracao": 4, "prioridade": 1}
-    ])
-
-    contingencia_df = pd.DataFrame([
-            {"contingencia":1,  "from":2 , "to": 3},
-            {"contingencia":2,  "from":5 , "to": 12},
-            {"contingencia":3,  "from":12 , "to": 13},
-    ])
-
-    # Converter horários de início para horas do dia
-    agendamento_df['inicio'] = agendamento_df['inicio'].apply(lambda x: int(x.split(':')[0]))
-
-    # Calcular horário de término em horas do dia
-    agendamento_df['final'] = agendamento_df.apply(lambda row: (row['inicio'] + row['duracao']) % 24, axis=1)
 
     # Calcular a duração total do agendamento em horas
     duracao_total_agendamento = (agendamento_df['inicio']+agendamento_df['duracao']).max()
@@ -129,10 +137,6 @@ def funcao_objetivo_IEEE14(individuo, setupobj, _debug = False):
                 # Uso da hash key para ja utilizar cenarios calculados
                 hash_key = rede.hashtableindex(perfil, num_carregamentos, contingencia_atual, num_contingencias, estado_ramos)
                 
-                if _debug:
-                    print("minha tabela hash:", len(setupobj.tabela_hash))
-                #setupobj.tamanho_hash = hash_key
-                
                 #! RZ_01jun2025 - verifica se o cenário já foi calculado na tabela hash
                 if setupobj.tabela_hash[hash_key] < 0.0:
                     #!DEBUG = Cenario 288 calculado, ai calcula o cenario 235 e da erro (porque ainda nao existe!)
@@ -164,22 +168,16 @@ def funcao_objetivo_IEEE14(individuo, setupobj, _debug = False):
                     # 11) Store violation in the hash table
                     #!debug = Ele esta salvando primeiro cenario, o hashtable existe mas o proximo cenario ainda nao foi calculado... 
                     setupobj.tabela_hash[hash_key] = fitness
-                    rede.log(f"Hash key = { hash_key}\n")
                     
                     # incrementa contador de execuções da função objetivo
                     setupobj.objectiveruns += 1
 
-                    #save hash key in excel
-                    pd.DataFrame(list(setupobj.tabela_hash.items())).to_excel(HASH_TABLE_PATH, index=False)
-                        
-                        
 
                 #! 12) Retorna o valores calculados de fluxo de potencia na variavel fitness
                 else:
-                  fitness = setupobj.tabela_hash[hash_key]
-                  if _debug:
-                      print("Fitness do cenario = ", fitness)
-                  setupobj.hashtablereads += 1
+                    fitness = setupobj.tabela_hash[hash_key]
+                    print("Fitness do cenario = ", fitness)
+                    setupobj.hashtablereads += 1
 
                 violacoes_total.append(fitness)
 
@@ -228,6 +226,7 @@ def simulate_IEEE_14_cenario():
     setup_obj = Setup(
             params = params_json,
             fitness_function = funcao_objetivo_IEEE14,
+            tamanho_hash = size_hash
         )
     
     fitness = funcao_objetivo_IEEE14(
@@ -237,7 +236,7 @@ def simulate_IEEE_14_cenario():
 
     )
     
-    fitness
+    return fitness
     
 #simulate_IEEE_14_cenario()    
     
