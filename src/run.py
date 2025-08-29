@@ -200,9 +200,12 @@ def run_framework_many_executions(function_bechmarking=False):
         #!PVRV - Retirando e colocando no inicio de cada funcao objetivo
         consultaHashTable()
 
+        # O loop de repetições agora mede o tempo individualmente
         for exec_num in range(1, repeticoes + 1):
             print(f"\n--- Iniciando execução {exec_num}/{repeticoes} ---")
 
+            # Inicia o cronômetro para esta execução específica
+            start_exec = datetime.now()
 
             #! 6) Executa algoritmo
             alg = AlgoritimoEvolutivoRCE(setup, DEBUG=DEBUG_MODE)
@@ -210,31 +213,29 @@ def run_framework_many_executions(function_bechmarking=False):
             pop_with_repopulation, logbook_with_repopulation, best_individual, all_individual_values = alg.run(RCE=True)
             best_variables = list(best_individual)
 
-            #! 7) Visualize os Resultados do Primeiro Dashboard do Alg.dashbord aqui
-            print("\nEvolução concluída  - 100%")
+            # Finaliza o cronômetro e calcula a duração desta execução
+            end_exec = datetime.now()
+            elapsed_exec = end_exec - start_exec
+            formatted_time_exec = format_elapsed_time(elapsed_exec)
 
-            best_solution_generation, best_solution_variables, best_solution_fitness, grafico_RCE = alg.dashboard.visualize(
+            #! 7) Visualize os Resultados
+            print("\nEvolução concluída  - 100%")
+            best_solution_generation, _, _, _ = alg.dashboard.visualize(
                 logbook_with_repopulation,
                 pop_with_repopulation,
                 config_num=config_num,
                 execution_num=exec_num,
             )
 
-            # Tempo calculado
-            end = datetime.now()
-            elapsed = end - start
-            formatted_time = format_elapsed_time(elapsed)
-            print(f"\nElapsed Time in execution : {formatted_time}\n")
-            
-            # Exibe os contadores totais para a configuração
+            # Exibe os tempos e contadores de forma clara
+            print(f"\nDuração desta Execução: {formatted_time_exec}")
+            print(f"Tempo Total Acumulado: {format_elapsed_time(end_exec - start)}")
             print(f"Objective functions runs: {setup.objectiveruns}")
-            print(f"Consultas HashTable: {setup.hashtablereads}")
+            print(f"Consultas HashTable: {setup.hashtablereads}\n")
 
-
-            #! 8) Salva os dados de  cada visualização
+            #! 8) Salva os dados de visualização
             vis_output_path = config_dir / f"config_{config_num}_exec_{exec_num}_visualization.json"
             try:
-                # Convert individuals to lists for JSON serialization
                 for item in all_individual_values:
                     if 'Variaveis de Decisão' in item and hasattr(item['Variaveis de Decisão'], 'tolist'):
                         item['Variaveis de Decisão'] = item['Variaveis de Decisão'].tolist()
@@ -242,18 +243,13 @@ def run_framework_many_executions(function_bechmarking=False):
                         item['Variaveis de Decisão'] = item['Variaveis de Decisão'].tolist()
                     elif not isinstance(item['Variaveis de Decisão'], (list, str)):
                         item['Variaveis de Decisão'] = list(item['Variaveis de Decisão'])
-
-
                 with open(vis_output_path, 'w', encoding='utf-8') as f:
                     json.dump(all_individual_values, f, indent=4, ensure_ascii=False)
-                #print(f"\nDados de visualização salvos em: {vis_output_path}")
             except Exception as e:
-                print(f"Erro ao salvar dados de visualização para config {config_num}, exec {exec_num}: {e}")
+                print(f"Erro ao salvar dados de visualização: {e}")
 
             #! 9) Salva resultado individual como JSON
             best_fitness = best_individual.fitness.values[0] if best_individual.fitness.valid else float('inf')
-            #best_gen_idx = logbook_with_repopulation.select("gen")[-1] if logbook_with_repopulation else 'N/A'
-
             result = {
                 "config_num": config_num,
                 "exec_num": exec_num,
@@ -261,16 +257,15 @@ def run_framework_many_executions(function_bechmarking=False):
                 "best_variables": best_variables,
                 "best_fitness": best_fitness,
                 "best_gen_idx": best_solution_generation,
-                "time":formatted_time,  
+                "time": formatted_time_exec,  # Usa o tempo da execução individual
                 "fitness_function": fitness_func.__name__
             }
-            
             output_path = config_dir / f"config_{config_num}_exec_{exec_num}_results.json"
             try:
                 with open(output_path, 'w', encoding='utf-8') as f:
                     json.dump(result, f, indent=4, ensure_ascii=False)
             except Exception as e:
-                print(f"Erro ao salvar resultado para config {config_num}, exec {exec_num}: {e}")
+                print(f"Erro ao salvar resultado: {e}")
             
             print("Resultados e visualizações salvos com sucesso.")
 
