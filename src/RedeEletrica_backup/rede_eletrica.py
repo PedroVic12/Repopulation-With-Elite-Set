@@ -336,14 +336,14 @@ class RedeEletricaPandaPower:
             # Pega os dados estado e lgiados de linhas e trafos
 
             line_status = self.net.line["in_service"].values
+            trafo_status = self.net.trafo["in_service"].values
 
             # plot que mostra as linhas ligadas
             self.plot_rede_eletrica_status( trafo_status, line_status)
 
 
-            #! trafo_status = self.net.trafo["in_service"].values
 
-            # print("\nStatus Transformadores")
+            # print("\nStatus noTransformadores")
             #display(self.net.trafo[["hv_bus","lv_bus","in_service"]])
             #display(self.net.res_trafo[["loading_percent"]])
 
