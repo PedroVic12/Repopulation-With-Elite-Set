@@ -227,8 +227,8 @@ def run_framework_many_executions(function_bechmarking=False):
             #hash_df1.to_excel(HASH_TABLE_PATH, index=False)
 
             # Verificação de velocidade com hashtable
-            print(f"\nObjective function runs : {setup.objectiveruns}")
-            print(f"Hash table reads : {setup.hashtablereads}")
+            #print(f"\nObjective function runs : {setup.objectiveruns}")
+            #print(f"Hash table reads : {setup.hashtablereads}")
 
             # Tempo calculado
             end = datetime.now()

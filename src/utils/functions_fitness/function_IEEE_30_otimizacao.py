@@ -83,8 +83,10 @@ def hashtablesize():
     #     "Carregamento": range(num_carregamentos),
     #     "Desligamento": range(num_desligamentos),
     # ])
-    return num_contingencias* num_carregamentos*(2**num_desligamentos)
-    
+    size = num_contingencias * num_carregamentos * (2**num_desligamentos)
+    print(f"Tamanho da tabela hash calculado: {size} (baseado em IND_SIZE={num_desligamentos})")
+    return size
+
 
 def get_hash_key_size(individuo):
     """Calcula o tamanho da tabela hash com base nos parâmetros (IND_SIZE)."""
@@ -143,9 +145,7 @@ def funcao_objetivo_IEEE30(individuo, _debug=False):
 
         # Inicializar hash table dentro da rede
         tamanho_hash = hashtablesize()
-        rede.tabela_hash = [-1.0] * tamanho_hash
-        rede.objectiveruns = 0
-        rede.hashtablereads = 0
+
         
         # Importar hash do Excel (cache de execuções anteriores)
         consultaHashTable(rede)
@@ -263,12 +263,24 @@ params_json = {
     
 
 def simulate_IEEE_30_cenario():
+    
+    
+    horarios_inicial = [15,15,10,21,16,13,10,14,17,18]
+    
+    setup = Setup(
+        params= params_json,
+        fitness_function= funcao_objetivo_IEEE30,
+        tamanho_hash= get_hash_key_size(horarios_inicial)
+        
+    )
 
     fitness = funcao_objetivo_IEEE30(
+        
         #agendamento proposto em Zanghi(2016)
         #individuo=[15,15,14,18,15,14,10,14,18,15],
+        
         #agendamento ótimo em Zanghi(2016)
-        individuo=[15,15,10,21,16,13,10,14,17,18],
+        individuo= horarios_inicial,
         _debug = False
     )
     

@@ -12,6 +12,7 @@
         18
     ],
     "CROSSOVER": 0.9,
+    "CRUZAMENTO": 0.9,
     "DELTA_MIN": 2,
     "IND_SIZE": 10,
     "LIMITE_VAR": [
@@ -19,9 +20,12 @@
         31
     ],
     "MUTACAO": 0.5,
+    "MUTAÇÃO": 0.5,
     "NUM_GENERATIONS": 20,
     "NUM_VAR_DIFERENTES": 1,
+    "NÚMERO DE GERAÇÕES": 20,
     "POP_SIZE": 10,
     "PORCENTAGEM": 0.2,
-    "RCE_REPOPULATION_GENERATIONS": 50
+    "RCE_REPOPULATION_GENERATIONS": 50,
+    "TAMANHO DA POPULAÇÃO": 10
 }

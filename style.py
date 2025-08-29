@@ -173,19 +173,26 @@ QTableWidget {
     gridline-color: #404040; /* Cor da grade */
     alternate-background-color: #3a3a3a; /* Cor para linhas alternadas */
     selection-background-color: #007acc; /* Azul de seleção */
+    font-size: 14px; /* Aumenta a fonte para toda a tabela */
 }
 
 QHeaderView::section {
-    background-color: #007acc; /* Azul dos botões para consistência */
+    background-color: #004578; /* Azul escuro */
     color: white;
     padding: 8px;
     border: 1px solid #404040;
     font-weight: bold;
-    font-size: 13px;
+    font-size: 14px; /* Alinha com o novo tamanho da fonte */
 }
 
 QTableWidget::item {
-    padding: 6px;
+    padding: 10px; /* Aumenta o espaçamento, tornando as células e o editor maiores */
     border-bottom: 1px solid #404040;
+}
+
+/* Editor de item da tabela */
+QTableWidget QLineEdit {
+    padding: 8px;
+    min-height: 20px; /* Garante uma altura mínima para o editor */
 }
 """
