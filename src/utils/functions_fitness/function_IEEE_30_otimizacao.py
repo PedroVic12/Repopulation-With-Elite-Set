@@ -76,8 +76,6 @@ def funcao_objetivo_IEEE30(individuo, setupobj, _debug = False):
     agendamento_df["inicio"] = individuo
 
 
-
-
     #=====================================================
 
     # 2)  Avaliar cenários e criar matriz de cenários
@@ -99,8 +97,6 @@ def funcao_objetivo_IEEE30(individuo, setupobj, _debug = False):
     num_carregamentos = 3
     num_contingencias = len(contingencias) # 3
     num_desligamentos = len(agendamento_df) # 10
-
-    #bd_aptidao_cenario =[-1.0]*(num_contingencias* num_carregamentos*(2**num_desligamentos) )
 
 
     try:
@@ -220,29 +216,10 @@ def hashtablesize():
     num_contingencias = len(contingencias) # 3
     num_desligamentos = len(agendamento_df) # 10
 
+    # info_df = pd.DataFrame([
+    #     "Contingencia": contingencia_df['contingencia'].to_list(),
+    #     "Carregamento": range(num_carregamentos),
+    #     "Desligamento": range(num_desligamentos),
+    # ])
     return num_contingencias* num_carregamentos*(2**num_desligamentos)
-    
-def get_info():
-    """Retorna informações específicas do caso IEEE 30."""
-    agendamento_df = pd.DataFrame([
-        {"ramo": [1, 3], "inicio": "15:00", "duracao": 6 ,"prioridade": 4},
-        {"ramo": [1, 5], "inicio": "15:00", "duracao": 5, "prioridade": 1},
-        {"ramo": [5, 8], "inicio": "14:00", "duracao": 6, "prioridade": 1},
-        {"ramo": [13, 14], "inicio": "18:00", "duracao": 6, "prioridade": 1},
-        {"ramo": [15, 16], "inicio": "15:00", "duracao": 4, "prioridade": 1},
-        {"ramo": [21, 23], "inicio": "14:00", "duracao": 5, "prioridade": 1},
-        {"ramo": [7, 27], "inicio": "10:00", "duracao": 6, "prioridade": 1},
-        {"ramo": [26, 28], "inicio": "14:00", "duracao": 5, "prioridade": 1},
-        {"ramo": [9, 21], "inicio": "18:00", "duracao": 4, "prioridade": 1},
-        {"ramo": [14, 17], "inicio": "15:00", "duracao": 5, "prioridade": 1},
-    ])
-    contingencia_df = pd.DataFrame([
-            {"contingencia":1,  "from":1 , "to": 3},
-            {"contingencia":2,  "from":11 , "to": 14},
-            {"contingencia":3,  "from":14 , "to": 17},
-    ])
-    return {
-        "ind_size": len(agendamento_df),
-        "num_contingencias": len(contingencia_df),
-        "num_carregamentos": 3
-    }
+

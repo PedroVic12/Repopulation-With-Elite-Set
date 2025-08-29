@@ -4,6 +4,22 @@ import pandapower as pp
 from datetime import datetime
 import traceback
 
+def create_interactive_plot(net, output_file):
+    """
+    Create an interactive plot from pandapower network and save to HTML
+    """
+    import plotly.graph_objects as go
+    from plotly.offline import plot as plotly_plot
+    
+    # Create the plotly figure
+    fig = pp.plotting.pf_res_plotly(net, auto_open=False)
+    
+    # Save to HTML file
+    plotly_plot(fig, filename=output_file, auto_open=False)
+    
+    # Return the HTML content if needed
+    return fig.to_html(full_html=False, include_plotlyjs='cdn')
+
 def create_report(net_file, data_file, template_file, output_file, log_file):
     try:
         with open(log_file, 'w', encoding='utf-8') as log:

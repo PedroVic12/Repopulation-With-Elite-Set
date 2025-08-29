@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Relatório de Análise da Rede Elétrica</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Estilos para as tabelas geradas pelo pandas */
+        table {
+            border-collapse: collapse;
+            width: 100%;
+            margin-top: 1rem;
+            box-shadow: 0 2px 3px rgba(0,0,0,0.1);
+        }
+        th, td {
+            padding: 0.75rem;
+            text-align: left;
+            border-bottom: 1px solid #e2e8f0;
+        }
+        thead {
+            background-color: #f8fafc;
+        }
+        th {
+            font-weight: 600;
+        }
+        tbody tr:hover {
+            background-color: #f1f5f9;
+        }
+        /* Estilos para os separadores */
+        .tab-button {
+            padding: 1rem 1.5rem;
+            cursor: pointer;
+            border: none;
+            background-color: transparent;
+            border-bottom: 3px solid transparent;
+            font-weight: 500;
+            color: #475569;
+            transition: all 0.2s ease-in-out;
+        }
+        .tab-button:hover {
+            background-color: #f1f5f9;
+            color: #1e293b;
+        }
+        .tab-button.active {
+            color: #2563eb;
+            border-bottom-color: #2563eb;
+        }
+        .tab-pane {
+            display: none;
+        }
+        .tab-pane.active {
+            display: block;
+        }
+    </style>
+</head>
+<body class="bg-slate-100 text-slate-800 font-sans">
+    <div class="container mx-auto p-4 sm:p-6 lg:p-8">
+        <header class="bg-white p-6 rounded-lg shadow-md border-b-4 border-blue-600 mb-8">
+            <h1 class="text-3xl font-bold text-slate-900">Relatório de Análise de Fluxo de Potência</h1>
+            <p class="text-md text-slate-600 mt-1">Gerado em: {{GENERATION_DATE}}</p>
+        </header>
+
+        <main class="bg-white rounded-lg shadow-md">
+            <!-- Navegação por Separadores -->
+            <div class="border-b border-slate-200">
+                <nav class="flex flex-wrap -mb-px" id="tab-navigation">
+                    {{TAB_BUTTONS}}
+                </nav>
+            </div>
+
+            <!-- Conteúdo dos Separadores -->
+            <div class="mt-4" id="tab-content">
+                {{TAB_CONTENTS}}
+            </div>
+        </main>
+
+        <footer class="text-center mt-8 text-sm text-slate-500">
+            <p>Relatório gerado utilizando Pandapower e Python. Dados para fins de simulação.</p>
+        </footer>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const tabContainer = document.getElementById('tab-navigation');
+            
+            if (tabContainer) {
+                const tabButtons = tabContainer.querySelectorAll('.tab-button');
+                const tabPanes = document.getElementById('tab-content').querySelectorAll('.tab-pane');
+
+                tabButtons.forEach(button => {
+                    button.addEventListener('click', () => {
+                        // Desativar todos
+                        tabButtons.forEach(btn => btn.classList.remove('active'));
+                        tabPanes.forEach(pane => pane.classList.remove('active'));
+
+                        // Ativar o clicado
+                        button.classList.add('active');
+                        const targetPane = document.querySelector(button.dataset.target);
+                        if (targetPane) {
+                            targetPane.classList.add('active');
+                        }
+                    });
+                });
+            }
+        });
+    </script>
+</body>
+</html>
