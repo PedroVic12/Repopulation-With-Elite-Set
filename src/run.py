@@ -38,6 +38,7 @@ ARRAY_FITNESS_FUNCTIONS = [funcao_objetivo_IEEE14,funcao_objetivo_IEEE30, funcao
 HASHTABLE_SIZE_FUNCS = {
     "funcao_objetivo_IEEE30": hashtablesize,
     "funcao_objetivo_SIN45": hashtablesize_sin45,
+    "funcao_objetivo_IEEE118": hashtablesize,
 }
 
 BASE_DIR = pathlib.Path(__file__).resolve().parent
@@ -47,7 +48,8 @@ CLI = False
 DEBUG_MODE = False
 BECHMARKING_MODE = False
 SHOW_SETTINGS = False
-NUMERO = 3
+NUMERO = 1 # 0 1 3 4
+
 
 
 
@@ -170,14 +172,14 @@ def run_framework_many_executions(function_bechmarking=False):
         fitness_func = ARRAY_FITNESS_FUNCTIONS[NUMERO] if not function_bechmarking else rastrigin
 
         # Pega a função de cálculo de tamanho de hash correspondente, se existir
-        size_func = HASHTABLE_SIZE_FUNCS.get(fitness_func.__name__, hashtablesize)
+        #size_func = HASHTABLE_SIZE_FUNCS.get(fitness_func.__name__, hashtablesize)
 
         #! 5) Instancia Setup uma vez por configuração
         print(f"\n\nIniciando configuração {config_num} com os params.json:\n{params}\n")
         setup = Setup(
             params,
             fitness_function=fitness_func,
-            tamanho_hash=size_func()
+            tamanho_hash=hashtablesize()
         )
 
         print("Classe Setup iniciada para a configuração.")

@@ -125,7 +125,7 @@ class ConfigTab(QWidget):
         params_to_render = {
             "MUTACAO": self.config_manager.params.get("MUTACAO", 0.1),
             "CROSSOVER": self.config_manager.params.get("CROSSOVER", 0.8),
-            "POP_SIZE": self.config_manager.params.get("NUM_GENERATIONS", 100),
+            "NUM_GENERATIONS": self.config_manager.params.get("NUM_GENERATIONS", 100),
             "POP_SIZE": self.config_manager.params.get("POP_SIZE", 50),
         }
         row, col = 0, 0
