@@ -141,7 +141,7 @@ def run_simulation_test():
         fitness_function=funcao_objetivo_IEEE14_analise,
         tamanho_hash=hashtablesize()
     )
-    fitness, contigencias_avaliadas = funcao_objetivo_IEEE14_analise(
+    fitness = funcao_objetivo_IEEE14_analise(
         individuo=horarios_teste,
         setupobj=setup_obj,
         _debug=False

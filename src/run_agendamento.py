@@ -81,6 +81,13 @@ def run_agendamento_otimizado():
     options = load_params(f"{BASE_DIR}/options.json")
     params_base = convert_values_to_int(params_base)
 
+    # --- AJUSTE DINÂMICO DO TAMANHO DO INDIVÍDUO ---
+    # O tamanho do indivíduo deve ser igual ao número de agendamentos no problema.
+    if fitness_func.__name__ == 'funcao_objetivo_IEEE14_analise':
+        tamanho_correto_individuo = len(agendamento_df_ieee14)
+        print(f"[INFO] O problema IEEE 14 requer {tamanho_correto_individuo} variáveis. Ajustando IND_SIZE.")
+        params_base["IND_SIZE"] = tamanho_correto_individuo
+
     repeticoes = options.get('repeticoes_por_config', 1)
     start = datetime.now()
 
