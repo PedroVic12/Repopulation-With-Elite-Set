@@ -11,6 +11,19 @@ sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '.
 from RedeEletrica_backup.rede_eletrica import RedeEletricaPandaPower
 from AlgEvolutivoRCE_backup.Setup import Setup
 
+
+
+def hashtablesize():
+    contingencias = contingencia_df['contingencia'].to_list()
+    num_carregamentos = 3
+    num_contingencias = len(contingencias) 
+    num_desligamentos = len(agendamento_df) 
+    
+    size = num_contingencias* num_carregamentos*(2**num_desligamentos)
+    print("Hash table INICIAL criada de tamanho = ", size)
+    return size
+
+
 # A função abaixo é um esboço local fornecido pelo usuário
 def analise_contigencias_SEP(rede, setupobj, matriz_cenarios , agendamento_df, contingencia_df):
     contingencias = contingencia_df['contingencia'].to_list()
@@ -25,7 +38,7 @@ def analise_contigencias_SEP(rede, setupobj, matriz_cenarios , agendamento_df, c
     }
     
     size = num_contingencias* num_carregamentos*(2**num_desligamentos)
-    # print("Hash table INICIAL criada de tamanho = ", size) # Comentado para um output mais limpo
+    print("Hash table INICIAL criada de tamanho = ", size) # Comentado para um output mais limpo
     try:
         for cenario in matriz_cenarios:
             perfil = cenario[0]
@@ -80,14 +93,13 @@ contingencia_df = pd.DataFrame([
 ])
 agendamento_df['inicio'] = agendamento_df['inicio'].apply(lambda x: int(x.split(':')[0]))
 
-def get_info_ieee14():
-    return {
-        "ind_size": len(agendamento_df),
-        "num_contingencias": len(contingencia_df),
-        "num_carregamentos": 3
-    }
-info = get_info_ieee14()
-size_hash = info["num_contingencias"] * info["num_carregamentos"] * (2 ** info["ind_size"])
+def hashtablesize():
+    """Retorna o tamanho necessário para a tabela hash do caso IEEE 14."""
+    num_contingencias = len(contingencia_df)
+    num_desligamentos = len(agendamento_df)
+    num_carregamentos = 3
+    size = num_contingencias * num_carregamentos * (2 ** num_desligamentos)
+    return size
 
 # --- FUNÇÃO OBJETIVO QUE RETORNA FITNESS E DETALHES ---
 def funcao_objetivo_IEEE14_analise(individuo, setupobj, _debug=False):
@@ -111,7 +123,8 @@ def funcao_objetivo_IEEE14_analise(individuo, setupobj, _debug=False):
         agendamento_df=agendamento_df,
         contingencia_df=contingencia_df
     )
-    return fitness_final, contigencias_selecionadas
+    # A função deve retornar uma tupla para ser compatível com o framework DEAP
+    return fitness_final,
 
 # --- FUNÇÃO DE SIMULAÇÃO PARA TESTE ---
 def run_simulation_test():
@@ -126,7 +139,7 @@ def run_simulation_test():
     setup_obj = Setup(
         params=params_json,
         fitness_function=funcao_objetivo_IEEE14_analise,
-        tamanho_hash=size_hash
+        tamanho_hash=hashtablesize()
     )
     fitness, contigencias_avaliadas = funcao_objetivo_IEEE14_analise(
         individuo=horarios_teste,
