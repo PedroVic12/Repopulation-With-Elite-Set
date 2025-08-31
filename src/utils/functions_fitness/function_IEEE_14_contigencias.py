@@ -82,7 +82,7 @@ def funcao_objetivo_IEEE14(individuo, setupobj, _debug = False):
     # Função objetivo para o problema de otimização da rede elétrica IEEE 14 barras
 
     #! 1) Criar a rede elétrica IEEE 14 barras, Inicializar a classe com a rede e carrega a tabela de agendamento
-    rede = RedeEletricaPandaPower("14", debug=_debug)
+    rede = RedeEletricaPandaPower("14", debug=False)
 
 
     #! Colocando pesos como input do usuario e os dados de entrada do agendamento
@@ -182,7 +182,7 @@ def funcao_objetivo_IEEE14(individuo, setupobj, _debug = False):
                 violacoes_total.append(fitness)
 
             #! Ver apenas o true in service de barras e transformadores
-            rede.show_status()
+            #rede.show_status()
 
         # 12) Calcular fitness final com somatorio das vioações com pesos de todos os cenarios
         fitness_final = sum(violacoes_total)
