@@ -176,7 +176,7 @@ def funcao_objetivo_IEEE14(individuo, setupobj, _debug = False):
                 #! 12) Retorna o valores calculados de fluxo de potencia na variavel fitness
                 else:
                     fitness = setupobj.tabela_hash[hash_key]
-                    print("Fitness do cenario = ", fitness)
+                    #print("Fitness do cenario = ", fitness)
                     setupobj.hashtablereads += 1
 
                 violacoes_total.append(fitness)

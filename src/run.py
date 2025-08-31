@@ -48,7 +48,7 @@ CLI = False
 DEBUG_MODE = False
 BECHMARKING_MODE = False
 SHOW_SETTINGS = False
-NUMERO = 3 # 0 1 3 4
+NUMERO = 0 # 0 1 3 4
 
 
 
