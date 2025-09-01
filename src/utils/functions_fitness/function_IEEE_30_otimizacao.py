@@ -52,7 +52,7 @@ def hashtablesize():
     num_desligamentos = len(agendamento_df) # 10
     
     size = num_contingencias* num_carregamentos*(2**num_desligamentos)
-    print("Hash table INICIAL criada de tamanho = ", size)
+    #print("Hash table INICIAL criada de tamanho = ", size)
     return size
 
 
