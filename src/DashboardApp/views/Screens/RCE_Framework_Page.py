@@ -24,15 +24,6 @@ import streamlit.components.v1 as components
 import os
 
 
-def run_bare_mode():
-    from streamlit_server_state import server
-    from streamlit.runtime.scriptrunner.script_run_context import get_script_run_ctx
-
-    # The container can host multiple sessions, so we must make sure to select the correct one!
-    session_id = get_script_run_ctx().session_id
-    session_info = server.get_current_server()._get_session_info(session_id)
-    session_headers = session_info.client.request.headers._dict
-    st.write(session_headers)
 
 def rede_template_view(html_path: str | None = None, height: int = 1200):
     """Renderiza o template HTML da rede IEEE dentro do Streamlit.
@@ -154,43 +145,6 @@ class FrameworkRCEDashboard:
         st.title(f"{self.config.PAGE_TITLE} (Versão Completa)")
         st.markdown("Análise de resultados de otimização com Repopulation-With-Elite-Set.")
         
-        # Barra de informações e controles usando configurações
-        col1,col3 = st.columns([1,  1])
-        
-        with col1:
-            # Status do sistema
-            if st.session_state.df_consolidado is not None:
-                st.success(self.config.get_message("success", "system_loaded"))
-                # Botão de atualização
-                if st.button("🔄 Atualizar", key="refresh_btn"):
-                    st.rerun()
-            else:
-                st.warning(self.config.get_message("warning", "system_not_loaded"))
-  
-        
-        with col3:
-            # Botão de consolidação com status
-            consolidation_status = self.consolidation_manager.get_consolidation_status()
-            
-            if consolidation_status.get('needs_consolidation', False):
-                st.warning("⚠️ Consolidação necessária")
-                consolidate_text = "🔄 Consolidar Agora"
-            else:
-                st.success("✅ Consolidação atualizada")
-                consolidate_text = "📊 Re-consolidar"
-            
-            if st.button(consolidate_text, key="consolidate_btn"):
-                with st.spinner("Consolidando resultados..."):
-                    try:
-                        success = self.consolidation_manager.run_consolidation()
-                        if success:
-                            st.success(self.config.get_message("success", "consolidation_complete"))
-                            st.rerun()
-                        else:
-                            st.error("❌ Falha na consolidação. Verifique os logs.")
-                    except Exception as e:
-                        st.error(f"{self.config.get_message('error', 'consolidation_error')}: {e}")
-            
 
 
         # Separador
@@ -326,7 +280,9 @@ class FrameworkRCEDashboard:
         def render_solucao_tab():
             try:
                 CardSolutions.render(results_data, exec_num)
-                AgendamentoRedePage(key_prefix=f"agend_{config_num}_{exec_num}", selected_exec=exec_num, solution_vars=results_data.get('best_variables'))
+                AgendamentoRedePage(
+                   # key_prefix=f"agend_{config_num}_{exec_num}", selected_exec=exec_num, solution_vars=results_data.get('best_variables')
+                )
             except Exception as e:
                 st.error(f"Erro ao renderizar a aba de Solução: {e}")
                 st.info("Tente recarregar a página ou verificar se todos os componentes estão disponíveis.")

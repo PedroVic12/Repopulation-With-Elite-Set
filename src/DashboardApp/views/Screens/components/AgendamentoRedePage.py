@@ -1,423 +1,109 @@
 import streamlit as st
 from streamlit_timeline import st_timeline
-import pandas as pd
 import pathlib
 import json
-import numpy as np
-
-output_xlsx_file = pathlib.Path(__file__).resolve().parent.parent.parent.parent.parent /  "output" / "resultados_consolidados.xlsx" # Importando o caminho do diretório de configuração
-pop_final_xlsx_file = pathlib.Path(__file__).resolve().parent.parent.parent.parent.parent /  "output" / "pop_final.xlsx" # Importando o caminho do diretório de configuração
-
-print("output_xlsx_file")
-print(output_xlsx_file)
-import streamlit.components.v1 as components
+import datetime
 import os
 
-def rede_template_view(html_path: str | None = None, height: int = 1200):
-    """Renderiza o template HTML da rede IEEE dentro do Streamlit.
+# ==================== CONFIGURAÇÃO DE DIRETÓRIO ====================
 
-    Args:
-        html_path: Caminho absoluto/relativo para o arquivo HTML. Se None, usa o arquivo padrão ao lado desta tela.
-        height: Altura do iframe em pixels.
-    """
-    # Caminho padrão: src/DashboardApp/plot_rede_IEEE_template_dashboard.html
-    if html_path is None:
-        html_path = "/home/pedrov12/Documentos/GitHub/Repopulation-With-Elite-Set/resultados - Artigo PIBIC/plot_rede_IEEE_template_dashboard.html"
-    try:
-        with open(html_path, "r", encoding="utf-8") as f:
-            html_content = f.read()
-    except FileNotFoundError:
-        st.error(f"Arquivo HTML não encontrado: {os.path.abspath(html_path)}")
-        st.info("Crie o arquivo ou informe um caminho válido em rede_template_view(html_path=...)")
-        return
-    except Exception as e:
-        st.error(f"Erro ao ler o arquivo HTML: {e}")
-        return
+BASE_DIR = pathlib.Path(__file__).resolve().parent.parent.parent.parent.parent
+OUTPUT_DIR = BASE_DIR / "output"
 
-    # Renderiza o HTML completo (com Plotly CDN incluído no próprio arquivo)
-    components.html(html_content, height=height, scrolling=True)
+# ==================== FUNÇÕES DE UTILIDADE ====================
 
+def listar_runs():
+    return sorted([f.name for f in OUTPUT_DIR.iterdir() if f.is_dir() and f.name.startswith("run_")])
 
-# Função para carregar os dados de agendamento e contingência
-def entrada_de_dados():
-    agendamento_df = pd.DataFrame([
-        {"ramo": [1, 4], "inicio": "14:00", "duracao": 6, "prioridade": 4},
-        {"ramo": [1, 3], "inicio": "15:00", "duracao": 5, "prioridade": 1},
-        {"ramo": [3, 6], "inicio": "14:00", "duracao": 6, "prioridade": 1},
-        {"ramo": [11, 12], "inicio": "18:00", "duracao": 6, "prioridade": 1},
-        {"ramo": [9, 10], "inicio": "15:00", "duracao": 4, "prioridade": 1}
+def listar_configs(run_dir):
+    run_path = OUTPUT_DIR / run_dir
+    return sorted([f.name for f in run_path.iterdir() if f.is_dir() and f.name.startswith("config_")])
+
+def listar_execucoes(run_dir, config_dir):
+    config_path = OUTPUT_DIR / run_dir / config_dir
+    result_files = list(config_path.glob("*_results.json"))
+    exec_ids = sorted([
+        f.name.split("_exec_")[1].split("_")[0]
+        for f in result_files
     ])
+    return exec_ids
 
-    contingencia_df = pd.DataFrame([
-        {"contingencia": 1, "from": 2, "to": 3},
-        {"contingencia": 2, "from": 5, "to": 12},
-        {"contingencia": 3, "from": 12, "to": 13},
-    ])
+def carregar_json(run_dir, config_dir, exec_num, tipo):
+    filename = f"{config_dir}_exec_{exec_num}_{tipo}.json"
+    json_path = OUTPUT_DIR / run_dir / config_dir / filename
 
-    return agendamento_df, contingencia_df
+    if not json_path.exists():
+        st.error(f"Arquivo JSON não encontrado: {json_path}")
+        return None
 
-# Função para carregar os dados de execução
-def carregar_dados_execucao():
-    return pd.DataFrame([
-        {"execution": 1, "solution_variables": [3, 11, 1, 18, 31], "best_fitness": 931.7123616, "best_generations": 1, "execution_time": "15.06 segundos"},
-        {"execution": 2, "solution_variables": [30, 1, 14, 30, 9], "best_fitness": 649.9070763, "best_generations": 6, "execution_time": "6.46 segundos"},
-        {"execution": 3, "solution_variables": [30, 17, 30, 30, 9], "best_fitness": 570.334047, "best_generations": 11, "execution_time": "5.64 segundos"},
-        {"execution": 4, "solution_variables": [30, 25, 30, 30, 9], "best_fitness": 479.358067, "best_generations": 15, "execution_time": "6.23 segundos"},
-        {"execution": 5, "solution_variables": [30, 25, 30, 30, 9], "best_fitness": 479.358067, "best_generations": 15, "execution_time": "5.60 segundos"},
-    ])
-    
-    
-def time_line_from_solution_variables(agendamento_df, contingencia_df, exec_data, key_prefix: str = ""):
-    # Timeline para a execução selecionada
-    st.subheader(f"Timeline de Soluções para a Execução {exec_data['execution']}")
-    solution_variables = sorted(exec_data["solution_variables"])  # Ordenar os horários
-    solution_timeline_items = []
-
-    # Calcular os intervalos entre os horários
-    for j in range(len(solution_variables)):
-        start_hour = solution_variables[j]
-        duration = agendamento_df.iloc[j]["duracao"]  # pega a duração do agendamento correspondente
-        end_hour = start_hour + duration
-
-        # Calcular o dia e horário
-        day_offset_start = start_hour // 24
-        hour_in_day_start = start_hour % 24
-        day_offset_end = end_hour // 24
-        hour_in_day_end = end_hour % 24
-
-        # Ajustar exibição para o dia seguinte, se necessário
-        start_label = f"{hour_in_day_start:02d}h"
-        end_label = f"{hour_in_day_end:02d}h{'*' if day_offset_end > day_offset_start else ''}"
-
-        start_time = f"2025-06-{18 + day_offset_start}T{hour_in_day_start:02d}:00:00"
-        end_time = f"2025-06-{18 + day_offset_end}T{hour_in_day_end:02d}:00:00"
-
-        solution_timeline_items.append({
-            "id": f"{exec_data['execution']}-{j}",
-            "content": f"Horário: {start_label} - {end_label} ({duration}h)",
-            "start": start_time,
-            "end": end_time,
-            "title": f"Intervalo: {start_label} - {end_label} ({duration}h)"
-        })
-        
-        
-    # Adicionar o último horário como um evento único
-    last_hour = solution_variables[-1]
-    day_offset_last = last_hour // 24
-    hour_in_day_last = last_hour % 24
-    last_start_time = f"2025-06-{18 + day_offset_last}T{hour_in_day_last:02d}:00:00"
-    last_end_time = f"2025-06-{18 + day_offset_last}T{(hour_in_day_last + 1) % 24:02d}:00:00"
-
-    solution_timeline_items.append({
-        "id": f"{exec_data.get('execution', 'unknown')}-last",
-        "content": f"Horário: {hour_in_day_last:02d}h",
-        "start": last_start_time,
-        "end": last_end_time,
-        "title": f"Horário: {hour_in_day_last:02d}h"
-    })
-
-    timeline = st_timeline(
-        solution_timeline_items,
-        groups=[],
-        options={
-            "selectable": True,
-            "multiselect": True,
-            "zoomable": True,
-            "verticalScroll": True,
-            "stack": True,
-            "height": 300,
-            "margin": {"axis": 5},
-            "groupHeightMode": "auto",
-            "orientation": {"axis": "top", "item": "top"}
-        },
-        key=f"{key_prefix}_execution_timeline_{exec_data['execution']}"
-    )
-
-    # Mostrar detalhes da execução ao clicar no timeline
-    if timeline:
-        selected_id = timeline.get("id", "").split("-")[1]  # Obter o ID do item selecionado no timeline
-        selected_index = int(selected_id) if selected_id.isdigit() else None
-
-        if selected_index is not None and selected_index < len(solution_variables) - 1:
-            # Dados do intervalo selecionado
-            start_hour = solution_variables[selected_index]
-            end_hour = solution_variables[selected_index + 1]
-            duration = end_hour - start_hour
-
-            # Calcular o dia e horário
-            day_offset_start = start_hour // 24
-            hour_in_day_start = start_hour % 24
-            day_offset_end = end_hour // 24
-            hour_in_day_end = end_hour % 24
-
-            start_label = f"{hour_in_day_start:02d}h"
-            end_label = f"{hour_in_day_end:02d}h{'*' if day_offset_end > day_offset_start else ''}"
-
-            # Dados relacionados ao agendamento
-            related_agendamentos = agendamento_df[
-                (agendamento_df["inicio"].apply(lambda x: int(x.split(":")[0])) <= hour_in_day_start) &
-                ((agendamento_df["inicio"].apply(lambda x: int(x.split(":")[0])) + agendamento_df["duracao"]) >= hour_in_day_end)
-            ]
-
-  
-            related_contingencies = contingencia_df.copy()
-
-            # Exibir os detalhes
-            st.subheader("Detalhes do Intervalo Selecionado")
-            st.json({
-                "Intervalo": f"{start_label} - {end_label} ({duration}h)",
-                "Agendamentos Relacionados": related_agendamentos.to_dict(orient="records"),
-                "Contingências Relacionadas": related_contingencies.to_dict(orient="records")
-            })
-        else:
-            st.warning("Selecione um intervalo válido no timeline.")
-
-
-# Função para exibir a página de agendamento de rede elétrica
-def AgendamentoRedePage(key_prefix: str = "", selected_exec: int | None = None, solution_vars: list | None = None):
-    
-    """Página de Agendamento de Rede Elétrica com timeline interativa."""
-    st.subheader("Agendamento de Intervenções de Redes Elétricas")
-    st.write("Esta página exibe os agendamentos de rede elétrica e suas contingências, além de uma timeline interativa com as sugestões de agendamento.")
-
-    # Carregar dados
-    agendamento_df, contingencia_df = entrada_de_dados()
-    
-    # Tente carregar do Excel, se falhar, use os dados mockados
     try:
-        execution_df = pd.read_excel(output_xlsx_file)
-        # Converter a coluna 'solution_variables' de string para lista, se necessário
-        if 'solution_variables' in execution_df.columns and isinstance(execution_df['solution_variables'].iloc[0], str):
-            import ast
-            execution_df['solution_variables'] = execution_df['solution_variables'].apply(ast.literal_eval)
-        # Garantir que a coluna 'execution' seja numérica para comparação confiável
-        if 'execution' in execution_df.columns:
-            execution_df['execution'] = pd.to_numeric(execution_df['execution'], errors='coerce')
-            execution_df = execution_df.dropna(subset=['execution'])
-            execution_df['execution'] = execution_df['execution'].astype(int)
+        with open(json_path, "r", encoding="utf-8") as f:
+            return json.load(f)
     except Exception as e:
-        st.warning(f"Erro ao carregar do Excel: {e}. Usando dados hardcoded com 5 execucões.")
-        execution_df = carregar_dados_execucao()
+        st.error(f"Erro ao carregar JSON ({filename}): {e}")
+        return None
 
-    # Carregar cache leve salvo pelo run_framework_backup.py (última execução)
-    try:
-        cache_path = output_xlsx_file.parent / "streamlit_cache_exec.json"
-        if cache_path.exists():
-            cache = json.loads(cache_path.read_text(encoding="utf-8"))
-            
-            
-            # Normaliza tipos
-            cache_exec = int(cache.get("execution", 0))
-            cache_vars = cache.get("solution_variables", [])
-            if isinstance(cache_vars, str):
-                try:
-                    import ast
-                    cache_vars = ast.literal_eval(cache_vars)
-                except Exception:
-                    cache_vars = []
-            # Se execução do cache não está no consolidado, adiciona uma linha virtual
-            if cache_exec and (cache_exec not in execution_df['execution'].tolist()):
-                cache_row = {
-                    'execucao': cache_exec,
-                    'solution_variables': cache_vars,
-                    'best_fitness': cache.get('best_fitness'),
-                    'best_generations': cache.get('best_generations'),
-                    'execution_time': cache.get('execution_time'),
-                }
-                execution_df = pd.concat([execution_df, pd.DataFrame([cache_row])], ignore_index=True)
-    except Exception as e:
-        st.caption(f"[diag] Falha ao ler cache Streamlit: {e}")
+# ==================== FUNÇÃO PRINCIPAL ====================
 
-    # Exibir tabelas editáveis
-    with st.expander("Editar Agendamentos e Contingências", expanded=False):
-        st.subheader("Tabela de Agendamentos")
-        edited_agendamento_df = st.data_editor(
-            agendamento_df,
-            use_container_width=True,
-            num_rows="dynamic",
-            column_config={},
-            key=f"{key_prefix}_agendamento_editor",
-        )
-        st.markdown("---")
-        st.info("Edite os agendamentos e contingências conforme necessário. As alterações serão salvas automaticamente.")
-        st.subheader("Tabela de Contingências")
-        edited_contingencia_df = st.data_editor(
-            contingencia_df,
-            use_container_width=True,
-            num_rows="dynamic",
-            key=f"{key_prefix}_contingencia_editor",
-        )
+def AgendamentoRedePage():
+    st.title("🗂️ Visualizador de Agendamentos por Execução")
 
+    # --- Seleção de diretórios ---
+    run_dir = st.selectbox("📁 Selecione o diretório de execução:", listar_runs())
+    if not run_dir: return
 
-    # Construir uma chave de sessão compartilhada por configuração (não por execução)
-    shared_prefix = key_prefix.split("_exec")[0] if "_exec" in key_prefix else key_prefix
-    session_key_exec = f"{shared_prefix}_exec_select"
+    config_dir = st.selectbox("⚙️ Selecione a configuração:", listar_configs(run_dir))
+    if not config_dir: return
 
-    if selected_exec is None:
-        # seletor somente quando não for passado pelo chamador
-        # tentar sincronizar com session_state se existir
-        if session_key_exec in st.session_state:
-            try:
-                selected_exec = int(st.session_state[session_key_exec])
-            except Exception:
-                selected_exec = None
-        # ordenar opções por execução
-        exec_options = sorted(list(execution_df['execution'].unique().tolist()))
-        selected_exec = st.selectbox(
-            "Selecione a execução",
-            exec_options,
-            index=0,
-            key=session_key_exec,
-        )
-    else:
-        # quando vier do chamador, usar o valor diretamente sem persistir no session_state
-        # isso evita que múltiplas chamadas em loop sobrescrevam a seleção com a última execução
-        pass
+    exec_num = st.selectbox("🔢 Selecione a execução:", listar_execucoes(run_dir, config_dir))
+    if not exec_num: return
 
-    # Localiza a linha da execução selecionada
-    # localizar por igualdade numérica (sem fallback silencioso)
-    try:
-        selected_exec_int = int(selected_exec)
-    except Exception:
-        st.error(f"Execução inválida: {selected_exec}")
+    st.markdown("---")
+
+    # --- Carrega JSONs ---
+    results_data = carregar_json(run_dir, config_dir, exec_num, "results")
+    vis_data = carregar_json(run_dir, config_dir, exec_num, "visualization")
+
+    if not results_data or not vis_data:
+        st.stop()
+
+    # ==================== LAYOUT PRINCIPAL ====================
+
+    col1, col2, col3 = st.columns(3)
+    col1.metric("Melhor Fitness", f"{results_data['best_fitness']:.2f}")
+    col2.metric("Geração Ótima", results_data['best_gen_idx'])
+    col3.metric("Tempo de Execução", results_data['time'])
+
+    st.markdown("### 📌 Variáveis Ótimas")
+    st.write(results_data['best_variables'])
+
+    st.markdown("---")
+    st.subheader("🕒 Linha do Tempo das Intervenções")
+
+    items = vis_data.get("items", [])
+
+    if not items:
+        st.warning("Nenhum item de visualização encontrado.")
         return
-    mask = (execution_df['execution'] == selected_exec_int)
-    override_applied = False
-    if not mask.any():
-        # Se não encontrou no consolidado mas recebemos solution_vars, usa-as para montar o exec_data
-        if isinstance(solution_vars, (list, tuple)) and len(solution_vars) > 0:
-            exec_data = pd.Series({
-                'execution': selected_exec_int,
-                'solution_variables': list(solution_vars),
-            })
-            override_applied = True
-            st.warning(
-                f"Execução {selected_exec_int} não encontrada no consolidado. Renderizando timeline com as variáveis fornecidas pela aba de Soluções. Disponíveis no consolidado: {sorted(execution_df['execution'].unique().tolist())}"
-            )
-        else:
-            # Última tentativa: usar cache se existir a execução solicitada
-            try:
-                cache_path = output_xlsx_file.parent / "streamlit_cache_exec.json"
-                if cache_path.exists():
-                    cache = json.loads(cache_path.read_text(encoding="utf-8"))
-                    if int(cache.get('execution', 0)) == selected_exec_int:
-                        exec_data = pd.Series({
-                            'execution': selected_exec_int,
-                            'solution_variables': cache.get('solution_variables', []),
-                            'best_fitness': cache.get('best_fitness'),
-                            'best_generations': cache.get('best_generations'),
-                            'execution_time': cache.get('execution_time'),
-                        })
-                        override_applied = True
-                        st.info("Usando dados do cache da última execução para renderizar a timeline.")
-                    else:
-                        st.error(f"Execução selecionada {selected_exec_int} não encontrada nas execuções disponíveis: {sorted(execution_df['execution'].unique().tolist())}")
-                        return
-                else:
-                    st.error(f"Execução selecionada {selected_exec_int} não encontrada nas execuções disponíveis: {sorted(execution_df['execution'].unique().tolist())}")
-                    return
-            except Exception:
-                st.error(f"Execução selecionada {selected_exec_int} não encontrada nas execuções disponíveis: {sorted(execution_df['execution'].unique().tolist())}")
-                return
-    else:
-        exec_data = execution_df.loc[mask].iloc[0]
 
-        # Se recebermos as melhores variáveis da página principal, sobrescrevemos para refletir a seleção atual
-        try:
-            if isinstance(solution_vars, (list, tuple)) and len(solution_vars) > 0:
-                exec_data = exec_data.copy()
-                exec_data['solution_variables'] = list(solution_vars)
-                override_applied = True
-        except Exception:
-            pass
+    timeline = st_timeline(items, groups=[], options={"height": 300}, key=f"timeline_{config_dir}_{exec_num}")
 
-    # Converter dados de execução para o formato de timeline
-    timeline_items = []
-    for index, row in agendamento_df.iterrows():
-        start_time = row["inicio"]
-        # Corrigir para garantir que start_time seja uma string antes de usar split
-        if isinstance(start_time, (list, tuple, pd.Series, np.ndarray)):
-            # Se for array, pega o primeiro elemento (ou ajusta conforme necessário)
-            start_time = start_time[0]
-        start_time = str(start_time)
-        try:
-            start_hour, start_minute = map(int, start_time.split(":"))
-        except Exception:
-            # Caso o formato não seja esperado, define valores padrão ou pula
-            start_hour, start_minute = 0, 0
-        end_hour = start_hour + row["duracao"]
+    if timeline and "id" in timeline:
+        st.info(f"Item selecionado: {timeline['id']}")
 
-        mes = 6  # Mês fixo para o exemplo
-        dia = 18  # Dia fixo para o exemplo
+        # Busca o item correspondente
+        item = next((it for it in items if it["id"] == timeline["id"]), None)
+        if item:
+            st.write("**Conteúdo:**", item.get("content"))
+            st.write("**Início:**", item.get("start"))
+            st.write("**Fim:**", item.get("end"))
+            st.write("**Duração:**", item.get("title"))
 
-        timeline_items.append({
-            "id": f"agendamento-{index}",
-            "content": f"Ramo: {row['ramo']}<br>Prioridade: {row['prioridade']}",
-            "start": f"2025-0{mes}-{dia}T{start_hour:02d}:{start_minute:02d}:00",
-            "end": f"2025-0{mes}-{dia}T{end_hour:02d}:{start_minute:02d}:00"
-        })
+    # ========== TABELAS ADICIONAIS ==========
+    st.markdown("---")
+    st.subheader("📊 Dados Brutos da Visualização")
+    st.json(vis_data, expanded=False)
 
+    st.markdown("### 🧪 Parâmetros do Algoritmo")
+    st.json(results_data.get("params", {}), expanded=False)
 
-    
-    
-    def tabs_results_redeEletrica():
-        st.write("Clique em uma aba para ver os detalhes da execução selecionada.")
-        tabs = st.tabs([f"Execução {row['execution']}" for _, row in execution_df.iterrows()])
-        for i, tab in enumerate(tabs):
-            with tab:
-                exec_data = execution_df.iloc[i]
-                with st.container():
-                    st.write(f"Execução {exec_data['execution']}")
-                    st.subheader("Dados da Execução Selecionada")
-
-                    
-                    # Tabs dentro do container
-                    inner_tabs = st.tabs(["Horários", "Gráfico de Barras", "Gráfico de Linhas", "População Final"])
-                    with inner_tabs[0]:
-                        st.write("Tabela de Horários de Agendamento")
-                        sorted_vars = sorted(exec_data["solution_variables"])
-                        st.dataframe(
-                            pd.DataFrame([sorted_vars], columns=[f"Horário {i+1}" for i in range(len(sorted_vars))])
-                        )
-
-                    with inner_tabs[1]:
-                        st.write("Gráfico de Barras")
-                        st.bar_chart(pd.DataFrame({"Horários de Agendamento": exec_data["solution_variables"]}))
-
-                    with inner_tabs[2]:
-                        st.write("Gráfico de Linhas")
-                        st.line_chart(pd.DataFrame({"Horários de Agendamento": exec_data["solution_variables"]}))
-                        
-                    with inner_tabs[3]:
-                        st.write("População Final")
-                        try:
-                            pop_final_df = pd.read_excel(pop_final_xlsx_file)
-                            st.dataframe(pop_final_df)
-                        except Exception as e:
-                            st.error(f"Erro ao carregar a população final: {e}")
-                            st.write("População final não disponível.")
-                            
-
-    try:
-        if 'exec_data' in locals() and exec_data is not None:
-            # Verifica se exec_data tem a chave 'execution' antes de acessá-la
-            exec_num = exec_data.get('execution', selected_exec_int)
-            st.caption(
-                f"[diag] key_prefix={key_prefix} | shared_key={session_key_exec} | selected_exec={selected_exec_int} | execs={sorted(execution_df['execution'].unique().tolist())} | resolved_exec={exec_num} | override={override_applied}"
-            )
-        else:
-            st.caption(
-                f"[diag] key_prefix={key_prefix} | shared_key={session_key_exec} | selected_exec={selected_exec_int} | execs={sorted(execution_df['execution'].unique().tolist())} | exec_data=undefined | override={override_applied}"
-            )
-    except Exception as e:
-        st.error(f"Erro ao exibir diagnóstico: {e}")
-    
-    # Só chama a função se exec_data estiver definida
-    if 'exec_data' in locals() and exec_data is not None:
-        try:
-            time_line_from_solution_variables(agendamento_df, contingencia_df, exec_data, key_prefix=key_prefix)
-        except Exception as e:
-            st.error(f"Erro ao renderizar timeline: {e}")
-            st.info("Timeline não disponível para esta execução.")
-    else:
-        st.warning("Dados de execução não disponíveis para renderizar timeline.")
