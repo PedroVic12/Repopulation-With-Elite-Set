@@ -1,0 +1,3202 @@
+[
+    {
+        "Generations": 1,
+        "index": 0,
+        "Variaveis de Decisão": [
+            15,
+            21,
+            20,
+            9,
+            17
+        ],
+        "Fitness": 64.35081367370942,
+        "Media": 83.16521652650471,
+        "Desvio Padrao": 15.195845617912275,
+        "RCE": " - ",
+        "Valido": true
+    },
+    {
+        "Generations": 1,
+        "index": 1,
+        "Variaveis de Decisão": [
+            31,
+            29,
+            23,
+            7,
+            25
+        ],
+        "Fitness": 83.39853389192419,
+        "Media": 83.16521652650471,
+        "Desvio Padrao": 15.195845617912275,
+        "RCE": " - ",
+        "Valido": true
+    },
+    {
+        "Generations": 1,
+        "index": 2,
+        "Variaveis de Decisão": [
+            9,
+            8,
+            0,
+            26,
+            24
+        ],
+        "Fitness": 92.86234849145065,
+        "Media": 83.16521652650471,
+        "Desvio Padrao": 15.195845617912275,
+        "RCE": " - ",
+        "Valido": true
+    },
+    {
+        "Generations": 1,
+        "index": 3,
+        "Variaveis de Decisão": [
+            17,
+            10,
+            30,
+            14,
+            22
+        ],
+        "Fitness": 115.40435247216215,
+        "Media": 83.16521652650471,
+        "Desvio Padrao": 15.195845617912275,
+        "RCE": " - ",
+        "Valido": true
+    },
+    {
+        "Generations": 1,
+        "index": 4,
+        "Variaveis de Decisão": [
+            16,
+            11,
+            11,
+            12,
+            4
+        ],
+        "Fitness": 86.66856662564317,
+        "Media": 83.16521652650471,
+        "Desvio Padrao": 15.195845617912275,
+        "RCE": " - ",
+        "Valido": true
+    },
+    {
+        "Generations": 1,
+        "index": 5,
+        "Variaveis de Decisão": [
+            25,
+            21,
+            13,
+            13,
+            1
+        ],
+        "Fitness": 73.25000619402759,
+        "Media": 83.16521652650471,
+        "Desvio Padrao": 15.195845617912275,
+        "RCE": " - ",
+        "Valido": true
+    },
+    {
+        "Generations": 1,
+        "index": 6,
+        "Variaveis de Decisão": [
+            15,
+            21,
+            20,
+            9,
+            17
+        ],
+        "Fitness": 64.35081367370942,
+        "Media": 83.16521652650471,
+        "Desvio Padrao": 15.195845617912275,
+        "RCE": " - ",
+        "Valido": true
+    },
+    {
+        "Generations": 1,
+        "index": 7,
+        "Variaveis de Decisão": [
+            28,
+            0,
+            0,
+            4,
+            17
+        ],
+        "Fitness": 84.75404607513843,
+        "Media": 83.16521652650471,
+        "Desvio Padrao": 15.195845617912275,
+        "RCE": " - ",
+        "Valido": true
+    },
+    {
+        "Generations": 1,
+        "index": 8,
+        "Variaveis de Decisão": [
+            4,
+            10,
+            30,
+            4,
+            7
+        ],
+        "Fitness": 69.99142621601781,
+        "Media": 83.16521652650471,
+        "Desvio Padrao": 15.195845617912275,
+        "RCE": " - ",
+        "Valido": true
+    },
+    {
+        "Generations": 1,
+        "index": 9,
+        "Variaveis de Decisão": [
+            29,
+            28,
+            31,
+            14,
+            9
+        ],
+        "Fitness": 96.62125795126428,
+        "Media": 83.16521652650471,
+        "Desvio Padrao": 15.195845617912275,
+        "RCE": " - ",
+        "Valido": true
+    },
+    {
+        "Generations": 2,
+        "index": 0,
+        "Variaveis de Decisão": [
+            15,
+            21,
+            20,
+            9,
+            17
+        ],
+        "Fitness": 64.35081367370942,
+        "Media": 82.90517241419597,
+        "Desvio Padrao": 13.74256346292401,
+        "RCE": " - ",
+        "Valido": true
+    },
+    {
+        "Generations": 2,
+        "index": 1,
+        "Variaveis de Decisão": [
+            31,
+            21,
+            20,
+            7,
+            25
+        ],
+        "Fitness": 84.23502909634036,
+        "Media": 82.90517241419597,
+        "Desvio Padrao": 13.74256346292401,
+        "RCE": " - ",
+        "Valido": true
+    },
+    {
+        "Generations": 2,
+        "index": 2,
+        "Variaveis de Decisão": [
+            0,
+            10,
+            13,
+            21,
+            7
+        ],
+        "Fitness": 95.6577189028408,
+        "Media": 82.90517241419597,
+        "Desvio Padrao": 13.74256346292401,
+        "RCE": " - ",
+        "Valido": true
+    },
+    {
+        "Generations": 2,
+        "index": 3,
+        "Variaveis de Decisão": [
+            25,
+            21,
+            30,
+            4,
+            1
+        ],
+        "Fitness": 113.43240459506072,
+        "Media": 82.90517241419597,
+        "Desvio Padrao": 13.74256346292401,
+        "RCE": " - ",
+        "Valido": true
+    },
+    {
+        "Generations": 2,
+        "index": 4,
+        "Variaveis de Decisão": [
+            16,
+            11,
+            2,
+            12,
+            4
+        ],
+        "Fitness": 82.69344976354772,
+        "Media": 82.90517241419597,
+        "Desvio Padrao": 13.74256346292401,
+        "RCE": " - ",
+        "Valido": true
+    },
+    {
+        "Generations": 2,
+        "index": 5,
+        "Variaveis de Decisão": [
+            31,
+            29,
+            23,
+            7,
+            25
+        ],
+        "Fitness": 83.39853389192419,
+        "Media": 82.90517241419597,
+        "Desvio Padrao": 13.74256346292401,
+        "RCE": " - ",
+        "Valido": true
+    },
+    {
+        "Generations": 2,
+        "index": 6,
+        "Variaveis de Decisão": [
+            15,
+            21,
+            20,
+            9,
+            17
+        ],
+        "Fitness": 64.35081367370942,
+        "Media": 82.90517241419597,
+        "Desvio Padrao": 13.74256346292401,
+        "RCE": " - ",
+        "Valido": true
+    },
+    {
+        "Generations": 2,
+        "index": 7,
+        "Variaveis de Decisão": [
+            28,
+            29,
+            0,
+            4,
+            17
+        ],
+        "Fitness": 81.78230459402214,
+        "Media": 82.90517241419597,
+        "Desvio Padrao": 13.74256346292401,
+        "RCE": " - ",
+        "Valido": true
+    },
+    {
+        "Generations": 2,
+        "index": 8,
+        "Variaveis de Decisão": [
+            25,
+            21,
+            13,
+            13,
+            1
+        ],
+        "Fitness": 73.25000619402759,
+        "Media": 82.90517241419597,
+        "Desvio Padrao": 13.74256346292401,
+        "RCE": " - ",
+        "Valido": true
+    },
+    {
+        "Generations": 2,
+        "index": 9,
+        "Variaveis de Decisão": [
+            25,
+            20,
+            13,
+            23,
+            1
+        ],
+        "Fitness": 85.90064975677737,
+        "Media": 82.90517241419597,
+        "Desvio Padrao": 13.74256346292401,
+        "RCE": " - ",
+        "Valido": true
+    },
+    {
+        "Generations": 3,
+        "index": 0,
+        "Variaveis de Decisão": [
+            15,
+            21,
+            20,
+            9,
+            17
+        ],
+        "Fitness": 64.35081367370942,
+        "Media": 74.5685159103953,
+        "Desvio Padrao": 9.311746097672206,
+        "RCE": " - ",
+        "Valido": true
+    },
+    {
+        "Generations": 3,
+        "index": 1,
+        "Variaveis de Decisão": [
+            15,
+            21,
+            18,
+            9,
+            17
+        ],
+        "Fitness": 76.69938795401613,
+        "Media": 74.5685159103953,
+        "Desvio Padrao": 9.311746097672206,
+        "RCE": " - ",
+        "Valido": true
+    },
+    {
+        "Generations": 3,
+        "index": 2,
+        "Variaveis de Decisão": [
+            28,
+            21,
+            20,
+            9,
+            17
+        ],
+        "Fitness": 64.50352095472583,
+        "Media": 74.5685159103953,
+        "Desvio Padrao": 9.311746097672206,
+        "RCE": " - ",
+        "Valido": true
+    },
+    {
+        "Generations": 3,
+        "index": 3,
+        "Variaveis de Decisão": [
+            0,
+            29,
+            0,
+            4,
+            10
+        ],
+        "Fitness": 69.27550570376935,
+        "Media": 74.5685159103953,
+        "Desvio Padrao": 9.311746097672206,
+        "RCE": " - ",
+        "Valido": true
+    },
+    {
+        "Generations": 3,
+        "index": 4,
+        "Variaveis de Decisão": [
+            15,
+            21,
+            14,
+            6,
+            17
+        ],
+        "Fitness": 78.87976764788868,
+        "Media": 74.5685159103953,
+        "Desvio Padrao": 9.311746097672206,
+        "RCE": " - ",
+        "Valido": true
+    },
+    {
+        "Generations": 3,
+        "index": 5,
+        "Variaveis de Decisão": [
+            5,
+            21,
+            2,
+            9,
+            17
+        ],
+        "Fitness": 94.67652438466325,
+        "Media": 74.5685159103953,
+        "Desvio Padrao": 9.311746097672206,
+        "RCE": " - ",
+        "Valido": true
+    },
+    {
+        "Generations": 3,
+        "index": 6,
+        "Variaveis de Decisão": [
+            15,
+            21,
+            20,
+            9,
+            17
+        ],
+        "Fitness": 64.35081367370942,
+        "Media": 74.5685159103953,
+        "Desvio Padrao": 9.311746097672206,
+        "RCE": " - ",
+        "Valido": true
+    },
+    {
+        "Generations": 3,
+        "index": 7,
+        "Variaveis de Decisão": [
+            15,
+            21,
+            25,
+            1,
+            17
+        ],
+        "Fitness": 79.16602259761889,
+        "Media": 74.5685159103953,
+        "Desvio Padrao": 9.311746097672206,
+        "RCE": " - ",
+        "Valido": true
+    },
+    {
+        "Generations": 3,
+        "index": 8,
+        "Variaveis de Decisão": [
+            15,
+            21,
+            13,
+            13,
+            1
+        ],
+        "Fitness": 70.99330737169457,
+        "Media": 74.5685159103953,
+        "Desvio Padrao": 9.311746097672206,
+        "RCE": " - ",
+        "Valido": true
+    },
+    {
+        "Generations": 3,
+        "index": 9,
+        "Variaveis de Decisão": [
+            25,
+            21,
+            20,
+            9,
+            2
+        ],
+        "Fitness": 82.7894951421575,
+        "Media": 74.5685159103953,
+        "Desvio Padrao": 9.311746097672206,
+        "RCE": " - ",
+        "Valido": true
+    },
+    {
+        "Generations": 4,
+        "index": 0,
+        "Variaveis de Decisão": [
+            15,
+            21,
+            20,
+            9,
+            17
+        ],
+        "Fitness": 64.35081367370942,
+        "Media": 79.57892950546116,
+        "Desvio Padrao": 14.902676467931512,
+        "RCE": " - ",
+        "Valido": true
+    },
+    {
+        "Generations": 4,
+        "index": 1,
+        "Variaveis de Decisão": [
+            15,
+            21,
+            20,
+            9,
+            17
+        ],
+        "Fitness": 64.35081367370942,
+        "Media": 79.57892950546116,
+        "Desvio Padrao": 14.902676467931512,
+        "RCE": " - ",
+        "Valido": true
+    },
+    {
+        "Generations": 4,
+        "index": 2,
+        "Variaveis de Decisão": [
+            15,
+            21,
+            13,
+            9,
+            1
+        ],
+        "Fitness": 82.46536218789066,
+        "Media": 79.57892950546116,
+        "Desvio Padrao": 14.902676467931512,
+        "RCE": " - ",
+        "Valido": true
+    },
+    {
+        "Generations": 4,
+        "index": 3,
+        "Variaveis de Decisão": [
+            15,
+            21,
+            18,
+            13,
+            17
+        ],
+        "Fitness": 116.48389071129964,
+        "Media": 79.57892950546116,
+        "Desvio Padrao": 14.902676467931512,
+        "RCE": " - ",
+        "Valido": true
+    },
+    {
+        "Generations": 4,
+        "index": 4,
+        "Variaveis de Decisão": [
+            15,
+            21,
+            18,
+            9,
+            17
+        ],
+        "Fitness": 76.69938795401613,
+        "Media": 79.57892950546116,
+        "Desvio Padrao": 14.902676467931512,
+        "RCE": " - ",
+        "Valido": true
+    },
+    {
+        "Generations": 4,
+        "index": 5,
+        "Variaveis de Decisão": [
+            28,
+            21,
+            20,
+            30,
+            17
+        ],
+        "Fitness": 78.24453074958592,
+        "Media": 79.57892950546116,
+        "Desvio Padrao": 14.902676467931512,
+        "RCE": " - ",
+        "Valido": true
+    },
+    {
+        "Generations": 4,
+        "index": 6,
+        "Variaveis de Decisão": [
+            15,
+            21,
+            13,
+            13,
+            1
+        ],
+        "Fitness": 70.99330737169457,
+        "Media": 79.57892950546116,
+        "Desvio Padrao": 14.902676467931512,
+        "RCE": " - ",
+        "Valido": true
+    },
+    {
+        "Generations": 4,
+        "index": 7,
+        "Variaveis de Decisão": [
+            0,
+            29,
+            0,
+            4,
+            10
+        ],
+        "Fitness": 69.27550570376935,
+        "Media": 79.57892950546116,
+        "Desvio Padrao": 14.902676467931512,
+        "RCE": " - ",
+        "Valido": true
+    },
+    {
+        "Generations": 4,
+        "index": 8,
+        "Variaveis de Decisão": [
+            13,
+            21,
+            20,
+            9,
+            24
+        ],
+        "Fitness": 93.6069531503011,
+        "Media": 79.57892950546116,
+        "Desvio Padrao": 14.902676467931512,
+        "RCE": " - ",
+        "Valido": true
+    },
+    {
+        "Generations": 4,
+        "index": 9,
+        "Variaveis de Decisão": [
+            28,
+            1,
+            2,
+            9,
+            17
+        ],
+        "Fitness": 79.31872987863532,
+        "Media": 79.57892950546116,
+        "Desvio Padrao": 14.902676467931512,
+        "RCE": " - ",
+        "Valido": true
+    },
+    {
+        "Generations": 5,
+        "index": 0,
+        "Variaveis de Decisão": [
+            10,
+            21,
+            20,
+            10,
+            16
+        ],
+        "Fitness": 51.918819348769766,
+        "Media": 71.84485168843102,
+        "Desvio Padrao": 16.219787188056028,
+        "RCE": " - ",
+        "Valido": true
+    },
+    {
+        "Generations": 5,
+        "index": 1,
+        "Variaveis de Decisão": [
+            13,
+            21,
+            20,
+            9,
+            17
+        ],
+        "Fitness": 92.42413938257368,
+        "Media": 71.84485168843102,
+        "Desvio Padrao": 16.219787188056028,
+        "RCE": " - ",
+        "Valido": true
+    },
+    {
+        "Generations": 5,
+        "index": 2,
+        "Variaveis de Decisão": [
+            0,
+            21,
+            13,
+            13,
+            22
+        ],
+        "Fitness": 60.648863848136315,
+        "Media": 71.84485168843102,
+        "Desvio Padrao": 16.219787188056028,
+        "RCE": " - ",
+        "Valido": true
+    },
+    {
+        "Generations": 5,
+        "index": 3,
+        "Variaveis de Decisão": [
+            15,
+            29,
+            0,
+            4,
+            1
+        ],
+        "Fitness": 101.39822870873441,
+        "Media": 71.84485168843102,
+        "Desvio Padrao": 16.219787188056028,
+        "RCE": " - ",
+        "Valido": true
+    },
+    {
+        "Generations": 5,
+        "index": 4,
+        "Variaveis de Decisão": [
+            15,
+            21,
+            20,
+            9,
+            17
+        ],
+        "Fitness": 64.35081367370942,
+        "Media": 71.84485168843102,
+        "Desvio Padrao": 16.219787188056028,
+        "RCE": " - ",
+        "Valido": true
+    },
+    {
+        "Generations": 5,
+        "index": 5,
+        "Variaveis de Decisão": [
+            10,
+            21,
+            20,
+            10,
+            16
+        ],
+        "Fitness": 51.918819348769766,
+        "Media": 71.84485168843102,
+        "Desvio Padrao": 16.219787188056028,
+        "RCE": " - ",
+        "Valido": true
+    },
+    {
+        "Generations": 5,
+        "index": 6,
+        "Variaveis de Decisão": [
+            15,
+            21,
+            12,
+            9,
+            17
+        ],
+        "Fitness": 83.21626739260648,
+        "Media": 71.84485168843102,
+        "Desvio Padrao": 16.219787188056028,
+        "RCE": " - ",
+        "Valido": true
+    },
+    {
+        "Generations": 5,
+        "index": 7,
+        "Variaveis de Decisão": [
+            15,
+            21,
+            20,
+            9,
+            17
+        ],
+        "Fitness": 64.35081367370942,
+        "Media": 71.84485168843102,
+        "Desvio Padrao": 16.219787188056028,
+        "RCE": " - ",
+        "Valido": true
+    },
+    {
+        "Generations": 5,
+        "index": 8,
+        "Variaveis de Decisão": [
+            24,
+            21,
+            20,
+            9,
+            24
+        ],
+        "Fitness": 83.12647553557389,
+        "Media": 71.84485168843102,
+        "Desvio Padrao": 16.219787188056028,
+        "RCE": " - ",
+        "Valido": true
+    },
+    {
+        "Generations": 5,
+        "index": 9,
+        "Variaveis de Decisão": [
+            22,
+            23,
+            15,
+            9,
+            17
+        ],
+        "Fitness": 65.09527597172692,
+        "Media": 71.84485168843102,
+        "Desvio Padrao": 16.219787188056028,
+        "RCE": " - ",
+        "Valido": true
+    },
+    {
+        "Generations": 6,
+        "index": 0,
+        "Variaveis de Decisão": [
+            10,
+            21,
+            20,
+            10,
+            16
+        ],
+        "Fitness": 51.918819348769766,
+        "Media": 70.0488348348958,
+        "Desvio Padrao": 12.179618834523392,
+        "RCE": " - ",
+        "Valido": true
+    },
+    {
+        "Generations": 6,
+        "index": 1,
+        "Variaveis de Decisão": [
+            22,
+            23,
+            13,
+            13,
+            17
+        ],
+        "Fitness": 72.72429444444408,
+        "Media": 70.0488348348958,
+        "Desvio Padrao": 12.179618834523392,
+        "RCE": " - ",
+        "Valido": true
+    },
+    {
+        "Generations": 6,
+        "index": 2,
+        "Variaveis de Decisão": [
+            10,
+            21,
+            12,
+            10,
+            16
+        ],
+        "Fitness": 70.59764922756519,
+        "Media": 70.0488348348958,
+        "Desvio Padrao": 12.179618834523392,
+        "RCE": " - ",
+        "Valido": true
+    },
+    {
+        "Generations": 6,
+        "index": 3,
+        "Variaveis de Decisão": [
+            15,
+            21,
+            20,
+            9,
+            17
+        ],
+        "Fitness": 64.35081367370942,
+        "Media": 70.0488348348958,
+        "Desvio Padrao": 12.179618834523392,
+        "RCE": " - ",
+        "Valido": true
+    },
+    {
+        "Generations": 6,
+        "index": 4,
+        "Variaveis de Decisão": [
+            10,
+            21,
+            17,
+            10,
+            16
+        ],
+        "Fitness": 77.06758192635924,
+        "Media": 70.0488348348958,
+        "Desvio Padrao": 12.179618834523392,
+        "RCE": " - ",
+        "Valido": true
+    },
+    {
+        "Generations": 6,
+        "index": 5,
+        "Variaveis de Decisão": [
+            22,
+            23,
+            3,
+            9,
+            0
+        ],
+        "Fitness": 86.87038272837057,
+        "Media": 70.0488348348958,
+        "Desvio Padrao": 12.179618834523392,
+        "RCE": " - ",
+        "Valido": true
+    },
+    {
+        "Generations": 6,
+        "index": 6,
+        "Variaveis de Decisão": [
+            10,
+            21,
+            20,
+            10,
+            16
+        ],
+        "Fitness": 51.918819348769766,
+        "Media": 70.0488348348958,
+        "Desvio Padrao": 12.179618834523392,
+        "RCE": " - ",
+        "Valido": true
+    },
+    {
+        "Generations": 6,
+        "index": 7,
+        "Variaveis de Decisão": [
+            10,
+            21,
+            20,
+            31,
+            23
+        ],
+        "Fitness": 76.2610524735132,
+        "Media": 70.0488348348958,
+        "Desvio Padrao": 12.179618834523392,
+        "RCE": " - ",
+        "Valido": true
+    },
+    {
+        "Generations": 6,
+        "index": 8,
+        "Variaveis de Decisão": [
+            0,
+            21,
+            13,
+            13,
+            22
+        ],
+        "Fitness": 60.648863848136315,
+        "Media": 70.0488348348958,
+        "Desvio Padrao": 12.179618834523392,
+        "RCE": " - ",
+        "Valido": true
+    },
+    {
+        "Generations": 6,
+        "index": 9,
+        "Variaveis de Decisão": [
+            10,
+            21,
+            20,
+            23,
+            16
+        ],
+        "Fitness": 88.1300713293205,
+        "Media": 70.0488348348958,
+        "Desvio Padrao": 12.179618834523392,
+        "RCE": " - ",
+        "Valido": true
+    },
+    {
+        "Generations": 7,
+        "index": 0,
+        "Variaveis de Decisão": [
+            10,
+            21,
+            20,
+            10,
+            16
+        ],
+        "Fitness": 51.918819348769766,
+        "Media": 65.69635438827939,
+        "Desvio Padrao": 13.304950107739343,
+        "RCE": " - ",
+        "Valido": true
+    },
+    {
+        "Generations": 7,
+        "index": 1,
+        "Variaveis de Decisão": [
+            10,
+            21,
+            9,
+            10,
+            16
+        ],
+        "Fitness": 70.08222519866513,
+        "Media": 65.69635438827939,
+        "Desvio Padrao": 13.304950107739343,
+        "RCE": " - ",
+        "Valido": true
+    },
+    {
+        "Generations": 7,
+        "index": 2,
+        "Variaveis de Decisão": [
+            10,
+            21,
+            12,
+            10,
+            16
+        ],
+        "Fitness": 70.59764922756519,
+        "Media": 65.69635438827939,
+        "Desvio Padrao": 13.304950107739343,
+        "RCE": " - ",
+        "Valido": true
+    },
+    {
+        "Generations": 7,
+        "index": 3,
+        "Variaveis de Decisão": [
+            31,
+            21,
+            20,
+            15,
+            16
+        ],
+        "Fitness": 87.06360565612978,
+        "Media": 65.69635438827939,
+        "Desvio Padrao": 13.304950107739343,
+        "RCE": " - ",
+        "Valido": true
+    },
+    {
+        "Generations": 7,
+        "index": 4,
+        "Variaveis de Decisão": [
+            10,
+            21,
+            20,
+            10,
+            16
+        ],
+        "Fitness": 51.918819348769766,
+        "Media": 65.69635438827939,
+        "Desvio Padrao": 13.304950107739343,
+        "RCE": " - ",
+        "Valido": true
+    },
+    {
+        "Generations": 7,
+        "index": 5,
+        "Variaveis de Decisão": [
+            10,
+            0,
+            20,
+            10,
+            16
+        ],
+        "Fitness": 51.918819348769794,
+        "Media": 65.69635438827939,
+        "Desvio Padrao": 13.304950107739343,
+        "RCE": " - ",
+        "Valido": true
+    },
+    {
+        "Generations": 7,
+        "index": 6,
+        "Variaveis de Decisão": [
+            10,
+            21,
+            27,
+            10,
+            16
+        ],
+        "Fitness": 53.891489643782634,
+        "Media": 65.69635438827939,
+        "Desvio Padrao": 13.304950107739343,
+        "RCE": " - ",
+        "Valido": true
+    },
+    {
+        "Generations": 7,
+        "index": 7,
+        "Variaveis de Decisão": [
+            10,
+            21,
+            12,
+            10,
+            16
+        ],
+        "Fitness": 70.59764922756519,
+        "Media": 65.69635438827939,
+        "Desvio Padrao": 13.304950107739343,
+        "RCE": " - ",
+        "Valido": true
+    },
+    {
+        "Generations": 7,
+        "index": 8,
+        "Variaveis de Decisão": [
+            0,
+            21,
+            21,
+            13,
+            12
+        ],
+        "Fitness": 88.3256030346402,
+        "Media": 65.69635438827939,
+        "Desvio Padrao": 13.304950107739343,
+        "RCE": " - ",
+        "Valido": true
+    },
+    {
+        "Generations": 7,
+        "index": 9,
+        "Variaveis de Decisão": [
+            0,
+            21,
+            13,
+            13,
+            22
+        ],
+        "Fitness": 60.648863848136315,
+        "Media": 65.69635438827939,
+        "Desvio Padrao": 13.304950107739343,
+        "RCE": " - ",
+        "Valido": true
+    },
+    {
+        "Generations": 8,
+        "index": 0,
+        "Variaveis de Decisão": [
+            10,
+            21,
+            20,
+            10,
+            16
+        ],
+        "Fitness": 51.918819348769766,
+        "Media": 64.90156534969626,
+        "Desvio Padrao": 10.053546531174579,
+        "RCE": " - ",
+        "Valido": true
+    },
+    {
+        "Generations": 8,
+        "index": 1,
+        "Variaveis de Decisão": [
+            10,
+            21,
+            20,
+            10,
+            0
+        ],
+        "Fitness": 58.687557288181615,
+        "Media": 64.90156534969626,
+        "Desvio Padrao": 10.053546531174579,
+        "RCE": " - ",
+        "Valido": true
+    },
+    {
+        "Generations": 8,
+        "index": 2,
+        "Variaveis de Decisão": [
+            12,
+            21,
+            20,
+            10,
+            21
+        ],
+        "Fitness": 80.21777621844907,
+        "Media": 64.90156534969626,
+        "Desvio Padrao": 10.053546531174579,
+        "RCE": " - ",
+        "Valido": true
+    },
+    {
+        "Generations": 8,
+        "index": 3,
+        "Variaveis de Decisão": [
+            10,
+            18,
+            20,
+            10,
+            16
+        ],
+        "Fitness": 65.06758192635927,
+        "Media": 64.90156534969626,
+        "Desvio Padrao": 10.053546531174579,
+        "RCE": " - ",
+        "Valido": true
+    },
+    {
+        "Generations": 8,
+        "index": 4,
+        "Variaveis de Decisão": [
+            10,
+            21,
+            20,
+            10,
+            16
+        ],
+        "Fitness": 51.918819348769766,
+        "Media": 64.90156534969626,
+        "Desvio Padrao": 10.053546531174579,
+        "RCE": " - ",
+        "Valido": true
+    },
+    {
+        "Generations": 8,
+        "index": 5,
+        "Variaveis de Decisão": [
+            10,
+            21,
+            20,
+            10,
+            20
+        ],
+        "Fitness": 60.09418003720796,
+        "Media": 64.90156534969626,
+        "Desvio Padrao": 10.053546531174579,
+        "RCE": " - ",
+        "Valido": true
+    },
+    {
+        "Generations": 8,
+        "index": 6,
+        "Variaveis de Decisão": [
+            10,
+            14,
+            18,
+            10,
+            16
+        ],
+        "Fitness": 81.90849567986903,
+        "Media": 64.90156534969626,
+        "Desvio Padrao": 10.053546531174579,
+        "RCE": " - ",
+        "Valido": true
+    },
+    {
+        "Generations": 8,
+        "index": 7,
+        "Variaveis de Decisão": [
+            10,
+            0,
+            9,
+            10,
+            16
+        ],
+        "Fitness": 70.08222519866517,
+        "Media": 64.90156534969626,
+        "Desvio Padrao": 10.053546531174579,
+        "RCE": " - ",
+        "Valido": true
+    },
+    {
+        "Generations": 8,
+        "index": 8,
+        "Variaveis de Decisão": [
+            10,
+            21,
+            20,
+            10,
+            29
+        ],
+        "Fitness": 59.03797325202567,
+        "Media": 64.90156534969626,
+        "Desvio Padrao": 10.053546531174579,
+        "RCE": " - ",
+        "Valido": true
+    },
+    {
+        "Generations": 8,
+        "index": 9,
+        "Variaveis de Decisão": [
+            10,
+            21,
+            9,
+            10,
+            16
+        ],
+        "Fitness": 70.08222519866513,
+        "Media": 64.90156534969626,
+        "Desvio Padrao": 10.053546531174579,
+        "RCE": " - ",
+        "Valido": true
+    },
+    {
+        "Generations": 9,
+        "index": 0,
+        "Variaveis de Decisão": [
+            10,
+            21,
+            20,
+            10,
+            16
+        ],
+        "Fitness": 51.918819348769766,
+        "Media": 64.46789936323293,
+        "Desvio Padrao": 10.05816249245594,
+        "RCE": " - ",
+        "Valido": true
+    },
+    {
+        "Generations": 9,
+        "index": 1,
+        "Variaveis de Decisão": [
+            10,
+            6,
+            22,
+            28,
+            16
+        ],
+        "Fitness": 74.76187393207964,
+        "Media": 64.46789936323293,
+        "Desvio Padrao": 10.05816249245594,
+        "RCE": " - ",
+        "Valido": true
+    },
+    {
+        "Generations": 9,
+        "index": 2,
+        "Variaveis de Decisão": [
+            10,
+            21,
+            20,
+            10,
+            16
+        ],
+        "Fitness": 51.918819348769766,
+        "Media": 64.46789936323293,
+        "Desvio Padrao": 10.05816249245594,
+        "RCE": " - ",
+        "Valido": true
+    },
+    {
+        "Generations": 9,
+        "index": 3,
+        "Variaveis de Decisão": [
+            10,
+            10,
+            6,
+            10,
+            16
+        ],
+        "Fitness": 74.20926237179319,
+        "Media": 64.46789936323293,
+        "Desvio Padrao": 10.05816249245594,
+        "RCE": " - ",
+        "Valido": true
+    },
+    {
+        "Generations": 9,
+        "index": 4,
+        "Variaveis de Decisão": [
+            10,
+            0,
+            5,
+            10,
+            16
+        ],
+        "Fitness": 70.08222519866517,
+        "Media": 64.46789936323293,
+        "Desvio Padrao": 10.05816249245594,
+        "RCE": " - ",
+        "Valido": true
+    },
+    {
+        "Generations": 9,
+        "index": 5,
+        "Variaveis de Decisão": [
+            10,
+            21,
+            28,
+            29,
+            16
+        ],
+        "Fitness": 81.62959731300568,
+        "Media": 64.46789936323293,
+        "Desvio Padrao": 10.05816249245594,
+        "RCE": " - ",
+        "Valido": true
+    },
+    {
+        "Generations": 9,
+        "index": 6,
+        "Variaveis de Decisão": [
+            10,
+            21,
+            20,
+            10,
+            20
+        ],
+        "Fitness": 60.09418003720796,
+        "Media": 64.46789936323293,
+        "Desvio Padrao": 10.05816249245594,
+        "RCE": " - ",
+        "Valido": true
+    },
+    {
+        "Generations": 9,
+        "index": 7,
+        "Variaveis de Decisão": [
+            10,
+            21,
+            1,
+            10,
+            16
+        ],
+        "Fitness": 53.16954123928939,
+        "Media": 64.46789936323293,
+        "Desvio Padrao": 10.05816249245594,
+        "RCE": " - ",
+        "Valido": true
+    },
+    {
+        "Generations": 9,
+        "index": 8,
+        "Variaveis de Decisão": [
+            10,
+            27,
+            20,
+            10,
+            20
+        ],
+        "Fitness": 60.21179251831967,
+        "Media": 64.46789936323293,
+        "Desvio Padrao": 10.05816249245594,
+        "RCE": " - ",
+        "Valido": true
+    },
+    {
+        "Generations": 9,
+        "index": 9,
+        "Variaveis de Decisão": [
+            15,
+            21,
+            20,
+            10,
+            16
+        ],
+        "Fitness": 66.68288232442913,
+        "Media": 64.46789936323293,
+        "Desvio Padrao": 10.05816249245594,
+        "RCE": " - ",
+        "Valido": true
+    },
+    {
+        "Generations": 10,
+        "index": 0,
+        "Variaveis de Decisão": [
+            10,
+            27,
+            20,
+            10,
+            16
+        ],
+        "Fitness": 51.91881934876976,
+        "Media": 82.43961649739364,
+        "Desvio Padrao": 14.319646921279203,
+        "RCE": " - ",
+        "Valido": true
+    },
+    {
+        "Generations": 10,
+        "index": 1,
+        "Variaveis de Decisão": [
+            22,
+            17,
+            12,
+            2,
+            30
+        ],
+        "Fitness": 78.55745510230122,
+        "Media": 82.43961649739364,
+        "Desvio Padrao": 14.319646921279203,
+        "RCE": " - ",
+        "Valido": true
+    },
+    {
+        "Generations": 10,
+        "index": 2,
+        "Variaveis de Decisão": [
+            1,
+            18,
+            4,
+            2,
+            4
+        ],
+        "Fitness": 86.79911127420743,
+        "Media": 82.43961649739364,
+        "Desvio Padrao": 14.319646921279203,
+        "RCE": " - ",
+        "Valido": true
+    },
+    {
+        "Generations": 10,
+        "index": 3,
+        "Variaveis de Decisão": [
+            9,
+            27,
+            2,
+            18,
+            9
+        ],
+        "Fitness": 71.66559123739273,
+        "Media": 82.43961649739364,
+        "Desvio Padrao": 14.319646921279203,
+        "RCE": " - ",
+        "Valido": true
+    },
+    {
+        "Generations": 10,
+        "index": 4,
+        "Variaveis de Decisão": [
+            23,
+            30,
+            15,
+            0,
+            2
+        ],
+        "Fitness": 66.62169743204433,
+        "Media": 82.43961649739364,
+        "Desvio Padrao": 14.319646921279203,
+        "RCE": " - ",
+        "Valido": true
+    },
+    {
+        "Generations": 10,
+        "index": 5,
+        "Variaveis de Decisão": [
+            30,
+            9,
+            26,
+            28,
+            16
+        ],
+        "Fitness": 97.4940060307424,
+        "Media": 82.43961649739364,
+        "Desvio Padrao": 14.319646921279203,
+        "RCE": " - ",
+        "Valido": true
+    },
+    {
+        "Generations": 10,
+        "index": 6,
+        "Variaveis de Decisão": [
+            10,
+            23,
+            13,
+            16,
+            2
+        ],
+        "Fitness": 87.61473880491252,
+        "Media": 82.43961649739364,
+        "Desvio Padrao": 14.319646921279203,
+        "RCE": " - ",
+        "Valido": true
+    },
+    {
+        "Generations": 10,
+        "index": 7,
+        "Variaveis de Decisão": [
+            15,
+            19,
+            18,
+            27,
+            30
+        ],
+        "Fitness": 91.27208007307975,
+        "Media": 82.43961649739364,
+        "Desvio Padrao": 14.319646921279203,
+        "RCE": " - ",
+        "Valido": true
+    },
+    {
+        "Generations": 10,
+        "index": 8,
+        "Variaveis de Decisão": [
+            6,
+            22,
+            3,
+            27,
+            31
+        ],
+        "Fitness": 94.34680862020677,
+        "Media": 82.43961649739364,
+        "Desvio Padrao": 14.319646921279203,
+        "RCE": " - ",
+        "Valido": true
+    },
+    {
+        "Generations": 10,
+        "index": 9,
+        "Variaveis de Decisão": [
+            6,
+            0,
+            14,
+            16,
+            20
+        ],
+        "Fitness": 98.10585705027948,
+        "Media": 82.43961649739364,
+        "Desvio Padrao": 14.319646921279203,
+        "RCE": " - ",
+        "Valido": true
+    },
+    {
+        "Generations": 11,
+        "index": 0,
+        "Variaveis de Decisão": [
+            10,
+            27,
+            20,
+            10,
+            16
+        ],
+        "Fitness": 51.91881934876976,
+        "Media": 82.49908504596628,
+        "Desvio Padrao": 17.499806869682743,
+        "RCE": " - ",
+        "Valido": true
+    },
+    {
+        "Generations": 11,
+        "index": 1,
+        "Variaveis de Decisão": [
+            22,
+            17,
+            12,
+            2,
+            2
+        ],
+        "Fitness": 80.38722979650677,
+        "Media": 82.49908504596628,
+        "Desvio Padrao": 17.499806869682743,
+        "RCE": " - ",
+        "Valido": true
+    },
+    {
+        "Generations": 11,
+        "index": 2,
+        "Variaveis de Decisão": [
+            10,
+            27,
+            20,
+            18,
+            9
+        ],
+        "Fitness": 108.762890150404,
+        "Media": 82.49908504596628,
+        "Desvio Padrao": 17.499806869682743,
+        "RCE": " - ",
+        "Valido": true
+    },
+    {
+        "Generations": 11,
+        "index": 3,
+        "Variaveis de Decisão": [
+            27,
+            25,
+            2,
+            10,
+            17
+        ],
+        "Fitness": 77.24798325274325,
+        "Media": 82.49908504596628,
+        "Desvio Padrao": 17.499806869682743,
+        "RCE": " - ",
+        "Valido": true
+    },
+    {
+        "Generations": 11,
+        "index": 4,
+        "Variaveis de Decisão": [
+            3,
+            18,
+            4,
+            2,
+            30
+        ],
+        "Fitness": 95.4267642597998,
+        "Media": 82.49908504596628,
+        "Desvio Padrao": 17.499806869682743,
+        "RCE": " - ",
+        "Valido": true
+    },
+    {
+        "Generations": 11,
+        "index": 5,
+        "Variaveis de Decisão": [
+            1,
+            19,
+            23,
+            27,
+            4
+        ],
+        "Fitness": 106.31293406236883,
+        "Media": 82.49908504596628,
+        "Desvio Padrao": 17.499806869682743,
+        "RCE": " - ",
+        "Valido": true
+    },
+    {
+        "Generations": 11,
+        "index": 6,
+        "Variaveis de Decisão": [
+            9,
+            27,
+            2,
+            18,
+            9
+        ],
+        "Fitness": 71.66559123739273,
+        "Media": 82.49908504596628,
+        "Desvio Padrao": 17.499806869682743,
+        "RCE": " - ",
+        "Valido": true
+    },
+    {
+        "Generations": 11,
+        "index": 7,
+        "Variaveis de Decisão": [
+            9,
+            27,
+            2,
+            18,
+            9
+        ],
+        "Fitness": 71.66559123739273,
+        "Media": 82.49908504596628,
+        "Desvio Padrao": 17.499806869682743,
+        "RCE": " - ",
+        "Valido": true
+    },
+    {
+        "Generations": 11,
+        "index": 8,
+        "Variaveis de Decisão": [
+            22,
+            17,
+            1,
+            18,
+            9
+        ],
+        "Fitness": 95.47703704731018,
+        "Media": 82.49908504596628,
+        "Desvio Padrao": 17.499806869682743,
+        "RCE": " - ",
+        "Valido": true
+    },
+    {
+        "Generations": 11,
+        "index": 9,
+        "Variaveis de Decisão": [
+            9,
+            27,
+            2,
+            2,
+            30
+        ],
+        "Fitness": 66.12601006697464,
+        "Media": 82.49908504596628,
+        "Desvio Padrao": 17.499806869682743,
+        "RCE": " - ",
+        "Valido": true
+    },
+    {
+        "Generations": 12,
+        "index": 0,
+        "Variaveis de Decisão": [
+            10,
+            27,
+            20,
+            10,
+            16
+        ],
+        "Fitness": 51.91881934876976,
+        "Media": 66.726110286611,
+        "Desvio Padrao": 14.18098399015027,
+        "RCE": " - ",
+        "Valido": true
+    },
+    {
+        "Generations": 12,
+        "index": 1,
+        "Variaveis de Decisão": [
+            22,
+            17,
+            12,
+            2,
+            2
+        ],
+        "Fitness": 80.38722979650677,
+        "Media": 66.726110286611,
+        "Desvio Padrao": 14.18098399015027,
+        "RCE": " - ",
+        "Valido": true
+    },
+    {
+        "Generations": 12,
+        "index": 2,
+        "Variaveis de Decisão": [
+            27,
+            27,
+            2,
+            10,
+            17
+        ],
+        "Fitness": 65.09527597172693,
+        "Media": 66.726110286611,
+        "Desvio Padrao": 14.18098399015027,
+        "RCE": " - ",
+        "Valido": true
+    },
+    {
+        "Generations": 12,
+        "index": 3,
+        "Variaveis de Decisão": [
+            9,
+            25,
+            2,
+            2,
+            30
+        ],
+        "Fitness": 53.311551478219165,
+        "Media": 66.726110286611,
+        "Desvio Padrao": 14.18098399015027,
+        "RCE": " - ",
+        "Valido": true
+    },
+    {
+        "Generations": 12,
+        "index": 4,
+        "Variaveis de Decisão": [
+            9,
+            27,
+            2,
+            5,
+            9
+        ],
+        "Fitness": 99.01294800622406,
+        "Media": 66.726110286611,
+        "Desvio Padrao": 14.18098399015027,
+        "RCE": " - ",
+        "Valido": true
+    },
+    {
+        "Generations": 12,
+        "index": 5,
+        "Variaveis de Decisão": [
+            10,
+            15,
+            20,
+            10,
+            16
+        ],
+        "Fitness": 56.1592663741335,
+        "Media": 66.726110286611,
+        "Desvio Padrao": 14.18098399015027,
+        "RCE": " - ",
+        "Valido": true
+    },
+    {
+        "Generations": 12,
+        "index": 6,
+        "Variaveis de Decisão": [
+            9,
+            27,
+            2,
+            18,
+            9
+        ],
+        "Fitness": 71.66559123739273,
+        "Media": 66.726110286611,
+        "Desvio Padrao": 14.18098399015027,
+        "RCE": " - ",
+        "Valido": true
+    },
+    {
+        "Generations": 12,
+        "index": 7,
+        "Variaveis de Decisão": [
+            9,
+            27,
+            2,
+            18,
+            9
+        ],
+        "Fitness": 71.66559123739273,
+        "Media": 66.726110286611,
+        "Desvio Padrao": 14.18098399015027,
+        "RCE": " - ",
+        "Valido": true
+    },
+    {
+        "Generations": 12,
+        "index": 8,
+        "Variaveis de Decisão": [
+            9,
+            27,
+            2,
+            2,
+            30
+        ],
+        "Fitness": 66.12601006697464,
+        "Media": 66.726110286611,
+        "Desvio Padrao": 14.18098399015027,
+        "RCE": " - ",
+        "Valido": true
+    },
+    {
+        "Generations": 12,
+        "index": 9,
+        "Variaveis de Decisão": [
+            10,
+            27,
+            20,
+            10,
+            16
+        ],
+        "Fitness": 51.91881934876976,
+        "Media": 66.726110286611,
+        "Desvio Padrao": 14.18098399015027,
+        "RCE": " - ",
+        "Valido": true
+    },
+    {
+        "Generations": 13,
+        "index": 0,
+        "Variaveis de Decisão": [
+            10,
+            27,
+            20,
+            10,
+            16
+        ],
+        "Fitness": 51.91881934876976,
+        "Media": 76.54793928241384,
+        "Desvio Padrao": 17.569787660652914,
+        "RCE": " - ",
+        "Valido": true
+    },
+    {
+        "Generations": 13,
+        "index": 1,
+        "Variaveis de Decisão": [
+            10,
+            27,
+            20,
+            22,
+            16
+        ],
+        "Fitness": 100.78414939350962,
+        "Media": 76.54793928241384,
+        "Desvio Padrao": 17.569787660652914,
+        "RCE": " - ",
+        "Valido": true
+    },
+    {
+        "Generations": 13,
+        "index": 2,
+        "Variaveis de Decisão": [
+            9,
+            25,
+            21,
+            2,
+            30
+        ],
+        "Fitness": 76.90952318219755,
+        "Media": 76.54793928241384,
+        "Desvio Padrao": 17.569787660652914,
+        "RCE": " - ",
+        "Valido": true
+    },
+    {
+        "Generations": 13,
+        "index": 3,
+        "Variaveis de Decisão": [
+            24,
+            25,
+            2,
+            2,
+            30
+        ],
+        "Fitness": 61.60042215787169,
+        "Media": 76.54793928241384,
+        "Desvio Padrao": 17.569787660652914,
+        "RCE": " - ",
+        "Valido": true
+    },
+    {
+        "Generations": 13,
+        "index": 4,
+        "Variaveis de Decisão": [
+            10,
+            27,
+            20,
+            10,
+            20
+        ],
+        "Fitness": 60.21179251831967,
+        "Media": 76.54793928241384,
+        "Desvio Padrao": 17.569787660652914,
+        "RCE": " - ",
+        "Valido": true
+    },
+    {
+        "Generations": 13,
+        "index": 5,
+        "Variaveis de Decisão": [
+            10,
+            27,
+            20,
+            16,
+            29
+        ],
+        "Fitness": 106.90619261496944,
+        "Media": 76.54793928241384,
+        "Desvio Padrao": 17.569787660652914,
+        "RCE": " - ",
+        "Valido": true
+    },
+    {
+        "Generations": 13,
+        "index": 6,
+        "Variaveis de Decisão": [
+            10,
+            31,
+            20,
+            4,
+            16
+        ],
+        "Fitness": 63.844554081207164,
+        "Media": 76.54793928241384,
+        "Desvio Padrao": 17.569787660652914,
+        "RCE": " - ",
+        "Valido": true
+    },
+    {
+        "Generations": 13,
+        "index": 7,
+        "Variaveis de Decisão": [
+            10,
+            31,
+            20,
+            10,
+            8
+        ],
+        "Fitness": 75.72233370109322,
+        "Media": 76.54793928241384,
+        "Desvio Padrao": 17.569787660652914,
+        "RCE": " - ",
+        "Valido": true
+    },
+    {
+        "Generations": 13,
+        "index": 8,
+        "Variaveis de Decisão": [
+            20,
+            25,
+            2,
+            2,
+            30
+        ],
+        "Fitness": 73.44771487685546,
+        "Media": 76.54793928241384,
+        "Desvio Padrao": 17.569787660652914,
+        "RCE": " - ",
+        "Valido": true
+    },
+    {
+        "Generations": 13,
+        "index": 9,
+        "Variaveis de Decisão": [
+            9,
+            15,
+            2,
+            10,
+            17
+        ],
+        "Fitness": 94.1338909493448,
+        "Media": 76.54793928241384,
+        "Desvio Padrao": 17.569787660652914,
+        "RCE": " - ",
+        "Valido": true
+    },
+    {
+        "Generations": 14,
+        "index": 0,
+        "Variaveis de Decisão": [
+            10,
+            27,
+            20,
+            10,
+            16
+        ],
+        "Fitness": 51.91881934876976,
+        "Media": 70.28695994086686,
+        "Desvio Padrao": 13.445552610984159,
+        "RCE": " - ",
+        "Valido": true
+    },
+    {
+        "Generations": 14,
+        "index": 1,
+        "Variaveis de Decisão": [
+            20,
+            6,
+            20,
+            21,
+            30
+        ],
+        "Fitness": 75.80975181954335,
+        "Media": 70.28695994086686,
+        "Desvio Padrao": 13.445552610984159,
+        "RCE": " - ",
+        "Valido": true
+    },
+    {
+        "Generations": 14,
+        "index": 2,
+        "Variaveis de Decisão": [
+            10,
+            27,
+            20,
+            8,
+            10
+        ],
+        "Fitness": 68.17900298140428,
+        "Media": 70.28695994086686,
+        "Desvio Padrao": 13.445552610984159,
+        "RCE": " - ",
+        "Valido": true
+    },
+    {
+        "Generations": 14,
+        "index": 3,
+        "Variaveis de Decisão": [
+            1,
+            27,
+            20,
+            10,
+            20
+        ],
+        "Fitness": 71.31701695708611,
+        "Media": 70.28695994086686,
+        "Desvio Padrao": 13.445552610984159,
+        "RCE": " - ",
+        "Valido": true
+    },
+    {
+        "Generations": 14,
+        "index": 4,
+        "Variaveis de Decisão": [
+            6,
+            27,
+            20,
+            10,
+            20
+        ],
+        "Fitness": 86.34144087292907,
+        "Media": 70.28695994086686,
+        "Desvio Padrao": 13.445552610984159,
+        "RCE": " - ",
+        "Valido": true
+    },
+    {
+        "Generations": 14,
+        "index": 5,
+        "Variaveis de Decisão": [
+            10,
+            27,
+            17,
+            10,
+            16
+        ],
+        "Fitness": 65.06758192635925,
+        "Media": 70.28695994086686,
+        "Desvio Padrao": 13.445552610984159,
+        "RCE": " - ",
+        "Valido": true
+    },
+    {
+        "Generations": 14,
+        "index": 6,
+        "Variaveis de Decisão": [
+            10,
+            27,
+            20,
+            10,
+            16
+        ],
+        "Fitness": 51.91881934876976,
+        "Media": 70.28695994086686,
+        "Desvio Padrao": 13.445552610984159,
+        "RCE": " - ",
+        "Valido": true
+    },
+    {
+        "Generations": 14,
+        "index": 7,
+        "Variaveis de Decisão": [
+            3,
+            31,
+            20,
+            4,
+            8
+        ],
+        "Fitness": 96.38303993439398,
+        "Media": 70.28695994086686,
+        "Desvio Padrao": 13.445552610984159,
+        "RCE": " - ",
+        "Valido": true
+    },
+    {
+        "Generations": 14,
+        "index": 8,
+        "Variaveis de Decisão": [
+            10,
+            27,
+            20,
+            10,
+            8
+        ],
+        "Fitness": 75.72233370109322,
+        "Media": 70.28695994086686,
+        "Desvio Padrao": 13.445552610984159,
+        "RCE": " - ",
+        "Valido": true
+    },
+    {
+        "Generations": 14,
+        "index": 9,
+        "Variaveis de Decisão": [
+            10,
+            27,
+            20,
+            10,
+            20
+        ],
+        "Fitness": 60.21179251831967,
+        "Media": 70.28695994086686,
+        "Desvio Padrao": 13.445552610984159,
+        "RCE": " - ",
+        "Valido": true
+    },
+    {
+        "Generations": 15,
+        "index": 0,
+        "Variaveis de Decisão": [
+            10,
+            27,
+            20,
+            10,
+            16
+        ],
+        "Fitness": 51.91881934876976,
+        "Media": 73.30765305753414,
+        "Desvio Padrao": 14.415677261077667,
+        "RCE": " - ",
+        "Valido": true
+    },
+    {
+        "Generations": 15,
+        "index": 1,
+        "Variaveis de Decisão": [
+            1,
+            27,
+            17,
+            10,
+            11
+        ],
+        "Fitness": 82.65453622945228,
+        "Media": 73.30765305753414,
+        "Desvio Padrao": 14.415677261077667,
+        "RCE": " - ",
+        "Valido": true
+    },
+    {
+        "Generations": 15,
+        "index": 2,
+        "Variaveis de Decisão": [
+            19,
+            27,
+            31,
+            10,
+            8
+        ],
+        "Fitness": 95.45266027067993,
+        "Media": 73.30765305753414,
+        "Desvio Padrao": 14.415677261077667,
+        "RCE": " - ",
+        "Valido": true
+    },
+    {
+        "Generations": 15,
+        "index": 3,
+        "Variaveis de Decisão": [
+            10,
+            29,
+            20,
+            10,
+            16
+        ],
+        "Fitness": 51.91881934876976,
+        "Media": 73.30765305753414,
+        "Desvio Padrao": 14.415677261077667,
+        "RCE": " - ",
+        "Valido": true
+    },
+    {
+        "Generations": 15,
+        "index": 4,
+        "Variaveis de Decisão": [
+            22,
+            24,
+            14,
+            10,
+            20
+        ],
+        "Fitness": 93.4767424286513,
+        "Media": 73.30765305753414,
+        "Desvio Padrao": 14.415677261077667,
+        "RCE": " - ",
+        "Valido": true
+    },
+    {
+        "Generations": 15,
+        "index": 5,
+        "Variaveis de Decisão": [
+            10,
+            27,
+            30,
+            10,
+            1
+        ],
+        "Fitness": 73.28707740010019,
+        "Media": 73.30765305753414,
+        "Desvio Padrao": 14.415677261077667,
+        "RCE": " - ",
+        "Valido": true
+    },
+    {
+        "Generations": 15,
+        "index": 6,
+        "Variaveis de Decisão": [
+            10,
+            27,
+            17,
+            10,
+            16
+        ],
+        "Fitness": 65.06758192635925,
+        "Media": 73.30765305753414,
+        "Desvio Padrao": 14.415677261077667,
+        "RCE": " - ",
+        "Valido": true
+    },
+    {
+        "Generations": 15,
+        "index": 7,
+        "Variaveis de Decisão": [
+            10,
+            27,
+            20,
+            10,
+            8
+        ],
+        "Fitness": 75.72233370109322,
+        "Media": 73.30765305753414,
+        "Desvio Padrao": 14.415677261077667,
+        "RCE": " - ",
+        "Valido": true
+    },
+    {
+        "Generations": 15,
+        "index": 8,
+        "Variaveis de Decisão": [
+            10,
+            27,
+            20,
+            5,
+            16
+        ],
+        "Fitness": 78.86897799705014,
+        "Media": 73.30765305753414,
+        "Desvio Padrao": 14.415677261077667,
+        "RCE": " - ",
+        "Valido": true
+    },
+    {
+        "Generations": 15,
+        "index": 9,
+        "Variaveis de Decisão": [
+            10,
+            27,
+            20,
+            10,
+            12
+        ],
+        "Fitness": 64.70898192441553,
+        "Media": 73.30765305753414,
+        "Desvio Padrao": 14.415677261077667,
+        "RCE": " - ",
+        "Valido": true
+    },
+    {
+        "Generations": 16,
+        "index": 0,
+        "Variaveis de Decisão": [
+            10,
+            27,
+            20,
+            10,
+            16
+        ],
+        "Fitness": 51.91881934876976,
+        "Media": 67.6454370617867,
+        "Desvio Padrao": 15.69425364098877,
+        "RCE": " - ",
+        "Valido": true
+    },
+    {
+        "Generations": 16,
+        "index": 1,
+        "Variaveis de Decisão": [
+            10,
+            27,
+            20,
+            10,
+            16
+        ],
+        "Fitness": 51.91881934876976,
+        "Media": 67.6454370617867,
+        "Desvio Padrao": 15.69425364098877,
+        "RCE": " - ",
+        "Valido": true
+    },
+    {
+        "Generations": 16,
+        "index": 2,
+        "Variaveis de Decisão": [
+            10,
+            27,
+            20,
+            5,
+            28
+        ],
+        "Fitness": 79.33352503693517,
+        "Media": 67.6454370617867,
+        "Desvio Padrao": 15.69425364098877,
+        "RCE": " - ",
+        "Valido": true
+    },
+    {
+        "Generations": 16,
+        "index": 3,
+        "Variaveis de Decisão": [
+            10,
+            31,
+            20,
+            5,
+            16
+        ],
+        "Fitness": 78.86897799705014,
+        "Media": 67.6454370617867,
+        "Desvio Padrao": 15.69425364098877,
+        "RCE": " - ",
+        "Valido": true
+    },
+    {
+        "Generations": 16,
+        "index": 4,
+        "Variaveis de Decisão": [
+            10,
+            27,
+            20,
+            10,
+            16
+        ],
+        "Fitness": 51.91881934876976,
+        "Media": 67.6454370617867,
+        "Desvio Padrao": 15.69425364098877,
+        "RCE": " - ",
+        "Valido": true
+    },
+    {
+        "Generations": 16,
+        "index": 5,
+        "Variaveis de Decisão": [
+            10,
+            21,
+            20,
+            23,
+            8
+        ],
+        "Fitness": 101.62740818721669,
+        "Media": 67.6454370617867,
+        "Desvio Padrao": 15.69425364098877,
+        "RCE": " - ",
+        "Valido": true
+    },
+    {
+        "Generations": 16,
+        "index": 6,
+        "Variaveis de Decisão": [
+            10,
+            8,
+            20,
+            10,
+            22
+        ],
+        "Fitness": 74.47956924867049,
+        "Media": 67.6454370617867,
+        "Desvio Padrao": 15.69425364098877,
+        "RCE": " - ",
+        "Valido": true
+    },
+    {
+        "Generations": 16,
+        "index": 7,
+        "Variaveis de Decisão": [
+            10,
+            27,
+            17,
+            10,
+            8
+        ],
+        "Fitness": 69.40203082655627,
+        "Media": 67.6454370617867,
+        "Desvio Padrao": 15.69425364098877,
+        "RCE": " - ",
+        "Valido": true
+    },
+    {
+        "Generations": 16,
+        "index": 8,
+        "Variaveis de Decisão": [
+            10,
+            27,
+            17,
+            10,
+            16
+        ],
+        "Fitness": 65.06758192635925,
+        "Media": 67.6454370617867,
+        "Desvio Padrao": 15.69425364098877,
+        "RCE": " - ",
+        "Valido": true
+    },
+    {
+        "Generations": 16,
+        "index": 9,
+        "Variaveis de Decisão": [
+            10,
+            29,
+            20,
+            10,
+            16
+        ],
+        "Fitness": 51.91881934876976,
+        "Media": 67.6454370617867,
+        "Desvio Padrao": 15.69425364098877,
+        "RCE": " - ",
+        "Valido": true
+    },
+    {
+        "Generations": 17,
+        "index": 0,
+        "Variaveis de Decisão": [
+            10,
+            27,
+            20,
+            10,
+            16
+        ],
+        "Fitness": 51.91881934876976,
+        "Media": 64.78073426462106,
+        "Desvio Padrao": 11.974232066351194,
+        "RCE": " - ",
+        "Valido": true
+    },
+    {
+        "Generations": 17,
+        "index": 1,
+        "Variaveis de Decisão": [
+            10,
+            27,
+            20,
+            10,
+            1
+        ],
+        "Fitness": 58.68755728818161,
+        "Media": 64.78073426462106,
+        "Desvio Padrao": 11.974232066351194,
+        "RCE": " - ",
+        "Valido": true
+    },
+    {
+        "Generations": 17,
+        "index": 2,
+        "Variaveis de Decisão": [
+            10,
+            27,
+            20,
+            30,
+            16
+        ],
+        "Fitness": 77.91829320721536,
+        "Media": 64.78073426462106,
+        "Desvio Padrao": 11.974232066351194,
+        "RCE": " - ",
+        "Valido": true
+    },
+    {
+        "Generations": 17,
+        "index": 3,
+        "Variaveis de Decisão": [
+            10,
+            27,
+            20,
+            10,
+            16
+        ],
+        "Fitness": 51.91881934876976,
+        "Media": 64.78073426462106,
+        "Desvio Padrao": 11.974232066351194,
+        "RCE": " - ",
+        "Valido": true
+    },
+    {
+        "Generations": 17,
+        "index": 4,
+        "Variaveis de Decisão": [
+            10,
+            27,
+            17,
+            10,
+            16
+        ],
+        "Fitness": 65.06758192635925,
+        "Media": 64.78073426462106,
+        "Desvio Padrao": 11.974232066351194,
+        "RCE": " - ",
+        "Valido": true
+    },
+    {
+        "Generations": 17,
+        "index": 5,
+        "Variaveis de Decisão": [
+            11,
+            27,
+            20,
+            8,
+            8
+        ],
+        "Fitness": 84.81341926164602,
+        "Media": 64.78073426462106,
+        "Desvio Padrao": 11.974232066351194,
+        "RCE": " - ",
+        "Valido": true
+    },
+    {
+        "Generations": 17,
+        "index": 6,
+        "Variaveis de Decisão": [
+            10,
+            27,
+            20,
+            10,
+            16
+        ],
+        "Fitness": 51.91881934876976,
+        "Media": 64.78073426462106,
+        "Desvio Padrao": 11.974232066351194,
+        "RCE": " - ",
+        "Valido": true
+    },
+    {
+        "Generations": 17,
+        "index": 7,
+        "Variaveis de Decisão": [
+            10,
+            27,
+            20,
+            10,
+            28
+        ],
+        "Fitness": 58.703669263191685,
+        "Media": 64.78073426462106,
+        "Desvio Padrao": 11.974232066351194,
+        "RCE": " - ",
+        "Valido": true
+    },
+    {
+        "Generations": 17,
+        "index": 8,
+        "Variaveis de Decisão": [
+            31,
+            27,
+            20,
+            10,
+            6
+        ],
+        "Fitness": 81.79278172694816,
+        "Media": 64.78073426462106,
+        "Desvio Padrao": 11.974232066351194,
+        "RCE": " - ",
+        "Valido": true
+    },
+    {
+        "Generations": 17,
+        "index": 9,
+        "Variaveis de Decisão": [
+            10,
+            27,
+            17,
+            10,
+            16
+        ],
+        "Fitness": 65.06758192635925,
+        "Media": 64.78073426462106,
+        "Desvio Padrao": 11.974232066351194,
+        "RCE": " - ",
+        "Valido": true
+    },
+    {
+        "Generations": 18,
+        "index": 0,
+        "Variaveis de Decisão": [
+            20,
+            27,
+            20,
+            10,
+            16
+        ],
+        "Fitness": 51.658458408586206,
+        "Media": 70.49220202759146,
+        "Desvio Padrao": 22.253028734757535,
+        "RCE": " - ",
+        "Valido": true
+    },
+    {
+        "Generations": 18,
+        "index": 1,
+        "Variaveis de Decisão": [
+            31,
+            27,
+            17,
+            12,
+            16
+        ],
+        "Fitness": 111.49681119088666,
+        "Media": 70.49220202759146,
+        "Desvio Padrao": 22.253028734757535,
+        "RCE": " - ",
+        "Valido": true
+    },
+    {
+        "Generations": 18,
+        "index": 2,
+        "Variaveis de Decisão": [
+            10,
+            27,
+            17,
+            8,
+            16
+        ],
+        "Fitness": 92.01774057463962,
+        "Media": 70.49220202759146,
+        "Desvio Padrao": 22.253028734757535,
+        "RCE": " - ",
+        "Valido": true
+    },
+    {
+        "Generations": 18,
+        "index": 3,
+        "Variaveis de Decisão": [
+            10,
+            27,
+            20,
+            10,
+            28
+        ],
+        "Fitness": 58.703669263191685,
+        "Media": 70.49220202759146,
+        "Desvio Padrao": 22.253028734757535,
+        "RCE": " - ",
+        "Valido": true
+    },
+    {
+        "Generations": 18,
+        "index": 4,
+        "Variaveis de Decisão": [
+            10,
+            27,
+            21,
+            10,
+            16
+        ],
+        "Fitness": 51.91881934876976,
+        "Media": 70.49220202759146,
+        "Desvio Padrao": 22.253028734757535,
+        "RCE": " - ",
+        "Valido": true
+    },
+    {
+        "Generations": 18,
+        "index": 5,
+        "Variaveis de Decisão": [
+            10,
+            27,
+            20,
+            10,
+            16
+        ],
+        "Fitness": 51.91881934876976,
+        "Media": 70.49220202759146,
+        "Desvio Padrao": 22.253028734757535,
+        "RCE": " - ",
+        "Valido": true
+    },
+    {
+        "Generations": 18,
+        "index": 6,
+        "Variaveis de Decisão": [
+            20,
+            27,
+            20,
+            10,
+            16
+        ],
+        "Fitness": 51.658458408586206,
+        "Media": 70.49220202759146,
+        "Desvio Padrao": 22.253028734757535,
+        "RCE": " - ",
+        "Valido": true
+    },
+    {
+        "Generations": 18,
+        "index": 7,
+        "Variaveis de Decisão": [
+            10,
+            27,
+            20,
+            10,
+            16
+        ],
+        "Fitness": 51.91881934876976,
+        "Media": 70.49220202759146,
+        "Desvio Padrao": 22.253028734757535,
+        "RCE": " - ",
+        "Valido": true
+    },
+    {
+        "Generations": 18,
+        "index": 8,
+        "Variaveis de Decisão": [
+            13,
+            27,
+            29,
+            10,
+            16
+        ],
+        "Fitness": 94.51739990199002,
+        "Media": 70.49220202759146,
+        "Desvio Padrao": 22.253028734757535,
+        "RCE": " - ",
+        "Valido": true
+    },
+    {
+        "Generations": 18,
+        "index": 9,
+        "Variaveis de Decisão": [
+            10,
+            27,
+            24,
+            10,
+            29
+        ],
+        "Fitness": 89.1130244817249,
+        "Media": 70.49220202759146,
+        "Desvio Padrao": 22.253028734757535,
+        "RCE": " - ",
+        "Valido": true
+    },
+    {
+        "Generations": 19,
+        "index": 0,
+        "Variaveis de Decisão": [
+            20,
+            27,
+            20,
+            10,
+            16
+        ],
+        "Fitness": 51.658458408586206,
+        "Media": 62.098258820016305,
+        "Desvio Padrao": 12.327304397879248,
+        "RCE": " - ",
+        "Valido": true
+    },
+    {
+        "Generations": 19,
+        "index": 1,
+        "Variaveis de Decisão": [
+            20,
+            27,
+            20,
+            10,
+            16
+        ],
+        "Fitness": 51.658458408586206,
+        "Media": 62.098258820016305,
+        "Desvio Padrao": 12.327304397879248,
+        "RCE": " - ",
+        "Valido": true
+    },
+    {
+        "Generations": 19,
+        "index": 2,
+        "Variaveis de Decisão": [
+            23,
+            27,
+            20,
+            10,
+            16
+        ],
+        "Fitness": 88.0052336098148,
+        "Media": 62.098258820016305,
+        "Desvio Padrao": 12.327304397879248,
+        "RCE": " - ",
+        "Valido": true
+    },
+    {
+        "Generations": 19,
+        "index": 3,
+        "Variaveis de Decisão": [
+            20,
+            27,
+            20,
+            10,
+            16
+        ],
+        "Fitness": 51.658458408586206,
+        "Media": 62.098258820016305,
+        "Desvio Padrao": 12.327304397879248,
+        "RCE": " - ",
+        "Valido": true
+    },
+    {
+        "Generations": 19,
+        "index": 4,
+        "Variaveis de Decisão": [
+            20,
+            27,
+            20,
+            10,
+            18
+        ],
+        "Fitness": 64.35878592130074,
+        "Media": 62.098258820016305,
+        "Desvio Padrao": 12.327304397879248,
+        "RCE": " - ",
+        "Valido": true
+    },
+    {
+        "Generations": 19,
+        "index": 5,
+        "Variaveis de Decisão": [
+            20,
+            27,
+            20,
+            10,
+            16
+        ],
+        "Fitness": 51.658458408586206,
+        "Media": 62.098258820016305,
+        "Desvio Padrao": 12.327304397879248,
+        "RCE": " - ",
+        "Valido": true
+    },
+    {
+        "Generations": 19,
+        "index": 6,
+        "Variaveis de Decisão": [
+            20,
+            27,
+            20,
+            6,
+            23
+        ],
+        "Fitness": 70.65742953088568,
+        "Media": 62.098258820016305,
+        "Desvio Padrao": 12.327304397879248,
+        "RCE": " - ",
+        "Valido": true
+    },
+    {
+        "Generations": 19,
+        "index": 7,
+        "Variaveis de Decisão": [
+            10,
+            27,
+            20,
+            10,
+            10
+        ],
+        "Fitness": 62.57357112350377,
+        "Media": 62.098258820016305,
+        "Desvio Padrao": 12.327304397879248,
+        "RCE": " - ",
+        "Valido": true
+    },
+    {
+        "Generations": 19,
+        "index": 8,
+        "Variaveis de Decisão": [
+            20,
+            27,
+            20,
+            10,
+            16
+        ],
+        "Fitness": 51.658458408586206,
+        "Media": 62.098258820016305,
+        "Desvio Padrao": 12.327304397879248,
+        "RCE": " - ",
+        "Valido": true
+    },
+    {
+        "Generations": 19,
+        "index": 9,
+        "Variaveis de Decisão": [
+            31,
+            27,
+            2,
+            10,
+            16
+        ],
+        "Fitness": 77.09527597172695,
+        "Media": 62.098258820016305,
+        "Desvio Padrao": 12.327304397879248,
+        "RCE": " - ",
+        "Valido": true
+    },
+    {
+        "Generations": 20,
+        "index": 0,
+        "Variaveis de Decisão": [
+            20,
+            27,
+            20,
+            20,
+            16
+        ],
+        "Fitness": 49.13545004408033,
+        "Media": 82.41924436603765,
+        "Desvio Padrao": 21.362147905290925,
+        "RCE": " - ",
+        "Valido": true
+    },
+    {
+        "Generations": 20,
+        "index": 1,
+        "Variaveis de Decisão": [
+            20,
+            27,
+            20,
+            4,
+            22
+        ],
+        "Fitness": 57.158250989452156,
+        "Media": 82.41924436603765,
+        "Desvio Padrao": 21.362147905290925,
+        "RCE": " - ",
+        "Valido": true
+    },
+    {
+        "Generations": 20,
+        "index": 2,
+        "Variaveis de Decisão": [
+            20,
+            21,
+            20,
+            10,
+            16
+        ],
+        "Fitness": 52.57737192169342,
+        "Media": 82.41924436603765,
+        "Desvio Padrao": 21.362147905290925,
+        "RCE": " - ",
+        "Valido": true
+    },
+    {
+        "Generations": 20,
+        "index": 3,
+        "Variaveis de Decisão": [
+            18,
+            7,
+            28,
+            24,
+            17
+        ],
+        "Fitness": 93.69567974146769,
+        "Media": 82.41924436603765,
+        "Desvio Padrao": 21.362147905290925,
+        "RCE": " - ",
+        "Valido": true
+    },
+    {
+        "Generations": 20,
+        "index": 4,
+        "Variaveis de Decisão": [
+            29,
+            1,
+            3,
+            17,
+            2
+        ],
+        "Fitness": 85.15144699802607,
+        "Media": 82.41924436603765,
+        "Desvio Padrao": 21.362147905290925,
+        "RCE": " - ",
+        "Valido": true
+    },
+    {
+        "Generations": 20,
+        "index": 5,
+        "Variaveis de Decisão": [
+            20,
+            9,
+            6,
+            8,
+            11
+        ],
+        "Fitness": 110.56442140836326,
+        "Media": 82.41924436603765,
+        "Desvio Padrao": 21.362147905290925,
+        "RCE": " - ",
+        "Valido": true
+    },
+    {
+        "Generations": 20,
+        "index": 6,
+        "Variaveis de Decisão": [
+            12,
+            25,
+            28,
+            5,
+            11
+        ],
+        "Fitness": 92.66335945551516,
+        "Media": 82.41924436603765,
+        "Desvio Padrao": 21.362147905290925,
+        "RCE": " - ",
+        "Valido": true
+    },
+    {
+        "Generations": 20,
+        "index": 7,
+        "Variaveis de Decisão": [
+            26,
+            18,
+            19,
+            28,
+            18
+        ],
+        "Fitness": 90.43859866979817,
+        "Media": 82.41924436603765,
+        "Desvio Padrao": 21.362147905290925,
+        "RCE": " - ",
+        "Valido": true
+    },
+    {
+        "Generations": 20,
+        "index": 8,
+        "Variaveis de Decisão": [
+            21,
+            1,
+            14,
+            10,
+            27
+        ],
+        "Fitness": 81.57526594465567,
+        "Media": 82.41924436603765,
+        "Desvio Padrao": 21.362147905290925,
+        "RCE": " - ",
+        "Valido": true
+    },
+    {
+        "Generations": 20,
+        "index": 9,
+        "Variaveis de Decisão": [
+            11,
+            14,
+            7,
+            23,
+            5
+        ],
+        "Fitness": 111.23259848732454,
+        "Media": 82.41924436603765,
+        "Desvio Padrao": 21.362147905290925,
+        "RCE": " - ",
+        "Valido": true
+    }
+]

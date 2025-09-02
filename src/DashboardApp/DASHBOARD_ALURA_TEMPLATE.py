@@ -2,14 +2,8 @@ import streamlit as st
 import pandas as pd
 import plotly.express as px
 
-
 import psycopg2
 import altair as alt
-
-
-
-
-
 
 # --- Configuração da Página ---
 # Define o título da página, o ícone e o layout para ocupar a largura inteira.
