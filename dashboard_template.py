@@ -19,12 +19,25 @@ class DataModel:
         self.load_data()
     
     def load_data(self) -> pd.DataFrame:
-        """Carrega dados de diferentes fontes e realiza uma limpeza inicial."""
+        """Carrega dados de diferentes fontes (.csv, .xlsx) e realiza uma limpeza inicial."""
         try:
+            # Caso 1: A fonte de dados é um URL (string)
             if isinstance(self.data_source, str):
                 self.df = pd.read_csv(self.data_source)
+            # Caso 2: A fonte de dados é um DataFrame já existente
             elif isinstance(self.data_source, pd.DataFrame):
                 self.df = self.data_source.copy()
+            # Caso 3: A fonte de dados é um ficheiro carregado pelo Streamlit
+            elif hasattr(self.data_source, 'name'):
+                file_name = self.data_source.name
+                if file_name.endswith('.csv'):
+                    self.df = pd.read_csv(self.data_source)
+                elif file_name.endswith(('.xlsx', '.xls')):
+                    # Para ler ficheiros Excel, a biblioteca openpyxl é necessária
+                    # O Streamlit Cloud geralmente já a tem. Localmente: pip install openpyxl
+                    self.df = pd.read_excel(self.data_source, engine='openpyxl')
+                else:
+                    raise ValueError("Formato de ficheiro não suportado. Use .csv ou .xlsx.")
             else:
                 raise ValueError("Fonte de dados inválida")
 
@@ -209,7 +222,7 @@ class DashboardView:
     
     def render_sidebar_filters(self, df: pd.DataFrame, column_info: Dict[str, List[str]]) -> Dict[str, Any]:
         st.sidebar.header("🔍 Filtros")
-        st.sidebar.info(f"**Registros (Total):** {len(df)}\n**Colunas:** {len(df.columns)}")
+        st.sidebar.info(f"**Registos (Total):** {len(df)}\n**Colunas:** {len(df.columns)}")
         filters = {}
         for col in column_info["categorical"]:
             if 1 < df[col].nunique() <= 50:
@@ -233,7 +246,7 @@ class DashboardView:
                 if min_val < max_val:
                     filters[col] = st.sidebar.slider(col.title(), min_val, max_val, (min_val, max_val))
         
-        if st.sidebar.button("🔄 Resetar Filtros"):
+        if st.sidebar.button("🔄 Reiniciar Filtros"):
             st.rerun()
         return filters
     
@@ -246,7 +259,7 @@ class DashboardView:
             return
 
         c1, c2 = st.columns(2)
-        c1.metric("Total de Registros", f"{metrics.get('total_records', 0):,}")
+        c1.metric("Total de Registos", f"{metrics.get('total_records', 0):,}")
         c2.metric("Total de Colunas", f"{metrics.get('total_columns', 0):,}")
         
         st.divider()
@@ -320,7 +333,7 @@ class DashboardView:
             return
 
         st.dataframe(df, use_container_width=True)
-        st.info(f"Mostrando {len(df)} registros.")
+        st.info(f"Mostrando {len(df)} registos.")
 
 # ====================================
 # CONTROLLER LAYER
@@ -413,14 +426,17 @@ if __name__ == "__main__":
     # Adiciona a opção de fazer upload ou usar a URL
     data_source_option = st.sidebar.radio(
         "Escolha a fonte dos dados:",
-        ("Usar URL de exemplo", "Fazer upload de arquivo CSV")
+        ("Usar URL de exemplo", "Fazer upload de ficheiro")
     )
 
     data_source = None
     if data_source_option == "Usar URL de exemplo":
         data_source = "https://raw.githubusercontent.com/PedroVic12/Repopulation-With-Elite-Set/refs/heads/main/resultados%20-%20Artigo%20PIBIC/2025-09-01_resultados.csv"
     else:
-        uploaded_file = st.sidebar.file_uploader("Arraste e solte ou clique para fazer upload", type=["csv"])
+        uploaded_file = st.sidebar.file_uploader(
+            "Arraste e solte ou clique para fazer upload", 
+            type=["csv", "xlsx"]
+        )
         if uploaded_file:
             data_source = uploaded_file
 
