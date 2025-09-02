@@ -3,11 +3,16 @@ import pandas as pd
 import sys
 from pathlib import Path
 import numpy as np
+import datetime
+from streamlit_timeline import st_timeline
+import ast
+
 from .components.dash_rce_components import (
     CardSolutions,
     StatisticsTableComponent
 )
-from .components.AgendamentoRedePage import AgendamentoRedePage
+# Removido AgendamentoRedePage para simplificar e focar na timeline
+# from .components.AgendamentoRedePage import AgendamentoRedePage
 from .components.dashboard_config import get_config
 
 # --- Adiciona o diretório raiz ao path para encontrar os módulos ---
@@ -32,8 +37,6 @@ def rede_template_view(html_path: str | None = None, height: int = 1200):
         html_path: Caminho absoluto/relativo para o arquivo HTML. Se None, usa o arquivo padrão ao lado desta tela.
         height: Altura do iframe em pixels.
     """
-    # Caminho padrão: src/DashboardApp/plot_rede_IEEE_template_dashboard.html
-    #st.write(BASE_DIR)
     if html_path is None:
         html_path = BASE_DIR / "resultados - Artigo PIBIC" / "plot_rede_IEEE_template_dashboard.html"
     try:
@@ -47,34 +50,28 @@ def rede_template_view(html_path: str | None = None, height: int = 1200):
         st.error(f"Erro ao ler o arquivo HTML: {e}")
         return
 
-    # Renderiza o HTML completo (com Plotly CDN incluído no próprio arquivo)
     components.html(html_content, height=height, scrolling=True)
 
 
 class TabPinningController:
     def __init__(self):
-        # No state initialization needed here, it will be dynamic based on keys
         pass
 
     def render_toggle(self, key):
-        """Renders the toggle switch and returns its state, using a unique key."""
-        # Initialize the state if it doesn't exist
+        """Renderiza o toggle e retorna seu estado."""
         if key not in st.session_state:
             st.session_state[key] = False
         
-        # Render the toggle. It will use st.session_state[key] as its value
-        # and update it automatically on interaction.
         st.toggle(
             "📌 Fixar Aba",
             key=key,
             help="Ative para selecionar e fixar a visualização de uma única aba."
         )
         
-        # Return the current state.
         return st.session_state[key]
 
     def render_selection_box(self, tab_options, key):
-        """Renders the selection box for choosing a tab, using a unique key."""
+        """Renderiza a caixa de seleção para escolher uma aba."""
         return st.selectbox(
             "Selecione a aba para fixar:",
             options=tab_options,
@@ -83,28 +80,23 @@ class TabPinningController:
 
 
 class FrameworkRCEDashboard:
-    """Dashboard principal, restaurado e corrigido para incluigr todas as funcionalidades solicitadas."""
+    """Dashboard principal, com a timeline integrada na aba Solução."""
 
     def __init__(self):
         self.db_controller = DatabaseController(base_dir=BASE_DIR)
-        self.consolidation_manager = ConsolidationManager(base_dir=BASE_DIR)  # Gerenciador de consolidação
-        self.config = get_config()  # Carrega configurações
+        self.consolidation_manager = ConsolidationManager(base_dir=BASE_DIR)
+        self.config = get_config()
         self.tab_pinning_controller = TabPinningController()
         self._init_state()
         self.MenuLateral()
         
     def MenuLateral(self):
-        
-        """Menu lateral único para navegação."""
         st.sidebar.title("🧭 Menu Dashboard")
-        
-        # logo da UFF
-        st.sidebar.image("https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRHVsZ1z9B-HIP8Ddsks0mP3aETeG1CkYixtA&s", width=800)
-        st.sidebar.markdown("---")  # Separador visual
+        st.sidebar.image("https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRHVsZ1z9B-HIP8Ddsks0mP3aETeG1CkYixtA&s", use_container_width=True)
+        st.sidebar.markdown("---")
         st.info("EM DESENVOLVIMENTO")
 
     def _init_state(self):
-        """Inicializa o estado da sessão do Streamlit."""
         if "df_consolidado" not in st.session_state:
             st.session_state.df_consolidado = self.db_controller.get_consolidated_data()
         
@@ -132,7 +124,6 @@ class FrameworkRCEDashboard:
         df = st.session_state.df_consolidado
         if df is None or df.empty: return {}
         config_col, exec_col = self._validate_required_columns(df)
-        st.sidebar.write(config_col, exec_col)
         if not config_col or not exec_col: 
             st.error("O arquivo consolidado não contém as colunas de configuração ou execução.")
             return {}
@@ -144,115 +135,55 @@ class FrameworkRCEDashboard:
     def renderHeader(self):
         st.title(f"{self.config.PAGE_TITLE} (Versão Completa)")
         st.markdown("Análise de resultados de otimização com Repopulation-With-Elite-Set.")
-        
-
-
-        # Separador
         st.markdown("---")
         
-        # Informações rápidas usando configurações
         if st.session_state.df_consolidado is not None:
             df = st.session_state.df_consolidado
             col1, col2, col3, col4 = st.columns(4)
-            
             with col1:
                 st.metric("📁 Total de Execuções", len(df))
-            
             with col2:
                 config_col, _ = self._validate_required_columns(df)
-                if config_col:
-                    unique_configs = df[config_col].nunique()
-                    st.metric("⚙️ Configurações", unique_configs)
-                else:
-                    st.metric("⚙️ Configurações", "N/A")
-            
+                st.metric("⚙️ Configurações", df[config_col].nunique() if config_col else "N/A")
             with col3:
                 st.metric("📊 Arquivos de Saída", len(st.session_state.executions_map))
-            
             with col4:
-                if st.session_state.locked_config:
-                    st.metric("📌 Config Fixada", st.session_state.locked_config)
-                else:
-                    st.metric("📌 Config Fixada", "Nenhuma")
+                st.metric("📌 Config Fixada", st.session_state.locked_config or "Nenhuma")
         
         st.markdown("---")
 
     def renderFooter(self):
         st.markdown("---")
-        
-        # Funcionalidades de exportação e utilitários
         col1, col2, col3, col4 = st.columns([2, 1, 1, 1])
-        
         with col1:
             st.info("Desenvolvido por Pedro Victor Veras e Rainer Zanghi em um projeto PIBIC pela UFF - 2024/2025")
-        
         with col2:
-            if st.button("📥 Exportar Dados", key="export_btn"):
-                self.exportData()
-        
+            if st.button("📥 Exportar Dados", key="export_btn"): self.exportData()
         with col3:
-            if st.button("🧹 Limpar Cache", key="clear_cache_btn"):
-                self.clearCache()
-        
+            if st.button("🧹 Limpar Cache", key="clear_cache_btn"): self.clearCache()
         with col4:
-            if st.button("📋 Relatório", key="report_btn"):
-                self.generateReport()
-        
-        # Separador
+            if st.button("📋 Relatório", key="report_btn"): self.generateReport()
         st.markdown("---")
         
-        # Informações de contato e suporte
         with st.expander("📞 Contato e Suporte", expanded=True):
             st.write(f"**Versão:** {self.config.PAGE_TITLE} v17.0")
             st.write("**Desenvolvedores:** Pedro Victor Veras e Rainer Zanghi")
-            st.write("**Projeto:** PIBIC UFF 2024/2025")
-            st.write("**Framework:** Repopulation-With-Elite-Set")
-            st.write("**Email:** pedrovictorveras@id.uff.br")
-            st.write("**Universidade:** Universidade Federal Fluminense (UFF)")
-            st.write("**Programa:** PIBIC - Programa Institucional de Bolsas de Iniciação Científica")
-
         self.showSystemInfo()
 
     def exportData(self):
-        """Exporta dados do dashboard. (Funcionalidade simplificada)"""
-        st.info("A funcionalidade de exportação de dados completa não está disponível nesta versão simplificada do controlador de banco de dados.")
-        st.info("Você pode acessar os resultados consolidados diretamente em: `src/output/resultados_consolidados.xlsx`")
+        st.info("Acesse os resultados em: `src/output/resultados_consolidados.xlsx`")
 
     def clearCache(self):
-        """Limpa o cache da sessão."""
         try:
-            # Limpa dados da sessão
-            if "df_consolidado" in st.session_state:
-                del st.session_state.df_consolidado
-            if "executions_map" in st.session_state:
-                del st.session_state.executions_map
-            
+            for key in ["df_consolidado", "executions_map"]:
+                if key in st.session_state: del st.session_state[key]
             st.success(self.config.get_message("success", "cache_cleared"))
             st.rerun()
         except Exception as e:
             st.error(f"{self.config.get_message('error', 'cache_error')}: {e}")
 
     def generateReport(self):
-        """Gera relatório detalhado do sistema. (Funcionalidade simplificada)"""
-        st.info("A funcionalidade de geração de relatório detalhado não está disponível nesta versão simplificada do controlador de banco de dados.")
         st.info("Para um resumo, consulte a seção 'Informações do Sistema'.")
-        
-        # Exibe informações do sistema
-        st.write("**Relatório do Sistema (Resumo):**")
-        st.write(f"  • Data/Hora: {pd.Timestamp.now()}")
-        st.write(f"  • Total de Execuções Consolidadas: {len(st.session_state.df_consolidado) if st.session_state.df_consolidado is not None else 0}")
-        st.write(f"  • Configurações Únicas: {len(st.session_state.executions_map)}")
-        
-        # Informações do controlador de banco de dados (simplificado)
-        try:
-            summary = self.db_controller.get_execution_summary()
-            st.write(f"  • Execuções Detectadas (via controlador): {summary['total_runs']}")
-            st.write(f"  • Total de Arquivos de Saída: {summary['total_files']}")
-            st.write("  • Contagem de Arquivos por Tipo:")
-            for file_type, count in summary['file_counts'].items():
-                st.write(f"    - {file_type.upper()}: {count}")
-        except Exception as e:
-            st.write(f"  • Erro ao obter resumo do controlador: {e}")
 
     def renderExecutionDetails(self, config_num, exec_num, pinned_tab_name=None):
         results_data = self.db_controller.get_run_data(config_num, exec_num) or {}
@@ -268,24 +199,70 @@ class FrameworkRCEDashboard:
         if not results_data.get('best_variables') and results_data:
             var_keys = sorted([k for k in results_data if str(k).startswith('best_var_')], key=lambda x: int(str(x).split('_')[-1]))
             if var_keys:
-                best_vars_list = [results_data[k] for k in var_keys]
-                results_data['best_variables'] = best_vars_list
-                results_data['best_vars'] = best_vars_list
-                results_data['decision_vars'] = {f'VAR {i+1}': v for i, v in enumerate(best_vars_list)}
+                results_data['best_variables'] = [results_data[k] for k in var_keys]
 
         viz_data_list = self.db_controller.get_visualization_data_for_run(config_num, exec_num)
         df_viz = pd.DataFrame(viz_data_list) if viz_data_list else pd.DataFrame()
 
-        # --- Define functions for rendering tab content ---
         def render_solucao_tab():
             try:
                 CardSolutions.render(results_data, exec_num)
-                AgendamentoRedePage(
-                   # key_prefix=f"agend_{config_num}_{exec_num}", selected_exec=exec_num, solution_vars=results_data.get('best_variables')
-                )
+                st.markdown("---")
+                st.subheader("🗓️ Linha do Tempo Interativa do Agendamento")
+                
+                # Garante que as variáveis são numéricas antes de ordenar
+                solution_variables = sorted([v for v in results_data.get("best_variables", []) if isinstance(v, (int, float))])
+
+                if not solution_variables:
+                    st.warning("Variáveis da solução não encontradas ou em formato inválido para gerar a linha do tempo.")
+                    return
+                
+                items = []
+                base_date = datetime.datetime.now().replace(hour=0, minute=0, second=0, microsecond=0)
+                
+                for i in range(len(solution_variables) - 1):
+                    start_hour, end_hour = solution_variables[i], solution_variables[i+1]
+                    duration = end_hour - start_hour
+                    items.append({
+                        "id": i, 
+                        "content": f"Intervalo {i+1} ({duration:.1f}h)",
+                        "start": (base_date + datetime.timedelta(hours=start_hour)).isoformat(),
+                        "end": (base_date + datetime.timedelta(hours=end_hour)).isoformat(),
+                        "title": f"Das {start_hour:.1f}h às {end_hour:.1f}h"
+                    })
+                
+                selected_item = st_timeline(items, groups=[], options={"height": 200}, key=f"timeline_{config_num}_{exec_num}")
+
+                # Lógica de interatividade: mostra detalhes ao clicar
+                if selected_item:
+                    st.markdown("---")
+                    st.subheader(f"⚙️ Detalhes do Intervalo {selected_item['id'] + 1}")
+                    
+                    # Tenta carregar os detalhes de ramos e contingências
+                    details_str = results_data.get('ramos_contingencias', '{}')
+                    try:
+                        # ast.literal_eval é mais seguro que eval()
+                        details_dict = ast.literal_eval(details_str) if isinstance(details_str, str) else details_str
+                        
+                        if isinstance(details_dict, dict) and 'ramos' in details_dict and 'contingencia' in details_dict:
+                            ramos_df = pd.DataFrame(details_dict['ramos'], columns=['De', 'Para'])
+                            contingencia_df = pd.DataFrame(pd.Series(details_dict['contingencia']), columns=['ID Contingência'])
+                            
+                            col1, col2 = st.columns(2)
+                            with col1:
+                                st.write("📌 **Ramos para Operação**")
+                                st.dataframe(ramos_df, use_container_width=True)
+                            with col2:
+                                st.write("⚠️ **Contingências Consideradas**")
+                                st.dataframe(contingencia_df, use_container_width=True)
+                        else:
+                            st.info("Detalhes de ramos e contingências não encontrados na estrutura esperada.")
+                    
+                    except (ValueError, SyntaxError) as e:
+                        st.error(f"Não foi possível processar os detalhes de ramos/contingências. Verifique o formato dos dados. Erro: {e}")
+
             except Exception as e:
                 st.error(f"Erro ao renderizar a aba de Solução: {e}")
-                st.info("Tente recarregar a página ou verificar se todos os componentes estão disponíveis.")
 
         def render_graficos_tab():
             st.subheader("Gráfico de Convergência (Estatísticas)")
@@ -327,19 +304,14 @@ class FrameworkRCEDashboard:
             if pop_final_path.exists():
                 try:
                     pop_df = pd.read_excel(pop_final_path)
-                    st.success(f"✅ Arquivo de população final encontrado: {len(pop_df)} indivíduos")
-                    with st.expander("📋 Visualizar População Final"):
-                        st.dataframe(pop_df.head(self.config.MAX_ROWS_IN_TABLE))
+                    st.dataframe(pop_df.head(self.config.MAX_ROWS_IN_TABLE))
                 except Exception as e:
                     st.error(f"Erro ao ler população final: {e}")
             else:
                 st.info("Arquivo de população final não encontrado.")
 
         def render_dashboard_tab():
-            try:
-                rede_template_view()
-            except Exception as e:
-                st.error(f"Tente recarregar a página ou verificar se o componente está disponível: {e}")
+            rede_template_view()
 
         tab_definitions = {
             "Solução": render_solucao_tab,
@@ -349,82 +321,33 @@ class FrameworkRCEDashboard:
         }
 
         if pinned_tab_name:
-            render_function = tab_definitions.get(pinned_tab_name)
-            if render_function:
+            if render_function := tab_definitions.get(pinned_tab_name):
                 render_function()
         else:
-            tab_names = list(tab_definitions.keys())
-            tabs = st.tabs(tab_names)
-            for tab, (name, render_func) in zip(tabs, tab_definitions.items()):
+            tabs = st.tabs(list(tab_definitions.keys()))
+            for tab, render_func in zip(tabs, tab_definitions.values()):
                 with tab:
                     render_func()
                     
     def showSystemInfo(self):
-        """Mostra informações detalhadas do sistema usando configurações."""
         with st.expander("ℹ️ Informações do Sistema", expanded=False):
-            
-            # Informações técnicas
-            st.write("**Informações Técnicas:**")
-            #st.write(f"  • Base Directory: {self.config.BASE_DIR}")
-            #st.write(f"  • Output Directory: {self.config.OUTPUT_DIR}")
-            st.write(f"  • Debug Mode: {self.config.DEBUG_MODE}")
-            st.write(f"  • Log Level: {self.config.LOG_LEVEL}")
-            
-            # Status dos componentes
-            # st.write("**Status dos Componentes:**")
-            # for component_name, config in self.config.COMPONENTS.items():
-            #     status = "✅ Habilitado" if config.get("enabled", True) else "❌ Desabilitado"
-            #     st.write(f"  {status} {component_name}")
-            
-            # Informações do sistema
-            st.write("**Informações do Sistema:**")
+            st.write(f"**Debug Mode:** {self.config.DEBUG_MODE}")
             if st.session_state.df_consolidado is not None:
-                df = st.session_state.df_consolidado
-                st.write(f"  • Total de Execuções: {len(df)}")
-                st.write(f"  • Colunas Disponíveis: {list(df.columns)}")
+                st.write(f"**Total de Execuções:** {len(st.session_state.df_consolidado)}")
             
-            # Funcionalidades do orquestrador
-            st.write("**Funcionalidades do Controlador de Dados (Simplificado):**")
-            try:
-                summary = self.db_controller.get_execution_summary()
-                st.write(f"  • Total de Execuções Detectadas: {summary['total_runs']}")
-                st.write(f"  • Total de Arquivos de Saída: {summary['total_files']}")
-                st.write("  • Contagem de Arquivos por Tipo:")
-                for file_type, count in summary['file_counts'].items():
-                    st.write(f"    - {file_type.upper()}: {count}")
-            except Exception as e:
-                st.write(f"  • Erro ao obter resumo do controlador: {e}")
+            summary = self.db_controller.get_execution_summary()
+            st.write(f"**Execuções Detectadas:** {summary.get('total_runs')}")
             
-            # Status da consolidação
-            st.write("**Status da Consolidação:**")
-            try:
-                consolidation_status = self.consolidation_manager.get_consolidation_status()
-                st.write(f"  • Arquivo Consolidado: {'✅ Sim' if consolidation_status['consolidated_file_exists'] else '❌ Não'}")
-                if consolidation_status['consolidated_file_exists']:
-                    st.write(f"  • Última Consolidação: {consolidation_status['last_consolidation']}")
-                    st.write(f"  • Tamanho do Arquivo: {consolidation_status['file_size_mb']} MB")
-                    st.write(f"  • Total de Execuções: {consolidation_status['total_executions']}")
-                    st.write(f"  • Total de Configurações: {consolidation_status['total_configs']}")
-                
-                if consolidation_status.get('needs_consolidation', False):
-                    st.warning("⚠️ Nova consolidação necessária!")
-                else:
-                    st.success("✅ Consolidação atualizada")
-                    
-            except Exception as e:
-                st.write(f"  • Erro ao verificar status: {e}")
+            status = self.consolidation_manager.get_consolidation_status()
+            st.write(f"**Arquivo Consolidado:** {'✅ Sim' if status.get('consolidated_file_exists') else '❌ Não'}")
 
     def run(self):
         self.renderHeader()
-
-        # Pega o mapa da execuçoes
         executions_map = st.session_state.executions_map
         if not executions_map:
             st.warning("Nenhum resultado consolidado encontrado. Execute a consolidação através do Launcher.")
             st.stop()
             
-
-        # Pega os dados consolidados
         df_consolidado = st.session_state.df_consolidado
         if df_consolidado is not None and not df_consolidado.empty:
             st.subheader("📈 Resultados Consolidados de Todas as Configurações e Execuções")
@@ -433,7 +356,6 @@ class FrameworkRCEDashboard:
             st.warning("Nenhum resultado consolidado encontrado. Execute a consolidação através do Launcher.")
             st.stop()
 
-        # Prepara as abas
         config_keys = sorted(executions_map.keys())
         config_tabs = st.tabs([f"Config {cfg}" for cfg in config_keys])
 
