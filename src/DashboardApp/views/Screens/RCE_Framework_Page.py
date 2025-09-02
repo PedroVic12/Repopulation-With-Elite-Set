@@ -461,11 +461,14 @@ class FrameworkRCEDashboard:
     def run(self):
         self.renderHeader()
 
+        # Pega o mapa da execuçoes
         executions_map = st.session_state.executions_map
         if not executions_map:
             st.warning("Nenhum resultado consolidado encontrado. Execute a consolidação através do Launcher.")
             st.stop()
             
+
+        # Pega os dados consolidados
         df_consolidado = st.session_state.df_consolidado
         if df_consolidado is not None and not df_consolidado.empty:
             st.subheader("📈 Resultados Consolidados de Todas as Configurações e Execuções")
@@ -474,9 +477,11 @@ class FrameworkRCEDashboard:
             st.warning("Nenhum resultado consolidado encontrado. Execute a consolidação através do Launcher.")
             st.stop()
 
+        # Prepara as abas
         config_keys = sorted(executions_map.keys())
         config_tabs = st.tabs([f"Config {cfg}" for cfg in config_keys])
 
+        # Criação das abas com fixar aba
         for i, config_tab_ui in enumerate(config_tabs):
             with config_tab_ui:
                 config_num = config_keys[i]
@@ -487,14 +492,13 @@ class FrameworkRCEDashboard:
                 select_key = f"pin_select_{config_num}"
 
                 is_pinned = self.tab_pinning_controller.render_toggle(key=toggle_key)
+                
 
                 if is_pinned:
+                    tab_names = ["Solução", "Gráficos de Convergência", "População Final", "Dashboard Sistema Elétrico"]
                     selected_tab_name = self.tab_pinning_controller.render_selection_box(tab_names, key=select_key)
-                    
+
                     exec_numbers = executions_map.get(config_num, [])
-                    if not exec_numbers:
-                        st.warning("Nenhuma execução encontrada para esta configuração.")
-                        continue
 
                     # selected_exec = st.selectbox(
                     #     "Selecione a Execução:",
@@ -503,29 +507,27 @@ class FrameworkRCEDashboard:
                     # )
                     # self.renderExecutionDetails(config_num, selected_exec, pinned_tab_name=selected_tab_name)
 
-                    exec_tabs = st.tabs([f"Execução {en}" for en in exec_numbers])
+                    if not exec_numbers:
+                        st.warning("Nenhuma execução encontrada para esta configuração.")
+                        continue
 
+                    exec_tabs = st.tabs([f"Execução {en}" for en in exec_numbers])
                     for j, exec_tab_ui in enumerate(exec_tabs):
                         with exec_tab_ui:
                             exec_num = exec_numbers[j]
-
-                            if selected_tab_name:  # Aba fixada
-                                self.renderExecutionDetails(config_num, exec_num, pinned_tab_name=selected_tab_name)
-                            else:  # Nenhuma aba fixada (fallback, mas aqui sempre tem uma)
-                                self.renderExecutionDetails(config_num, exec_num)
-
-                    
-                    st.markdown("---")
-
+                            self.renderExecutionDetails(config_num, exec_num, pinned_tab_name=selected_tab_name)
                 else:
                     exec_numbers = executions_map.get(config_num, [])
                     if not exec_numbers:
                         st.warning("Nenhuma execução encontrada para esta configuração.")
                         continue
-                        
+
                     exec_tabs = st.tabs([f"Execução {en}" for en in exec_numbers])
                     for j, exec_tab_ui in enumerate(exec_tabs):
                         with exec_tab_ui:
                             self.renderExecutionDetails(config_num, exec_numbers[j])
-        
+
+                                    
+                    st.markdown("---")
+
         self.renderFooter()

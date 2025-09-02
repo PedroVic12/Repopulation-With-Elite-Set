@@ -159,10 +159,7 @@ def time_line_from_solution_variables(agendamento_df, contingencia_df, exec_data
                 ((agendamento_df["inicio"].apply(lambda x: int(x.split(":")[0])) + agendamento_df["duracao"]) >= hour_in_day_end)
             ]
 
-            # Dados relacionados às contingências
-            # OBS: 'from' e 'to' em contingencia_df representam barras (nós), não horários.
-            # Portanto, não faz sentido filtrá-las por hora. Exibimos todas ou filtramos
-            # por ramos afetados caso haja mapeamento de (from,to) -> ramo em agendamento.
+  
             related_contingencies = contingencia_df.copy()
 
             # Exibir os detalhes

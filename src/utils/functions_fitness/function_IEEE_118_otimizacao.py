@@ -219,8 +219,8 @@ def run_fitness_function():
     print(type(setup.tamanho_hash))
     print("Tamanho tabela hash = ", setup.tamanho_hash)
     print("Fitness calculado = ", fitness)
-    print("Ramos selecionados para o agendamento para operação: ", ramos_selecionados["ramos"])
+    print("Ramos selecionados para o agendamento para operação: ", ramos_selecionados)
 
 
 
-#run_fitness_function()
+run_fitness_function()
