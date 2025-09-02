@@ -193,6 +193,7 @@ class Setup:
 
         #! Inicializa a HashTable na instancia do Objeto Setup!
         if tamanho_hash > 0:
+            self.tamanho_hash = tamanho_hash
             self.tabela_hash = [-1] * tamanho_hash
         else:
             self.tabela_hash = None

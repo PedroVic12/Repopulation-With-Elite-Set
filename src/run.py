@@ -14,7 +14,7 @@ from config_backup import FOLDER_NAME, format_elapsed_time
 #! Importando a minha função objetivo dentro do projeto
 from utils.functions_fitness.functions_benchmarking import rastrigin
 from utils.functions_fitness.function_IEEE_14_contigencias import funcao_objetivo_IEEE14, HASH_TABLE_PATH
-from utils.functions_fitness.function_IEEE_118_otimizacao import funcao_objetivo_IEEE118, HASH_TABLE_PATH
+from utils.functions_fitness.function_IEEE_118_otimizacao import funcao_objetivo_IEEE118, HASH_TABLE_PATH, hashtablesize_IEEE118
 from utils.functions_fitness.function_IEEE_30_otimizacao import funcao_objetivo_IEEE30, HASH_TABLE_PATH, hashtablesize
 from utils.functions_fitness.function_IEEE_57_otimizacao import funcao_objetivo_IEEE57, HASH_TABLE_PATH
 from utils.functions_fitness.function_SIN_45_otimizacao import funcao_objetivo_SIN45, hashtablesize_sin45
@@ -38,7 +38,7 @@ ARRAY_FITNESS_FUNCTIONS = [funcao_objetivo_IEEE14,funcao_objetivo_IEEE30, funcao
 HASHTABLE_SIZE_FUNCS = {
     "funcao_objetivo_IEEE30": hashtablesize,
     "funcao_objetivo_SIN45": hashtablesize_sin45,
-    "funcao_objetivo_IEEE118": hashtablesize,
+    "funcao_objetivo_IEEE118": hashtablesize_IEEE118,
 }
 
 BASE_DIR = pathlib.Path(__file__).resolve().parent
@@ -48,7 +48,7 @@ CLI = False
 DEBUG_MODE = False
 BECHMARKING_MODE = False
 SHOW_SETTINGS = False
-NUMERO = 0 # 0 1 3 4
+NUMERO = 3 # 0 1 3 4
 
 
 
@@ -179,7 +179,7 @@ def run_framework_many_executions(function_bechmarking=False):
         setup = Setup(
             params,
             fitness_function=fitness_func,
-            tamanho_hash=hashtablesize()
+            tamanho_hash=hashtablesize_IEEE118
         )
 
         print("Classe Setup iniciada para a configuração.")

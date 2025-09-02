@@ -50,14 +50,14 @@ agendamento_df['inicio'] = agendamento_df['inicio'].apply(lambda x: int(x.split(
 agendamento_df['final'] = agendamento_df.apply(lambda row: (row['inicio'] + row['duracao']) % 24, axis=1)
 
 
-def hashtablesize():
+def hashtablesize_IEEE118():
     contingencias = contingencia_df['contingencia'].to_list()
     num_carregamentos = 3
     num_contingencias = len(contingencias) 
     num_desligamentos = len(agendamento_df) 
     
     size = num_contingencias* num_carregamentos*(2**num_desligamentos)
-    print("Hash table INICIAL criada de tamanho = ", size)
+    #print("Hash table INICIAL criada de tamanho = ", size)
     return size
 
 def funcao_objetivo_IEEE118(individuo, setupobj, _debug = False):
@@ -199,10 +199,12 @@ params_json_teste = {
 def run_fitness_function():
     print("--- Iniciando Simulação de Teste para IEEE 118 ---")
     
+    tabela_hash = hashtablesize_IEEE118()
+    
     setup = Setup(
         params=params_json_teste,
         fitness_function=funcao_objetivo_IEEE118,
-        tamanho_hash=hashtablesize()
+        tamanho_hash=tabela_hash
     )
 
     fitness, ramos_selecionados = funcao_objetivo_IEEE118(
@@ -214,8 +216,9 @@ def run_fitness_function():
         setupobj=setup,
         _debug = False
     )
-
-    print(fitness)
+    print(type(setup.tamanho_hash))
+    print("Tamanho tabela hash = ", setup.tamanho_hash)
+    print("Fitness calculado = ", fitness)
     print("Ramos selecionados para o agendamento para operação: ", ramos_selecionados["ramos"])
 
 
