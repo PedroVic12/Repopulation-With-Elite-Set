@@ -350,20 +350,20 @@ class FrameworkRCEDashboard:
             else:
                 st.warning("Dados de visualização não disponíveis para o gráfico de estatísticas.")
 
-            st.markdown("---")
-            st.subheader("Gráfico de Convergência (Interativo)")
-            try:
-                html_path = self.db_controller.output_dir / f"grafico_execucao_config{config_num}_exec{exec_num}.html"
-                if not html_path.exists():
-                     html_path = "/home/pedrov12/Documentos/GitHub/Repopulation-With-Elite-Set/src/output/grafico_execucao_config1_exec1.html"
+            # st.markdown("---")
+            # st.subheader("Gráfico de Convergência (Interativo)")
+            # try:
+            #     html_path = self.db_controller.output_dir / f"grafico_execucao_config{config_num}_exec{exec_num}.html"
+            #     if not html_path.exists():
+            #          html_path = "/home/pedrov12/Documentos/GitHub/Repopulation-With-Elite-Set/src/output/grafico_execucao_config1_exec1.html"
 
-                with open(html_path, "r", encoding="utf-8") as f:
-                    html_content = f.read()
-                components.html(html_content, height=self.config.CHART_HEIGHT + 100, scrolling=True)
-            except FileNotFoundError:
-                st.error(f"Arquivo HTML do gráfico não encontrado em: {html_path}")
-            except Exception as e:
-                st.error(f"Erro ao renderizar o gráfico interativo: {e}")
+            #     with open(html_path, "r", encoding="utf-8") as f:
+            #         html_content = f.read()
+            #     components.html(html_content, height=self.config.CHART_HEIGHT + 100, scrolling=True)
+            # except FileNotFoundError:
+            #     st.error(f"Arquivo HTML do gráfico não encontrado em: {html_path}")
+            # except Exception as e:
+            #     st.error(f"Erro ao renderizar o gráfico interativo: {e}")
 
         def render_pop_final_tab():
             st.subheader("Análise da População Final")
@@ -496,14 +496,26 @@ class FrameworkRCEDashboard:
                         st.warning("Nenhuma execução encontrada para esta configuração.")
                         continue
 
-                    selected_exec = st.selectbox(
-                        "Selecione a Execução:",
-                        options=exec_numbers,
-                        key=f"exec_select_{config_num}"
-                    )
+                    # selected_exec = st.selectbox(
+                    #     "Selecione a Execução:",
+                    #     options=exec_numbers,
+                    #     key=f"exec_select_{config_num}"
+                    # )
+                    # self.renderExecutionDetails(config_num, selected_exec, pinned_tab_name=selected_tab_name)
+
+                    exec_tabs = st.tabs([f"Execução {en}" for en in exec_numbers])
+
+                    for j, exec_tab_ui in enumerate(exec_tabs):
+                        with exec_tab_ui:
+                            exec_num = exec_numbers[j]
+
+                            if selected_tab_name:  # Aba fixada
+                                self.renderExecutionDetails(config_num, exec_num, pinned_tab_name=selected_tab_name)
+                            else:  # Nenhuma aba fixada (fallback, mas aqui sempre tem uma)
+                                self.renderExecutionDetails(config_num, exec_num)
+
                     
                     st.markdown("---")
-                    self.renderExecutionDetails(config_num, selected_exec, pinned_tab_name=selected_tab_name)
 
                 else:
                     exec_numbers = executions_map.get(config_num, [])

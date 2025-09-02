@@ -10,23 +10,9 @@ Dicas para um Artigo Inovador:
 4) Pense na viabilidade da pesquisa: Avalie se você terá acesso aos recursos necessários (laboratórios, softwares, dados) para desenvolver o projeto.
 
 
-Ótima pergunta. Analisei os dois arquivos para comparar a estrutura e a eficiência.
+  Análise de function_IEEE_14_contigencias.py e function_IEEE_30_otimizacao.py
 
-  Aqui está um resumo comparativo:
-
-  Análise de function_IEEE_14_contigencias.py
-
-   * Gestão da Tabela Hash: A tabela hash (tabela_hash) é gerenciada por um objeto externo (setupobj)
-      que é passado como argumento para a função. Isso cria um acoplamento forte entre a função de
-     fitness e a classe Setup.
-   * Persistência: Não há persistência de dados. A tabela hash existe apenas na memória durante a
-     execução do algoritmo. Se você rodar o programa novamente, todos os cálculos são refeitos do
-     zero.
-   * Eficiência: A cada chamada da função, um novo objeto RedeEletricaPandaPower é criado. Isso é um
-     pouco ineficiente, mas o principal gargalo de performance não está aqui. A ausência de
-     leitura/escrita em disco a cada chamada a torna mais rápida que a versão do IEEE 30 na prática.
-
-  Análise de function_IEEE_30_otimizacao.py
+   * Gestão da Tabela Hash: A tabela hash (tabela_hash) é gerenciada pelo objeto Setup que é passado como argumento para a função. Isso cria um acoplamento entre a função de fitness e a classe Setup.  A tabela hash existe apenas na memória durante a execução de cada configuração do algoritmo. Se rodar o programa novamente, todos os cálculos são refeitos do zero e a tabela hash é criada com o tamanho do seu vetor pelo número de casos a serem avaliados.
 
    * Gestão da Tabela Hash: A responsabilidade da tabela hash e seus contadores (hashtablereads,
      objectiveruns) foi movida para dentro do objeto rede. Isso é um design muito superior, pois
