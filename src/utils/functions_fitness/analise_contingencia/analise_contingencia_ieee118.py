@@ -123,6 +123,4 @@ if __name__ == "__main__":
         else:
             print("A execução da função de fitness falhou.")
 
-    for i in range(3):
-        print(f"\n\n--- EXECUÇÃO DE TESTE {i+1}/3 ---")
-        run_simulate()
+run_simulate()
