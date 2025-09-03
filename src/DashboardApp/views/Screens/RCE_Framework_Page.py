@@ -150,6 +150,7 @@ def AgendamentoRedePage(results_data: dict, config_num: int, exec_num: int):
                     st.dataframe(contingencia_df, use_container_width=True)
             else:
                 st.info("Detalhes de ramos e contingências não encontrados na estrutura esperada.")
+                st.warning("EM DESENVOLVIMENTO")
         
         except (ValueError, SyntaxError) as e:
             st.error(f"Não foi possível processar os detalhes de ramos/contingências. Verifique o formato dos dados. Erro: {e}")
