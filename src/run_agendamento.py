@@ -16,14 +16,21 @@ from config_backup import FOLDER_NAME, format_elapsed_time
 from database_controller import run_consolidar_resultados
 
 # --- Importando a função objetivo de agendamento e seus dados ---
-from utils.functions_fitness.test_analise_contigencia import (
-    funcao_objetivo_IEEE14_analise,
-    agendamento_df as agendamento_df_ieee14, # Renomeado para evitar conflitos
-    hashtablesize as hashtablesize_ieee14
+from utils.functions_fitness.analise_contingencia.analise_contingencia_ieee14 import (
+    funcao_objetivo_ieee14_analise,
+    agendamento_df_ieee14,
+    hashtablesize_ieee14
 )
-
-# Imports de outras funções objetivo (mantidas para referência)
-from utils.functions_fitness.function_IEEE_30_otimizacao import funcao_objetivo_IEEE30, hashtablesize as hashtablesize_ieee30
+from utils.functions_fitness.analise_contingencia.analise_contingencia_ieee30 import (
+    funcao_objetivo_ieee30_analise,
+    agendamento_df_ieee30,
+    hashtablesize_ieee30
+)
+from utils.functions_fitness.analise_contingencia.analise_contingencia_ieee118 import (
+    funcao_objetivo_ieee118_analise,
+    agendamento_df_ieee118,
+    hashtablesize_ieee118
+)
 
 # Bibliotecas padrão
 import json
@@ -37,13 +44,21 @@ from datetime import datetime
 BASE_DIR = pathlib.Path(__file__).resolve().parent
 
 # Seleciona a função de agendamento para ser executada (índice 0)
-ARRAY_FITNESS_FUNCTIONS = [funcao_objetivo_IEEE14_analise, funcao_objetivo_IEEE30]
-NUMERO_FUNCAO_OBJETIVO = 1 #! 0 para a funcao_objetivo_IEEE14_analise
+ARRAY_FITNESS_FUNCTIONS = [funcao_objetivo_ieee14_analise, funcao_objetivo_ieee30_analise, funcao_objetivo_ieee118_analise]
+NUMERO_FUNCAO_OBJETIVO = 0 #! 0: IEEE14, 1: IEEE30, 2: IEEE118
 
 # Mapeia as funções de cálculo de hash
 HASHTABLE_SIZE_FUNCS = {
-    funcao_objetivo_IEEE14_analise.__name__: hashtablesize_ieee14,
-    funcao_objetivo_IEEE30.__name__: hashtablesize_ieee30,
+    funcao_objetivo_ieee14_analise.__name__: hashtablesize_ieee14,
+    funcao_objetivo_ieee30_analise.__name__: hashtablesize_ieee30,
+    funcao_objetivo_ieee118_analise.__name__: hashtablesize_ieee118,
+}
+
+# Mapeia os dataframes de agendamento
+AGENDAMENTO_DFS = {
+    funcao_objetivo_ieee14_analise.__name__: agendamento_df_ieee14,
+    funcao_objetivo_ieee30_analise.__name__: agendamento_df_ieee30,
+    funcao_objetivo_ieee118_analise.__name__: agendamento_df_ieee118,
 }
 
 # Desativa o modo interativo para este script
@@ -85,10 +100,13 @@ def run_agendamento_otimizado():
 
     # --- AJUSTE DINÂMICO DO TAMANHO DO INDIVÍDUO ---
     # O tamanho do indivíduo deve ser igual ao número de agendamentos no problema.
-    if fitness_func.__name__ == 'funcao_objetivo_IEEE14_analise':
-        tamanho_correto_individuo = len(agendamento_df_ieee14)
-        print(f"[INFO] O problema IEEE 14 requer {tamanho_correto_individuo} variáveis. Ajustando IND_SIZE.")
+    agendamento_df = AGENDAMENTO_DFS.get(fitness_func.__name__)
+    if agendamento_df is not None:
+        tamanho_correto_individuo = len(agendamento_df)
+        print(f"[INFO] O problema {fitness_func.__name__} requer {tamanho_correto_individuo} variáveis. Ajustando IND_SIZE.")
         params_base["IND_SIZE"] = tamanho_correto_individuo
+    else:
+        raise ValueError(f"DataFrame de agendamento não encontrado para {fitness_func.__name__}")
 
     repeticoes = options.get('repeticoes_por_config', 1)
     start = datetime.now()
@@ -142,9 +160,10 @@ def run_agendamento_otimizado():
         best_fitness = best_individual.fitness.values[0] if best_individual.fitness.valid else float('inf')
         agendamento_final_otimizado = []
 
-        # Lógica específica para a sua função
-        if fitness_func.__name__ == 'funcao_objetivo_IEEE14_analise':
-            for i, row in agendamento_df_ieee14.iterrows():
+        # Lógica genérica para detalhar o agendamento
+        agendamento_df = AGENDAMENTO_DFS.get(fitness_func.__name__)
+        if agendamento_df is not None:
+            for i, row in agendamento_df.iterrows():
                 agendamento_final_otimizado.append({
                     "ramo": row["ramo"],
                     "horario_inicio_otimizado": best_variables[i]
