@@ -133,5 +133,4 @@ def run_simulate():
     else:
         print("A execução da função de fitness falhou.")
 
-if __name__ == "__main__":
-    run_simulate()
+run_simulate()

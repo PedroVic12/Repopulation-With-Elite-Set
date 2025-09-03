@@ -7,7 +7,7 @@ import sys
 import os
 
 # Adiciona o diretório raiz do projeto ao sys.path para permitir importações de outros módulos
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__name__), '..', '..')))
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..')))
 
 # Imports principais do framework
 from AlgEvolutivoRCE_backup.Setup import Setup
@@ -48,7 +48,7 @@ BASE_DIR = pathlib.Path(__file__).resolve().parent
 
 # Seleciona a função de agendamento para ser executada (índice 0)
 ARRAY_FITNESS_FUNCTIONS = [funcao_objetivo_ieee14_analise, funcao_objetivo_ieee30_analise, funcao_objetivo_ieee118_analise]
-NUMERO_FUNCAO_OBJETIVO = 0 #! 0: IEEE14, 1: IEEE30, 2: IEEE118
+# NUMERO_FUNCAO_OBJETIVO = 0 #! Removido para ser passado como argumento
 
 # Mapeia as funções de cálculo de hash
 HASHTABLE_SIZE_FUNCS = {
@@ -99,8 +99,8 @@ def convert_values_to_int(params):
     return params
 
 # --- FUNÇÃO PRINCIPAL DE EXECUÇÃO ---
-def run_agendamento_otimizado():
-    fitness_func = ARRAY_FITNESS_FUNCTIONS[NUMERO_FUNCAO_OBJETIVO]
+def run_agendamento_otimizado(numero_funcao_objetivo: int, config_number: int):
+    fitness_func = ARRAY_FITNESS_FUNCTIONS[numero_funcao_objetivo]
     print(f"\nFunção objetivo selecionada: {fitness_func.__name__}")
     print("Esta versão esta em desenvolvimento, funciona melhor na função objetivo de IEEE 14")
 
@@ -121,7 +121,7 @@ def run_agendamento_otimizado():
     start = datetime.now()
 
     timestamp = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
-    main_output_dir = BASE_DIR / "output" / f"run_agendamento_{timestamp}"
+    main_output_dir = BASE_DIR / "output" / f"run_agendamento_{{fitness_func.__name__}}_config_{{config_number}}_{timestamp}"
     os.makedirs(main_output_dir, exist_ok=True)
     print(f"Salvando resultados em: {main_output_dir}")
 
@@ -135,8 +135,7 @@ def run_agendamento_otimizado():
         tamanho_hash=size_func()
     )
 
-    config_number = 1
-    config_dir = main_output_dir / f"config_{config_number}"
+    config_dir = main_output_dir / f"config_{{config_number}}"
     os.makedirs(config_dir, exist_ok=True)
 
     for exec_num in range(1, repeticoes + 1):
@@ -168,14 +167,12 @@ def run_agendamento_otimizado():
         if not detailed_func:
             raise ValueError(f"Função de cálculo detalhado não encontrada para {fitness_func.__name__}")
 
-        # Criar um novo objeto setup para a chamada final para não interferir com os contadores
         final_setup = Setup(params_base, fitness_function=fitness_func, tamanho_hash=size_func())
         final_results_detailed = detailed_func(
             individuo=best_variables,
             setupobj=final_setup
         )
 
-        # Converter dataframes para dicts para salvar em JSON
         ramos_dict = final_results_detailed["ramos_selecionados"].to_dict('records')
         contingencias_dict = final_results_detailed["contingencias"].to_dict('records')
 
@@ -192,7 +189,7 @@ def run_agendamento_otimizado():
             "fitness_function": fitness_func.__name__
         }
 
-        output_path = config_dir / f"config_{config_number}_exec_{exec_num}_results.json"
+        output_path = config_dir / f"config_{{config_number}}_exec_{{exec_num}}_results.json"
         try:
             with open(output_path, 'w', encoding='utf-8') as f:
                 json.dump(result, f, indent=4, ensure_ascii=False, default=str)
@@ -202,8 +199,18 @@ def run_agendamento_otimizado():
     print("\nExecução finalizada.")
 
 if __name__ == "__main__":
-    run_agendamento_otimizado()
+    for i in range(1, 3): # Loop para 2 configurações
+        print(f"\n--- INICIANDO CONFIGURAÇÃO {i}/2 ---")
+        
+        # Roda para IEEE 14
+        print("\n*** EXECUTANDO PARA IEEE 14 ***")
+        run_agendamento_otimizado(numero_funcao_objetivo=0, config_number=i)
 
+        # Roda para IEEE 30
+        print("\n*** EXECUTANDO PARA IEEE 30 ***")
+        run_agendamento_otimizado(numero_funcao_objetivo=1, config_number=i)
+
+    print("\n--- TODAS AS EXECUÇÕES FORAM FINALIZADAS ---")
     print("\nIniciando consolidação de resultados...")
     try:
         run_consolidar_resultados()
