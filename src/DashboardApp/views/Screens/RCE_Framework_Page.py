@@ -190,6 +190,8 @@ def AgendamentoRedePage(results_data: dict, config_num: int, exec_num: int):
     if selected_item:
         st.markdown("---")
         st.subheader(f"⚙️ Detalhes do Intervalo {selected_item['id'] + 1}")
+
+        st.write(results_data.keys())
         
         details_str = results_data.get('ramos_contingencias', '{}')
         try:
@@ -400,7 +402,9 @@ class FrameworkRCEDashboard:
             try:
                 # Chama a nova função que renderiza os cards com tooltip
                 CardsSolutions(results_data)
+                
                 st.markdown("---")
+
                 # Chama a função refatorada para a timeline
                 AgendamentoRedePage(results_data, config_num, exec_num)
             except Exception as e:
