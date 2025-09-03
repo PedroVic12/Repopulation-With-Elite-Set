@@ -627,7 +627,7 @@ def run_consolidar_resultados():
 
     controller.consolidate_results()
     
-#run_consolidar_resultados()
+run_consolidar_resultados()
 
 def run_controller():
     base_directory = Path(__file__).resolve().parent
