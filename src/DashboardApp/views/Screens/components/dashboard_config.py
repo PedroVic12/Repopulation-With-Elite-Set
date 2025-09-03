@@ -32,8 +32,9 @@ class DashboardConfig:
     POP_FINAL_FILE = OUTPUT_DIR / "pop_final.xlsx"
     
     # === CONFIGURAÇÕES DE INTERFACE ===
-    PAGE_TITLE = "⚡ Dashboard RCE Framework"
     PAGE_ICON = "⚡"
+    PAGE_TITLE = f"{PAGE_ICON} Dashboard RCE Framework"
+
     LAYOUT = "wide"
     INITIAL_SIDEBAR_STATE = "expanded"
     

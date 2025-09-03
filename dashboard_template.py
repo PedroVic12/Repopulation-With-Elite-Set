@@ -431,7 +431,7 @@ if __name__ == "__main__":
 
     data_source = None
     if data_source_option == "Usar URL de exemplo":
-        data_source = "https://raw.githubusercontent.com/PedroVic12/Repopulation-With-Elite-Set/refs/heads/main/resultados%20-%20Artigo%20PIBIC/2025-09-01_resultados.csv"
+        data_source = "https://raw.githubusercontent.com/PedroVic12/Repopulation-With-Elite-Set/refs/heads/main/assets/2025-09-01_resultados_IEEE_14_filtrados.csv"
     else:
         uploaded_file = st.sidebar.file_uploader(
             "Arraste e solte ou clique para fazer upload", 

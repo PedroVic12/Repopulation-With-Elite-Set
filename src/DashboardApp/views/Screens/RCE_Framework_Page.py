@@ -7,17 +7,35 @@ import datetime
 from streamlit_timeline import st_timeline
 import ast
 
-from .components.dash_rce_components import (
-    StatisticsTableComponent
-)
 from .components.dashboard_config import get_config
+
+
+#! Refatorar os novos componentes
+#from .components.dash_rce_components import  StatisticsTableComponent
+
+class StatisticsTableComponent:
+    """Componente para exibir a tabela de estatísticas por geração."""
+    @staticmethod
+    def render(data):
+        if data.empty:
+            st.info("Não há dados de estatísticas por geração para exibir.")
+            return
+        try:
+            if isinstance(data, pd.DataFrame):
+                df = data
+            else:
+                df = pd.DataFrame(data)
+            st.dataframe(df)
+        except Exception as e:
+            st.error(f"Não foi possível exibir tabela de estatísticas: {e}")
+
 
 # --- Adiciona o diretório raiz ao path para encontrar os módulos ---
 BASE_DIR = Path(__file__).resolve().parent.parent.parent.parent
 if str(BASE_DIR) not in sys.path:
     sys.path.append(str(BASE_DIR))
 
-print(BASE_DIR)
+#print(BASE_DIR)
 
 from database_controller import DatabaseController, ConsolidationManager
 print(f"Dashboard importing database_controller from: {DatabaseController.__module__}")
@@ -26,48 +44,37 @@ import streamlit.components.v1 as components
 import os
 
 
-def rede_template_view(html_path: str | None = None, height: int = 1200):
-    """Renderiza o template HTML da rede IEEE dentro do Streamlit."""
-    if html_path is None:
-        html_path = BASE_DIR / "resultados - Artigo PIBIC" / "plot_rede_IEEE_template_dashboard.html"
-    try:
-        with open(html_path, "r", encoding="utf-8") as f:
-            html_content = f.read()
-    except FileNotFoundError:
-        st.error(f"Arquivo HTML não encontrado: {os.path.abspath(html_path)}")
-        st.info("Crie o arquivo ou informe um caminho válido em rede_template_view(html_path=...)")
-        return
-    components.html(html_content, height=height, scrolling=True)
-
-
 def CardsSolutions(results_data: dict):
     """
     Renderiza os cartões com os principais resultados da solução e as
     variáveis de decisão, incluindo um tooltip para horários > 24h.
     """
-    st.subheader("Solução Encontrada")
+    st.subheader("Solução de melhores horários de agendamento para SEP")
     
     # Cria duas colunas principais para o layout
-    left_col, right_col = st.columns([1, 2])  # A coluna da direita é mais larga
+    left_col, right_col = st.columns([1, 5])  # A coluna da direita é mais larga
 
     # Coluna da esquerda para as métricas principais
-    with left_col:
-        with st.container(border=True):
+    #with left_col:
+    with st.container(border=True):
             st.metric("🏆 Melhor Fitness", f"{results_data.get('best_fitness', 0):.2f}")
-            st.metric("⏳ Melhor Geração", f"{results_data.get('best_gen_idx', 'N/A')}")
-            #st.metric("Execução", f"#{results_data.get('execucao', 'N/A')}")
+
             
     # Coluna da direita para as variáveis de decisão
     with right_col:
-        st.write("**Variáveis de Decisão (Horários)**")
-        solution_variables = results_data.get("best_variables", [])
-        if not solution_variables:
+        with st.container(border=True):
+            st.metric("⏳ Melhor Geração", f"{results_data.get('best_gen_idx', 'N/A')}")
+            #st.metric("Execução", f"#{results_data.get('execucao', 'N/A')}")
+
+    st.subheader("**Variáveis de Decisão (Horários)**")
+    solution_variables = results_data.get("best_variables", [])
+    if not solution_variables:
             st.info("Nenhuma variável de decisão encontrada.")
             return
 
         # Cria uma linha de colunas dentro da coluna da direita para as variáveis
-        var_cols = st.columns(len(solution_variables))
-        for i, (col, var) in enumerate(zip(var_cols, solution_variables)):
+    var_cols = st.columns(len(solution_variables))
+    for i, (col, var) in enumerate(zip(var_cols, solution_variables)):
             with col:
                 with st.container(border=True):
                     tooltip_text = None
@@ -181,6 +188,24 @@ class TabPinningController:
         return st.selectbox("Selecione a aba para fixar:", options=tab_options, key=key)
 
 
+
+
+# Renderizar tempalte em HTML
+def rede_template_view(html_path: str | None = None, height: int = 1200):
+    """Renderiza o template HTML da rede IEEE dentro do Streamlit."""
+    if html_path is None:
+        html_path = BASE_DIR / "resultados - Artigo PIBIC" / "plot_rede_IEEE_template_dashboard.html"
+    try:
+        with open(html_path, "r", encoding="utf-8") as f:
+            html_content = f.read()
+    except FileNotFoundError:
+        st.error(f"Arquivo HTML não encontrado: {os.path.abspath(html_path)}")
+        st.info("Crie o arquivo ou informe um caminho válido em rede_template_view(html_path=...)")
+        return
+    components.html(html_content, height=height, scrolling=True)
+
+
+#! Pagina Dashboard
 class FrameworkRCEDashboard:
     """Dashboard principal, com a timeline integrada na aba Solução."""
     def __init__(self):
@@ -295,12 +320,13 @@ class FrameworkRCEDashboard:
                 st.error(f"Erro ao renderizar a aba de Solução: {e}")
 
         def render_graficos_tab():
-            st.subheader("Gráfico de Convergência (Estatísticas)")
+            st.subheader("Gráfico de Fitness x Generations com RCE")
             if not df_viz.empty:
                 try:
                     if 'gen' in df_viz.columns:
                         stats_df = df_viz.rename(columns={'gen': 'Generation', 'avg': 'Média', 'min': 'Mínimo', 'max': 'Máximo'})
                         st.line_chart(stats_df, x='Generation', y=['Média', 'Mínimo', 'Máximo'], height=self.config.CHART_HEIGHT)
+                    
                     elif 'Generations' in df_viz.columns:
                         stats_df = df_viz.groupby('Generations')['Fitness'].agg(['mean', 'min', 'max']).reset_index()
                         stats_df = stats_df.rename(columns={'Generations': 'Generation', 'mean': 'Média', 'min': 'Mínimo', 'max': 'Máximo'})
@@ -318,20 +344,19 @@ class FrameworkRCEDashboard:
             if pop_final_path.exists():
                 try:
                     pop_df = pd.read_excel(pop_final_path)
-                    st.dataframe(pop_df.head(self.config.MAX_ROWS_IN_TABLE))
+                    #st.dataframe(pop_df.head(self.config.MAX_ROWS_IN_TABLE))
+                    st.dataframe(pop_df)
                 except Exception as e:
                     st.error(f"Erro ao ler população final: {e}")
             else:
                 st.info("Arquivo de população final não encontrado.")
 
-        def render_dashboard_tab():
-            rede_template_view()
 
         tab_definitions = {
             "Solução": render_solucao_tab,
-            "Gráficos de Convergência": render_graficos_tab,
+            "Gráficos": render_graficos_tab,
             "População Final": render_pop_final_tab,
-            "Dashboard Sistema Elétrico": render_dashboard_tab
+           # "Dashboard Sistema Elétrico":rede_template_view
         }
 
         if pinned_tab_name:
@@ -356,8 +381,12 @@ class FrameworkRCEDashboard:
             st.write(f"**Arquivo Consolidado:** {'✅ Sim' if status.get('consolidated_file_exists') else '❌ Não'}")
 
     def run(self):
+        
+        # Header
         self.renderHeader()
         executions_map = st.session_state.executions_map
+
+        # Entrada de dados no streamlit
         if not executions_map:
             st.warning("Nenhum resultado consolidado encontrado. Execute a consolidação através do Launcher.")
             st.stop()
@@ -370,13 +399,15 @@ class FrameworkRCEDashboard:
             st.warning("Nenhum resultado consolidado encontrado. Execute a consolidação através do Launcher.")
             st.stop()
 
+        # Configuração dos TABS
         config_keys = sorted(executions_map.keys())
         config_tabs = st.tabs([f"Config {cfg}" for cfg in config_keys])
 
+        # Config -> Executions -> Components (com uso de fixar aba)
         for i, config_tab_ui in enumerate(config_tabs):
             with config_tab_ui:
                 config_num = config_keys[i]
-                tab_names = ["Solução", "Gráficos de Convergência", "População Final", "Dashboard Sistema Elétrico"]
+                tab_names = ["Solução", "Gráficos", "População Final", "Dashboard Sistema Elétrico"]
                 
                 is_pinned = self.tab_pinning_controller.render_toggle(config_num=config_num)
                 
@@ -410,5 +441,7 @@ class FrameworkRCEDashboard:
                             self.renderExecutionDetails(config_num, exec_numbers[j])
                                     
                     st.markdown("---")
+
+        # footer
         self.renderFooter()
 
