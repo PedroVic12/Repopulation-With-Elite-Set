@@ -108,7 +108,7 @@ class RedeEletricaPandaPower:
 
             case "nova":
                 network = pw.create_empty_network()
-                network_name = input("Digite o nome da sua rede que voce quer simular")
+                network_name = input("\nDigite o nome da sua rede que voce quer simular:  ")
                 if network_name != "":
                     self.network_name = "Nova Rede (desconheçida)"
                 else:
