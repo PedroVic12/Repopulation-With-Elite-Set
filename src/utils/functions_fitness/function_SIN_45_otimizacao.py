@@ -67,7 +67,7 @@ agendamento_df = pd.DataFrame([
 ])
 
 contingencia_df = pd.DataFrame([
-    {"contingencia": 1, "from": 1, "to": 19}, # IVAIPORA -> AREIA.525
+    {"contingencia": 1, "from": 1, "to": 19},  # IVAIPORA -> AREIA.525
     {"contingencia": 2, "from": 24, "to": 26}, # GRAVATAI -> PINHEIRO
     {"contingencia": 3, "from": 35, "to": 28}  # SEGREDO -> S.SANTIAG525
 ])
@@ -104,6 +104,12 @@ def funcao_objetivo_SIN45(individuo, setupobj, _debug=False):
         num_carregamentos = 3
         num_contingencias = len(contingencias)
 
+        contigencias_selecionadas = {
+            "ramos": [],
+            "contingencia": []
+        }
+
+
         for cenario in matriz_cenarios:
             perfil = cenario[0]
             estado_ramos = cenario[1:]
@@ -125,20 +131,78 @@ def funcao_objetivo_SIN45(individuo, setupobj, _debug=False):
                     ].values[0])
                     rede.desligar_contingencia(ramo_contingencia)
 
+                    #! salva os ramos selecionados
+                    contigencias_selecionadas["ramos"].append(ramo_contingencia)
+                    contigencias_selecionadas["contingencia"].append(contingencia_atual)
+
+
                     if rede.executar_fluxo_de_potencia():
                         fitness, _ = rede.calcular_violacoes_fitness()
                     else:
-                        fitness = rede.pesos.get("demanda", 9999)
+                        fitness = rede.pesos.get("demanda")
 
                     setupobj.tabela_hash[hash_key] = fitness
                     setupobj.objectiveruns += 1
                 
                 violacoes_total.append(fitness)
 
-        return sum(violacoes_total)
+        # 12) Calcular fitness final com somatorio das vioações com pesos de todos os cenarios
+        fitness_final = sum(violacoes_total)
+        rede.log(f"\nFitness do agendamento = {fitness_final:.2f}\n", level="success")
 
+        # Criar DataFrames para o retorno
+        fitness_df = pd.DataFrame([{'fitness_final': fitness_final}])
+        melhores_variaveis_df = pd.DataFrame(individuo, columns=['inicio_otimizado'])
+        ramos_selecionados_df = agendamento_df.copy()
+        contingencias_avaliadas_df = pd.DataFrame(contigencias_selecionadas)
+
+        return {
+            "fitness": fitness_df,
+            "melhores_variaveis": melhores_variaveis_df,
+            "ramos_selecionados": ramos_selecionados_df,
+            "contingencias": contingencias_avaliadas_df
+        }
+    
     except Exception as e:
         print(f"\n[ERRO] na função objetivo SIN45: {e}")
         import traceback
         traceback.print_exc()
         return float("inf")
+
+# Dicionário de parâmetros para a função de teste
+params_json_teste = {
+    "NUM_GENERATIONS": 10,
+    "CROSSOVER": 0.9,
+    "MUTACAO": 0.1,
+    "POP_SIZE": 4,
+    "IND_SIZE": 10,
+    "RCE_REPOPULATION_GENERATIONS": 5,
+    "NUM_VAR_DIFERENTES": 1,
+    "PORCENTAGEM": 0.2,
+    "DELTA_MIN": 2,
+    "ARRAY_VAR": [15, 15, 10, 21, 16, 13, 10, 14, 17, 18],
+    "LIMITE_VAR": [0, 31]
+}
+    
+def run_simulate_SIN45():
+    tabela_hash = hashtablesize_sin45()
+
+    setup = Setup(
+        params= params_json_teste,
+        fitness_function= funcao_objetivo_SIN45,
+        tamanho_hash= tabela_hash,
+    )
+
+    fitness, best_vars, ramos_selecionados, contingencias_avaliadas = funcao_objetivo_SIN45(
+        individuo= [15, 15, 10, 21, 16, 13, 10, 14, 17, 18],
+        setupobj= setup,
+        _debug= False
+    )
+
+
+
+
+
+
+
+run_simulate_SIN45()
