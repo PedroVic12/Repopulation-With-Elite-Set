@@ -105,76 +105,7 @@ class AlgoritimoEvolutivoRCE:
                 break
         return is_clone
 
-    def criterio1(self, new_pop, porcentagem, k=30):
-        """Seleciona os candidatos ao conjunto elite com base nas diferenças percentuais de aptidão."""
-
-        if self.DEBUG:
-            self.cout(f"CRITÉRIO 1 RCE - Selecionando candidatos ao conjunto elite")
-
-        elite_individuals = []
-
-        # Ordenar a população em ordem crescente de aptidão e selecionar os k primeiros indivíduos
-        sorted_population = sorted(self.POPULATION, key=lambda x: x.fitness.values[0])
-
-        # Obter o melhor indivíduo (HOF) da população
-        best_ind = new_pop[0]
-        best_fitness = best_ind.fitness.values[0]
-        max_difference = (1 + porcentagem) * best_fitness
-
-        # Selecionar com as menores diferenças percentuais
-        for ind in sorted_population:
-            if ind.fitness.values[0] <= max_difference:
-                elite_individuals.append(ind)
-            else:
-                break  # Parar a seleção quando a diferença percentual for maior que o limite
-
-        # Colocando na pop aleatória
-        if self.DEBUG:
-            print(
-                f"Calculando percentual de {porcentagem*100}% com base no melhor fitness = {best_fitness} e pegando os {len(elite_individuals)} melhores.\n Porcentagem de {best_fitness} = {max_difference} "
-            )
-
-        for i, ind in enumerate(elite_individuals):
-            new_pop[i] = self.setup.toolbox.clone(ind)
-            new_pop[i].rce = "SIM_1"
-
-        return elite_individuals
-
-    def criterio2_alternative(self, ind_selecionados, delta=6):
-        """Comparar as variáveis de decisão de cada indivíduo e verificar se existem diferenças superiores a 'delta'."""
-        if self.DEBUG:
-            self.cout(
-                f"CRITÉRIO 2 - Comparar as variáveis de decisão de cada indivíduo e verificar valores superiores a 'delta' = {delta}."
-            )
-
-        self.CONJUNTO_ELITE_RCE.clear()
-
-        for i in range(len(ind_selecionados)):
-
-            #    todo   Calcular Diff - diferença entre as variáveis de indivíduo e individuo lista
-            diff = np.array(ind_selecionados[i]) - np.array(ind_selecionados[0])
-
-            # todo retornar true ou false caso ind seja diferente para colocar no array correto
-            if sum(diff) > delta:  # ind diferente
-                if (ind_selecionados[i] not in self.pop_RCE) and (
-                    ind_selecionados[i] not in ind_selecionados[0]
-                ):
-                    self.pop_RCE.append(self.POP_OPTIMIZATION[i])
-                    self.CONJUNTO_ELITE_RCE.add(tuple(self.POP_OPTIMIZATION[i]))
-                    ##print("Delta= ", sum(diff))
-
-        #! REVER AQUI SE é APENAS DEBUG MESMO
-        if self.DEBUG:
-            if not self.pop_RCE:
-                print("Nenhum indivíduo atende aos critérios. :( ")
-
-
-            print("Tamanho Elite = ", len(self.pop_RCE))
-            #print("Tamanho Elite = ", len(self.CONJUNTO_ELITE_RCE))
-
-        return self.pop_RCE
-
-    def newCriterio(self, population):
+    def criterios_RCE(self, population):
         self.CONJUNTO_ELITE_RCE.clear()
         self.pop_RCE = []
 
@@ -198,6 +129,7 @@ class AlgoritimoEvolutivoRCE:
         self.pop_RCE.append(best_ind)
 
         def calculaDiff(ind, lista):
+            """Critério 2 - Subrotina para calcular a difenreça entre o ind selecionado e a população do RCE."""
             count = 0
 
             # calcula a diferença entre o ind selecionado e o pessoal do RCE
@@ -226,7 +158,9 @@ class AlgoritimoEvolutivoRCE:
                     return False  # clone: Variaveis iguais
 
         if self.DEBUG:
-            self.cout(f"New - CRITÉRIO 2 RCE ")
+            self.cout(
+                f"CRITÉRIO 2 - Comparar as variáveis de decisão de cada indivíduo e verificar se existem diferenças superiores a 'delta' = {self.setup.delta}."
+            )
 
         for ind in population:
             # criterio 1
@@ -237,7 +171,6 @@ class AlgoritimoEvolutivoRCE:
                     if ind not in self.pop_RCE:
                         self.pop_RCE.append(ind)
                         self.CONJUNTO_ELITE_RCE.add(tuple(ind))
-
 
         if self.DEBUG:
             if len(self.pop_RCE) == 1:
@@ -259,7 +192,7 @@ class AlgoritimoEvolutivoRCE:
         #?self.setup.avaliarFitnessIndividuos(current_population)
         self.calculateFitnessGeneration(current_population)
 
-        #! b - Coloca o elite hof da pop anterior  no topo (0)
+        #! Critério 1 - Coloca o elite hof da pop anterior  no topo (0)
         pop = self.elitismoSimples(current_population)
 
         if self.DEBUG:
@@ -269,8 +202,8 @@ class AlgoritimoEvolutivoRCE:
 
         new_pop[0] = self.setup.toolbox.clone(pop[0]) # pop[0] é o melhor individuo HOF
 
-        #! Critério 2 usando este array e vai colocando os indivíduos selecionados pelo critério 2 na pop aleatória (passo a)
-        ind_diferentes_var = self.newCriterio(
+        #! Critério 1 e 2 usando este array e vai colocando os indivíduos selecionados pelo critério 2 na pop aleatória (passo a)
+        ind_diferentes_var = self.criterios_RCE(
             current_population,
         )
 
@@ -294,46 +227,6 @@ class AlgoritimoEvolutivoRCE:
         pop[0] = self.setup.toolbox.clone(self.hof[0])
         return pop
 
-    def criterio2(self, elite_individuals, delta):
-        """Comparar as variáveis de decisão de cada indivíduo e verificar se existem diferenças superiores a 'delta'."""
-        self.cout(
-            f"CRITÉRIO 2 - Comparar as variáveis de decisão de cada indivíduo e verificar se existem diferenças superiores a 'delta' = {delta}."
-        )
-        self.pop_RCE = []
-        self.CONJUNTO_ELITE_RCE.clear()
-
-        for i in range(len(elite_individuals)):
-            current_individual = elite_individuals[i]
-            is_diferente = False
-
-            for j in range(i + 1, len(elite_individuals)):
-                other_individual = elite_individuals[j]
-                diff_counter = 0
-
-                for var_index in range(len(current_individual)):
-                    current_var = current_individual[var_index]
-                    other_var = other_individual[var_index]
-
-                    if abs(current_var - other_var) > delta:
-                        # print(abs(current_var - other_var))
-                        diff_counter += 1
-
-                if diff_counter >= 1:
-                    is_diferente = True
-
-            if is_diferente:
-                # print(f"Indivíduo do tipo {type(current_individual)} VAR({current_individual})\n diferente! adicionado à nova população.")
-                self.pop_RCE.append(current_individual)
-                self.CONJUNTO_ELITE_RCE.add(tuple(current_individual))
-
-        if self.DEBUG:
-            if not self.pop_RCE:
-                print("Nenhum indivíduo atende aos critérios. :( ")
-
-            print("Tamanho Elite = ", len(self.pop_RCE))
-
-
-        return self.pop_RCE
 
     def calculateFitnessGeneration(self, new_pop):
         for ind in new_pop:
@@ -372,6 +265,10 @@ class AlgoritimoEvolutivoRCE:
 
         #! Loop principal através das gerações
         for current_generation in range(self.setup.NGEN):
+
+            if self.DEBUG:
+                print(f"\nALGORITIMO EVOLUTIVO COM AG COM DEAP. Geração atual = {current_generation + 1}")
+
 
             # Selecionar os indivíduos para reprodução
             offspring = self.setup.toolbox.select(
@@ -450,15 +347,14 @@ class AlgoritimoEvolutivoRCE:
             self.elitismoSimples(population[num_pop])
             self.registrarDados(current_generation)
 
+            # Compila os resultados do deap
             record = self.stats.compile(population[num_pop])
             self.logbook.record(gen=current_generation, **record)
 
 
             
             if self.DEBUG:
-                print(f"\nALGORITIMO EVOLUTIVO COM AG COM DEAP. Geração atual = {current_generation + 1}")
-
-                            # Log de progresso da geração
+                # Log de progresso da geração
                 print(f"  - Geração {current_generation + 1:3d}/{self.setup.NGEN:3d} -> "
                   f"Min: {record['min']:.3f} | "
                   f"Avg: {record['avg']:.3f} | "

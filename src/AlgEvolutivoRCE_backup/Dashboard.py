@@ -129,6 +129,8 @@ class DashboardApp:
         statics = {}
         array_values = []
 
+        save_html_results = False
+
         best_solution_index = -1
         best_solution_variables = []
         best_solution_fitness = float('inf')
@@ -176,9 +178,6 @@ class DashboardApp:
             print("="*90)
 
             grafico_RCE = self.graficoRCE(generation, array_values, repopulation=repopulation)
-            
-            output_path = f"{FOLDER_NAME}"
-            data_file = f"{output_path}/dashboard_data_config{config_num}_exec{execution_num}.json"
 
             # --- Salvar dados e figura para o script Streamlit ---
             data_to_save = {
@@ -194,18 +193,22 @@ class DashboardApp:
                 }
             }
 
-            # Salvar a figura em formato HTML
-            fig_filename = f"{output_path}/grafico_execucao_config{config_num}_exec{execution_num}.html"
-            grafico_RCE.write_html(fig_filename)
-
             # Adiciona os resultados da execução atual à lista
             all_results.append(data_to_save)
 
-            # Salva a lista completa de resultados
-            with open(data_file, 'w') as f:
-                json.dump(all_results, f, indent=4, ensure_ascii=False)
-                
-            print(f"\n[INFO]: Salvando dados .json e figura .html para Config {config_num} / Execução {execution_num} na pasta output")
+            if save_html_results:
+                # Salvar a figura em formato HTML
+                output_path = f"{FOLDER_NAME}"
+                data_file = f"{output_path}/dashboard_data_config{config_num}_exec{execution_num}.json"
+
+                fig_filename = f"{output_path}/grafico_execucao_config{config_num}_exec{execution_num}.html"
+                grafico_RCE.write_html(fig_filename)
+
+                # Salva a lista completa de resultados
+                with open(data_file, 'w') as f:
+                    json.dump(all_results, f, indent=4, ensure_ascii=False)
+                    
+                print(f"\n[INFO]: Salvando dados .json e figura .html para Config {config_num} / Execução {execution_num} na pasta output")
 
 
         except Exception as e:
