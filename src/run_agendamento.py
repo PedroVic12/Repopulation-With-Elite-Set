@@ -37,7 +37,7 @@ BASE_DIR = pathlib.Path(__file__).resolve().parent
 
 # Seleciona a função de agendamento para ser executada (índice 0)
 ARRAY_FITNESS_FUNCTIONS = [funcao_objetivo_IEEE14_analise, funcao_objetivo_IEEE30]
-NUMERO_FUNCAO_OBJETIVO = 0 # 0 para a funcao_objetivo_IEEE14_analise
+NUMERO_FUNCAO_OBJETIVO = 1 # 0 para a funcao_objetivo_IEEE14_analise
 
 # Mapeia as funções de cálculo de hash
 HASHTABLE_SIZE_FUNCS = {
@@ -121,6 +121,12 @@ def run_agendamento_otimizado():
 
         print("\nEvolução concluída.")
         best_solution_generation, _, _, _ = alg.dashboard.visualize(logbook, pop)
+        
+        # Exibe os tempos e contadores de forma clara
+        print(f"\nDuração desta Execução: {formatted_time_exec}")
+        print(f"Tempo Total Acumulado: {format_elapsed_time(end_exec - start)}")
+        print(f"Objective functions runs: {setup.objectiveruns}")
+        print(f"Consultas HashTable: {setup.hashtablereads}\n")
 
         # --- LÓGICA PARA MONTAR O RESULTADO FINAL DETALHADO ---
         best_fitness = best_individual.fitness.values[0] if best_individual.fitness.valid else float('inf')
@@ -149,7 +155,7 @@ def run_agendamento_otimizado():
         try:
             with open(output_path, 'w', encoding='utf-8') as f:
                 json.dump(result, f, indent=4, ensure_ascii=False, default=str)
-            print(f"Resultado salvo em: {output_path}")
+            #print(f"Resultado salvo em: {output_path}")
         except Exception as e:
             print(f"Erro ao salvar resultado: {e}")
 
