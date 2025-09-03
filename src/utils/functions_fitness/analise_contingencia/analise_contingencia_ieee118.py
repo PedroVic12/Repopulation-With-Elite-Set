@@ -60,14 +60,49 @@ def funcao_objetivo_ieee118_analise(individuo, setupobj, _debug=False):
     return fitness_final,
 
 if __name__ == "__main__":
-    print("--- Iniciando Simulação de Teste para Análise de Contingência (IEEE 118) ---")
-    horarios_teste = [24,3,24,26,1,24,24,27,24,24]
-    params = {
-        "IND_SIZE": len(horarios_teste), "LIMITE_VAR": [0, 31],
-        "NUM_GENERATIONS": 5, "POP_SIZE": 4, "CROSSOVER": 0.9, "MUTACAO": 0.1
-    }
-    setup = Setup(params=params, fitness_function=funcao_objetivo_ieee118_analise, tamanho_hash=hashtablesize_ieee118())
-    fitness, = funcao_objetivo_ieee118_analise(individuo=horarios_teste, setupobj=setup)
-    print(f"\nFitness final calculado: {fitness}")
-    print(f"Execuções da função objetivo: {setup.objectiveruns}")
-    print(f"Leituras da tabela hash: {setup.hashtablereads}")
+    def run_simulate():
+        print("--- Iniciando Simulação de Teste para Análise de Contingência (IEEE 118) ---")
+        horarios_teste = [24,3,24,26,1,24,24,27,24,24]
+        params = {
+            "IND_SIZE": len(horarios_teste), "LIMITE_VAR": [0, 31],
+            "NUM_GENERATIONS": 5, "POP_SIZE": 4, "CROSSOVER": 0.9, "MUTACAO": 0.1
+        }
+        setup_obj = Setup(params=params, fitness_function=funcao_objetivo_ieee118_analise, tamanho_hash=hashtablesize_ieee118())
+        
+        rede = RedeEletricaPandaPower("118", debug=False)
+        rede.pesos.update({"tensao": {"min": 100, "max": 100}, "loading_linhas": 100, "loading_trafos": 100})
+        agendamento_df = agendamento_df_ieee118.copy()
+        agendamento_df["inicio"] = horarios_teste
+        duracao_total_agendamento = (agendamento_df['inicio'] + agendamento_df['duracao']).max()
+        rede.validar_dados(agendamento_df, contingencia_df_ieee118)
+        matriz_cenarios = rede.avalia_cenarios(
+            horas=duracao_total_agendamento,
+            hora_inicio=agendamento_df['inicio'],
+            duracao=agendamento_df['duracao'],
+            ls=0, le=8, ms=8, me=18, hs=18, he=24
+        )
+        
+        fitness, contigencias_selecionadas = analise_contigencias_SEP(
+            rede=rede, setupobj=setup_obj, matriz_cenarios=matriz_cenarios,
+            agendamento_df=agendamento_df, contingencia_df=contingencia_df_ieee118
+        )
+
+        resultado_final = {
+            "fitness": fitness,
+            "best_variables": horarios_teste,
+            "ramos_selecionados": contigencias_selecionadas.get("ramos", []),
+            "contingencias": contigencias_selecionadas.get("contingencia", [])
+        }
+
+        print(f"\n--- Resultados da Simulação de Teste ---")
+        print(f"Fitness final calculado: {resultado_final['fitness']}")
+        agendamento_final_df = agendamento_df_ieee118.copy()
+        agendamento_final_df['horario_otimizado'] = horarios_teste
+        print("\n--- Agendamento Otimizado ---")
+        print(agendamento_final_df.to_string())
+        print("\n--- Contingências Avaliadas ---")
+        contingencias_df = pd.DataFrame(contigencias_selecionadas)
+        print(contingencias_df.to_string())
+        return resultado_final
+
+    run_simulate()

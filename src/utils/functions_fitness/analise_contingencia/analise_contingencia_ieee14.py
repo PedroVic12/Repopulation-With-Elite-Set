@@ -70,7 +70,7 @@ def funcao_objetivo_ieee14_analise(individuo, setupobj, _debug=False):
     return fitness_final,
 
 # --- FUNÇÃO DE SIMULAÇÃO PARA TESTE ---
-def run_simulation_test():
+def run_simulate():
     print("--- Iniciando Simulação de Teste para Análise de Contingência (IEEE 14) ---")
     horarios_teste = [14, 16, 18, 20, 22]
     params_json = {
@@ -84,18 +84,61 @@ def run_simulation_test():
         fitness_function=funcao_objetivo_ieee14_analise,
         tamanho_hash=hashtablesize_ieee14()
     )
-    fitness, = funcao_objetivo_ieee14_analise(
-        individuo=horarios_teste,
-        setupobj=setup_obj,
-        _debug=False
+
+    # --- Replicating objective function logic to get detailed results ---
+    rede = RedeEletricaPandaPower("14", debug=False)
+    rede.pesos["tensao"] = {"min": 100, "max": 100}
+    rede.pesos["loading_linhas"] = 100
+    rede.pesos["loading_trafos"] = 100
+    
+    agendamento_df = agendamento_df_ieee14.copy()
+    agendamento_df["inicio"] = horarios_teste
+    
+    duracao_total_agendamento = (agendamento_df['inicio'] + agendamento_df['duracao']).max()
+    rede.validar_dados(agendamento_df, contingencia_df_ieee14)
+    
+    matriz_cenarios = rede.avalia_cenarios(
+        horas=duracao_total_agendamento,
+        hora_inicio=agendamento_df['inicio'],
+        duracao=agendamento_df['duracao'],
+        ls=0, le=8, ms=8, me=18, hs=18, he=24
     )
+    
+    fitness, contigencias_selecionadas = analise_contigencias_SEP(
+        rede=rede,
+        setupobj=setup_obj,
+        matriz_cenarios=matriz_cenarios,
+        agendamento_df=agendamento_df,
+        contingencia_df=contingencia_df_ieee14
+    )
+    # --- End of replicated logic ---
+
+    # --- Assemble and display results ---
+    resultado_final = {
+        "fitness": fitness,
+        "best_variables": horarios_teste,
+        "ramos_selecionados": contigencias_selecionadas.get("ramos", []),
+        "contingencias": contigencias_selecionadas.get("contingencia", [])
+    }
 
     print(f"\n--- Resultados da Simulação de Teste ---")
-    print(f"Fitness final calculado: {fitness}")
-    print(f"Execuções da função objetivo (cálculos caros): {setup_obj.objectiveruns}")
-    print(f"Leituras da tabela hash (cache hits): {setup_obj.hashtablereads}")
-    print("----------------------------------------")
-    return fitness
+    print(f"Fitness final calculado: {resultado_final['fitness']}")
+    print(f"Horários de agendamento (Best Variables): {resultado_final['best_variables']}")
+    
+    # Create DataFrame
+    agendamento_final_df = agendamento_df_ieee14.copy()
+    agendamento_final_df['horario_otimizado'] = horarios_teste
+    
+    print("\n--- Agendamento Otimizado ---")
+    print(agendamento_final_df.to_string())
+    
+    print("\n--- Contingências Avaliadas ---")
+    contingencias_df = pd.DataFrame(contigencias_selecionadas)
+    print(contingencias_df.to_string())
+    
+    print("\n----------------------------------------")
+    return resultado_final
 
 if __name__ == "__main__":
-    run_simulation_test()
+    run_simulate()
+
