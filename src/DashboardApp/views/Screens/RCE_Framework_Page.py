@@ -44,31 +44,89 @@ from database_controller import DatabaseController, ConsolidationManager
 import streamlit.components.v1 as components
 import os
 
+def card_metric(label, value, bg_color, icon="fas fa-asterisk"):
+
+    # referencia
+    #https://py.cafe/maartenbreddels/streamlit-custom-metrics
+
+    fontsize = 18
+    valign = "left"    
+    lnk = '<link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.12.1/css/all.css" crossorigin="anonymous">'
+
+    bg_color_css = f'rgb({bg_color[0]}, {bg_color[1]}, {bg_color[2]}, 0.75)'
+
+    htmlstr = f"""<p style='background-color: {bg_color_css}; 
+                            font-size: {fontsize}px; 
+                            border-radius: 7px; 
+                            padding-left: 12px; 
+                            padding-top: 18px; 
+                            padding-bottom: 18px; 
+                            line-height:25px;'>
+                            <i class='{icon} fa-xs'></i> {value}
+                            </style><BR><span style='font-size: 14px; 
+                            margin-top: 0;'>{label}</style></span></p>"""
+
+    st.markdown(lnk + htmlstr, unsafe_allow_html=True)
+
+def render_metrics():
+    green = (0, 204, 102)
+    red = (204, 0, 102)
+    icon_error = "fas fa-bug"
+    icon_observation = "fas fa-asterisk"
+
+    card_metric("Observations", 123, green)
+    card_metric("Errors", 13, red, icon_error)
+
+
+    st.markdown("# Render my card metrics components in columns")
+
+    col1, col2 = st.columns(2)
+    with col1:
+        card_metric("Observations", 123, green, icon_observation)
+    with col2:
+        card_metric("Errors", 13, red, icon_error)
+
+
 
 def CardsSolutions(results_data: dict):
     """
     Renderiza os cartões com os principais resultados da solução e as
     variáveis de decisão, incluindo um tooltip para horários > 24h.
     """
-    st.subheader("Solução de melhores horários de agendamento para SEP")
+    st.subheader("Solução de melhores horários de agendamento para o SEP")
+
+    # CSS do st.metric
+    st.markdown("""
+    <style>
+    div[data-testid="stMetricValue"] > div {
+        font-size: 10; 
+    }
+    div[data-testid="stMetricLabel"] > div{
+        font-size: 40;
+                
+    }
+    </style>
+    """, unsafe_allow_html=True)
+
+
+    #render_metrics()
     
     # Cria duas colunas principais para o layout
     left_col, right_col = st.columns([1, 1])  # A coluna da direita é mais larga
 
-
     # Coluna da esquerda para as métricas principais
     with left_col:
-        with st.container(border=True):
-                st.metric("🏆 Melhor Fitness", f"{results_data.get('best_fitness', 0):.2f}")
-
+        with st.container(border=False):
+                st.metric("🏆 Melhor Fitness", f"{results_data.get('best_fitness', 0):.2f}", border=True)
+                st.metric("Função aptidão usada", f"{results_data.get('Funcao_objetivo', 'N/A').upper()}", border=True)
             
     # Coluna da direita para as variáveis de decisão
     with right_col:
-        with st.container(border=True):
-            st.metric("⏳ Melhor Geração", f"{results_data.get('best_gen_idx', 'N/A')}")
-            #st.metric("Execução", f"#{results_data.get('execucao', 'N/A')}")
+        with st.container(border=False):
+            st.metric("⏳ Melhor Geração", f"{results_data.get('best_gen_idx', 'N/A')}", border=True)
+            st.metric("⏱️ Tempo de Execução", f"{results_data.get('Tempo_total_execucao', 'N/A')}", border=True)
 
-    st.subheader("**Variáveis de Decisão (Horários)**")
+    st.subheader("**Melhores Variáveis de Decisão (Horários)**")
     solution_variables = results_data.get("best_variables", [])
     if not solution_variables:
             st.info("Nenhuma variável de decisão encontrada.")
@@ -283,8 +341,8 @@ class FrameworkRCEDashboard:
         return df.groupby(config_col)[exec_col].apply(lambda x: sorted(x.unique())).to_dict()
 
     def renderHeader(self):
-        st.title(f"{self.config.PAGE_TITLE} (Versão Completa)")
-        st.markdown("Análise de resultados de otimização com Repopulation-With-Elite-Set.")
+        st.title(f"{self.config.PAGE_TITLE} (Versão Estável)")
+        st.markdown("Análise de resultados de otimização AG com Repopulation-With-Elite-Set usando DEAP + PandaPower em Python.")
         st.markdown("---")
         
         if st.session_state.df_consolidado is not None:
@@ -427,6 +485,30 @@ class FrameworkRCEDashboard:
         st.subheader("📈 Resultados Consolidados de Todas as Configurações e Execuções")
         if filtered_df is not None and not filtered_df.empty:
             st.dataframe(filtered_df, use_container_width=True)
+
+            # converte para segundos
+            filtered_df["Tempo_total_execucao_seg"] = filtered_df["Tempo_total_execucao"].apply(
+                lambda x: int(x.split()[0]) * 60 + int(x.split()[2]) if isinstance(x, str) else None
+            )
+
+            # tempo médio
+            tempo_medio = filtered_df["Tempo_total_execucao_seg"].mean()
+
+            # soma acumulada
+            filtered_df["Soma_acumulada"] = filtered_df["Tempo_total_execucao_seg"].cumsum()
+
+            # média em minutos
+            minutos_medio, segundos_medio = divmod(int(tempo_medio), 60)
+            st.write(f"Tempo médio: {minutos_medio} minutos {segundos_medio} segundos")
+            #st.write("Tempo médio em minutos = ",minutos_medio )
+
+            # tempo total acumulado em minutos
+            total_segundos = filtered_df["Soma_acumulada"].iloc[-1]
+            minutos_totais, segundos_totais = divmod(int(total_segundos), 60)
+            st.write(f"Tempo total da simulação: {minutos_totais} minutos {segundos_totais} segundos")
+            #st.write("Tempo total da simulação em minutos = ",minutos_totais )
+
+
         else:
             st.warning("Nenhum resultado encontrado para os filtros aplicados.")
 
