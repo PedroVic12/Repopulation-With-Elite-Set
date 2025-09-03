@@ -105,8 +105,6 @@ class AlgoritimoEvolutivoRCE:
                 break
         return is_clone
 
-
-
     def criterio1(self, new_pop, porcentagem, k=30):
         """Seleciona os candidatos ao conjunto elite com base nas diferenças percentuais de aptidão."""
 
@@ -521,6 +519,7 @@ class AlgoritimoEvolutivoRCE:
         print(
             "==========================================================================================================\n"
         )
+    
     def generateInfoIndividual(self, new_pop, generation):
         ind_array = []
 

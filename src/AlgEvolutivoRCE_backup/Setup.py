@@ -270,8 +270,6 @@ class Setup:
         print("\n[DEBUG] Dados do problema = ", self.decision_variables, self.__fitness_function)
         self.toolbox.register("evaluate", fitness_func)
 
-
-
     def gerarDataset(self, excel):
         df = pd.read_excel(excel)
         print(df.columns)
