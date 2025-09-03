@@ -13,6 +13,7 @@ from config_backup import FOLDER_NAME, format_elapsed_time
 
 #! Importando a minha função objetivo dentro do projeto
 from utils.functions_fitness.functions_benchmarking import rastrigin
+
 from utils.functions_fitness.function_IEEE_14_contigencias import funcao_objetivo_IEEE14, HASH_TABLE_PATH
 from utils.functions_fitness.function_IEEE_118_otimizacao import funcao_objetivo_IEEE118, HASH_TABLE_PATH, hashtablesize_IEEE118
 from utils.functions_fitness.function_IEEE_30_otimizacao import funcao_objetivo_IEEE30, HASH_TABLE_PATH, hashtablesize
@@ -48,7 +49,7 @@ CLI = False
 DEBUG_MODE = False
 BECHMARKING_MODE = False
 SHOW_SETTINGS = False
-NUMERO = 3 # 0 1 3 4
+NUMERO = 1 # 0 1 3 4
 
 
 
@@ -171,7 +172,7 @@ def run_framework_many_executions(function_bechmarking=False):
         #! 4) Define função objetivo
         fitness_func = ARRAY_FITNESS_FUNCTIONS[NUMERO] if not function_bechmarking else rastrigin
 
-        # Pega a função de cálculo de tamanho de hash correspondente, se existir
+        #! Pega a função de cálculo de tamanho de hash correspondente, se existir
         #size_func = HASHTABLE_SIZE_FUNCS.get(fitness_func.__name__, hashtablesize)
 
         #! 5) Instancia Setup uma vez por configuração
@@ -179,7 +180,7 @@ def run_framework_many_executions(function_bechmarking=False):
         setup = Setup(
             params,
             fitness_function=fitness_func,
-            tamanho_hash=hashtablesize_IEEE118
+            tamanho_hash=hashtablesize
         )
 
         print("Classe Setup iniciada para a configuração.")
