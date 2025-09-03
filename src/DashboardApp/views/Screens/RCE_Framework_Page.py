@@ -52,12 +52,13 @@ def CardsSolutions(results_data: dict):
     st.subheader("Solução de melhores horários de agendamento para SEP")
     
     # Cria duas colunas principais para o layout
-    left_col, right_col = st.columns([1, 5])  # A coluna da direita é mais larga
+    left_col, right_col = st.columns([1, 1])  # A coluna da direita é mais larga
+
 
     # Coluna da esquerda para as métricas principais
-    #with left_col:
-    with st.container(border=True):
-            st.metric("🏆 Melhor Fitness", f"{results_data.get('best_fitness', 0):.2f}")
+    with left_col:
+        with st.container(border=True):
+                st.metric("🏆 Melhor Fitness", f"{results_data.get('best_fitness', 0):.2f}")
 
             
     # Coluna da direita para as variáveis de decisão
@@ -94,7 +95,8 @@ def CardsSolutions(results_data: dict):
                     st.metric(
                         label=f"Var {i+1}",
                         value=f"{var_value:.2f}",
-                        help=tooltip_text  # O parâmetro 'help' cria o tooltip
+                        help=tooltip_text,  # O parâmetro 'help' cria o tooltip
+                        delta_color="inverse",
                     )
 
 
@@ -214,13 +216,38 @@ class FrameworkRCEDashboard:
         self.config = get_config()
         self.tab_pinning_controller = TabPinningController()
         self._init_state()
-        self.MenuLateral()
+        # A chamada do MenuLateral foi movida para o método run()
         
-    def MenuLateral(self):
+    def MenuLateral(self, df: pd.DataFrame) -> pd.DataFrame:
+        """Renderiza o menu lateral com os filtros e retorna o DataFrame filtrado."""
         st.sidebar.title("🧭 Menu Dashboard")
         st.sidebar.image("https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRHVsZ1z9B-HIP8Ddsks0mP3aETeG1CkYixtA&s", use_container_width=True)
         st.sidebar.markdown("---")
-        st.info("EM DESENVOLVIMENTO")
+
+        if df is None or df.empty:
+            st.sidebar.warning("Não há dados consolidados para filtrar.")
+            return pd.DataFrame()
+
+        st.sidebar.header("🔎 Filtros para Resultados Consolidados")
+
+        filtered_df = df.copy()
+
+        # Filtro por Configuração
+        config_col, _ = self._validate_required_columns(df)
+        if config_col and not df[config_col].empty:
+            unique_configs = sorted(df[config_col].astype(str).unique())
+            selected_configs = st.sidebar.multiselect(
+                "Configuração",
+                options=unique_configs,
+                default=unique_configs,
+                key="filter_config"
+            )
+            if selected_configs:
+                filtered_df = filtered_df[filtered_df[config_col].astype(str).isin(selected_configs)]
+
+
+
+        return filtered_df
 
     def _init_state(self):
         if "df_consolidado" not in st.session_state: st.session_state.df_consolidado = self.db_controller.get_consolidated_data()
@@ -378,26 +405,27 @@ class FrameworkRCEDashboard:
             st.write(f"**Execuções Detectadas:** {summary.get('total_runs')}")
             
             status = self.consolidation_manager.get_consolidation_status()
-            st.write(f"**Arquivo Consolidado:** {'✅ Sim' if status.get('consolidated_file_exists') else '❌ Não'}")
+            st.write(f"**Arquivo Consolidado:** {'✅ Encontrado' if status.get('consolidated_file_exists') else '❌ Não Encontrado'}")
 
     def run(self):
+        df_consolidado = st.session_state.df_consolidado
         
+        # O menu lateral agora é chamado aqui e retorna o dataframe filtrado
+        filtered_df = self.MenuLateral(df_consolidado)
+
         # Header
         self.renderHeader()
         executions_map = st.session_state.executions_map
 
-        # Entrada de dados no streamlit
         if not executions_map:
             st.warning("Nenhum resultado consolidado encontrado. Execute a consolidação através do Launcher.")
             st.stop()
             
-        df_consolidado = st.session_state.df_consolidado
-        if df_consolidado is not None and not df_consolidado.empty:
-            st.subheader("📈 Resultados Consolidados de Todas as Configurações e Execuções")
-            st.dataframe(df_consolidado, use_container_width=True)
+        st.subheader("📈 Resultados Consolidados de Todas as Configurações e Execuções")
+        if filtered_df is not None and not filtered_df.empty:
+            st.dataframe(filtered_df, use_container_width=True)
         else:
-            st.warning("Nenhum resultado consolidado encontrado. Execute a consolidação através do Launcher.")
-            st.stop()
+            st.warning("Nenhum resultado encontrado para os filtros aplicados.")
 
         # Configuração dos TABS
         config_keys = sorted(executions_map.keys())
@@ -444,4 +472,3 @@ class FrameworkRCEDashboard:
 
         # footer
         self.renderFooter()
-
