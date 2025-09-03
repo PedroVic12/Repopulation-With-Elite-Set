@@ -173,14 +173,18 @@ def run_framework_many_executions(function_bechmarking=False):
         fitness_func = ARRAY_FITNESS_FUNCTIONS[NUMERO] if not function_bechmarking else rastrigin
 
         #! Pega a função de cálculo de tamanho de hash correspondente, se existir
-        #size_func = HASHTABLE_SIZE_FUNCS.get(fitness_func.__name__, hashtablesize)
+        size_func = HASHTABLE_SIZE_FUNCS.get(fitness_func.__name__)
+        
+        tamanho_hash_val = 0
+        if size_func:
+            tamanho_hash_val = size_func()
 
         #! 5) Instancia Setup uma vez por configuração
         print(f"\n\nIniciando configuração {config_num} com os params.json:\n{params}\n")
         setup = Setup(
             params,
             fitness_function=fitness_func,
-            tamanho_hash=hashtablesize
+            tamanho_hash=tamanho_hash_val
         )
 
         print("Classe Setup iniciada para a configuração.")
