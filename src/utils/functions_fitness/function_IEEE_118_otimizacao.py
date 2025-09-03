@@ -174,7 +174,7 @@ def funcao_objetivo_IEEE118(individuo, setupobj, _debug = False):
         # 12) Calcular fitness final com somatorio das vioações com pesos de todos os cenarios
         fitness_final = sum(violacoes_total)
         rede.log(f"\nFitness do agendamento = {fitness_final:.2f}\n", level = "success")
-        return fitness_final , contigencias_selecionadas
+        return fitness_final,
 
 
     except Exception as e:
@@ -207,10 +207,7 @@ def run_fitness_function():
         tamanho_hash=tabela_hash
     )
 
-    fitness, ramos_selecionados = funcao_objetivo_IEEE118(
-        #agendamento proposto em Zanghi(2016)
-        #individuo=[20,18,21,27,1,21,20,14,19,20],
-
+    fitness, = funcao_objetivo_IEEE118(
         #agendamento ótimo em Zanghi(2016)
         individuo=[24,3,24,26,1,24,24,27,24,24],
         setupobj=setup,
@@ -219,10 +216,6 @@ def run_fitness_function():
     print(type(setup.tamanho_hash))
     print("Tamanho tabela hash = ", setup.tamanho_hash)
     print("Fitness calculado = ", fitness)
-    ramos_df = pd.DataFrame(ramos_selecionados)
-    print("Ramos selecionados para o agendamento para operação: ")
-    print(ramos_df.to_string())
 
-
-
-run_fitness_function()
+if __name__ == "__main__":
+    run_fitness_function()

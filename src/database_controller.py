@@ -76,7 +76,7 @@ def salvar_excel(resultados: list, output_dir: Path):
     colunas_ordenadas = ['pasta_run', 'configuracao', 'execucao', 'config_num']
     colunas_params = sorted([col for col in df.columns if col.startswith('param_')])
     colunas_best = sorted([col for col in df.columns if col.startswith('best_var_')])
-    colunas_fitness = ['best_fitness', 'best_gen_idx']
+    colunas_fitness = ['best_fitness', 'best_gen_idx', 'Funcao_objetivo', 'Tempo_total_execucao']
     
     colunas_ordenadas.extend(colunas_params)
     colunas_ordenadas.extend(colunas_best)
