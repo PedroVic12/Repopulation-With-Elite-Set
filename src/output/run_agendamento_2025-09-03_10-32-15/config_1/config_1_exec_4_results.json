@@ -1,0 +1,79 @@
+{
+    "config_num": 1,
+    "exec_num": 4,
+    "params": {
+        "ARRAY_VAR": [
+            24,
+            3,
+            24,
+            26,
+            1,
+            24,
+            24,
+            27,
+            24,
+            24
+        ],
+        "CROSSOVER": 0.9,
+        "DELTA_MIN": 2,
+        "IND_SIZE": 5,
+        "LIMITE_VAR": [
+            0,
+            31
+        ],
+        "MUTACAO": 0.9,
+        "NUM_GENERATIONS": 20,
+        "NUM_VAR_DIFERENTES": 1,
+        "POP_SIZE": 10,
+        "PORCENTAGEM": 0.2,
+        "RCE_REPOPULATION_GENERATIONS": 50
+    },
+    "best_fitness": 52.86127472980633,
+    "best_variables_horarios": [
+        12,
+        8,
+        1,
+        1,
+        8
+    ],
+    "agendamento_detalhado": [
+        {
+            "ramo": [
+                1,
+                4
+            ],
+            "horario_inicio_otimizado": 12
+        },
+        {
+            "ramo": [
+                1,
+                3
+            ],
+            "horario_inicio_otimizado": 8
+        },
+        {
+            "ramo": [
+                3,
+                6
+            ],
+            "horario_inicio_otimizado": 1
+        },
+        {
+            "ramo": [
+                11,
+                12
+            ],
+            "horario_inicio_otimizado": 1
+        },
+        {
+            "ramo": [
+                9,
+                10
+            ],
+            "horario_inicio_otimizado": 8
+        }
+    ],
+    "best_gen_idx": 14,
+    "time": "3 minutos 32 segundos",
+    "fitness_function": "funcao_objetivo_IEEE14_analise"
+}

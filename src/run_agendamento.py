@@ -13,6 +13,7 @@ sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '.
 from AlgEvolutivoRCE_backup.Setup import Setup
 from AlgEvolutivoRCE_backup.alg_evolutivo_rce import AlgoritimoEvolutivoRCE
 from config_backup import FOLDER_NAME, format_elapsed_time
+from database_controller import run_consolidar_resultados
 
 # --- Importando a função objetivo de agendamento e seus dados ---
 from utils.functions_fitness.test_analise_contigencia import (
@@ -110,6 +111,10 @@ def run_agendamento_otimizado():
 
     config_number = 1
 
+    # Cria um diretório específico para a configuração, compatível com o database_controller
+    config_dir = main_output_dir / f"config_{config_number}"
+    os.makedirs(config_dir, exist_ok=True)
+
     for exec_num in range(1, repeticoes + 1):
         print(f"\n--- Iniciando execução {exec_num}/{repeticoes} ---")
         start_exec = datetime.now()
@@ -146,6 +151,7 @@ def run_agendamento_otimizado():
                 })
 
         result = {
+            "config_num": config_number,
             "exec_num": exec_num,
             "params": params_base,
             "best_fitness": best_fitness,
@@ -156,19 +162,24 @@ def run_agendamento_otimizado():
             "fitness_function": fitness_func.__name__
         }
 
-        output_path = main_output_dir / f"exec_{exec_num}_results.json"
+        # Salva o resultado no diretório da configuração com o nome esperado pelo consolidador
+        output_path = config_dir / f"config_{config_number}_exec_{exec_num}_results.json"
         try:
             with open(output_path, 'w', encoding='utf-8') as f:
                 json.dump(result, f, indent=4, ensure_ascii=False, default=str)
             #print(f"Resultado salvo em: {output_path}")
         except Exception as e:
             print(f"Erro ao salvar resultado: {e}")
-        
-        
-        config_number += 1
 
 
     print("\nExecução finalizada.")
 
 if __name__ == "__main__":
     run_agendamento_otimizado()
+
+    print("\nIniciando consolidação de resultados...")
+    try:
+        run_consolidar_resultados()
+        print("Consolidação de resultados concluída com sucesso.")
+    except Exception as e:
+        print(f"Um erro inesperado ocorreu ao tentar consolidar os resultados: {e}")
