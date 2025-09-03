@@ -5,6 +5,8 @@ import pandas as pd
 from pathlib import Path
 import glob
 from datetime import datetime
+import shutil
+import os
 
 def consolidar_resultados(output_dir: Path):
     """
@@ -294,6 +296,43 @@ class DatabaseController:
         
         return summary
 
+    def cleanup_empty_folders(self):
+        """
+        Remove pastas de execução vazias ou pastas de configuração dentro das pastas de execução,
+        que podem ser resultado de simulações com falha ou incompletas.
+        """
+        print("\n🧹 INICIANDO LIMPEZA DE PASTAS VAZIAS...")
+        run_folders = glob.glob(str(self.output_dir / "run_*"))
+        deleted_folders = []
+
+        for run_folder_path in run_folders:
+            # Primeiro, limpa as pastas de configuração vazias dentro
+            config_folders = glob.glob(str(Path(run_folder_path) / "config_*"))
+            for config_folder_path in config_folders:
+                if not os.listdir(config_folder_path):
+                    print(f"  - Removendo pasta de configuração vazia: {Path(config_folder_path).name} em {Path(run_folder_path).name}")
+                    try:
+                        shutil.rmtree(config_folder_path)
+                        deleted_folders.append(config_folder_path)
+                    except OSError as e:
+                        print(f"    Erro ao remover {config_folder_path}: {e}")
+            
+            # Agora, verifica se a própria pasta de execução está vazia
+            if not os.listdir(run_folder_path):
+                print(f"  - Removendo pasta de run vazia: {Path(run_folder_path).name}")
+                try:
+                    shutil.rmtree(run_folder_path)
+                    deleted_folders.append(run_folder_path)
+                except OSError as e:
+                    print(f"    Erro ao remover {run_folder_path}: {e}")
+
+        if deleted_folders:
+            print(f"  ✅ Limpeza concluída. {len(deleted_folders)} pastas removidas.")
+        else:
+            print("  ✅ Nenhuma pasta vazia encontrada para limpar.")
+        print("=" * 60)
+        return deleted_folders
+
     def consolidate_results(self):
         """
         Chama a lógica de consolidação para gerar o arquivo Excel.
@@ -308,7 +347,7 @@ class DatabaseController:
         except Exception as e:
             print(f"Erro ao chamar o processo de consolidação: {e}")
 
-    def run(self, consolidate: bool = True, show_data: bool = True, show_viz_data: bool = True):
+    def run(self, consolidate: bool = True, show_data: bool = True, show_viz_data: bool = True, cleanup: bool = True):
         """
         Executa um fluxo de trabalho completo de gerenciamento de dados.
         Esta é a função "potente" que orquestra várias operações.
@@ -317,9 +356,13 @@ class DatabaseController:
             consolidate (bool): Se deve executar o processo de consolidação.
             show_data (bool): Se deve carregar e exibir os dados consolidados.
             show_viz_data (bool): Se deve carregar e exibir os dados de visualização.
+            cleanup (bool): Se deve limpar pastas vazias de simulações com falha.
         """
         print("🚀 INICIANDO FLUXO DE TRABALHO DO DATABASE CONTROLLER 🚀")
         print("=" * 60)
+
+        if cleanup:
+            self.cleanup_empty_folders()
 
         if consolidate:
             print("\n1️⃣ EXECUTANDO CONSOLIDAÇÃO DE RESULTADOS...")

@@ -1,6 +1,3 @@
-
-
-
 # File: Repopulation-With-Elite-Set/src/utils/functions_fitness/
 import os
 import sys
@@ -60,9 +57,11 @@ def hashtablesize_IEEE118():
     #print("Hash table INICIAL criada de tamanho = ", size)
     return size
 
-def funcao_objetivo_IEEE118(individuo, setupobj, _debug = False):
-
-    #! 1) Criar a rede elétrica IEEE 14 barras, Inicializar a classe com a rede e carrega a tabela de agendamento
+def calcular_fitness_detalhado_IEEE118(individuo, setupobj, _debug=False):
+    """
+    Calcula o fitness e retorna um dicionário detalhado com DataFrames.
+    """
+    #! 1) Criar a rede elétrica IEEE 118 barras, Inicializar a classe com a rede e carrega a tabela de agendamento
     rede = RedeEletricaPandaPower("118", debug=False)
 
     #! Colocando pesos como input do usuario e os dados de entrada do agendamento
@@ -70,25 +69,27 @@ def funcao_objetivo_IEEE118(individuo, setupobj, _debug = False):
     rede.pesos["loading_linhas"] = 100
     rede.pesos["loading_trafos"] = 100
 
+    # Copiar o DataFrame de agendamento para evitar modificações no original global
+    agendamento_local_df = agendamento_df.copy()
 
     # Calcular a duração total do agendamento em horas
-    duracao_total_agendamento = (agendamento_df['inicio']+agendamento_df['duracao']).max()
-    rede.validar_dados(agendamento_df, contingencia_df)
+    duracao_total_agendamento = (agendamento_local_df['inicio'] + agendamento_local_df['duracao']).max()
+    rede.validar_dados(agendamento_local_df, contingencia_df)
 
     # passando a variavel de decisão na função objetivo
-    agendamento_df["inicio"] = individuo
+    agendamento_local_df["inicio"] = individuo
 
     #=====================================================
 
     # 2)  Avaliar cenários e criar matriz de cenários
     matriz_cenarios = rede.avalia_cenarios(
-            horas = duracao_total_agendamento,
-            hora_inicio=agendamento_df['inicio'],
-            duracao=agendamento_df['duracao'],
-            ls=0, le=8,
-            ms=8, me=18,
-            hs=18, he=24
-        )
+        horas=duracao_total_agendamento,
+        hora_inicio=agendamento_local_df['inicio'],
+        duracao=agendamento_local_df['duracao'],
+        ls=0, le=8,
+        ms=8, me=18,
+        hs=18, he=24
+    )
 
     #! Calculo  de otimização para achar o fitness de cada cenario
     violacoes_total = []
@@ -97,36 +98,32 @@ def funcao_objetivo_IEEE118(individuo, setupobj, _debug = False):
     # Generate hash key (teste 01)
     contingencias = contingencia_df['contingencia'].to_list()
     num_carregamentos = 3
-    num_contingencias = len(contingencias) 
-    num_desligamentos = len(agendamento_df) 
+    num_contingencias = len(contingencias)
+    num_desligamentos = len(agendamento_local_df)
 
     contigencias_selecionadas = {
         "ramos": [],
         "contingencia": []
     }
-    
+
     try:
         # 3) Processar cada cenário da matriz de cenários
         for cenario in matriz_cenarios:
             perfil = cenario[0]
             estado_ramos = cenario[1:]
 
-
             # 4) Ajustar carregamento para o perfil do cenário
             rede.ajustar_cargas(perfil)
-
 
             # Loop through contingencies before calculating violations for the scenario
             for contingencia_atual in range(num_contingencias):
                 contingencia_atual += 1
-                
-                
+
                 # Uso da hash key para ja utilizar cenarios calculados
                 hash_key = rede.hashtableindex(perfil, num_carregamentos, contingencia_atual, num_contingencias, estado_ramos)
 
                 #! RZ_01jun2025 - verifica se o cenário já foi calculado na tabela hash
                 if setupobj.tabela_hash[hash_key] < 0.0:
-
 
                     #5)  Ligar todos os ramos antes de aplicar mudanças
                     rede.religar_todos_os_ramos_agendamento()
@@ -136,22 +133,19 @@ def funcao_objetivo_IEEE118(individuo, setupobj, _debug = False):
 
                     # 7) Identifica ramos afetados pela contingência
                     ramo_contingencia = list(contingencia_df.loc[contingencia_df['contingencia'] == contingencia_atual, ['from', 'to']].values[0])
-                    rede.log(f"\n{contingencia_atual}) Ramo da contingencia = { ramo_contingencia}\n")
+                    rede.log(f"\n{contingencia_atual}) Ramo da contingencia = {ramo_contingencia}\n")
 
                     # 8) Desliga os ramos afetados
                     rede.desligar_contingencia(ramo_contingencia)
                     contigencias_selecionadas["ramos"].append(ramo_contingencia)
                     contigencias_selecionadas["contingencia"].append(contingencia_atual)
 
-
                     # 9) Executar fluxo de potência para o cenário com contingência
                     if rede.executar_fluxo_de_potencia():
-
                         # 10) Calcular violações com pesos e armazenar os resultados
                         fitness, violacoes_df = rede.calcular_violacoes_fitness()
-
                     else:
-                        fitness = rede.pesos["demanda"] # penalidade com valor default de 99
+                        fitness = rede.pesos["demanda"]  # penalidade com valor default de 99
 
                     # 11) Store violation in the hash table
                     setupobj.tabela_hash[hash_key] = fitness
@@ -159,26 +153,47 @@ def funcao_objetivo_IEEE118(individuo, setupobj, _debug = False):
                     # incrementa contador de execuções da função objetivo
                     setupobj.objectiveruns += 1
 
-
                 #! 12) Retorna o valores calculados de fluxo de potencia na variavel fitness
                 else:
-                  fitness = setupobj.tabela_hash[hash_key]
-
-                  setupobj.hashtablereads += 1
-
+                    fitness = setupobj.tabela_hash[hash_key]
+                    setupobj.hashtablereads += 1
 
                 violacoes_total.append(fitness)
 
-
-            
         # 12) Calcular fitness final com somatorio das vioações com pesos de todos os cenarios
         fitness_final = sum(violacoes_total)
-        rede.log(f"\nFitness do agendamento = {fitness_final:.2f}\n", level = "success")
-        return fitness_final,
+        rede.log(f"\nFitness do agendamento = {fitness_final:.2f}\n", level="success")
 
+        # Criar DataFrames para o retorno
+        fitness_df = pd.DataFrame([{'fitness_final': fitness_final}])
+        melhores_variaveis_df = pd.DataFrame(individuo, columns=['inicio_otimizado'])
+        ramos_selecionados_df = agendamento_local_df.copy()
+        contingencias_avaliadas_df = pd.DataFrame(contigencias_selecionadas)
+
+        return {
+            "fitness": fitness_df,
+            "melhores_variaveis": melhores_variaveis_df,
+            "ramos_selecionados": ramos_selecionados_df,
+            "contingencias": contingencias_avaliadas_df
+        }
 
     except Exception as e:
         print(f"\nErro ao calcular a função objetivo: {e}")
+        return None
+
+def funcao_objetivo_IEEE118(individuo, setupobj, _debug = False):
+    """
+    Função objetivo wrapper que retorna apenas o valor de fitness para o otimizador.
+    """
+    resultados_detalhados = calcular_fitness_detalhado_IEEE118(individuo, setupobj, _debug)
+    
+    if resultados_detalhados:
+        fitness_final = resultados_detalhados["fitness"]["fitness_final"].iloc[0]
+        return fitness_final,
+    else:
+        # Retorna um valor de fitness muito alto em caso de erro
+        return 9999999.9,
+
 
 # Dicionário de parâmetros para a função de teste
 params_json_teste = {
@@ -207,15 +222,33 @@ def run_fitness_function():
         tamanho_hash=tabela_hash
     )
 
-    fitness, = funcao_objetivo_IEEE118(
-        #agendamento ótimo em Zanghi(2016)
-        individuo=[24,3,24,26,1,24,24,27,24,24],
+    # Testando a função de cálculo detalhado diretamente
+    resultados_detalhados = calcular_fitness_detalhado_IEEE118(
+        individuo=[24, 3, 24, 26, 1, 24, 24, 27, 24, 24], # agendamento ótimo em Zanghi(2016)
         setupobj=setup,
-        _debug = False
+        _debug=False
     )
-    print(type(setup.tamanho_hash))
-    print("Tamanho tabela hash = ", setup.tamanho_hash)
-    print("Fitness calculado = ", fitness)
 
-if __name__ == "__main__":
-    run_fitness_function()
+    if resultados_detalhados:
+        print("\n--- Resultados Detalhados da Simulação ---")
+        
+        print("\nFitness Final:")
+        print(resultados_detalhados["fitness"])
+        
+        print("\nVariáveis de Decisão (Indivíduo):")
+        print(resultados_detalhados["melhores_variaveis"])
+        
+        print("\nRamos Selecionados para Manutenção (Agendamento Otimizado):")
+        print(resultados_detalhados["ramos_selecionados"])
+        
+        print("\nContingências Avaliadas:")
+        print(resultados_detalhados["contingencias"])
+
+        fitness = resultados_detalhados["fitness"]["fitness_final"].iloc[0]
+        print("\nTamanho tabela hash = ", setup.tamanho_hash)
+        print("Fitness calculado = ", fitness)
+    else:
+        print("A execução da função de fitness falhou.")
+
+
+run_fitness_function()
