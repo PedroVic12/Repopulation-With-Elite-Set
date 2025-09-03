@@ -35,10 +35,11 @@ BASE_DIR = Path(__file__).resolve().parent.parent.parent.parent
 if str(BASE_DIR) not in sys.path:
     sys.path.append(str(BASE_DIR))
 
-#print(BASE_DIR)
 
 from database_controller import DatabaseController, ConsolidationManager
-print(f"Dashboard importing database_controller from: {DatabaseController.__module__}")
+
+#print(f"Dashboard importing database_controller from: {DatabaseController.__module__}")
+#print(BASE_DIR)
 
 import streamlit.components.v1 as components
 import os
@@ -368,6 +369,7 @@ class FrameworkRCEDashboard:
         def render_pop_final_tab():
             st.subheader("Análise da População Final")
             pop_final_path = self.config.POP_FINAL_FILE
+            st.write(pop_final_path)
             if pop_final_path.exists():
                 try:
                     pop_df = pd.read_excel(pop_final_path)
@@ -376,7 +378,7 @@ class FrameworkRCEDashboard:
                 except Exception as e:
                     st.error(f"Erro ao ler população final: {e}")
             else:
-                st.info("Arquivo de população final não encontrado.")
+                st.info("Arquivo de população final não encontrado ma pasta output")
 
 
         tab_definitions = {

@@ -20,7 +20,7 @@ class DashboardConfig:
     """Configurações centralizadas do dashboard."""
     
     # === CONFIGURAÇÕES DE DIRETÓRIOS ===
-    BASE_DIR = Path(__file__).resolve().parent
+    BASE_DIR = Path(__file__).resolve().parent.parent.parent.parent.parent.parent
     SRC_DIR = BASE_DIR / "src"
     OUTPUT_DIR = SRC_DIR / "output"
     COMPONENTS_DIR = SRC_DIR / "DashboardApp" / "views" / "Screens" / "components"
