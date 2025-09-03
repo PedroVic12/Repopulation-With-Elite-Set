@@ -120,7 +120,9 @@ def run_agendamento_otimizado():
         formatted_time_exec = format_elapsed_time(elapsed_exec)
 
         print("\nEvolução concluída.")
-        best_solution_generation, _, _, _ = alg.dashboard.visualize(logbook, pop)
+        best_solution_generation, _, _, _ = alg.dashboard.visualize(
+            logbook, pop,config_num=config_num, execution_num=exec_num,
+        )
         
         # Exibe os tempos e contadores de forma clara
         print(f"\nDuração desta Execução: {formatted_time_exec}")
