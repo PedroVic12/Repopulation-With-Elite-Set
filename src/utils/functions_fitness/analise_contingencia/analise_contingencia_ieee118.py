@@ -36,7 +36,10 @@ def hashtablesize_ieee118():
     num_carregamentos = 3
     return num_contingencias * num_carregamentos * (2 ** num_desligamentos)
 
-def funcao_objetivo_ieee118_analise(individuo, setupobj, _debug=False):
+def calcular_fitness_detalhado_ieee118_analise(individuo, setupobj, _debug=False):
+    """
+    Calcula o fitness e retorna um dicionário detalhado com DataFrames.
+    """
     rede = RedeEletricaPandaPower("118", debug=_debug)
     rede.pesos.update({"tensao": {"min": 100, "max": 100}, "loading_linhas": 100, "loading_trafos": 100})
     
@@ -53,11 +56,35 @@ def funcao_objetivo_ieee118_analise(individuo, setupobj, _debug=False):
         ls=0, le=8, ms=8, me=18, hs=18, he=24
     )
     
-    fitness_final, _ = analise_contigencias_SEP(
+    fitness_final, contigencias_selecionadas = analise_contigencias_SEP(
         rede=rede, setupobj=setupobj, matriz_cenarios=matriz_cenarios,
         agendamento_df=agendamento_df, contingencia_df=contingencia_df_ieee118
     )
-    return fitness_final,
+
+    # Criar DataFrames para o retorno
+    fitness_df = pd.DataFrame([{'fitness_final': fitness_final}])
+    melhores_variaveis_df = pd.DataFrame(individuo, columns=['inicio_otimizado'])
+    ramos_selecionados_df = agendamento_df
+    contingencias_avaliadas_df = pd.DataFrame(contigencias_selecionadas)
+
+    return {
+        "fitness": fitness_df,
+        "melhores_variaveis": melhores_variaveis_df,
+        "ramos_selecionados": ramos_selecionados_df,
+        "contingencias": contingencias_avaliadas_df
+    }
+
+def funcao_objetivo_ieee118_analise(individuo, setupobj, _debug=False):
+    """
+    Função objetivo wrapper que retorna apenas o valor de fitness para o otimizador.
+    """
+    resultados_detalhados = calcular_fitness_detalhado_ieee118_analise(individuo, setupobj, _debug)
+    
+    if resultados_detalhados:
+        fitness_final = resultados_detalhados["fitness"]["fitness_final"].iloc[0]
+        return fitness_final,
+    else:
+        return 9999999.9,
 
 if __name__ == "__main__":
     def run_simulate():
@@ -69,40 +96,30 @@ if __name__ == "__main__":
         }
         setup_obj = Setup(params=params, fitness_function=funcao_objetivo_ieee118_analise, tamanho_hash=hashtablesize_ieee118())
         
-        rede = RedeEletricaPandaPower("118", debug=False)
-        rede.pesos.update({"tensao": {"min": 100, "max": 100}, "loading_linhas": 100, "loading_trafos": 100})
-        agendamento_df = agendamento_df_ieee118.copy()
-        agendamento_df["inicio"] = horarios_teste
-        duracao_total_agendamento = (agendamento_df['inicio'] + agendamento_df['duracao']).max()
-        rede.validar_dados(agendamento_df, contingencia_df_ieee118)
-        matriz_cenarios = rede.avalia_cenarios(
-            horas=duracao_total_agendamento,
-            hora_inicio=agendamento_df['inicio'],
-            duracao=agendamento_df['duracao'],
-            ls=0, le=8, ms=8, me=18, hs=18, he=24
-        )
-        
-        fitness, contigencias_selecionadas = analise_contigencias_SEP(
-            rede=rede, setupobj=setup_obj, matriz_cenarios=matriz_cenarios,
-            agendamento_df=agendamento_df, contingencia_df=contingencia_df_ieee118
+        resultados_detalhados = calcular_fitness_detalhado_ieee118_analise(
+            individuo=horarios_teste,
+            setupobj=setup_obj,
+            _debug=False
         )
 
-        resultado_final = {
-            "fitness": fitness,
-            "best_variables": horarios_teste,
-            "ramos_selecionados": contigencias_selecionadas.get("ramos", []),
-            "contingencias": contigencias_selecionadas.get("contingencia", [])
-        }
+        if resultados_detalhados:
+            print("\n--- Resultados Detalhados da Simulação ---")
+            
+            print("\nFitness Final:")
+            print(resultados_detalhados["fitness"])
+            
+            print("\nVariáveis de Decisão (Indivíduo):")
+            print(resultados_detalhados["melhores_variaveis"])
+            
+            print("\nRamos Selecionados para Manutenção (Agendamento Otimizado):")
+            print(resultados_detalhados["ramos_selecionados"])
+            
+            print("\nContingências Avaliadas:")
+            print(resultados_detalhados["contingencias"])
 
-        print(f"\n--- Resultados da Simulação de Teste ---")
-        print(f"Fitness final calculado: {resultado_final['fitness']}")
-        agendamento_final_df = agendamento_df_ieee118.copy()
-        agendamento_final_df['horario_otimizado'] = horarios_teste
-        print("\n--- Agendamento Otimizado ---")
-        print(agendamento_final_df.to_string())
-        print("\n--- Contingências Avaliadas ---")
-        contingencias_df = pd.DataFrame(contigencias_selecionadas)
-        print(contingencias_df.to_string())
-        return resultado_final
+            fitness = resultados_detalhados["fitness"]["fitness_final"].iloc[0]
+            print(f"\nFitness calculado = {fitness}")
+        else:
+            print("A execução da função de fitness falhou.")
 
     run_simulate()

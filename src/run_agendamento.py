@@ -7,7 +7,7 @@ import sys
 import os
 
 # Adiciona o diretório raiz do projeto ao sys.path para permitir importações de outros módulos
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..')))
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__name__), '..', '..')))
 
 # Imports principais do framework
 from AlgEvolutivoRCE_backup.Setup import Setup
@@ -19,17 +19,20 @@ from database_controller import run_consolidar_resultados
 from utils.functions_fitness.analise_contingencia.analise_contingencia_ieee14 import (
     funcao_objetivo_ieee14_analise,
     agendamento_df_ieee14,
-    hashtablesize_ieee14
+    hashtablesize_ieee14,
+    calcular_fitness_detalhado_ieee14_analise
 )
 from utils.functions_fitness.analise_contingencia.analise_contingencia_ieee30 import (
     funcao_objetivo_ieee30_analise,
     agendamento_df_ieee30,
-    hashtablesize_ieee30
+    hashtablesize_ieee30,
+    calcular_fitness_detalhado_ieee30_analise
 )
 from utils.functions_fitness.analise_contingencia.analise_contingencia_ieee118 import (
     funcao_objetivo_ieee118_analise,
     agendamento_df_ieee118,
-    hashtablesize_ieee118
+    hashtablesize_ieee118,
+    calcular_fitness_detalhado_ieee118_analise
 )
 
 # Bibliotecas padrão
@@ -59,6 +62,13 @@ AGENDAMENTO_DFS = {
     funcao_objetivo_ieee14_analise.__name__: agendamento_df_ieee14,
     funcao_objetivo_ieee30_analise.__name__: agendamento_df_ieee30,
     funcao_objetivo_ieee118_analise.__name__: agendamento_df_ieee118,
+}
+
+# Mapeia as funções de cálculo detalhado
+DETAILED_FUNCS = {
+    funcao_objetivo_ieee14_analise.__name__: calcular_fitness_detalhado_ieee14_analise,
+    funcao_objetivo_ieee30_analise.__name__: calcular_fitness_detalhado_ieee30_analise,
+    funcao_objetivo_ieee118_analise.__name__: calcular_fitness_detalhado_ieee118_analise,
 }
 
 # Desativa o modo interativo para este script
@@ -99,7 +109,6 @@ def run_agendamento_otimizado():
     params_base = convert_values_to_int(params_base)
 
     # --- AJUSTE DINÂMICO DO TAMANHO DO INDIVÍDUO ---
-    # O tamanho do indivíduo deve ser igual ao número de agendamentos no problema.
     agendamento_df = AGENDAMENTO_DFS.get(fitness_func.__name__)
     if agendamento_df is not None:
         tamanho_correto_individuo = len(agendamento_df)
@@ -116,7 +125,6 @@ def run_agendamento_otimizado():
     os.makedirs(main_output_dir, exist_ok=True)
     print(f"Salvando resultados em: {main_output_dir}")
 
-    # Usa a função de hash correspondente
     size_func = HASHTABLE_SIZE_FUNCS.get(fitness_func.__name__)
     if not size_func:
         raise ValueError(f"Função de tamanho de hash não encontrada para {fitness_func.__name__}")
@@ -128,8 +136,6 @@ def run_agendamento_otimizado():
     )
 
     config_number = 1
-
-    # Cria um diretório específico para a configuração, compatível com o database_controller
     config_dir = main_output_dir / f"config_{config_number}"
     os.makedirs(config_dir, exist_ok=True)
 
@@ -150,7 +156,6 @@ def run_agendamento_otimizado():
             logbook, pop,config_num=config_number, execution_num=exec_num,
         )
         
-        # Exibe os tempos e contadores de forma clara
         print(f"\nDuração desta Execução: {formatted_time_exec}")
         print(f"Tempo Total Acumulado: {format_elapsed_time(end_exec - start)}")
         print(f"Objective functions runs: {setup.objectiveruns}")
@@ -158,16 +163,21 @@ def run_agendamento_otimizado():
 
         # --- LÓGICA PARA MONTAR O RESULTADO FINAL DETALHADO ---
         best_fitness = best_individual.fitness.values[0] if best_individual.fitness.valid else float('inf')
-        agendamento_final_otimizado = []
+        
+        detailed_func = DETAILED_FUNCS.get(fitness_func.__name__)
+        if not detailed_func:
+            raise ValueError(f"Função de cálculo detalhado não encontrada para {fitness_func.__name__}")
 
-        # Lógica genérica para detalhar o agendamento
-        agendamento_df = AGENDAMENTO_DFS.get(fitness_func.__name__)
-        if agendamento_df is not None:
-            for i, row in agendamento_df.iterrows():
-                agendamento_final_otimizado.append({
-                    "ramo": row["ramo"],
-                    "horario_inicio_otimizado": best_variables[i]
-                })
+        # Criar um novo objeto setup para a chamada final para não interferir com os contadores
+        final_setup = Setup(params_base, fitness_function=fitness_func, tamanho_hash=size_func())
+        final_results_detailed = detailed_func(
+            individuo=best_variables,
+            setupobj=final_setup
+        )
+
+        # Converter dataframes para dicts para salvar em JSON
+        ramos_dict = final_results_detailed["ramos_selecionados"].to_dict('records')
+        contingencias_dict = final_results_detailed["contingencias"].to_dict('records')
 
         result = {
             "config_num": config_number,
@@ -175,21 +185,19 @@ def run_agendamento_otimizado():
             "params": params_base,
             "best_fitness": best_fitness,
             "best_variables_horarios": best_variables,
-            "agendamento_detalhado": agendamento_final_otimizado,
+            "agendamento_detalhado": ramos_dict,
+            "contingencias_avaliadas": contingencias_dict,
             "best_gen_idx": best_solution_generation,
             "time": formatted_time_exec,
             "fitness_function": fitness_func.__name__
         }
 
-        # Salva o resultado no diretório da configuração com o nome esperado pelo consolidador
         output_path = config_dir / f"config_{config_number}_exec_{exec_num}_results.json"
         try:
             with open(output_path, 'w', encoding='utf-8') as f:
                 json.dump(result, f, indent=4, ensure_ascii=False, default=str)
-            #print(f"Resultado salvo em: {output_path}")
         except Exception as e:
             print(f"Erro ao salvar resultado: {e}")
-
 
     print("\nExecução finalizada.")
 
