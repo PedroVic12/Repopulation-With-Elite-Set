@@ -92,7 +92,8 @@ if __name__ == "__main__":
         horarios_teste = [24,3,24,26,1,24,24,27,24,24]
         params = {
             "IND_SIZE": len(horarios_teste), "LIMITE_VAR": [0, 31],
-            "NUM_GENERATIONS": 5, "POP_SIZE": 4, "CROSSOVER": 0.9, "MUTACAO": 0.1
+            "NUM_GENERATIONS": 5, "POP_SIZE": 4, "CROSSOVER": 0.9, "MUTACAO": 0.1,
+            "RCE_REPOPULATION_GENERATIONS": 5
         }
         setup_obj = Setup(params=params, fitness_function=funcao_objetivo_ieee118_analise, tamanho_hash=hashtablesize_ieee118())
         
@@ -122,4 +123,6 @@ if __name__ == "__main__":
         else:
             print("A execução da função de fitness falhou.")
 
-    run_simulate()
+    for i in range(3):
+        print(f"\n\n--- EXECUÇÃO DE TESTE {i+1}/3 ---")
+        run_simulate()
