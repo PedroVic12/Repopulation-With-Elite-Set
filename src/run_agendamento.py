@@ -37,7 +37,7 @@ BASE_DIR = pathlib.Path(__file__).resolve().parent
 
 # Seleciona a função de agendamento para ser executada (índice 0)
 ARRAY_FITNESS_FUNCTIONS = [funcao_objetivo_IEEE14_analise, funcao_objetivo_IEEE30]
-NUMERO_FUNCAO_OBJETIVO = 1 # 0 para a funcao_objetivo_IEEE14_analise
+NUMERO_FUNCAO_OBJETIVO = 1 #! 0 para a funcao_objetivo_IEEE14_analise
 
 # Mapeia as funções de cálculo de hash
 HASHTABLE_SIZE_FUNCS = {
@@ -76,6 +76,7 @@ def convert_values_to_int(params):
 def run_agendamento_otimizado():
     fitness_func = ARRAY_FITNESS_FUNCTIONS[NUMERO_FUNCAO_OBJETIVO]
     print(f"\nFunção objetivo selecionada: {fitness_func.__name__}")
+    print("Esta versão esta em desenvolvimento, funciona melhor na função objetivo de IEEE 14")
 
     params_base = load_params(f"{BASE_DIR}/params.json")
     options = load_params(f"{BASE_DIR}/options.json")
@@ -107,6 +108,8 @@ def run_agendamento_otimizado():
         tamanho_hash=size_func()
     )
 
+    config_number = 1
+
     for exec_num in range(1, repeticoes + 1):
         print(f"\n--- Iniciando execução {exec_num}/{repeticoes} ---")
         start_exec = datetime.now()
@@ -121,7 +124,7 @@ def run_agendamento_otimizado():
 
         print("\nEvolução concluída.")
         best_solution_generation, _, _, _ = alg.dashboard.visualize(
-            logbook, pop,config_num=config_num, execution_num=exec_num,
+            logbook, pop,config_num=config_number, execution_num=exec_num,
         )
         
         # Exibe os tempos e contadores de forma clara
@@ -160,6 +163,10 @@ def run_agendamento_otimizado():
             #print(f"Resultado salvo em: {output_path}")
         except Exception as e:
             print(f"Erro ao salvar resultado: {e}")
+        
+        
+        config_number += 1
+
 
     print("\nExecução finalizada.")
 
