@@ -18,7 +18,57 @@ def your_fitness_function(ind):
     """Here you create your objetive function with your decision variable (ind) """
     pass
 
+#! Tabela agendamentos em xlsx hardcoded
+agendamento_df = pd.DataFrame([
+    {"ramo": [2, 3], "inicio": "08:00", "duracao": 6 ,"prioridade": 4},
+    {"ramo": [8, 10], "inicio": "10:00", "duracao": 5, "prioridade": 1},
+    {"ramo": [25, 26], "inicio": "14:00", "duracao": 6, "prioridade": 1},
+    {"ramo": [12, 14], "inicio": "18:00", "duracao": 6, "prioridade": 1},
+    {"ramo": [10, 40], "inicio": "15:00", "duracao": 4, "prioridade": 1},
+    {"ramo": [37, 48], "inicio": "08:00", "duracao": 5, "prioridade": 1},
+    {"ramo": [51, 52], "inicio": "10:00", "duracao": 6, "prioridade": 1},
+    {"ramo": [39, 55], "inicio": "14:00", "duracao": 5, "prioridade": 1},
+    {"ramo": [45, 46], "inicio": "18:00", "duracao": 4, "prioridade": 1},
+    {"ramo": [17, 18], "inicio": "15:00", "duracao": 5, "prioridade": 1},
 
+])
+
+contingencia_df = pd.DataFrame([
+        {"contingencia":1,  "from":1 , "to": 2},
+        {"contingencia":2,  "from":8 , "to": 9},
+        {"contingencia":3,  "from":43 , "to": 44},
+])
+
+# Converter horários de início para horas do dia
+agendamento_df['inicio'] = agendamento_df['inicio'].apply(lambda x: int(x.split(':')[0]))
+
+# Calcular horário de término em horas do dia
+agendamento_df['final'] = agendamento_df.apply(lambda row: (row['inicio'] + row['duracao']) % 24, axis=1)
+
+def hashtablesize_IEEE57():
+    return len(contingencia_df) * 3 * (2**len(agendamento_df))
+
+# Dicionário de parâmetros para a função de teste
+params_json_teste = {
+    "NUM_GENERATIONS": 10,
+    "CROSSOVER": 0.9,
+    "MUTACAO": 0.1,
+    "POP_SIZE": 4,
+    "IND_SIZE": 10,
+    "RCE_REPOPULATION_GENERATIONS": 5,
+    "NUM_VAR_DIFERENTES": 1,
+    "PORCENTAGEM": 0.2,
+    "DELTA_MIN": 2,
+    "ARRAY_VAR": [15, 15, 10, 21, 16, 13, 10, 14, 17, 18],
+    "LIMITE_VAR": [0, 31]
+}
+
+ramos_selecionados = {
+    "ramos": [],
+    "contigencias":[],
+    "agendamento":[],
+}
+    
 def funcao_objetivo_IEEE57(individuo, setupobj, _debug = False):
 
     """    
@@ -43,32 +93,7 @@ def funcao_objetivo_IEEE57(individuo, setupobj, _debug = False):
     rede.pesos["loading_linhas"] = 100
     rede.pesos["loading_trafos"] = 100
 
-    #! Tabela agendamentos em xlsx hardcoded
-    agendamento_df = pd.DataFrame([
-        {"ramo": [2, 3], "inicio": "08:00", "duracao": 6 ,"prioridade": 4},
-        {"ramo": [8, 10], "inicio": "10:00", "duracao": 5, "prioridade": 1},
-        {"ramo": [25, 26], "inicio": "14:00", "duracao": 6, "prioridade": 1},
-        {"ramo": [12, 14], "inicio": "18:00", "duracao": 6, "prioridade": 1},
-        {"ramo": [10, 40], "inicio": "15:00", "duracao": 4, "prioridade": 1},
-        {"ramo": [37, 48], "inicio": "08:00", "duracao": 5, "prioridade": 1},
-        {"ramo": [51, 52], "inicio": "10:00", "duracao": 6, "prioridade": 1},
-        {"ramo": [39, 55], "inicio": "14:00", "duracao": 5, "prioridade": 1},
-        {"ramo": [45, 46], "inicio": "18:00", "duracao": 4, "prioridade": 1},
-        {"ramo": [17, 18], "inicio": "15:00", "duracao": 5, "prioridade": 1},
 
-    ])
-
-    contingencia_df = pd.DataFrame([
-            {"contingencia":1,  "from":1 , "to": 2},
-            {"contingencia":2,  "from":8 , "to": 9},
-            {"contingencia":3,  "from":43 , "to": 44},
-    ])
-
-    # Converter horários de início para horas do dia
-    agendamento_df['inicio'] = agendamento_df['inicio'].apply(lambda x: int(x.split(':')[0]))
-
-    # Calcular horário de término em horas do dia
-    agendamento_df['final'] = agendamento_df.apply(lambda row: (row['inicio'] + row['duracao']) % 24, axis=1)
 
     # Calcular a duração total do agendamento em horas
     duracao_total_agendamento = (agendamento_df['inicio']+agendamento_df['duracao']).max()
@@ -172,17 +197,31 @@ def funcao_objetivo_IEEE57(individuo, setupobj, _debug = False):
         fitness_final = sum(violacoes_total)
         rede.log(f"\nFitness do agendamento = {fitness_final:.2f}\n", level = "success")
 
-        return fitness_final
+        return fitness_final,
 
     except Exception as e:
         print(f"\nErro ao calcular a função objetivo: {e}")
 
 def run():
-    funcao_objetivo_IEEE57(
+    print("Tamanho da hash tabel = ",hashtablesize_IEEE57())
+    fitness_calculado = funcao_objetivo_IEEE57(
+
+    setupobj= Setup(
+        params= params_json_teste,
+        fitness_function= funcao_objetivo_IEEE57,
+        tamanho_hash= hashtablesize_IEEE57(),
+    ),
     #agendamento proposto em Zanghi(2016)
     individuo=[8,10,14,18,15,8,10,14,18,15],
     
     #agendamento ótimo em Zanghi(2016)
     #individuo=[8,10,28,24,14,3,10,13,24,13],
     _debug = False
-)
+
+    )
+
+    print(fitness_calculado)
+
+
+
+run()

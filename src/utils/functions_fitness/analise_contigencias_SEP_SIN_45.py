@@ -261,23 +261,26 @@ contingencia_df = pd.DataFrame([
 ])
 
 
+def hashtablesize_sin45():
+    return len(contingencia_df) * 3 * (2**len(agendamento_df))
+
+
 
 resultados = {
 
 }
 
-def hashtablesize_sin45():
-    return len(contingencia_df) * 3 * (2**len(agendamento_df))
+SmartGrid_SIN45 = SmartGridSin45()
+filepath = SmartGrid_SIN45.create_sin45_dataset_file()
+SmartGrid_SIN45.load_data_from_excel(filepath)
+
 
 def funcao_objetivo_SIN45(individuo, setupobj, _debug=False):
 
-    SmartGrid_SIN45 = SmartGridSin45()
-    filepath = SmartGrid_SIN45.create_sin45_dataset_file()
-    SmartGrid_SIN45.load_data_from_excel(filepath)
+
     pp_network_SIN = SmartGrid_SIN45.create_network_from_dataframes()
     bus_map = SmartGrid_SIN45.bus_map # Obtém o mapa de barras
 
-    #SmartGrid_SIN45.plot_network()
 
     try:
         nome_rede = "SIN 45"
@@ -386,6 +389,7 @@ def run_simulate_SIN45():
     print("\n--- Resultados Finais ---")
     print(f"Fitness Final: {fitness}")
 
+    SmartGrid_SIN45.plot_network()
 
     # Inicia o cronômetro para esta execução específica
     start_exec = datetime.now()

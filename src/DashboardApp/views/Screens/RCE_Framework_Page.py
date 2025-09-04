@@ -472,6 +472,35 @@ class FrameworkRCEDashboard:
             status = self.consolidation_manager.get_consolidation_status()
             st.write(f"**Arquivo Consolidado:** {'✅ Encontrado' if status.get('consolidated_file_exists') else '❌ Não Encontrado'}")
 
+
+    def calcula_tempo_medio_execucao(self, filtered_df):
+                    
+        try:
+                # converte para segundos
+                filtered_df["Tempo_total_execucao_seg"] = filtered_df["Tempo_total_execucao"].apply(
+                    lambda x: int(x.split()[0]) * 60 + int(x.split()[2]) if isinstance(x, str) else None
+                )
+
+                # tempo médio
+                tempo_medio = filtered_df["Tempo_total_execucao_seg"].mean()
+
+                # soma acumulada
+                filtered_df["Soma_acumulada"] = filtered_df["Tempo_total_execucao_seg"].cumsum()
+
+                # média em minutos
+                minutos_medio, segundos_medio = divmod(int(tempo_medio), 60)
+                st.write(f"Tempo médio: {minutos_medio} minutos {segundos_medio} segundos")
+
+                # tempo total acumulado em minutos
+                total_segundos = filtered_df["Soma_acumulada"].iloc[-1]
+                minutos_totais, segundos_totais = divmod(int(total_segundos), 60)
+                st.write(f"Tempo total da simulação: {minutos_totais} minutos {segundos_totais} segundos")
+        except:
+                st.warning("Erro ao calcular tempo médio e tempo total acumulado.")
+
+
+
+
     def run(self):
         df_consolidado = st.session_state.df_consolidado
         
@@ -490,27 +519,8 @@ class FrameworkRCEDashboard:
         if filtered_df is not None and not filtered_df.empty:
             st.dataframe(filtered_df, use_container_width=True)
 
-            # converte para segundos
-            filtered_df["Tempo_total_execucao_seg"] = filtered_df["Tempo_total_execucao"].apply(
-                lambda x: int(x.split()[0]) * 60 + int(x.split()[2]) if isinstance(x, str) else None
-            )
+            self.calcula_tempo_medio_execucao(filtered_df)
 
-            # tempo médio
-            tempo_medio = filtered_df["Tempo_total_execucao_seg"].mean()
-
-            # soma acumulada
-            filtered_df["Soma_acumulada"] = filtered_df["Tempo_total_execucao_seg"].cumsum()
-
-            # média em minutos
-            minutos_medio, segundos_medio = divmod(int(tempo_medio), 60)
-            st.write(f"Tempo médio: {minutos_medio} minutos {segundos_medio} segundos")
-            #st.write("Tempo médio em minutos = ",minutos_medio )
-
-            # tempo total acumulado em minutos
-            total_segundos = filtered_df["Soma_acumulada"].iloc[-1]
-            minutos_totais, segundos_totais = divmod(int(total_segundos), 60)
-            st.write(f"Tempo total da simulação: {minutos_totais} minutos {segundos_totais} segundos")
-            #st.write("Tempo total da simulação em minutos = ",minutos_totais )
 
 
         else:
