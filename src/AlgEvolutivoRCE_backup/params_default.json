@@ -1,8 +1,8 @@
 {
-    "ARRAY_VAR": [14,15,14,18,15],
+    "ARRAY_VAR": [14.0, 15.0, 14.0, 18.0, 15.0],
     "LIMITE_VAR": [0, 31],
 
-    "NUM_GENERATIONS": 100,
+    "NUM_GENERATIONS": 700,
     "CROSSOVER": 0.77,
     "MUTACAO": 0.95,
 

@@ -1,198 +1,180 @@
 """
-Test script to run the genetic algorithm with the rastrigin function 5 times.
+Script de teste para executar o algoritmo genético com a função Rastrigin.
 """
 import os
 import sys
 import json
 import time
+import logging
+import argparse
 from datetime import datetime
 from pathlib import Path
-import math
 import numpy as np
 
-# Add parent directory to path to allow imports
+# Adiciona o diretório pai ao path para permitir importações de outros módulos do projeto
 sys.path.append(str(Path(__file__).parent.parent))
 
 from AlgEvolutivoRCE_backup.Setup import Setup
 from AlgEvolutivoRCE_backup.alg_evolutivo_rce import AlgoritimoEvolutivoRCE
-#from utils.functions_fitness.functions_benchmarking import rastrigin
+from AlgEvolutivoRCE_backup.benchmarking_functions import rastrigin as rastrigin_benchmark
 
+# --- Constantes ---
+RASTRIGIN_LOWER_BOUND = -5.12  # Limite inferior recomendado para a função Rastrigin
+RASTRIGIN_UPPER_BOUND = 5.12   # Limite superior recomendado para a função Rastrigin
+DEFAULT_PARAMS_FILE = 'params_default.json'  # Arquivo de parâmetros padrão
+OUTPUT_DIR = os.path.join('output', 'rastrigin_tests') # Diretório para salvar os resultados
 
+# --- Configuração do Logging ---
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(levelname)s - %(message)s',
+    stream=sys.stdout
+)
 
-def rastrigin( individual ):
-            rastrigin = 10 * len(individual)
+def print_separator(char='=', length=80):
+    """Imprime uma linha separadora para organizar a saída no console."""
+    print(char * length)
 
-            for i in range(len(individual)):
-                rastrigin += individual[i] * individual[i] - 10 * (
-                    math.cos(2 * np.pi * individual[i])
-                )
-            return rastrigin
-
-def load_params():
-    """Load parameters from params.json"""
-    params_path = os.path.join(os.path.dirname(__file__), 'params_default.json')
-    with open(params_path, 'r') as f:
-        return json.load(f)
-
-
-def run_rastrigin_test(run_num, params=None , num_executions=5):
-    """Run a single test with the rastrigin function"""
-    print(f"\n{'='*80}")
-    print(f"RUN {run_num + 1}/{num_executions} - {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
-    print(f"{'='*80}")
-    
-    # Load default parameters if none provided
-    if params is None:
-        params = load_params()
-    
-    # Set up configuration for rastrigin using params from JSON
-    params['funcao_objetivo'] = 'rastrigin'
-    params['decision_variables'] = params.get('IND_SIZE', 5)  # Use IND_SIZE from params
-    params['lower_bound'] = -5.12  # Rastrigin's recommended bounds
-    params['upper_bound'] = 5.12   # Rastrigin's recommended bounds
-    
-    # Create output directory for this run
-    output_dir = os.path.join('output', 'rastrigin_tests', f'run_{run_num + 1}')
-    os.makedirs(output_dir, exist_ok=True)
-    
-    # Get bounds from params
-    lower_bound = params.get('LIMITE_VAR', [0])[0]  # First value in LIMITE_VAR array
-    upper_bound = params.get('LIMITE_VAR', [30])[1] if len(params.get('LIMITE_VAR', [])) > 1 else 30  # Second value in LIMITE_VAR array or 30
-    
-    # Create a wrapper function that handles the rastrigin evaluation
-    def rastrigin_wrapper(individual, setup=None):
-        try:
-            # Ensure individual is a list of numbers
-            if not isinstance(individual, (list, tuple)):
-                individual = [individual]
-                
-            # Convert to float and scale from [lower_bound, upper_bound] to [-5.12, 5.12]
-            scaled_individual = []
-            for x in individual:
-                try:
-                    x_float = float(x)
-                    # Scale from [lower_bound, upper_bound] to [-5.12, 5.12]
-                    scaled_x = ((x_float - lower_bound) / (upper_bound - lower_bound)) * (5.12 * 2) - 5.12
-                    scaled_individual.append(scaled_x)
-                except (ValueError, TypeError) as e:
-                    print(f"Warning: Could not scale value {x} (Error: {e}), using 0")
-                    scaled_individual.append(0.0)
-            
-            # Calculate fitness
-            fitness = rastrigin(scaled_individual)
-            #print(f"Evaluating individual: {individual} -> {scaled_individual} -> {fitness}")  # Debug print
-            
-            # Ensure we return a tuple with a single float
-            return (float(fitness),) if not isinstance(fitness, tuple) else tuple(float(f) for f in fitness)
-            
-        except Exception as e:
-            print(f"Error in rastrigin_wrapper: {e}")
-            import traceback
-            traceback.print_exc()
-            return (float('inf'),)  # Return worst possible fitness on error
-    
-    print(f"\nRunning with parameters:")
-    print(f"- Population size: {params['POP_SIZE']}")
-    print(f"- Generations: {params['NUM_GENERATIONS']}")
-    print(f"- Mutation rate: {params['MUTACAO']}")
-    print(f"- Crossover rate: {params['CROSSOVER']}")
-    print(f"- Variable bounds: {params.get('LIMITE_VAR', [0, 30])}")
-    
-    # Create Setup instance with parameters
-    # tamanho_hash is used for some internal calculations, defaulting to 0 for the rastrigin test
-    setup = Setup(params, fitness_function=rastrigin_wrapper, tamanho_hash=0)
-    
-    # Create and run the genetic algorithm
-    alg = AlgoritimoEvolutivoRCE(setup, DEBUG=False)
-    
-    # Run the algorithm with progress tracking
-    start_time = time.time()
-    pop_with_repopulation, logbook_with_repopulation, best_individual, _ = alg.run(
-        RCE=True,
-    )
-    elapsed_time = time.time() - start_time
-    
-    # Print results with robust fitness value handling
-    print("\n" + "="*50)
-    print(f"RUN {run_num + 1} COMPLETED")
-    print(f"Best solution: {best_individual}")
-    #print(f"Fitness values: {best_individual.fitness.values}")
-    print(f"Fitness valid: {best_individual.fitness.valid}")
-    print(f"Fitness weights: {best_individual.fitness.weights}")
-    
-    # Safely get the best fitness value
-    if hasattr(best_individual.fitness, 'values') and best_individual.fitness.values:
-        best_fitness = best_individual.fitness.values[0] if len(best_individual.fitness.values) > 0 else float('inf')
-    else:
-        best_fitness = float('inf')
-    
-    print(f"Best fitness: {best_fitness:.4f}")
-    print(f"Elapsed time: {elapsed_time:.2f} seconds")
-    print("="*50 + "\n")
-    
-    # Safely get the best fitness value for the return dictionary
+def load_params(params_file):
+    """Carrega os parâmetros de um arquivo JSON."""
     try:
-        if best_individual and hasattr(best_individual, 'fitness') and best_individual.fitness.valid:
-            if hasattr(best_individual.fitness, 'values') and best_individual.fitness.values:
-                best_fitness = float(best_individual.fitness.values[0])
-            else:
-                # If values is empty but fitness is valid, try to evaluate again
-                fitness = setup.toolbox.evaluate(best_individual)
-                best_fitness = float(fitness[0]) if isinstance(fitness, (list, tuple)) else float(fitness)
-        else:
-            # If no valid fitness, find best from population
-            valid_fitness = [ind.fitness.values[0] for ind in alg.POPULATION 
-                           if hasattr(ind.fitness, 'values') and ind.fitness.values and ind.fitness.valid]
-            best_fitness = min(valid_fitness) if valid_fitness else float('inf')
-    except Exception as e:
-        print(f"Error getting best fitness: {e}")
-        best_fitness = float('inf')
+        with open(params_file, 'r') as f:
+            return json.load(f)
+    except FileNotFoundError:
+        logging.error(f"Arquivo de parâmetros não encontrado: {params_file}")
+        sys.exit(1)
+    except json.JSONDecodeError:
+        logging.error(f"Erro ao decodificar o JSON do arquivo: {params_file}")
+        sys.exit(1)
+
+def scale_individual(individual, source_bounds, target_bounds):
+    """Converte (escala) um indivíduo de uma faixa de valores para outra usando numpy."""
+    source_low, source_high = source_bounds
+    target_low, target_high = target_bounds
     
+    individual_np = np.array(individual, dtype=float)
+    
+    # Fórmula para escalar um valor de [a, b] para [c, d]
+    # valor_escalado = c + (d - c) * (valor_original - a) / (b - a)
+    scaled_individual = target_low + (target_high - target_low) * \
+                        (individual_np - source_low) / (source_high - source_low)
+                        
+    return scaled_individual
+
+def run_rastrigin_test(run_num, total_runs, params):
+    """Executa um único teste com a função Rastrigin."""
+    print_separator()
+    logging.info(f"EXECUÇÃO {run_num + 1}/{total_runs} - Iniciando")
+    print_separator()
+
+    # --- Configuração dos Parâmetros ---
+    params['funcao_objetivo'] = 'rastrigin'
+    params['decision_variables'] = params.get('IND_SIZE', 5)
+    
+    # Cria um diretório de saída para esta execução específica
+    run_output_dir = os.path.join(OUTPUT_DIR, f'run_{run_num + 1}')
+    os.makedirs(run_output_dir, exist_ok=True)
+
+    # Obtém os limites (bounds) dos parâmetros para o escalonamento
+    source_bounds = tuple(params.get('LIMITE_VAR', [0, 30]))
+    target_bounds = (RASTRIGIN_LOWER_BOUND, RASTRIGIN_UPPER_BOUND)
+
+    def rastrigin(individual):
+        """Função wrapper para escalar o indivíduo e avaliar o fitness."""
+        try:
+            # Escala o indivíduo da faixa original para a faixa da função Rastrigin
+            scaled_individual = scale_individual(individual, source_bounds, target_bounds)
+            # Calcula o fitness usando a função de benchmark importada
+            fitness = rastrigin_benchmark(scaled_individual)
+            return (fitness,)
+        except Exception as e:
+            logging.error(f"Erro na função wrapper da Rastrigin: {e}", exc_info=True)
+            return (float('inf'),) # Retorna um fitness infinito em caso de erro
+
+    logging.info("Executando com os seguintes parâmetros:")
+    logging.info(f"- Tamanho da população: {params['POP_SIZE']}")
+    logging.info(f"- Número de gerações: {params['NUM_GENERATIONS']}")
+    logging.info(f"- Taxa de mutação: {params['MUTACAO']}")
+    logging.info(f"- Taxa de crossover: {params['CROSSOVER']}")
+    logging.info(f"- Limites das variáveis (original): {source_bounds}")
+
+    # --- Execução do Algoritmo Genético ---
+    # Configura o ambiente do DEAP com os parâmetros e a função de fitness
+    setup = Setup(params, fitness_function=rastrigin, tamanho_hash=0)
+    # Cria a instância do algoritmo evolutivo
+    alg = AlgoritimoEvolutivoRCE(setup, DEBUG=False)
+
+    start_time = time.time()
+    # Executa o algoritmo
+    _, _, best_individual, _ = alg.run(RCE=True)
+    elapsed_time = time.time() - start_time
+
+    # --- Resultados ---
+    print_separator('-')
+    logging.info(f"EXECUÇÃO {run_num + 1} COMPLETA")
+    
+    best_fitness = float('inf')
+    if best_individual.fitness.valid:
+        best_fitness = best_individual.fitness.values[0]
+
+    logging.info(f"Melhor solução encontrada: {best_individual}")
+    logging.info(f"Melhor fitness: {best_fitness:.4f}")
+    logging.info(f"Tempo de execução: {elapsed_time:.2f} segundos")
+    print_separator('-')
+
     return {
         'run': run_num + 1,
         'best_solution': best_individual,
         'best_fitness': best_fitness,
-        'fitness_values': getattr(best_individual.fitness, 'values', None),
-        'fitness_valid': getattr(best_individual.fitness, 'valid', False),
         'elapsed_time': elapsed_time,
-        'logbook': logbook_with_repopulation,
-        'pop_with_repopulation': pop_with_repopulation,
     }
 
-def main():
-    # Load parameters
-    params = load_params()
+def main(num_executions):
+    """Função principal para executar os testes de benchmarking."""
+    params_path = os.path.join(os.path.dirname(__file__), DEFAULT_PARAMS_FILE)
+    params = load_params(params_path)
     
-    # Create main output directory
-    os.makedirs(os.path.join('output', 'rastrigin_tests'), exist_ok=True)
+    os.makedirs(OUTPUT_DIR, exist_ok=True)
     
-    # Run 5 tests
-    #num_executions = int(input("Digite a quantidade de vezes que voce quer simular : [DEFAULT = 5]  "))
-    num_executions = 20
+    logging.info(f"Iniciando simulação com Rastrigin para {num_executions} execuções!")
     
-    results = []
-    print(f"Voce escolheu realizar a simulação da função RASTRIGIN {num_executions} vezes!")
-    for i in range(num_executions):
-        result = run_rastrigin_test(i, params.copy(), num_executions)
-        results.append(result)
+    # Executa os testes em um loop e armazena os resultados
+    results = [run_rastrigin_test(i, num_executions, params.copy()) for i in range(num_executions)]
     
-    # Print summary
-    print("\n" + "="*80)
-    print("TEST SUMMARY")
-    print("="*80)
-    for i, result in enumerate(results):
-        print(f"Run {i+1}: Fitness = {result['best_fitness']:.6f}, "
-              f"Time = {result['elapsed_time']:.2f}s, "
-              f"Solution = {result['best_solution']}")
+    # --- Sumário dos Resultados ---
+    print_separator()
+    logging.info("SUMÁRIO DOS TESTES")
+    print_separator()
+
+    for result in results:
+        logging.info(
+            f"Execução {result['run']:>2}: Fitness = {result['best_fitness']:.6f}, "
+            f"Tempo = {result['elapsed_time']:.2f}s, "
+            f"Solução = {result['best_solution']}"
+        )
     
-    avg_fitness = sum(r['best_fitness'] for r in results) / len(results)
+    # Filtra valores infinitos antes de calcular a média
+    valid_fitnesses = [r['best_fitness'] for r in results if r['best_fitness'] != float('inf')]
+    if valid_fitnesses:
+        avg_fitness = sum(valid_fitnesses) / len(valid_fitnesses)
+        logging.info(f"\nFitness médio (execuções válidas): {avg_fitness:.6f}")
+    else:
+        logging.warning("\nNenhum valor de fitness válido encontrado para calcular a média.")
+
     avg_time = sum(r['elapsed_time'] for r in results) / len(results)
+    logging.info(f"Tempo médio de execução: {avg_time:.2f} segundos")
+    print_separator()
+
+if __name__ == "__main__":
+    # Configura o parser de argumentos da linha de comando
+    parser = argparse.ArgumentParser(description="Executa o Algoritmo Genético com a função Rastrigin.")
+    parser.add_argument(
+        "-n", "--num_executions",
+        type=int,
+        default=5,
+        help="Número de vezes que a simulação deve ser executada (padrão: 5)"
+    )
+    args = parser.parse_args()
     
-    print("\n" + "-"*40)
-    print(f"Average fitness: {avg_fitness:.6f}")
-    print(f"Average time: {avg_time:.2f} seconds")
-    print("="*80 + "\n")
-
-
-
-main()
+    # Chama a função principal com o número de execuções especificado
+    main(args.num_executions)
