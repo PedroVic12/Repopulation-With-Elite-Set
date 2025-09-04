@@ -18,7 +18,8 @@ from utils.functions_fitness.function_IEEE_14_contigencias import funcao_objetiv
 from utils.functions_fitness.function_IEEE_118_otimizacao import funcao_objetivo_IEEE118, HASH_TABLE_PATH, hashtablesize_IEEE118
 from utils.functions_fitness.function_IEEE_30_otimizacao import funcao_objetivo_IEEE30, HASH_TABLE_PATH, hashtablesize
 from utils.functions_fitness.function_IEEE_57_otimizacao import funcao_objetivo_IEEE57, HASH_TABLE_PATH
-from utils.functions_fitness.function_SIN_45_otimizacao import funcao_objetivo_SIN45, hashtablesize_sin45
+#from utils.functions_fitness.function_SIN_45_otimizacao import funcao_objetivo_SIN45, hashtablesize_sin45
+from utils.functions_fitness.func_objetivo_SIN_45_otimizado_AG_ONS import funcao_objetivo_SIN45, hashtablesize_sin45
 
 from database_controller import run_consolidar_resultados
 

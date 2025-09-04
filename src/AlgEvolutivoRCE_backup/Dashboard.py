@@ -1,6 +1,5 @@
 
 import pathlib
-import streamlit as st
 import pandas as pd
 import plotly.graph_objects as go
 
@@ -11,9 +10,7 @@ import os
 import numpy as np
 import matplotlib.pyplot as plt
 
-#!pip install streamlit pandas plotly openpyxl
 
-#from .Setup import params
 import json
 
 def load_params(file_path):
@@ -53,7 +50,6 @@ class DashboardApp:
     """Classe principal para criar o dashboard interativo com Streamlit."""
 
     def __init__(self,options):
-        st.set_page_config(layout="wide", page_title="Dashboard Interativo")
         self.df = None
         self.fit_array = []
         self.optirons = options
@@ -213,7 +209,6 @@ class DashboardApp:
 
         except Exception as e:
             print(f"\n\n\nERRO em visualize (Execução {execution_num}): {e}")
-            st.sidebar.info(f"Erro em visualize: {e}")
             return -1, [], float('inf'), None
 
         return best_solution_index, best_solution_variables, best_solution_fitness, grafico_RCE

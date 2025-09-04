@@ -65,7 +65,7 @@ def analise_contigencias_SEP(rede, setupobj, matriz_cenarios , agendamento_df, c
                     if rede.executar_fluxo_de_potencia():
                         fitness, _ = rede.calcular_violacoes_fitness()
                     else:
-                        fitness = rede.pesos.get("demanda", 99) # Usar .get para segurança
+                        fitness = rede.pesos.get("demanda", 9999) # Usar .get para segurança
 
                     setupobj.tabela_hash[hash_key] = fitness
                     setupobj.objectiveruns += 1
@@ -270,7 +270,7 @@ def funcao_objetivo_SIN45(individuo, setupobj, _debug=False):
         rede.pesos["tensao"] = {"min": 0.95, "max": 1.05}
         rede.pesos["loading_linhas"] = 100
         rede.pesos["loading_trafos"] = 100
-        rede.pesos["demanda"] = 99
+        rede.pesos["demanda"] = 9999
 
         # Set voltage limits on buses
         rede.net.bus['min_vm_pu'] = rede.pesos["tensao"]["min"]
@@ -317,7 +317,7 @@ def funcao_objetivo_SIN45(individuo, setupobj, _debug=False):
         rede.log(f"\nFitness do agendamento = {fitness_final:.2f}\n", level="success")
 
         resultados["fitness"] = pd.DataFrame([{'fitness_final': fitness_final}])
-        resultados["ramos_selecionados"] = contigencias_selecionadas
+        resultados[ "ramos_selecionados"] = contigencias_selecionadas
         
         return fitness_final, 
     
@@ -332,10 +332,10 @@ HORARIOS_COND_INICIAL = [15, 15, 10, 21, 20]
 
 # Dicionário de parâmetros para a função de teste
 params_json_teste = {
-    "NUM_GENERATIONS": 20,
+    "NUM_GENERATIONS": 5,
     "CROSSOVER": 0.9,
-    "MUTACAO": 0.5,
-    "POP_SIZE": 10,
+    "MUTACAO": 0.1,
+    "POP_SIZE": 4,
     "IND_SIZE": 5,
     "RCE_REPOPULATION_GENERATIONS": 5,
     "NUM_VAR_DIFERENTES": 1,
@@ -363,6 +363,9 @@ def run_simulate_SIN45():
 
     print("\n--- Resultados Finais ---")
     print(f"Fitness Final: {fitness}")
+    print("\nRamos de contingência selecionados:")
+    print(pd.DataFrame(resultados.get("ramos_selecionados", {})))
+    print("\n\n")
 
 
     # Inicia o cronômetro para esta execução específica
@@ -393,12 +396,11 @@ def run_simulate_SIN45():
     print(f"Objective functions runs: {setup.objectiveruns}")
     print(f"Consultas HashTable: {setup.hashtablereads}\n")
 
-    print("\nRamos de contingência selecionados:")
+    print("Ramos de contingência selecionados:")
     print(pd.DataFrame(resultados.get("ramos_selecionados", {})))
-
 
     print(f"\nMelhores hórarios de agendamento de operação do SEP: SIN 45: {best_variables}")
 
 
 
-run_simulate_SIN45()
+#run_simulate_SIN45()
