@@ -6,10 +6,14 @@ import pathlib
 from analise_contigencias_script import analise_contigencias_SEP
 
 def custom_log(message, level="info", *args, **kwargs):
+    if isinstance(level, list):
+        level_str = str(level)
+    else:
+        level_str = level.upper()
     print(f"custom_log called with: message={message}, level={level}, args={args}, kwargs={kwargs}")
     with open("logs_rede.txt", "a") as f:
-        f.write(f"[{level.upper()}] {message}\n")
-    print(f"[{level.upper()}] {message}") # Keep original console output
+        f.write(f"[{level_str}] {message}\n")
+    print(f"[{level_str}] {message}") # Keep original console output
 
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..')))
@@ -196,16 +200,13 @@ def run_fitness_function():
     if resultados_detalhados:
         print("\n--- Resultados Detalhados da Simulação ---")
         
-        print("\nFitness Final:")
         print(resultados_detalhados["fitness"])
-        
-        print("\nVariáveis de Decisão (Indivíduo):")
-        print(resultados_detalhados["melhores_variaveis"])
-        
+
         print("\nRamos Selecionados para Manutenção (Agendamento Otimizado):")
         print(resultados_detalhados["ramos_selecionados"])
         
         print("\nContingências Avaliadas:")
+        print("Despacho de cargas: 1) Leve | 2) Média | 3) pesada")
         print(resultados_detalhados["contingencias"])
 
         fitness = resultados_detalhados["fitness"]["fitness_final"].iloc[0]
@@ -215,4 +216,4 @@ def run_fitness_function():
         print("A execução da função de fitness falhou.")
 
 
-run_fitness_function()
+#run_fitness_function()

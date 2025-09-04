@@ -46,3 +46,456 @@ Linhas a serem desligadas: [[75, 117]]
 [SUCCESS] 
 Fitness do agendamento = inf
 
+[INFO] Ajustando cargas para o perfil 1 (leve)...
+[SUCCESS] Cargas ajustadas.
+[SUCCESS] Todos os ramos religados.
+[INFO] 
+
+Linhas a serem desligadas: [[75, 117]]
+[INFO] Trafos a serem desligados: []
+
+[INFO] Nenhum transformador para desligar
+[[np.int64(48), np.int64(49)]] Ramo selecionado
+[INFO] 
+
+Linhas a serem desligadas: [[np.int64(48), np.int64(49)]]
+[INFO] Trafos a serem desligados: []
+
+[INFO] Nenhum transformador para desligar
+[SUCCESS] 
+Fluxo de potência executado com sucesso!
+[SUCCESS] Todos os ramos religados.
+[INFO] 
+
+Linhas a serem desligadas: [[75, 117]]
+[INFO] Trafos a serem desligados: []
+
+[INFO] Nenhum transformador para desligar
+[[np.int64(10), np.int64(11)]] Ramo selecionado
+[INFO] 
+
+Linhas a serem desligadas: [[np.int64(10), np.int64(11)]]
+[INFO] Trafos a serem desligados: []
+
+[INFO] Nenhum transformador para desligar
+[SUCCESS] 
+Fluxo de potência executado com sucesso!
+[SUCCESS] Todos os ramos religados.
+[INFO] 
+
+Linhas a serem desligadas: [[75, 117]]
+[INFO] Trafos a serem desligados: []
+
+[INFO] Nenhum transformador para desligar
+[[np.int64(16), np.int64(17)]] Ramo selecionado
+[INFO] 
+
+Linhas a serem desligadas: [[np.int64(16), np.int64(17)]]
+[INFO] Trafos a serem desligados: []
+
+[INFO] Nenhum transformador para desligar
+[SUCCESS] 
+Fluxo de potência executado com sucesso!
+[INFO] Ajustando cargas para o perfil 1 (leve)...
+[SUCCESS] Cargas ajustadas.
+[SUCCESS] Todos os ramos religados.
+[INFO] 
+
+Linhas a serem desligadas: [[44, 48], [75, 117]]
+[INFO] Trafos a serem desligados: []
+
+[INFO] Nenhum transformador para desligar
+[[np.int64(48), np.int64(49)]] Ramo selecionado
+[INFO] 
+
+Linhas a serem desligadas: [[np.int64(48), np.int64(49)]]
+[INFO] Trafos a serem desligados: []
+
+[INFO] Nenhum transformador para desligar
+[SUCCESS] 
+Fluxo de potência executado com sucesso!
+[SUCCESS] Todos os ramos religados.
+[INFO] 
+
+Linhas a serem desligadas: [[44, 48], [75, 117]]
+[INFO] Trafos a serem desligados: []
+
+[INFO] Nenhum transformador para desligar
+[[np.int64(10), np.int64(11)]] Ramo selecionado
+[INFO] 
+
+Linhas a serem desligadas: [[np.int64(10), np.int64(11)]]
+[INFO] Trafos a serem desligados: []
+
+[INFO] Nenhum transformador para desligar
+[SUCCESS] 
+Fluxo de potência executado com sucesso!
+[SUCCESS] Todos os ramos religados.
+[INFO] 
+
+Linhas a serem desligadas: [[44, 48], [75, 117]]
+[INFO] Trafos a serem desligados: []
+
+[INFO] Nenhum transformador para desligar
+[[np.int64(16), np.int64(17)]] Ramo selecionado
+[INFO] 
+
+Linhas a serem desligadas: [[np.int64(16), np.int64(17)]]
+[INFO] Trafos a serem desligados: []
+
+[INFO] Nenhum transformador para desligar
+[SUCCESS] 
+Fluxo de potência executado com sucesso!
+[INFO] Ajustando cargas para o perfil 3 (pesada)...
+[SUCCESS] Cargas ajustadas.
+[SUCCESS] Todos os ramos religados.
+[INFO] 
+
+Linhas a serem desligadas: [[44, 48]]
+[INFO] Trafos a serem desligados: []
+
+[INFO] Nenhum transformador para desligar
+[[np.int64(48), np.int64(49)]] Ramo selecionado
+[INFO] 
+
+Linhas a serem desligadas: [[np.int64(48), np.int64(49)]]
+[INFO] Trafos a serem desligados: []
+
+[INFO] Nenhum transformador para desligar
+[SUCCESS] 
+Fluxo de potência executado com sucesso!
+[SUCCESS] Todos os ramos religados.
+[INFO] 
+
+Linhas a serem desligadas: [[44, 48]]
+[INFO] Trafos a serem desligados: []
+
+[INFO] Nenhum transformador para desligar
+[[np.int64(10), np.int64(11)]] Ramo selecionado
+[INFO] 
+
+Linhas a serem desligadas: [[np.int64(10), np.int64(11)]]
+[INFO] Trafos a serem desligados: []
+
+[INFO] Nenhum transformador para desligar
+[SUCCESS] 
+Fluxo de potência executado com sucesso!
+[SUCCESS] Todos os ramos religados.
+[INFO] 
+
+Linhas a serem desligadas: [[44, 48]]
+[INFO] Trafos a serem desligados: []
+
+[INFO] Nenhum transformador para desligar
+[[np.int64(16), np.int64(17)]] Ramo selecionado
+[INFO] 
+
+Linhas a serem desligadas: [[np.int64(16), np.int64(17)]]
+[INFO] Trafos a serem desligados: []
+
+[INFO] Nenhum transformador para desligar
+[SUCCESS] 
+Fluxo de potência executado com sucesso!
+[INFO] Ajustando cargas para o perfil 1 (leve)...
+[SUCCESS] Cargas ajustadas.
+[SUCCESS] Todos os ramos religados.
+[INFO] 
+
+Linhas a serem desligadas: [[7, 29], [16, 112], [46, 68], [84, 88], [3, 10], [11, 15]]
+[INFO] Trafos a serem desligados: []
+
+[INFO] Nenhum transformador para desligar
+[[np.int64(48), np.int64(49)]] Ramo selecionado
+[INFO] 
+
+Linhas a serem desligadas: [[np.int64(48), np.int64(49)]]
+[INFO] Trafos a serem desligados: []
+
+[INFO] Nenhum transformador para desligar
+[SUCCESS] 
+Fluxo de potência executado com sucesso!
+[SUCCESS] Todos os ramos religados.
+[INFO] 
+
+Linhas a serem desligadas: [[7, 29], [16, 112], [46, 68], [84, 88], [3, 10], [11, 15]]
+[INFO] Trafos a serem desligados: []
+
+[INFO] Nenhum transformador para desligar
+[[np.int64(10), np.int64(11)]] Ramo selecionado
+[INFO] 
+
+Linhas a serem desligadas: [[np.int64(10), np.int64(11)]]
+[INFO] Trafos a serem desligados: []
+
+[INFO] Nenhum transformador para desligar
+[SUCCESS] 
+Fluxo de potência executado com sucesso!
+[SUCCESS] Todos os ramos religados.
+[INFO] 
+
+Linhas a serem desligadas: [[7, 29], [16, 112], [46, 68], [84, 88], [3, 10], [11, 15]]
+[INFO] Trafos a serem desligados: []
+
+[INFO] Nenhum transformador para desligar
+[[np.int64(16), np.int64(17)]] Ramo selecionado
+[INFO] 
+
+Linhas a serem desligadas: [[np.int64(16), np.int64(17)]]
+[INFO] Trafos a serem desligados: []
+
+[INFO] Nenhum transformador para desligar
+[SUCCESS] 
+Fluxo de potência executado com sucesso!
+[INFO] Ajustando cargas para o perfil 1 (leve)...
+[SUCCESS] Cargas ajustadas.
+[SUCCESS] Todos os ramos religados.
+[INFO] 
+
+Linhas a serem desligadas: [[7, 29], [16, 112], [61, 65], [46, 68], [84, 88], [3, 10], [11, 15]]
+[INFO] Trafos a serem desligados: []
+
+[INFO] Nenhum transformador para desligar
+[[np.int64(48), np.int64(49)]] Ramo selecionado
+[INFO] 
+
+Linhas a serem desligadas: [[np.int64(48), np.int64(49)]]
+[INFO] Trafos a serem desligados: []
+
+[INFO] Nenhum transformador para desligar
+[SUCCESS] 
+Fluxo de potência executado com sucesso!
+[SUCCESS] Todos os ramos religados.
+[INFO] 
+
+Linhas a serem desligadas: [[7, 29], [16, 112], [61, 65], [46, 68], [84, 88], [3, 10], [11, 15]]
+[INFO] Trafos a serem desligados: []
+
+[INFO] Nenhum transformador para desligar
+[[np.int64(10), np.int64(11)]] Ramo selecionado
+[INFO] 
+
+Linhas a serem desligadas: [[np.int64(10), np.int64(11)]]
+[INFO] Trafos a serem desligados: []
+
+[INFO] Nenhum transformador para desligar
+[SUCCESS] 
+Fluxo de potência executado com sucesso!
+[SUCCESS] Todos os ramos religados.
+[INFO] 
+
+Linhas a serem desligadas: [[7, 29], [16, 112], [61, 65], [46, 68], [84, 88], [3, 10], [11, 15]]
+[INFO] Trafos a serem desligados: []
+
+[INFO] Nenhum transformador para desligar
+[[np.int64(16), np.int64(17)]] Ramo selecionado
+[INFO] 
+
+Linhas a serem desligadas: [[np.int64(16), np.int64(17)]]
+[INFO] Trafos a serem desligados: []
+
+[INFO] Nenhum transformador para desligar
+[SUCCESS] 
+Fluxo de potência executado com sucesso!
+[INFO] Ajustando cargas para o perfil 1 (leve)...
+[SUCCESS] Cargas ajustadas.
+[SUCCESS] Todos os ramos religados.
+[INFO] 
+
+Linhas a serem desligadas: [[7, 29], [16, 112], [61, 65], [46, 68], [84, 88], [18, 33], [3, 10], [11, 15]]
+[INFO] Trafos a serem desligados: []
+
+[INFO] Nenhum transformador para desligar
+[[np.int64(48), np.int64(49)]] Ramo selecionado
+[INFO] 
+
+Linhas a serem desligadas: [[np.int64(48), np.int64(49)]]
+[INFO] Trafos a serem desligados: []
+
+[INFO] Nenhum transformador para desligar
+[SUCCESS] 
+Fluxo de potência executado com sucesso!
+[SUCCESS] Todos os ramos religados.
+[INFO] 
+
+Linhas a serem desligadas: [[7, 29], [16, 112], [61, 65], [46, 68], [84, 88], [18, 33], [3, 10], [11, 15]]
+[INFO] Trafos a serem desligados: []
+
+[INFO] Nenhum transformador para desligar
+[[np.int64(10), np.int64(11)]] Ramo selecionado
+[INFO] 
+
+Linhas a serem desligadas: [[np.int64(10), np.int64(11)]]
+[INFO] Trafos a serem desligados: []
+
+[INFO] Nenhum transformador para desligar
+[SUCCESS] 
+Fluxo de potência executado com sucesso!
+[SUCCESS] Todos os ramos religados.
+[INFO] 
+
+Linhas a serem desligadas: [[7, 29], [16, 112], [61, 65], [46, 68], [84, 88], [18, 33], [3, 10], [11, 15]]
+[INFO] Trafos a serem desligados: []
+
+[INFO] Nenhum transformador para desligar
+[[np.int64(16), np.int64(17)]] Ramo selecionado
+[INFO] 
+
+Linhas a serem desligadas: [[np.int64(16), np.int64(17)]]
+[INFO] Trafos a serem desligados: []
+
+[INFO] Nenhum transformador para desligar
+[SUCCESS] 
+Fluxo de potência executado com sucesso!
+[INFO] Ajustando cargas para o perfil 1 (leve)...
+[SUCCESS] Cargas ajustadas.
+[SUCCESS] Todos os ramos religados.
+[INFO] 
+
+Linhas a serem desligadas: [[7, 29], [16, 112], [61, 65], [46, 68], [84, 88], [18, 33], [11, 15]]
+[INFO] Trafos a serem desligados: []
+
+[INFO] Nenhum transformador para desligar
+[[np.int64(48), np.int64(49)]] Ramo selecionado
+[INFO] 
+
+Linhas a serem desligadas: [[np.int64(48), np.int64(49)]]
+[INFO] Trafos a serem desligados: []
+
+[INFO] Nenhum transformador para desligar
+[SUCCESS] 
+Fluxo de potência executado com sucesso!
+[SUCCESS] Todos os ramos religados.
+[INFO] 
+
+Linhas a serem desligadas: [[7, 29], [16, 112], [61, 65], [46, 68], [84, 88], [18, 33], [11, 15]]
+[INFO] Trafos a serem desligados: []
+
+[INFO] Nenhum transformador para desligar
+[[np.int64(10), np.int64(11)]] Ramo selecionado
+[INFO] 
+
+Linhas a serem desligadas: [[np.int64(10), np.int64(11)]]
+[INFO] Trafos a serem desligados: []
+
+[INFO] Nenhum transformador para desligar
+[SUCCESS] 
+Fluxo de potência executado com sucesso!
+[SUCCESS] Todos os ramos religados.
+[INFO] 
+
+Linhas a serem desligadas: [[7, 29], [16, 112], [61, 65], [46, 68], [84, 88], [18, 33], [11, 15]]
+[INFO] Trafos a serem desligados: []
+
+[INFO] Nenhum transformador para desligar
+[[np.int64(16), np.int64(17)]] Ramo selecionado
+[INFO] 
+
+Linhas a serem desligadas: [[np.int64(16), np.int64(17)]]
+[INFO] Trafos a serem desligados: []
+
+[INFO] Nenhum transformador para desligar
+[SUCCESS] 
+Fluxo de potência executado com sucesso!
+[INFO] Ajustando cargas para o perfil 1 (leve)...
+[SUCCESS] Cargas ajustadas.
+[SUCCESS] Todos os ramos religados.
+[INFO] 
+
+Linhas a serem desligadas: [[7, 29], [16, 112], [61, 65], [84, 88], [18, 33]]
+[INFO] Trafos a serem desligados: []
+
+[INFO] Nenhum transformador para desligar
+[[np.int64(48), np.int64(49)]] Ramo selecionado
+[INFO] 
+
+Linhas a serem desligadas: [[np.int64(48), np.int64(49)]]
+[INFO] Trafos a serem desligados: []
+
+[INFO] Nenhum transformador para desligar
+[SUCCESS] 
+Fluxo de potência executado com sucesso!
+[SUCCESS] Todos os ramos religados.
+[INFO] 
+
+Linhas a serem desligadas: [[7, 29], [16, 112], [61, 65], [84, 88], [18, 33]]
+[INFO] Trafos a serem desligados: []
+
+[INFO] Nenhum transformador para desligar
+[[np.int64(10), np.int64(11)]] Ramo selecionado
+[INFO] 
+
+Linhas a serem desligadas: [[np.int64(10), np.int64(11)]]
+[INFO] Trafos a serem desligados: []
+
+[INFO] Nenhum transformador para desligar
+[SUCCESS] 
+Fluxo de potência executado com sucesso!
+[SUCCESS] Todos os ramos religados.
+[INFO] 
+
+Linhas a serem desligadas: [[7, 29], [16, 112], [61, 65], [84, 88], [18, 33]]
+[INFO] Trafos a serem desligados: []
+
+[INFO] Nenhum transformador para desligar
+[[np.int64(16), np.int64(17)]] Ramo selecionado
+[INFO] 
+
+Linhas a serem desligadas: [[np.int64(16), np.int64(17)]]
+[INFO] Trafos a serem desligados: []
+
+[INFO] Nenhum transformador para desligar
+[SUCCESS] 
+Fluxo de potência executado com sucesso!
+[INFO] Ajustando cargas para o perfil 1 (leve)...
+[SUCCESS] Cargas ajustadas.
+[SUCCESS] Todos os ramos religados.
+[INFO] 
+
+Linhas a serem desligadas: [[61, 65], [18, 33]]
+[INFO] Trafos a serem desligados: []
+
+[INFO] Nenhum transformador para desligar
+[[np.int64(48), np.int64(49)]] Ramo selecionado
+[INFO] 
+
+Linhas a serem desligadas: [[np.int64(48), np.int64(49)]]
+[INFO] Trafos a serem desligados: []
+
+[INFO] Nenhum transformador para desligar
+[SUCCESS] 
+Fluxo de potência executado com sucesso!
+[SUCCESS] Todos os ramos religados.
+[INFO] 
+
+Linhas a serem desligadas: [[61, 65], [18, 33]]
+[INFO] Trafos a serem desligados: []
+
+[INFO] Nenhum transformador para desligar
+[[np.int64(10), np.int64(11)]] Ramo selecionado
+[INFO] 
+
+Linhas a serem desligadas: [[np.int64(10), np.int64(11)]]
+[INFO] Trafos a serem desligados: []
+
+[INFO] Nenhum transformador para desligar
+[SUCCESS] 
+Fluxo de potência executado com sucesso!
+[SUCCESS] Todos os ramos religados.
+[INFO] 
+
+Linhas a serem desligadas: [[61, 65], [18, 33]]
+[INFO] Trafos a serem desligados: []
+
+[INFO] Nenhum transformador para desligar
+[[np.int64(16), np.int64(17)]] Ramo selecionado
+[INFO] 
+
+Linhas a serem desligadas: [[np.int64(16), np.int64(17)]]
+[INFO] Trafos a serem desligados: []
+
+[INFO] Nenhum transformador para desligar
+[SUCCESS] 
+Fluxo de potência executado com sucesso!
+[SUCCESS] 
+Fitness do agendamento = 11.44
+

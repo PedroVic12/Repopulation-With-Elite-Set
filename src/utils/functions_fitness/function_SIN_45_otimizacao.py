@@ -4,11 +4,7 @@ import sys
 import pandas as pd
 import pathlib
 import pandapower as pp
-import builtins
 
-
-# Monkey-patch input to avoid interactive prompts
-builtins.input = lambda *args, **kwargs: "1"
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..')))
 
@@ -185,6 +181,9 @@ def funcao_objetivo_SIN45(individuo, setupobj, _debug=False):
 
         # Passa a rede do SIN 45 criada do zero para meu net do pandapower
         rede.net = pp_network_SIN
+        
+        
+        print(rede.net)
 
 
         # inicializa
@@ -236,9 +235,7 @@ def funcao_objetivo_SIN45(individuo, setupobj, _debug=False):
                 else:
                     rede.religar_todos_os_ramos_agendamento()
                     rede.desligar_elementos_agendamento(estado_ramos)
-                    ramo_contingencia = list(contingencia_local.loc[
-                        contingencia_local['contingencia'] == contingencia_atual, ['from', 'to']
-                    ].values[0])
+                    ramo_contingencia = list(contingencia_df.loc[contingencia_df['contingencia'] == contingencia_atual, ['from', 'to']].values[0])
                     rede.desligar_contingencia(ramo_contingencia)
 
                     #! salva os ramos selecionados
@@ -262,16 +259,13 @@ def funcao_objetivo_SIN45(individuo, setupobj, _debug=False):
 
         # Criar DataFrames para o retorno
         fitness_df = pd.DataFrame([{'fitness_final': fitness_final}])
-        melhores_variaveis_df = pd.DataFrame(individuo, columns=['inicio_otimizado'])
-        ramos_selecionados_df = agendamento_df.copy()
-        contingencias_avaliadas_df = pd.DataFrame(contigencias_selecionadas)
-
-        return {
+        
+        resultados = {
             "fitness": fitness_df,
-            "melhores_variaveis": melhores_variaveis_df,
-            "ramos_selecionados": ramos_selecionados_df,
-            "contingencias": contingencias_avaliadas_df
+            "ramos_selecionados": contigencias_selecionadas,
         }
+        
+        return fitness_final, resultados
     
     except Exception as e:
         print(f"\n[ERRO] na função objetivo SIN45: {e}")
@@ -303,7 +297,7 @@ def run_simulate_SIN45():
         tamanho_hash= tabela_hash,
     )
 
-    fitness, best_vars, ramos_selecionados, contingencias_avaliadas = funcao_objetivo_SIN45(
+    fitness,  ramos_selecionados = funcao_objetivo_SIN45(
         individuo= [15, 15, 10, 21, 16 ],
         setupobj= setup,
         _debug= False
@@ -311,9 +305,7 @@ def run_simulate_SIN45():
 
     print("Resultados:")
     print(fitness)
-    print(best_vars)
     print(ramos_selecionados)
-    print(contingencias_avaliadas)
 
 
 
