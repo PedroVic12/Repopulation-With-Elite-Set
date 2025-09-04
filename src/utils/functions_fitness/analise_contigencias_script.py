@@ -2,7 +2,6 @@
 # coding: utf-8
 
 def analise_contigencias_SEP(rede, setupobj, matriz_cenarios , agendamento_df, contingencia_df):
-    print(f"Type of tabela_hash: {type(setupobj.tabela_hash)}")
     """
     Executa a análise de contingências para um determinado agendamento de manutenção.
 
@@ -35,7 +34,6 @@ def analise_contigencias_SEP(rede, setupobj, matriz_cenarios , agendamento_df, c
 
             for contingencia_atual in range(1, num_contingencias + 1):
                 hash_key = rede.hashtableindex(perfil, num_carregamentos, contingencia_atual, num_contingencias, estado_ramos)
-                print(f"hash_key: {hash_key}, type: {type(hash_key)}")
 
                 if setupobj.tabela_hash[hash_key] < 0.0:
                     rede.religar_todos_os_ramos_agendamento()

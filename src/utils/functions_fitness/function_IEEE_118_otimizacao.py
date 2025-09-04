@@ -5,7 +5,8 @@ import pandas as pd
 import pathlib
 from analise_contigencias_script import analise_contigencias_SEP
 
-def custom_log(message, level="info"):
+def custom_log(message, level="info", *args, **kwargs):
+    print(f"custom_log called with: message={message}, level={level}, args={args}, kwargs={kwargs}")
     with open("logs_rede.txt", "a") as f:
         f.write(f"[{level.upper()}] {message}\n")
     print(f"[{level.upper()}] {message}") # Keep original console output
@@ -70,6 +71,7 @@ def calcular_fitness_detalhado_IEEE118(individuo, setupobj, _debug=False):
     """
     #! 1) Criar a rede elétrica IEEE 118 barras, Inicializar a classe com a rede e carrega a tabela de agendamento
     rede = RedeEletricaPandaPower("118", debug=False)
+    rede.log = custom_log
 
     #! Colocando pesos como input do usuario e os dados de entrada do agendamento
     rede.pesos["tensao"] = {"min": 100, "max": 100}
@@ -115,60 +117,15 @@ def calcular_fitness_detalhado_IEEE118(individuo, setupobj, _debug=False):
 
     try:
         # 3) Processar cada cenário da matriz de cenários
-        for cenario in matriz_cenarios:
-            perfil = cenario[0]
-            estado_ramos = cenario[1:]
+        fitness_final, contigencias_selecionadas = analise_contigencias_SEP(
+            rede=rede,
+            setupobj=setupobj,
+            matriz_cenarios=matriz_cenarios,
+            agendamento_df=agendamento_local_df,
+            contingencia_df=contingencia_df
+        )
 
-            # 4) Ajustar carregamento para o perfil do cenário
-            rede.ajustar_cargas(perfil)
-
-            # Loop through contingencies before calculating violations for the scenario
-            for contingencia_atual in range(num_contingencias):
-                contingencia_atual += 1
-
-                # Uso da hash key para ja utilizar cenarios calculados
-                hash_key = rede.hashtableindex(perfil, num_carregamentos, contingencia_atual, num_contingencias, estado_ramos)
-
-                #! RZ_01jun2025 - verifica se o cenário já foi calculado na tabela hash
-                if setupobj.tabela_hash[hash_key] < 0.0:
-
-                    #5)  Ligar todos os ramos antes de aplicar mudanças
-                    rede.religar_todos_os_ramos_agendamento()
-
-                    # 6) Fazendo os deligamentos com base na tabela em .xlsx e nos cenários calculados
-                    rede.desligar_elementos_agendamento(estado_ramos)
-
-                    # 7) Identifica ramos afetados pela contingência
-                    ramo_contingencia = list(contingencia_df.loc[contingencia_df['contingencia'] == contingencia_atual, ['from', 'to']].values[0])
-                    rede.log(f"\n{contingencia_atual}) Ramo da contingencia = {ramo_contingencia}\n")
-
-                    # 8) Desliga os ramos afetados
-                    rede.desligar_contingencia(ramo_contingencia)
-                    contigencias_selecionadas["ramos"].append(ramo_contingencia)
-                    contigencias_selecionadas["contingencia"].append(contingencia_atual)
-
-                    # 9) Executar fluxo de potência para o cenário com contingência
-                    if rede.executar_fluxo_de_potencia():
-                        # 10) Calcular violações com pesos e armazenar os resultados
-                        fitness, violacoes_df = rede.calcular_violacoes_fitness()
-                    else:
-                        fitness = rede.pesos["demanda"]  # penalidade com valor default de 99
-
-                    # 11) Store violation in the hash table
-                    setupobj.tabela_hash[hash_key] = fitness
-                    
-                    # incrementa contador de execuções da função objetivo
-                    setupobj.objectiveruns += 1
-
-                #! 12) Retorna o valores calculados de fluxo de potencia na variavel fitness
-                else:
-                    fitness = setupobj.tabela_hash[hash_key]
-                    setupobj.hashtablereads += 1
-
-                violacoes_total.append(fitness)
-
-        # 12) Calcular fitness final com somatorio das vioações com pesos de todos os cenarios
-        fitness_final = sum(violacoes_total)
+        
         rede.log(f"\nFitness do agendamento = {fitness_final:.2f}\n", level="success")
 
         # Criar DataFrames para o retorno
