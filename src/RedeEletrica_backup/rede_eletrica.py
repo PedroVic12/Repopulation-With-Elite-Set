@@ -33,7 +33,7 @@ class Logger:
     def log(self, message, level="info"):  # Changed default level to "info"
         """Logs a message with the specified level and color."""
         if level == "success":
-            self.console.print(f"[success]{message}[/]")
+            self.console.print(f"\n[success]{message}[/]")
             #self.logger.info(message)
         elif level == "warning":
             self.console.print(f"[warning]{message}[/]")
@@ -42,7 +42,7 @@ class Logger:
             self.console.print(f"[error]{message}[/]")
             #self.logger.error(message)
         else:
-            self.console.print(f"[info]{message}[/]") # Changed to "info" to use blue color
+            self.console.print(f"\n[info]{message}[/]") # Changed to "info" to use blue color
 
 
 
@@ -771,11 +771,11 @@ class RedeEletricaPandaPower:
         
         try:
             pp.runpp(self.net, algorithm="nr", numba = True)
-            self.log("\nFluxo de potência executado com sucesso!",level = "success")
+            self.log("Fluxo de potência executado com sucesso!",level = "success")
             #print("\n [DEBUG SIMULATOR]Fluxo de potência executado com sucesso!")
             return True
         except pp.LoadflowNotConverged:
-            self.console.log("\nErro: Fluxo de potência não convergiu...", level = "error")
+            self.console.log("Erro: Fluxo de potência não convergiu...", level = "error")
             Pdem = 99
             print(f"\nATENÇÃO: CASO NAO CONVERGENTE! Penalidade de não convergência do fluxo de potência aplicada: {Pdem}\n")
             self.calcular_violacoes_fitness()
@@ -809,14 +809,14 @@ class RedeEletricaPandaPower:
             tipo = "padrão"
             self.log(f"Ajustando cargas para o perfil {perfil} ({tipo})...")
 
-        # usando o scaling
+        #! TODO -> usando o scaling
         #self.net.load["p_mw"] *= fator
         #self.net.load["q_mvar"] *= fator
         self.net.load.scaling = fator
         #self.net.gen['vm_pu'] = 1.045
         self.net.gen.scaling = fator
 
-        self.log("Cargas ajustadas.", level = "success")
+        #!self.log("\nTodas as Cargas ajustadas.", level = "success")
 
     def desligar_elementos_agendamento(self, estados):
         """Desliga os elementos (linhas e trafos) com base no cenário."""

@@ -332,7 +332,7 @@ HORARIOS_COND_INICIAL = [15, 15, 10, 21, 20]
 
 # Dicionário de parâmetros para a função de teste
 params_json_teste = {
-    "NUM_GENERATIONS": 20,
+    "NUM_GENERATIONS": 100,
     "CROSSOVER": 0.9,
     "MUTACAO": 0.5,
     "POP_SIZE": 10,
@@ -394,7 +394,7 @@ def run_simulate_SIN45():
     print(f"Consultas HashTable: {setup.hashtablereads}\n")
 
     print("\nRamos de contingência selecionados:")
-    print(pd.DataFrame(resultados.get("ramos_selecionados", {})))
+    print(pd.DataFrame(resultados["ramos_selecionados"]))
 
 
     print(f"\nMelhores hórarios de agendamento de operação do SEP: SIN 45: {best_variables}")

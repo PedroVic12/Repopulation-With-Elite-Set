@@ -77,7 +77,9 @@ def custom_log(message, level="info", *args, **kwargs):
         level_str = level.upper()
     with open("logs_rede_IEEE_118.txt", "a") as f:
         f.write(f"[{level_str}] {message}\n")
-    print(f"[{level_str}] {message}") # Keep original console output
+
+    #! Keep original console output
+    #print(f"[{level_str}] {message}") 
 
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..')))
