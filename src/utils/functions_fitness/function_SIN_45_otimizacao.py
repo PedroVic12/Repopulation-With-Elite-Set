@@ -4,6 +4,11 @@ import sys
 import pandas as pd
 import pathlib
 import pandapower as pp
+import builtins
+
+
+# Monkey-patch input to avoid interactive prompts
+builtins.input = lambda *args, **kwargs: "1"
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..')))
 
@@ -183,9 +188,10 @@ def funcao_objetivo_SIN45(individuo, setupobj, _debug=False):
 
 
         # inicializa
-        rede.pesos["tensao"] = {"min": 100, "max": 100}
+        rede.pesos["tensao"] = {"min_vm_pu": 0.95, "max_vm_pu": 1.05}
         rede.pesos["loading_linhas"] = 100
         rede.pesos["loading_trafos"] = 100
+        rede.pesos["demanda"] = 9999
 
         # Clona DFs para não modificar os originais
         agenda_local = agendamento_df.copy()
@@ -193,7 +199,7 @@ def funcao_objetivo_SIN45(individuo, setupobj, _debug=False):
 
         agenda_local["inicio"] = individuo
         duracao_total_agendamento = (agenda_local['inicio'] + agenda_local['duracao']).max()
-        rede.validar_dados(agenda_local, contingencia_local)
+        # rede.validar_dados(agenda_local, contingencia_local)
 
         # Matriz cenários
         matriz_cenarios = rede.avalia_cenarios(

@@ -3,6 +3,13 @@ import os
 import sys
 import pandas as pd
 import pathlib
+from analise_contigencias_script import analise_contigencias_SEP
+
+def custom_log(message, level="info"):
+    with open("logs_rede.txt", "a") as f:
+        f.write(f"[{level.upper()}] {message}\n")
+    print(f"[{level.upper()}] {message}") # Keep original console output
+
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..')))
 
