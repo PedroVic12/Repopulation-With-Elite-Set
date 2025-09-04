@@ -216,4 +216,4 @@ def run_fitness_function():
         print("A execução da função de fitness falhou.")
 
 
-run_fitness_function()
+#run_fitness_function()

@@ -325,7 +325,7 @@ def run_simulate_SIN45():
 
     print("\n--- Resultados Finais ---")
     print(f"Fitness Final: {fitness}")
-    print("Ramos de contingência selecionados:")
+    print("\nRamos de contingência selecionados:")
     print(pd.DataFrame(resultados.get("ramos_selecionados", {})))
 
 
