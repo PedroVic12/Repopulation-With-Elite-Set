@@ -1,88 +1,64 @@
 import os
 import sys
 import pandas as pd
-import pathlib
 import pandapower as pp
+import pandapower.plotting.plotly as pplotly
 from datetime import datetime
-
-
+import traceback
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..')))
 
+# Imports originais do seu projeto
 from RedeEletrica_backup.rede_eletrica import RedeEletricaPandaPower
 from AlgEvolutivoRCE_backup.Setup import Setup
 from AlgEvolutivoRCE_backup.alg_evolutivo_rce import AlgoritimoEvolutivoRCE
 
 
 
+def hashtablesize_sin45():
+    return len(contingencia_df) * 3 * (2**len(agendamento_df))
 
-
-def analise_contigencias_SEP(rede, setupobj, matriz_cenarios , agendamento_df, contingencia_df):
-    """
-    Executa a análise de contingências para um determinado agendamento de manutenção.
-
-    Args:
-        rede: Objeto da rede elétrica.
-        setupobj: Objeto de setup do algoritmo genético.
-        matriz_cenarios: Matriz com os cenários de operação (perfil de carga e estado dos ramos).
-        agendamento_df: DataFrame com o agendamento de manutenção.
-        contingencia_df: DataFrame com a lista de contingências a serem avaliadas.
-
-    Returns:
-        tuple: Uma tupla contendo o fitness final (float) e um dicionário com os ramos de contingência avaliados.
-    """
-    contingencias = contingencia_df['contingencia'].to_list()
-    num_carregamentos = 3
-    num_contingencias = len(contingencias)
-    num_desligamentos = len(agendamento_df)
+# --- FUNÇÕES NÚCLEO DA OTIMIZAÇÃO ---
+def analise_contigencias_SEP(rede, setupobj, matriz_cenarios, agendamento_df, contingencia_df):
+    """ Executa a análise de contingências para um dado agendamento. """
     violacoes_total = []
+    contigencias_selecionadas = {"ramos": [], "contingencia": []}
     
-    contigencias_selecionadas = {
-        "ramos": [],
-        "contingencia": []
-    }
-    
-    try:
-        for cenario in matriz_cenarios:
-            perfil = cenario[0]
-            estado_ramos = cenario[1:]
-            rede.ajustar_cargas(perfil)
+    for cenario in matriz_cenarios:
+        perfil, estado_ramos = cenario[0], cenario[1:]
+        rede.ajustar_cargas(perfil)
 
-            for contingencia_atual in range(1, num_contingencias + 1):
-                hash_key = rede.hashtableindex(perfil, num_carregamentos, contingencia_atual, num_contingencias, estado_ramos)
+        for _, contingencia_row in contingencia_df.iterrows():
+            contingencia_id = contingencia_row['contingencia']
+            hash_key = rede.hashtableindex(perfil, 3, contingencia_id, len(contingencia_df), estado_ramos)
 
-                if setupobj.tabela_hash[hash_key] < 0.0:
-                    rede.religar_todos_os_ramos_agendamento()
-                    rede.desligar_elementos_agendamento(estado_ramos)
-                    
-                    ramo_contingencia = list(contingencia_df.loc[contingencia_df['contingencia'] == contingencia_atual, ['from', 'to']].values[0])
-                    rede.desligar_contingencia(ramo_contingencia)
-                    
-                    if ramo_contingencia not in contigencias_selecionadas["ramos"]:
-                        contigencias_selecionadas["ramos"].append(ramo_contingencia)
-                        contigencias_selecionadas["contingencia"].append(contingencia_atual)
-
-                    if rede.executar_fluxo_de_potencia():
-                        fitness, _ = rede.calcular_violacoes_fitness()
-                    else:
-                        fitness = rede.pesos.get("demanda", 99) # Usar .get para segurança
-
-                    setupobj.tabela_hash[hash_key] = fitness
-                    setupobj.objectiveruns += 1
-                else:
-                    fitness = setupobj.tabela_hash[hash_key]
-                    setupobj.hashtablereads += 1
+            if setupobj.tabela_hash[hash_key] < 0.0:
+                rede.religar_todos_os_ramos_agendamento()
+                rede.desligar_elementos_agendamento(estado_ramos)
                 
-                violacoes_total.append(fitness)
+                ramo_contingencia = [int(contingencia_row['from']), int(contingencia_row['to'])]
+                rede.desligar_contingencia(ramo_contingencia)
+                
+                if ramo_contingencia not in contigencias_selecionadas["ramos"]:
+                    contigencias_selecionadas["ramos"].append(ramo_contingencia)
+                    contigencias_selecionadas["contingencia"].append(contingencia_id)
+
+                fitness = rede.pesos.get("demanda", 9999)
+                if rede.executar_fluxo_de_potencia():
+                    fitness, _ = rede.calcular_violacoes_fitness()
+
+                setupobj.tabela_hash[hash_key] = fitness
+                setupobj.objectiveruns += 1
+            else:
+                fitness = setupobj.tabela_hash[hash_key]
+                setupobj.hashtablereads += 1
             
-        fitness_final = sum(violacoes_total)
-        return fitness_final, contigencias_selecionadas
-
-    except Exception as e:
-        print(f"\nErro durante a análise de contingências: {e}")
-        return float('inf'), {}
+            violacoes_total.append(fitness)
+            
+    return sum(violacoes_total), contigencias_selecionadas
 
 
+# --- CLASSE DE GESTÃO DA REDE ---
 # --- DADOS DO CASO SIN 45 ---
 # Extraídos de SIMULATOR_SIN_45.py
 class SmartGridSin45:
@@ -244,7 +220,8 @@ class SmartGridSin45:
 
 
 
-# --- DADOS DE AGENDAMENTO E CONTINGÊNCIA (EXEMPLO) ---
+
+# --- DADOS DE ENTRADA ---
 # IMPORTANTE: Estes são dados de exemplo e devem ser ajustados para o caso real.
 agendamento_df = pd.DataFrame([
     {"ramo": [1, 2], "duracao": 5, "prioridade": 1},   # IVAIPORA -> LONDRINA
@@ -261,26 +238,39 @@ contingencia_df = pd.DataFrame([
 ])
 
 
+HORARIOS_COND_INICIAL = [15, 15, 10, 21, 20]
 
-resultados = {
-
+params_json_teste = {
+    "NUM_GENERATIONS": 3,
+    "CROSSOVER": 0.9,
+    "MUTACAO": 0.1,
+    "POP_SIZE": 4,
+    "IND_SIZE": 5,
+    "RCE_REPOPULATION_GENERATIONS": 5,
+    "NUM_VAR_DIFERENTES": 1,
+    "PORCENTAGEM": 0.2,
+    "DELTA_MIN": 2,
+    "ARRAY_VAR": HORARIOS_COND_INICIAL,
+    "LIMITE_VAR": [0, 31]
 }
+    
+#! 1. Criar ficheiro de dados e visualizar a rede base
+smart_grid = SmartGridSin45()
+filepath = smart_grid.create_sin45_dataset_file()
+smart_grid.load_data_from_excel(filepath)
 
-def hashtablesize_sin45():
-    return len(contingencia_df) * 3 * (2**len(agendamento_df))
 
-def funcao_objetivo_SIN45(individuo, setupobj, _debug=False):
+def funcao_objetivo_SIN45(individuo, setupobj, return_details=False):
+    """ Função de fitness para o Algoritmo Genético. """
+        
 
-    SmartGrid_SIN45 = SmartGridSin45()
-    filepath = SmartGrid_SIN45.create_sin45_dataset_file()
-    SmartGrid_SIN45.load_data_from_excel(filepath)
-    pp_network_SIN = SmartGrid_SIN45.create_network_from_dataframes()
-    bus_map = SmartGrid_SIN45.bus_map # Obtém o mapa de barras
+    SIN_45_network = smart_grid.create_network_from_dataframes()
+    bus_map = smart_grid.bus_map
 
     try:
         nome_rede = "SIN 45"
         rede = RedeEletricaPandaPower(network_name = "nova", debug=False)
-        rede.net = pp_network_SIN
+        rede.net = SIN_45_network
         
         print(rede.net)
         print("\n\n")
@@ -290,7 +280,7 @@ def funcao_objetivo_SIN45(individuo, setupobj, _debug=False):
         rede.pesos["tensao"] = {"min": 0.95, "max": 1.05}
         rede.pesos["loading_linhas"] = 100
         rede.pesos["loading_trafos"] = 100
-        rede.pesos["demanda"] = 9999
+        rede.pesos["demanda"] = 99
 
         # Set voltage limits on buses
         rede.net.bus['min_vm_pu'] = rede.pesos["tensao"]["min"]
@@ -304,123 +294,94 @@ def funcao_objetivo_SIN45(individuo, setupobj, _debug=False):
 
         # CORREÇÃO: Traduz os IDs das barras para os índices corretos do pandapower
         agenda_local['ramo'] = agenda_local['ramo'].apply(
-            lambda r: [bus_map.get(r[0]), bus_map.get(r[1])]
+            lambda r: [smart_grid.bus_map.get(r[0]), smart_grid.bus_map.get(r[1])]
         )
-        contingencia_local['from'] = contingencia_local['from'].map(bus_map)
-        contingencia_local['to'] = contingencia_local['to'].map(bus_map)
+        contingencia_local['from'] = contingencia_local['from'].map(smart_grid.bus_map)
+        contingencia_local['to'] = contingencia_local['to'].map(smart_grid.bus_map)
 
         # Remove linhas com mapeamento falho (se houver)
         agenda_local.dropna(subset=['ramo'], inplace=True)
         contingencia_local.dropna(subset=['from', 'to'], inplace=True)
         contingencia_local = contingencia_local.astype({'from': int, 'to': int})
 
-
         agenda_local["inicio"] = individuo
-        duracao_total_agendamento = (agenda_local['inicio'] + agenda_local['duracao']).max()
+        duracao_total = (agenda_local['inicio'] + agenda_local['duracao']).max()
+        
         rede.validar_dados(agenda_local, contingencia_local)
 
-        # Matriz cenários
         matriz_cenarios = rede.avalia_cenarios(
-            horas=duracao_total_agendamento,
+            horas=duracao_total,
             hora_inicio=agenda_local['inicio'],
             duracao=agenda_local['duracao'],
-            ls=0, le=8, ms=8, me=18, hs=18, he=24
+            ls=0, le=8,
+            ms=8, me=18,
+            hs=18, he=24
         )
-
-        fitness_final, contigencias_selecionadas = analise_contigencias_SEP(
-            rede=rede,
-            setupobj=setupobj,
-            matriz_cenarios=matriz_cenarios,
-            agendamento_df=agenda_local,
-            contingencia_df=contingencia_local
-        )
-        rede.log(f"\nFitness do agendamento = {fitness_final:.2f}\n", level="success")
-
-        resultados["fitness"] = pd.DataFrame([{'fitness_final': fitness_final}])
-        resultados[ "ramos_selecionados"] = contigencias_selecionadas
         
-        return fitness_final, 
-    
+        fitness, contigencias = analise_contigencias_SEP(rede, setupobj, matriz_cenarios, agenda_local, contingencia_local)
+        
+        if return_details:
+            resultados = {"fitness_final": fitness, "ramos_selecionados": contigencias}
+            return fitness, resultados
+        else:
+            return fitness
+
     except Exception as e:
-        print(f"\n[ERRO] na função objetivo SIN45: {e}")
-        import traceback
+        print(f"[ERRO] na função objetivo: {e}")
         traceback.print_exc()
-        return float("inf"), {}
+        return float("inf") if not return_details else (float("inf"), {})
 
+# --- FUNÇÃO PRINCIPAL ---
+def main():
+    """ Orquestra a criação da rede, execução do algoritmo e apresentação dos resultados. """
+    print("--- A INICIAR SIMULAÇÃO DO SISTEMA SIN 45 ---")
 
-HORARIOS_COND_INICIAL = [15, 15, 10, 21, 20]
-
-# Dicionário de parâmetros para a função de teste
-params_json_teste = {
-    "NUM_GENERATIONS": 5,
-    "CROSSOVER": 0.9,
-    "MUTACAO": 0.1,
-    "POP_SIZE": 4,
-    "IND_SIZE": 5,
-    "RCE_REPOPULATION_GENERATIONS": 5,
-    "NUM_VAR_DIFERENTES": 1,
-    "PORCENTAGEM": 0.2,
-    "DELTA_MIN": 2,
-    "ARRAY_VAR": HORARIOS_COND_INICIAL, 
-    "LIMITE_VAR": [0, 31]
-}
     
-def run_simulate_SIN45():
-    tabela_hash = hashtablesize_sin45()
-
+    # 2. Configurar o algoritmo evolutivo
     setup = Setup(
-        params= params_json_teste,
-        fitness_function= funcao_objetivo_SIN45,
-        tamanho_hash= tabela_hash,
+        params=params_json_teste,
+        fitness_function=funcao_objetivo_SIN45,
+        tamanho_hash=hashtablesize_sin45(),
     )
-
-    fitness  = funcao_objetivo_SIN45(
-        individuo= HORARIOS_COND_INICIAL,
-        setupobj= setup,
-        _debug= False
-    )
-
-
-    print("\n--- Resultados Finais ---")
-    print(f"Fitness Final: {fitness}")
-    print("\nRamos de contingência selecionados:")
-    print(pd.DataFrame(resultados.get("ramos_selecionados", {})))
-    print("\n\n")
-
-
-    # Inicia o cronômetro para esta execução específica
-    start_exec = datetime.now()
-
-    #! 6) Executa algoritmo
+    
+    # 3. Executar o algoritmo genético
+    print("\n--- A EXECUTAR ALGORITMO EVOLUTIVO ---")
+    start_time = datetime.now()
     alg = AlgoritimoEvolutivoRCE(setup, DEBUG=False)
-    print(f"Algoritmo Evolutivo iniciado")
-    pop_with_repopulation, logbook_with_repopulation, best_individual, all_individual_values = alg.run(RCE=False)
+    _, _, best_individual, _ = alg.run(RCE=False)
     best_variables = list(best_individual)
+    end_time = datetime.now()
+    print("--- OTIMIZAÇÃO CONCLUÍDA ---")
 
-
-    # Finaliza o cronômetro e calcula a duração desta execução
-    end_exec = datetime.now()
-    elapsed_exec = end_exec - start_exec
-
-    #! 7) Visualize os Resultados
-    print("\nEvolução concluída  - 100%")
-    best_solution_generation, _, _, _ = alg.dashboard.visualize(
-        logbook_with_repopulation,
-        pop_with_repopulation,
-        config_num=1,
-        execution_num=1,
+    # 4. Avaliar a melhor solução para obter resultados detalhados
+    print("\n--- A AVALIAR A MELHOR SOLUÇÃO ENCONTRADA ---")
+    # Esta é a etapa crucial: reavaliar o melhor indivíduo para capturar os seus resultados detalhados
+    final_fitness, final_results = funcao_objetivo_SIN45(
+        best_variables, 
+        setup, 
+        return_details=True
     )
 
-    # Exibe os tempos e contadores de forma clara
-    print(f"\nDuração desta Execução: {elapsed_exec}")
-    print(f"Objective functions runs: {setup.objectiveruns}")
-    print(f"Consultas HashTable: {setup.hashtablereads}\n")
+    # 5. Apresentar os resultados finais
+    smart_grid.plot_network()
 
-    print("Ramos de contingência selecionados:")
-    print(pd.DataFrame(resultados.get("ramos_selecionados", {})))
+    print("\n=======================================================")
+    print("           RESULTADOS FINAIS DA OTIMIZAÇÃO           ")
+    print("=======================================================")
+    print(f"Duração da Otimização: {end_time - start_time}")
+    print(f"Melhores horários de agendamento: {best_variables}")
+    print(f"Fitness da Melhor Solução: {final_fitness:.2f}")
+    print(f"\nExecuções da Função Objetivo: {setup.objectiveruns}")
+    print(f"Consultas à HashTable: {setup.hashtablereads}")
+    
+    print("\nRamos de Contingência Avaliados na Melhor Solução:")
+    df_ramos = pd.DataFrame(final_results.get("ramos_selecionados", {}))
+    if not df_ramos.empty:
+        print(df_ramos)
+    else:
+        print("Nenhum ramo de contingência foi registado para a melhor solução.")
+    print("=======================================================\n")
 
-    print(f"\nMelhores hórarios de agendamento de operação do SEP: SIN 45: {best_variables}")
+if __name__ == "__main__":
+    main()
 
-
-
-#run_simulate_SIN45()

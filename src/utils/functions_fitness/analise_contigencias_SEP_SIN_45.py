@@ -94,6 +94,22 @@ class SmartGridSin45:
         self.dataframes = {}
         self.bus_map = {} # Adicionado para mapear IDs de barras para índices do pandapower
 
+    def plot_network(self, filename='sin45_network_plot.html'):
+        """ Gera um gráfico interativo da rede e guarda como HTML. """
+        if self.net is None:
+            print("Rede não criada. Não é possível gerar o gráfico.")
+            return
+        print(f"A gerar gráfico da rede em '{filename}'...")
+        try:
+            pp.runpp(self.net)
+            fig = pplotly.simple_plotly(self.net)
+            fig.write_html(filename)
+            print(f"Gráfico guardado com sucesso! Pode abrir o ficheiro '{filename}' no navegador.")
+        except Exception as e:
+            print(f"Erro ao gerar o gráfico: {e}")
+
+
+
     def create_sin45_dataset_file(self, filename='SIN_45_barras_dataset.xlsx'):
         """
         Cria um ficheiro Excel com os dados do sistema SIN 45 Barras.
@@ -224,6 +240,10 @@ class SmartGridSin45:
         except Exception as e:
             return False, f"Falha no fluxo de potência: {e}"
 
+
+
+
+
 # --- DADOS DE AGENDAMENTO E CONTINGÊNCIA (EXEMPLO) ---
 # IMPORTANTE: Estes são dados de exemplo e devem ser ajustados para o caso real.
 agendamento_df = pd.DataFrame([
@@ -256,6 +276,8 @@ def funcao_objetivo_SIN45(individuo, setupobj, _debug=False):
     SmartGrid_SIN45.load_data_from_excel(filepath)
     pp_network_SIN = SmartGrid_SIN45.create_network_from_dataframes()
     bus_map = SmartGrid_SIN45.bus_map # Obtém o mapa de barras
+
+    #SmartGrid_SIN45.plot_network()
 
     try:
         nome_rede = "SIN 45"
