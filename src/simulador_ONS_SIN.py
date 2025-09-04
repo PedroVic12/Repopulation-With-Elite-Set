@@ -225,6 +225,7 @@ class NetworkCanvas(FigureCanvas):
         if not hasattr(net, 'bus_geodata') or net.bus_geodata.empty:
             plot.create_generic_coordinates(net, overwrite=True)
 
+        collections = []
         handles = []
         
         # --- Lógica de Plotagem para SIN 45 ---
@@ -248,30 +249,28 @@ class NetworkCanvas(FigureCanvas):
                         if not line.empty:
                             indices.append(line.index[0])
                 if indices:
-                    lc = plot.create_line_collection(net, lines=indices, color=data["color"], use_bus_geodata=True)
-                    self.ax.add_collection(lc)
+                    collections.append(plot.create_line_collection(net, lines=indices, color=data["color"], use_bus_geodata=True))
                     plotted_lines.update(indices)
                     handles.append(plt.Line2D([0], [0], color=data["color"], lw=2, label=name))
 
             other_lines = list(set(net.line.index) - plotted_lines)
-            lc_other = plot.create_line_collection(net, lines=other_lines, color="grey", use_bus_geodata=True)
-            self.ax.add_collection(lc_other)
+            collections.append(plot.create_line_collection(net, lines=other_lines, color="grey", use_bus_geodata=True))
             handles.append(plt.Line2D([0], [0], color='grey', lw=2, label='Outras Linhas'))
 
         # --- Lógica de Plotagem para Casos IEEE ---
         else:
-            lc = plot.create_line_collection(net, color="grey", use_bus_geodata=True)
-            self.ax.add_collection(lc)
+            collections.append(plot.create_line_collection(net, color="grey", use_bus_geodata=True))
             handles.append(plt.Line2D([0], [0], color='grey', lw=2, label='Linha'))
 
-        bc = plot.create_bus_collection(net, color="blue", size=0.04)
-        self.ax.add_collection(bc)
+        collections.append(plot.create_bus_collection(net, color="blue", size=0.04))
         handles.append(plt.Line2D([0], [0], color='blue', marker='o', lw=0, label='Barra'))
 
         if len(net.trafo) > 0:
-            tc = plot.create_trafo_collection(net, color='purple')
-            self.ax.add_collection(tc)
+            collections.append(plot.create_trafo_collection(net, color='purple'))
             handles.append(plt.Line2D([0], [0], color='purple', lw=2, label='Transformador'))
+        
+        # Desenha todas as coleções de uma vez
+        plot.draw_collections(collections, ax=self.ax)
         
         self.ax.legend(handles=handles, loc='best')
         self.ax.set_title(f"Diagrama Unifilar - {network_name}")

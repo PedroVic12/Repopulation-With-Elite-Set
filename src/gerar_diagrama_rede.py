@@ -6,6 +6,7 @@ import matplotlib.pyplot as plt
 import traceback
 import os
 import networkx as nx
+from matplotlib.collections import LineCollection
 
 # Classe RedeEletricaModel adaptada do simulador_ONS_SIN.py
 class RedeEletricaModel:
@@ -122,20 +123,39 @@ def plot_rede_completa(net):
         "load": "green", "shunt": "orange", "ext_grid": "yellow"
     }
     
-    bus_collection = plot.create_bus_collection(net, size=80, color=colors["bus"], zorder=10)
-    line_collection = plot.create_line_collection(net, color=colors["line"], linewidth=1.5, use_bus_geodata=True)
-    trafo_collection = plot.create_trafo_collection(net, color=colors["trafo"], linewidth=2.5)
-    plot.draw_collections([bus_collection, line_collection, trafo_collection], ax=ax)
+    # Manually create line collection
+    line_coords = []
+    for _, line in net.line.iterrows():
+        from_bus_coords = net.bus_geodata.loc[line.from_bus]
+        to_bus_coords = net.bus_geodata.loc[line.to_bus]
+        line_coords.append([(from_bus_coords.x, from_bus_coords.y), (to_bus_coords.x, to_bus_coords.y)])
+    
+    lc = LineCollection(line_coords, color=colors["line"], linewidths=1.5, zorder=1)
+    ax.add_collection(lc)
+
+    # Manually create trafo collection
+    trafo_coords = []
+    for _, trafo in net.trafo.iterrows():
+        hv_bus_coords = net.bus_geodata.loc[trafo.hv_bus]
+        lv_bus_coords = net.bus_geodata.loc[trafo.lv_bus]
+        trafo_coords.append([(hv_bus_coords.x, lv_bus_coords.y), (lv_bus_coords.x, lv_bus_coords.y)])
+        
+    tc = LineCollection(trafo_coords, color=colors["trafo"], linewidths=2.5, zorder=1)
+    ax.add_collection(tc)
+
+    # Plot buses and other node elements using ax.scatter
+    bus_coords = net.bus_geodata
+    ax.scatter(bus_coords.x, bus_coords.y, s=100, color=colors["bus"], zorder=10, label='Barra (Bus)')
 
     def draw_node_elements(ax, net, element_type, marker, size, color, zorder, label):
         if not net[element_type].empty:
-            bus_coords = net.bus_geodata.loc[net[element_type].bus]
-            ax.scatter(bus_coords.x, bus_coords.y, s=size, marker=marker, color=color, zorder=zorder, label=label)
+            element_bus_coords = net.bus_geodata.loc[net[element_type].bus]
+            ax.scatter(element_bus_coords.x, element_bus_coords.y, s=size, marker=marker, color=color, zorder=zorder, label=label)
 
-    draw_node_elements(ax, net, 'gen', marker='^', size=150, color=colors["gen"], zorder=11, label='Gerador (Gen)')
-    draw_node_elements(ax, net, 'load', marker='v', size=150, color=colors["load"], zorder=11, label='Carga (Load)')
-    draw_node_elements(ax, net, 'shunt', marker='s', size=150, color=colors["shunt"], zorder=11, label='Shunt')
-    draw_node_elements(ax, net, 'ext_grid', marker='s', size=200, color=colors["ext_grid"], zorder=11, label='Rede Externa (Slack)')
+    draw_node_elements(ax, net, 'gen', marker='^', size=200, color=colors["gen"], zorder=11, label='Gerador (Gen)')
+    draw_node_elements(ax, net, 'load', marker='v', size=200, color=colors["load"], zorder=11, label='Carga (Load)')
+    draw_node_elements(ax, net, 'shunt', marker='s', size=200, color=colors["shunt"], zorder=11, label='Shunt')
+    draw_node_elements(ax, net, 'ext_grid', marker='s', size=250, color=colors["ext_grid"], zorder=11, label='Rede Externa (Slack)')
 
     from matplotlib.lines import Line2D
     legend_elements = [
