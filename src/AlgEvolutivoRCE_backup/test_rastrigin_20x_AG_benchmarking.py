@@ -35,10 +35,10 @@ def load_params():
         return json.load(f)
 
 
-def run_rastrigin_test(run_num, params=None):
+def run_rastrigin_test(run_num, params=None , num_executions=5):
     """Run a single test with the rastrigin function"""
     print(f"\n{'='*80}")
-    print(f"RUN {run_num + 1}/5 - {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
+    print(f"RUN {run_num + 1}/{num_executions} - {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
     print(f"{'='*80}")
     
     # Load default parameters if none provided
@@ -167,11 +167,13 @@ def main():
     os.makedirs(os.path.join('output', 'rastrigin_tests'), exist_ok=True)
     
     # Run 5 tests
-    num_executions = int(input("Digite a quantidade de vezes que voce quer simular :  "))
+    #num_executions = int(input("Digite a quantidade de vezes que voce quer simular : [DEFAULT = 5]  "))
+    num_executions = 20
+    
     results = []
     print(f"Voce escolheu realizar a simulação da função RASTRIGIN {num_executions} vezes!")
     for i in range(num_executions):
-        result = run_rastrigin_test(i, params.copy())
+        result = run_rastrigin_test(i, params.copy(), num_executions)
         results.append(result)
     
     # Print summary
