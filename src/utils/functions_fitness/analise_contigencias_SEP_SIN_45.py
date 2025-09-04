@@ -1,4 +1,3 @@
-# File: Repopulation-With-Elite-Set/src/utils/functions_fitness/function_SIN_45_otimizacao.py
 import os
 import sys
 import pandas as pd
@@ -20,6 +19,7 @@ class SmartGridSin45:
     def __init__(self):
         self.net = None
         self.dataframes = {}
+        self.bus_map = {} # Adicionado para mapear IDs de barras para índices do pandapower
 
     def create_sin45_dataset_file(self, filename='SIN_45_barras_dataset.xlsx'):
         """
@@ -68,7 +68,6 @@ class SmartGridSin45:
         
         df_bus['Barra'] = pd.to_numeric(df_bus['Barra'], errors='coerce').fillna(0)
 
-        bus_map = {}
         for _, row in df_bus.iterrows():
             bus_id = int(row['Barra'])
             try:
@@ -80,18 +79,22 @@ class SmartGridSin45:
                 vn_kv = 230.0 # Valor padrão
 
             new_idx = pp.create_bus(self.net, name=row['Nome'], vn_kv=vn_kv)
-            bus_map[bus_id] = new_idx
+            self.bus_map[bus_id] = new_idx
+
+        # CORREÇÃO: Adiciona limites de tensão para todas as barras para evitar KeyError
+        self.net.bus['min_vm_pu'] = 0.95
+        self.net.bus['max_vm_pu'] = 1.05
 
         # Adiciona cargas
         for _, row in df_load_gen.iterrows():
             if row['Carga Ativa (MW)'] > 0:
-                bus_idx = bus_map.get(int(row['Barra']))
+                bus_idx = self.bus_map.get(int(row['Barra']))
                 if bus_idx is not None:
                     pp.create_load(self.net, bus=bus_idx, p_mw=row['Carga Ativa (MW)'], q_mvar=row['Carga Reativa (Mvar)'])
 
         # Adiciona geradores e a rede externa (slack)
         for _, row in df_load_gen.iterrows():
-            bus_idx = bus_map.get(int(row['Barra']))
+            bus_idx = self.bus_map.get(int(row['Barra']))
             if bus_idx is None: continue
             
             is_slack = row['Tipo de Barra (*)'] == 2
@@ -113,8 +116,8 @@ class SmartGridSin45:
 
             s_base_mva = 100.0
             for _, row in df_line.iterrows():
-                from_bus = bus_map.get(int(row['De']))
-                to_bus = bus_map.get(int(row['Para']))
+                from_bus = self.bus_map.get(int(row['De']))
+                to_bus = self.bus_map.get(int(row['Para']))
                 if from_bus is None or to_bus is None: continue
                 
                 from_vn_kv = self.net.bus.vn_kv.at[from_bus]
@@ -173,15 +176,12 @@ def funcao_objetivo_SIN45(individuo, setupobj, _debug=False):
     filepath = SmartGrid_SIN45.create_sin45_dataset_file()
     SmartGrid_SIN45.load_data_from_excel(filepath)
     pp_network_SIN = SmartGrid_SIN45.create_network_from_dataframes()
+    bus_map = SmartGrid_SIN45.bus_map # Obtém o mapa de barras
 
     try:
-        #pp_net = _create_sin45_pandapower_net()
         nome_rede = "SIN 45"
         rede = RedeEletricaPandaPower(network_name = "nova", debug=False)
-
-        # Passa a rede do SIN 45 criada do zero para meu net do pandapower
         rede.net = pp_network_SIN
-        
         
         print(rede.net)
 
@@ -198,9 +198,22 @@ def funcao_objetivo_SIN45(individuo, setupobj, _debug=False):
         rede.net.line['max_loading_percent'] = rede.pesos["loading_linhas"]
         rede.net.trafo['max_loading_percent'] = rede.pesos["loading_trafos"]
 
-        # Clona DFs para não modificar os originais
+        # Clona DFs e traduz os IDs das barras para os índices do pandapower
         agenda_local = agendamento_df.copy()
         contingencia_local = contingencia_df.copy()
+
+        # CORREÇÃO: Traduz os IDs das barras para os índices corretos do pandapower
+        agenda_local['ramo'] = agenda_local['ramo'].apply(
+            lambda r: [bus_map.get(r[0]), bus_map.get(r[1])]
+        )
+        contingencia_local['from'] = contingencia_local['from'].map(bus_map)
+        contingencia_local['to'] = contingencia_local['to'].map(bus_map)
+
+        # Remove linhas com mapeamento falho (se houver)
+        agenda_local.dropna(subset=['ramo'], inplace=True)
+        contingencia_local.dropna(subset=['from', 'to'], inplace=True)
+        contingencia_local = contingencia_local.astype({'from': int, 'to': int})
+
 
         agenda_local["inicio"] = individuo
         duracao_total_agendamento = (agenda_local['inicio'] + agenda_local['duracao']).max()
@@ -224,7 +237,6 @@ def funcao_objetivo_SIN45(individuo, setupobj, _debug=False):
             "contingencia": []
         }
 
-
         for cenario in matriz_cenarios:
             perfil = cenario[0]
             estado_ramos = cenario[1:]
@@ -241,29 +253,31 @@ def funcao_objetivo_SIN45(individuo, setupobj, _debug=False):
                 else:
                     rede.religar_todos_os_ramos_agendamento()
                     rede.desligar_elementos_agendamento(estado_ramos)
-                    ramo_contingencia = list(contingencia_df.loc[contingencia_df['contingencia'] == contingencia_atual, ['from', 'to']].values[0])
-                    rede.desligar_contingencia(ramo_contingencia)
+                    
+                    # Usa o DF local já traduzido
+                    ramo_contingencia_row = contingencia_local.loc[contingencia_local['contingencia'] == contingencia_atual]
+                    if not ramo_contingencia_row.empty:
+                        ramo_contingencia = list(ramo_contingencia_row[['from', 'to']].values[0])
+                        rede.desligar_contingencia(ramo_contingencia)
 
-                    #! salva os ramos selecionados
-                    contigencias_selecionadas["ramos"].append(ramo_contingencia)
-                    contigencias_selecionadas["contingencia"].append(contingencia_atual)
+                        contigencias_selecionadas["ramos"].append(ramo_contingencia)
+                        contigencias_selecionadas["contingencia"].append(contingencia_atual)
 
-
-                    if rede.executar_fluxo_de_potencia():
-                        fitness, _ = rede.calcular_violacoes_fitness()
+                        if rede.executar_fluxo_de_potencia():
+                            fitness, _ = rede.calcular_violacoes_fitness()
+                        else:
+                            fitness = rede.pesos.get("demanda")
                     else:
-                        fitness = rede.pesos.get("demanda")
+                        fitness = 0 # Contingência não encontrada, sem violação
 
                     setupobj.tabela_hash[hash_key] = fitness
                     setupobj.objectiveruns += 1
                 
                 violacoes_total.append(fitness)
 
-        # 12) Calcular fitness final com somatorio das vioações com pesos de todos os cenarios
         fitness_final = sum(violacoes_total)
         rede.log(f"\nFitness do agendamento = {fitness_final:.2f}\n", level="success")
 
-        # Criar DataFrames para o retorno
         fitness_df = pd.DataFrame([{'fitness_final': fitness_final}])
         
         resultados = {
@@ -303,15 +317,16 @@ def run_simulate_SIN45():
         tamanho_hash= tabela_hash,
     )
 
-    fitness,  ramos_selecionados = funcao_objetivo_SIN45(
+    fitness,  resultados = funcao_objetivo_SIN45(
         individuo= [15, 15, 10, 21, 16 ],
         setupobj= setup,
         _debug= False
     )
 
-    print("Resultados:")
-    print(fitness)
-    print(ramos_selecionados)
+    print("\n--- Resultados Finais ---")
+    print(f"Fitness Final: {fitness}")
+    print("Ramos de contingência selecionados:")
+    print(pd.DataFrame(resultados.get("ramos_selecionados", {})))
 
 
 
