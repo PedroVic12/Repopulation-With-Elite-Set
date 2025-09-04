@@ -10,8 +10,8 @@
 	          <img src="https://github.com/user-attachments/assets/21e2218a-3df3-4757-8234-eb59c91490c3" alt="Descrição Imagem 1">
     </td>
     <td>
-	    	          <img src="https://github.com/user-attachments/assets/5e46cfe2-c669-42ef-9dd5-4f526a82753b" alt="Descrição Imagem 1">
-
+	    <img src="https://github.com/user-attachments/assets/5e46cfe2-c669-42ef-9dd5-4f526a82753b" alt="Descrição Imagem 1">
+	</td>
   </tr>
 </table>
 
@@ -178,7 +178,7 @@ Exemplo de simulação da Rede Eletrica IEEE 14 barras com PandaPower
 	<img src="https://github.com/PedroVic12/Repopulation-With-Elite-Set/blob/main/src/assets/newplot.png" />
     </td>
     <td>
-	  <img src="https://media.licdn.com/dms/image/v2/D4D22AQFMN4mytV8VlQ/feedshare-shrink_1280/B4DZWFGmGyG4Ao-/0/1741694854673?e=1750896000&v=beta&t=8oWhx1CObYXT0MlkDO0udm1iBEX804kwZLi7CSgYTYw" />
+	  <img src="https://icseg.iti.illinois.edu/files/2013/10/WSCC14.png" />
   </tr>
 </table>
 
