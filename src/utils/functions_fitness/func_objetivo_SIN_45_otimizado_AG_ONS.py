@@ -102,7 +102,7 @@ class SmartGridSin45:
         print(f"A gerar gráfico da rede em '{filename}'...")
         try:
             pp.runpp(self.net)
-            fig = pplotly.simple_plotly(self.net)
+            fig = pp.simple_plotly(self.net)
             fig.write_html(filename)
             print(f"Gráfico guardado com sucesso! Pode abrir o ficheiro '{filename}' no navegador.")
         except Exception as e:

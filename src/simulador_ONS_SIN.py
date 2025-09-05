@@ -1,15 +1,13 @@
 import sys
 import os
-import webbrowser
-import subprocess
+import traceback
 import pandas as pd
 import pandapower as pp
-import pandapower.plotting as plot
 import pandapower.networks as pn
+import pandapower.plotting as plot
 import matplotlib.pyplot as plt
-import traceback
 from matplotlib.lines import Line2D
-import matplotlib.colors as mcolors
+from matplotlib.figure import Figure
 import numpy as np
 
 # Define o backend Qt para o Matplotlib
@@ -18,37 +16,83 @@ os.environ['QT_API'] = 'PySide6'
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 from PySide6.QtWidgets import (
     QApplication, QMainWindow, QWidget, QVBoxLayout, QHBoxLayout,
-    QPushButton, QTableWidget, QTableWidgetItem, QTabWidget, QFileDialog,
-    QMessageBox, QHeaderView, QGroupBox, QSplitter, QLabel, QFrame
+    QLabel, QComboBox, QListWidget, QListWidgetItem, QPushButton,
+    QTabWidget, QTableWidget, QTableWidgetItem, QHeaderView,
+    QGroupBox, QSplitter, QTextEdit, QMessageBox, QFrame, QFileDialog
 )
-from PySide6.QtCore import Qt
-from PySide6.QtGui import QFont
+from PySide6.QtCore import Qt, Signal, QTimer
+from PySide6.QtGui import QFont, QColor
 
 # =============================================================================
-# ESTILO DA APLICAÇÃO (PALETA DE CORES ONS)
+# ESTILO DA APLICAÇÃO (TEMA FUTURISTA ESCURO)
 # =============================================================================
-STYLESHEET = """
-    QMainWindow, QWidget { background-color: #f0f2f5; }
+STYLESHEET_DARK = """
+    QMainWindow, QWidget {
+        background-color: #1e1f22;
+        color: #e0e0e0;
+        font-family: 'Segoe UI', sans-serif;
+    }
     QGroupBox {
-        font-family: 'Inter', sans-serif; font-size: 11pt; font-weight: bold;
-        color: #003366; border: 1px solid #c8d2dc; border-radius: 8px;
-        margin-top: 1ex; background-color: #ffffff;
+        font-size: 11pt;
+        font-weight: bold;
+        color: #58cfff; /* Azul Neon */
+        border: 1px solid #3a3f44;
+        border-radius: 8px;
+        margin-top: 1ex;
+        background-color: #2b2d30;
     }
     QGroupBox::title {
-        subcontrol-origin: margin; subcontrol-position: top center;
-        padding: 0 10px; background-color: #f0f2f5; color: #003366;
+        subcontrol-origin: margin;
+        subcontrol-position: top center;
+        padding: 0 10px;
+        background-color: #1e1f22;
+    }
+    QLabel {
+        font-size: 10pt;
+        color: #c0c0c0;
     }
     QPushButton {
-        font-family: 'Inter', sans-serif; font-size: 10pt; font-weight: bold;
-        color: white; background-color: #005c99; border: none;
-        padding: 10px; border-radius: 5px;
+        font-size: 10pt;
+        font-weight: bold;
+        color: #ffffff;
+        background-color: #007acc;
+        border: 1px solid #005c99;
+        padding: 10px;
+        border-radius: 5px;
     }
-    QPushButton:hover { background-color: #0073b3; }
-    QPushButton:pressed { background-color: #004c80; }
+    QPushButton:hover {
+        background-color: #0099ff;
+    }
+    QPushButton:pressed {
+        background-color: #005c99;
+    }
     QHeaderView::section {
-        background-color: #003366; color: white; padding: 5px;
-        border: 1px solid #002244; font-weight: bold;
+        background-color: #3a3f44;
+        color: #58cfff;
+        padding: 5px;
+        border: 1px solid #2b2d30;
+        font-weight: bold;
     }
+    QTableWidget, QListWidget, QTextEdit {
+        background-color: #2b2d30;
+        border: 1px solid #3a3f44;
+        gridline-color: #3a3f44;
+        color: #e0e0e0;
+    }
+    QTabWidget::pane { border: 1px solid #3a3f44; }
+    QTabBar::tab {
+        background: #2b2d30; color: #c0c0c0; padding: 8px 15px;
+        border-top-left-radius: 5px; border-top-right-radius: 5px;
+        margin-right: 2px; border: 1px solid #3a3f44; border-bottom: none;
+    }
+    QTabBar::tab:selected {
+        background: #3a3f44; color: #58cfff; font-weight: bold;
+    }
+    #StatusBanner[status="success"] { background-color: #1a4f31; color: #a6f6c3; border: 1px solid #2a7e4b; }
+    #StatusBanner[status="warning"] { background-color: #4d442a; color: #ffeb99; border: 1px solid #8c732e; }
+    #StatusBanner[status="error"] { background-color: #5c2b2f; color: #f8d7da; border: 1px solid #a3464d; }
+    #StatusBanner[status="idle"] { background-color: #3a3f44; color: #c0c0c0; border: 1px solid #4a4f54; }
+    #StatusBanner { padding: 8px; font-weight: bold; border-radius: 5px; }
 """
 
 # =============================================================================
@@ -61,13 +105,16 @@ class RedeEletricaModel:
     def __init__(self):
         self.net = None
         self.network_name = ""
-        self.dataframes = {}
         self.bus_map = {}
+
+    def _ensure_geodata(self):
+        """ Garante que a rede tenha coordenadas geográficas para plotagem. """
+        if self.net and (not hasattr(self.net, "bus_geodata") or self.net.bus_geodata.empty):
+            plot.create_generic_coordinates(self.net, overwrite=True)
 
     def load_network(self, network_name):
         """ Carrega uma rede padrão do pandapower. """
         self.network_name = network_name
-        self.dataframes.clear()
         try:
             if network_name == "IEEE 14": self.net = pn.case14()
             elif network_name == "IEEE 30": self.net = pn.case_ieee30()
@@ -77,13 +124,13 @@ class RedeEletricaModel:
                 return False, f"Caso de rede '{network_name}' desconhecido."
             
             self.net.name = network_name
+            self._ensure_geodata()
             return True, f"Rede '{network_name}' carregada com sucesso."
         except Exception as e:
             return False, f"Erro ao carregar a rede '{network_name}': {e}"
 
     def create_sin45_dataset_file(self, filename='SIN_45_barras_dataset.xlsx'):
         """ Cria um arquivo Excel com os dados do sistema SIN 45 Barras. """
-        # Dicionários com todos os dados do SIN 45 Barras
         nomes_barras = {'Barra': list(range(1, 46)),'Nome': ['IVAIPORA.525', 'LONDRINA.525', 'BARRACAO13.8', 'SIDEROPOL230', 'FARROUPIL230','P.FUNDO.13.8', 'P.FUNDO.230', 'XANXERE.230', 'P.BRANCO.230', 'S.OSORIO13.8','S.OSORIO.230', 'AREIA.230', 'S.MATEUS.230', 'CURITIBA.230', 'JOINVILE.230','BLUMENAU.230', 'R.QUEIMAD230', 'F.AREIA.13.8', 'AREIA.525', 'CURITIBA.525','CUR.NORTE525', 'BLUMENAU.525', 'BARRACAO.525', 'GRAVATAI.525', 'V.AIRES.525','PINHEIRO.525', 'S.SANTIA13.8', 'S.SANTIAG525', 'J.LAC.A.13.8', 'J.LACERDA138','J.LAC.B.13.8', 'J.LAC.C.13.8', 'J.LACERDA230', 'SEGREDO.13.8', 'SEGREDO.525','CECI.230', 'GRAVATAI.230', 'ITAUBA.13.8', 'ITAUBA.230', 'V.AIRES.230','APUCARANA230', 'LONDRINA.230', 'MARINGA.230', 'C.MOURAO.230', 'FORQUILHI230']}
         reatores = {'Barra': [1, 20, 21, 23, 24, 25],'Susceptância Shunt B(pu)': [-2.000, -1.500, -1.500, -1.000, -1.500, -1.500]}
         dados_rede = {'De': [1, 1, 1, 2, 3, 4, 4, 4, 5, 5, 6, 7, 7, 8, 8, 9, 10, 11, 11, 12, 12, 13, 14, 14, 15, 16, 16, 17, 18, 19, 19, 19, 19, 20, 20, 23, 24, 25, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 36, 36, 38, 39, 41, 41, 41, 42, 43],'Para': [2, 19, 28, 42, 23, 5, 33, 45, 7, 36, 7, 8, 39, 9, 11, 11, 11, 12, 44, 13, 19, 14, 15, 20, 16, 17, 22, 33, 19, 20, 21, 23, 35, 21, 22, 24, 37, 26, 40, 28, 28, 35, 30, 33, 33, 33, 45, 35, 37, 40, 39, 40, 42, 43, 44, 43, 44],'R(pu)': [0.00035, 0.0018, 0.0014, 0.0, 0.0, 0.0386, 0.0096, 0.0033, 0.02315, 0.00885, 0.0, 0.00815, 0.025, 0.0163, 0.0316, 0.0153, 0.0, 0.0306, 0.0172, 0.0245, 0.0, 0.0088, 0.0091, 0.0, 0.0077, 0.0108, 0.0, 0.009, 0.0, 0.0019, 0.0019, 0.0014, 0.0005, 0.0005, 0.0012, 0.0021, 0.0, 0.0022, 0.0, 0.0014, 0.0, 0.0005, 0.0, 0.0, 0.0, 0.0, 0.0129, 0.0, 0.0006971, 0.0061315, 0.0, 0.0202, 0.0051987, 0.011, 0.0229, 0.0086, 0.0181],'X(pu)': [0.00725, 0.0227, 0.0204, 0.0063, 0.0136, 0.1985, 0.0491, 0.0167, 0.1189, 0.0455, 0.046, 0.04175, 0.1548, 0.0835, 0.1621, 0.0861, 0.0114, 0.1523, 0.088, 0.1256, 0.03, 0.0415, 0.04675, 0.0062, 0.0388, 0.05525, 0.0062, 0.046, 0.0067, 0.028, 0.0274, 0.0195, 0.007, 0.0069, 0.0175, 0.0309, 0.0062, 0.03, 0.0062, 0.0195, 0.0114, 0.007, 0.0871, 0.059, 0.0701, 0.045, 0.0657, 0.0068, 0.0035819, 0.0316242, 0.0236, 0.1129, 0.0268149, 0.1184, 0.1174, 0.0442, 0.0929],'B(pu)': [0.8305, 2.2721, 2.4475, 0.0, 0.0, 0.34, 0.0842, 0.2859, 0.2042, 0.07925, 0.0, 0.072, 0.469, 0.144, 0.2784, 0.1344, 0.0, 0.2702, 0.152, 0.2041, 0.0, 0.5211, 0.07975, 0.0, 0.0675, 0.09315, 0.0, 0.07765, 0.0, 3.3576, 3.2867, 2.3968, 0.8392, 0.8216, 2.097, 3.7183, 0.0, 3.83, 0.0, 2.397, 0.0, 0.8392, 0.0, 0.0, 0.0, 0.0, 0.1128, 0.0, 0.0668, 0.5236, 0.0, 0.2062, 0.1905, 0.2027, 0.2027, 0.2868, 0.1607]}
@@ -101,18 +148,20 @@ class RedeEletricaModel:
         """ Carrega e constrói uma rede a partir de um arquivo Excel. """
         try:
             xls = pd.ExcelFile(filepath)
-            self.dataframes = {sheet_name: xls.parse(sheet_name) for sheet_name in xls.sheet_names}
+            dataframes = {sheet_name: xls.parse(sheet_name) for sheet_name in xls.sheet_names}
             self.network_name = "SIN 45 Barras"
             
-            success, message = self._create_network_from_dataframes()
-            if success: self.net.name = self.network_name
+            success, message = self._create_network_from_dataframes(dataframes)
+            if success: 
+                self.net.name = self.network_name
+                self._ensure_geodata()
             return success, message
         except Exception as e:
             return False, f"Falha ao processar o arquivo Excel: {e}"
 
-    def _create_network_from_dataframes(self):
+    def _create_network_from_dataframes(self, dataframes):
         """ Lógica interna para construir a rede a partir dos dataframes carregados. """
-        df_load_gen = self.dataframes.get('load_gen')
+        df_load_gen = dataframes.get('load_gen')
         
         # VALIDAÇÃO DA BARRA SWING (SLACK)
         slack_buses = df_load_gen[df_load_gen['Tipo de Barra (*)'] == 2]
@@ -122,9 +171,9 @@ class RedeEletricaModel:
         self.net = pp.create_empty_network()
         self.bus_map.clear()
         
-        df_bus = self.dataframes.get('bus')
-        df_line = self.dataframes.get('line')
-        df_shunt = self.dataframes.get('shunt')
+        df_bus = dataframes.get('bus')
+        df_line = dataframes.get('line')
+        df_shunt = dataframes.get('shunt')
 
         for _, row in df_bus.iterrows():
             bus_id = int(row['Barra'])
@@ -171,17 +220,54 @@ class RedeEletricaModel:
                 pp.create_line_from_parameters(self.net, from_bus=from_bus, to_bus=to_bus, length_km=1.0, r_ohm_per_km=row['R(pu)']*z_base_ohm, x_ohm_per_km=row['X(pu)']*z_base_ohm, c_nf_per_km=(row['B(pu)']/(2*np.pi*60*z_base_ohm))*1e9, max_i_ka=10.0)
         
         return True, "Rede SIN 45 criada com sucesso."
+    
+    def apply_contingencies(self, contingencies):
+        """Aplica uma lista de contingências à rede."""
+        if not self.net: return
+        # Reseta o estado para garantir que apenas as contingências atuais sejam aplicadas
+        self.net.line['in_service'] = True
+        if not self.net.trafo.empty: self.net.trafo['in_service'] = True
+        
+        for c_type, c_id in contingencies:
+            if c_type == 'line' and c_id in self.net.line.index:
+                self.net.line.loc[c_id, 'in_service'] = False
+            elif c_type == 'trafo' and c_id in self.net.trafo.index:
+                self.net.trafo.loc[c_id, 'in_service'] = False
+
 
     def run_power_flow(self):
         """ Executa o fluxo de potência. """
-        if self.net is None: return False, "A rede não foi criada."
+        if self.net is None: return False, "A rede não foi criada.", 'error'
         try:
             pp.runpp(self.net, algorithm='nr', init='flat')
-            return True, "Fluxo de potência calculado com sucesso!"
+            return True, "Fluxo de potência convergiu com sucesso!", 'success'
         except pp.LoadflowNotConverged:
-            return False, "ATENÇÃO: O fluxo de potência não convergiu."
+            return False, "ATENÇÃO: O fluxo de potência não convergiu.", 'warning'
         except Exception as e:
-            return False, f"Ocorreu um erro inesperado: {e}"
+            return False, f"Erro inesperado no cálculo: {e}", 'error'
+            
+    def get_kpis(self):
+        """Calcula e retorna os principais indicadores de desempenho (KPIs)."""
+        if not hasattr(self.net, 'res_bus') or self.net.res_bus.empty:
+            return { "total_load_mw": 0, "total_gen_mw": 0, "voltage_violations": 0, "overloads": 0 }
+
+        # Violações de Tensão
+        voltage_violations = ((self.net.res_bus.vm_pu > self.net.bus.max_vm_pu) | 
+                              (self.net.res_bus.vm_pu < self.net.bus.min_vm_pu)).sum()
+        
+        # Sobrecargas de Ramos (Linhas e Transformadores)
+        line_overloads = (self.net.res_line.loading_percent > 100).sum()
+        trafo_overloads = 0
+        if hasattr(self.net, 'res_trafo') and not self.net.res_trafo.empty:
+            trafo_overloads = (self.net.res_trafo.loading_percent > 100).sum()
+
+        return {
+            "total_load_mw": self.net.res_load.p_mw.sum(),
+            "total_gen_mw": self.net.res_gen.p_mw.sum() + self.net.res_ext_grid.p_mw.sum(),
+            "voltage_violations": int(voltage_violations),
+            "overloads": int(line_overloads + trafo_overloads)
+        }
+
 
 # =============================================================================
 # 2. VIEW (Interface Gráfica com PySide6)
@@ -190,10 +276,14 @@ class MetricsWidget(QWidget):
     def __init__(self, parent=None):
         super().__init__(parent)
         layout = QHBoxLayout(self)
-        self.gen_card = self._create_metric_card("Geração Total (MW)", "N/A")
-        self.load_card = self._create_metric_card("Carga Total (MW)", "N/A")
-        layout.addWidget(self.gen_card)
-        layout.addWidget(self.load_card)
+        self.cards = {
+            "gen": self._create_metric_card("Geração Total (MW)", "N/A"),
+            "load": self._create_metric_card("Carga Total (MW)", "N/A"),
+            "voltage": self._create_metric_card("Violações de Tensão", "N/A"),
+            "overload": self._create_metric_card("Sobrecargas (Ramos)", "N/A")
+        }
+        for card in self.cards.values():
+            layout.addWidget(card)
 
     def _create_metric_card(self, title, initial_value):
         card = QGroupBox(title)
@@ -202,29 +292,62 @@ class MetricsWidget(QWidget):
         font = QFont("Segoe UI", 20, QFont.Bold)
         value_label.setFont(font)
         value_label.setAlignment(Qt.AlignCenter)
+        card.setStyleSheet("QGroupBox { padding: 15px; }")
         card_layout.addWidget(value_label)
         return card
 
-    def update_metrics(self, total_gen_mw, total_load_mw):
-        self.gen_card.findChild(QLabel).setText(f"{total_gen_mw:.2f}")
-        self.load_card.findChild(QLabel).setText(f"{total_load_mw:.2f}")
+    def update_metrics(self, kpis):
+        self.cards["gen"].findChild(QLabel).setText(f"{kpis['total_gen_mw']:.2f}")
+        self.cards["load"].findChild(QLabel).setText(f"{kpis['total_load_mw']:.2f}")
+        self.cards["voltage"].findChild(QLabel).setText(f"{kpis['voltage_violations']}")
+        self.cards["overload"].findChild(QLabel).setText(f"{kpis['overloads']}")
 
 class NetworkCanvas(FigureCanvas):
     def __init__(self, parent=None):
         self.fig, self.ax = plt.subplots(figsize=(16, 12))
         super().__init__(self.fig)
         self.setParent(parent)
+        self.net = None
+        self.rotation_angle = 0
+        self.setFocusPolicy(Qt.StrongFocus)
+
+    def keyPressEvent(self, event):
+        """ Captura eventos de teclado para rotacionar o diagrama. """
+        if self.net is None:
+            return
+
+        if event.key() == Qt.Key_Right:
+            self.rotation_angle += 15
+        elif event.key() == Qt.Key_Left:
+            self.rotation_angle -= 15
+        else:
+            super().keyPressEvent(event)
+            return
+        
+        self.rotation_angle %= 360
+        # Redesenha a rede com o novo ângulo
+        self.plot_network(self.net, self.net.name, self.bus_map)
+
 
     def plot_network(self, net, network_name, bus_map={}):
+        self.net = net
+        self.bus_map = bus_map # Armazena o bus_map para rotação
         self.ax.clear()
+        
+        # Define cores do tema
+        bg_color = '#1e1f22'
+        text_color = '#e0e0e0'
+        self.fig.set_facecolor(bg_color)
+        self.ax.set_facecolor(bg_color)
+
         if not (net and len(net.bus) > 0):
-            self.ax.text(0.5, 0.5, 'Carregue uma rede para visualizar.', ha='center')
+            self.ax.text(0.5, 0.5, 'Carregue uma rede para visualizar.', ha='center', color=text_color)
             self.draw()
             return
             
-        if not hasattr(net, 'bus_geodata') or net.bus_geodata.empty:
-            plot.create_generic_coordinates(net, overwrite=True)
-
+        # Garante que as coordenadas existem para plotagem
+        plot.create_generic_coordinates(net, overwrite=True)
+        
         collections = []
         handles = []
         
@@ -234,9 +357,9 @@ class NetworkCanvas(FigureCanvas):
             ramo2_pairs = [(1,28),(26,28),(25,26),(24,25),(23,24),(3,23)]
             ramo3_pairs = [(4,5),(5,7),(7,8),(8,9)]
             ramos = {
-                "Ramo 1 (Verde)": {"pairs": ramo1_pairs, "color": "green"},
-                "Ramo 2 (Azul)": {"pairs": ramo2_pairs, "color": "blue"},
-                "Ramo 3 (Vermelho)": {"pairs": ramo3_pairs, "color": "red"}
+                "Troncal Sul-Sudeste": {"pairs": ramo1_pairs, "color": "#2ca02c"}, # Verde
+                "Troncal Sudoeste": {"pairs": ramo2_pairs, "color": "#1f77b4"}, # Azul
+                "Interligação Norte": {"pairs": ramo3_pairs, "color": "#d62728"} # Vermelho
             }
             
             plotted_lines = set()
@@ -249,70 +372,135 @@ class NetworkCanvas(FigureCanvas):
                         if not line.empty:
                             indices.append(line.index[0])
                 if indices:
-                    collections.append(plot.create_line_collection(net, lines=indices, color=data["color"], use_bus_geodata=True))
+                    collections.append(plot.create_line_collection(net, lines=indices, color=data["color"]))
                     plotted_lines.update(indices)
                     handles.append(plt.Line2D([0], [0], color=data["color"], lw=2, label=name))
 
             other_lines = list(set(net.line.index) - plotted_lines)
-            collections.append(plot.create_line_collection(net, lines=other_lines, color="grey", use_bus_geodata=True))
-            handles.append(plt.Line2D([0], [0], color='grey', lw=2, label='Outras Linhas'))
+            collections.append(plot.create_line_collection(net, lines=other_lines, color="#606060"))
+            handles.append(plt.Line2D([0], [0], color='#606060', lw=2, label='Outras Linhas'))
 
         # --- Lógica de Plotagem para Casos IEEE ---
         else:
-            collections.append(plot.create_line_collection(net, color="grey", use_bus_geodata=True))
-            handles.append(plt.Line2D([0], [0], color='grey', lw=2, label='Linha'))
-
-        collections.append(plot.create_bus_collection(net, color="blue", size=0.04))
-        handles.append(plt.Line2D([0], [0], color='blue', marker='o', lw=0, label='Barra'))
-
-        if len(net.trafo) > 0:
-            collections.append(plot.create_trafo_collection(net, color='purple'))
-            handles.append(plt.Line2D([0], [0], color='purple', lw=2, label='Transformador'))
+            vn_kvs = sorted(net.bus.vn_kv.unique())
+            cmap = plt.get_cmap('plasma', len(vn_kvs))
+            for i, vn in enumerate(vn_kvs):
+                lines = net.line.index[net.bus.vn_kv[net.line.from_bus].values == vn]
+                if len(lines) > 0:
+                    collections.append(plot.create_line_collection(net, lines=lines, color=cmap(i)))
+                    handles.append(plt.Line2D([0], [0], color=cmap(i), lw=2, label=f'Linha {vn} kV'))
         
-        # Desenha todas as coleções de uma vez
+        # Elementos comuns a todas as redes
+        bus_collections, bus_handles = self.create_bus_collections(net)
+        collections.extend(bus_collections)
+        handles.extend(bus_handles)
+        
+        if len(net.trafo) > 0:
+            collections.append(plot.create_trafo_collection(net, color='#9467bd')) # Roxo
+            handles.append(plt.Line2D([0], [0], color='#9467bd', lw=2, label='Transformador'))
+
+        # Elementos fora de serviço (contingência)
+        oos_lines = net.line.index[~net.line.in_service]
+        if not oos_lines.empty:
+            collections.append(plot.create_line_collection(net, lines=oos_lines, color="#ff7f0e", linestyle="--", linewidths=2.5))
+            handles.append(plt.Line2D([0], [0], color='#ff7f0e', linestyle='--', lw=2, label='Fora de Serviço'))
+
         plot.draw_collections(collections, ax=self.ax)
         
-        self.ax.legend(handles=handles, loc='best')
-        self.ax.set_title(f"Diagrama Unifilar - {network_name}")
+        legend = self.ax.legend(handles=handles, loc='upper left', bbox_to_anchor=(1, 1))
+        plt.setp(legend.get_texts(), color=text_color)
+        legend.get_frame().set_facecolor(bg_color)
+        legend.get_frame().set_edgecolor('#3a3f44')
+
+        self.ax.set_title(f"Diagrama Unifilar - {network_name}", color=text_color, weight='bold')
         self.fig.tight_layout()
         self.draw()
+
+    def create_bus_collections(self, net):
+        """Cria coleções de barras e handles para a legenda."""
+        collections = []
+        handles = []
+
+        slack_buses = net.ext_grid.bus
+        gen_buses = set(net.gen.bus) - set(slack_buses)
+        
+        if not slack_buses.empty:
+            collections.append(plot.create_bus_collection(net, buses=slack_buses, color='#d62728', size=0.05, zorder=11))
+            handles.append(plt.Line2D([0], [0], color='#d62728', marker='o', lw=0, label='Barra Slack (Swing)'))
+        if gen_buses:
+            collections.append(plot.create_bus_collection(net, buses=list(gen_buses), color='#ff7f0e', size=0.04, zorder=10))
+            handles.append(plt.Line2D([0], [0], color='#ff7f0e', marker='o', lw=0, label='Barra de Geração (PV)'))
+
+        # Barras restantes (carga ou passagem)
+        other_buses = set(net.bus.index) - set(slack_buses) - gen_buses
+        collections.append(plot.create_bus_collection(net, buses=list(other_buses), color='#1f77b4', size=0.03, zorder=9))
+        handles.append(plt.Line2D([0], [0], color='#1f77b4', marker='o', lw=0, label='Barra (Carga/Passagem)'))
+        
+        return collections, handles
+
 
 class MainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
         self.setWindowTitle("Simulador de Redes Elétricas")
-        self.setGeometry(100, 100, 1600, 900)
+        self.setGeometry(100, 100, 1800, 1000)
 
         main_widget = QWidget()
         self.setCentralWidget(main_widget)
         main_layout = QVBoxLayout(main_widget)
         
-        splitter = QSplitter(Qt.Horizontal)
-        main_layout.addWidget(splitter)
+        # Banner de Status
+        self.status_banner = QLabel("Bem-vindo! Selecione uma rede para começar.")
+        self.status_banner.setObjectName("StatusBanner")
+        self.status_banner.setAlignment(Qt.AlignCenter)
+        self.update_status_banner("Bem-vindo! Selecione uma rede para começar.", 'idle')
+        main_layout.addWidget(self.status_banner)
+        
+        # Splitter principal
+        main_splitter = QSplitter(Qt.Horizontal)
+        main_layout.addWidget(main_splitter)
 
         # --- Painel Esquerdo (Controles e Tabelas) ---
         left_panel = QWidget()
         left_layout = QVBoxLayout(left_panel)
-        splitter.addWidget(left_panel)
+        left_panel.setLayout(left_layout)
+        main_splitter.addWidget(left_panel)
 
-        # --- Painel Direito (Visualização) ---
-        right_panel = QGroupBox("Visualização da Rede")
+        # --- Painel Direito (Visualização e Descrição) ---
+        right_panel = QWidget()
         right_layout = QVBoxLayout(right_panel)
-        splitter.addWidget(right_panel)
+        right_panel.setLayout(right_layout)
+        main_splitter.addWidget(right_panel)
         
-        splitter.setSizes([600, 1000])
+        main_splitter.setSizes([700, 1100])
+        
+        # --- Conteúdo do Painel Direito ---
+        right_splitter = QSplitter(Qt.Vertical)
+        right_layout.addWidget(right_splitter)
 
+        self.network_view_group = QGroupBox("Visualização da Rede (Use as setas ← → para rotacionar)")
+        network_view_layout = QVBoxLayout(self.network_view_group)
         self.metrics_widget = MetricsWidget()
-        right_layout.addWidget(self.metrics_widget)
-
+        network_view_layout.addWidget(self.metrics_widget)
         self.network_canvas = NetworkCanvas(self)
-        right_layout.addWidget(self.network_canvas)
+        network_view_layout.addWidget(self.network_canvas)
+        right_splitter.addWidget(self.network_view_group)
 
-        # Grupo de Controles
-        controls_group = QGroupBox("Controles da Simulação")
-        controls_layout = QVBoxLayout(controls_group)
+        self.description_group = QGroupBox("Descrição da Rede")
+        description_layout = QVBoxLayout(self.description_group)
+        self.network_description_text = QTextEdit()
+        self.network_description_text.setReadOnly(True)
+        description_layout.addWidget(self.network_description_text)
+        right_splitter.addWidget(self.description_group)
+        right_splitter.setSizes([700, 300])
         
-        # Botões para Casos IEEE
+        
+        # --- Layout do Painel Esquerdo ---
+        
+        # Grupo de Controles da Rede
+        network_controls_group = QGroupBox("1. Seleção e Carga da Rede")
+        network_controls_layout = QVBoxLayout(network_controls_group)
+        
         ieee_layout = QHBoxLayout()
         self.btn_case14 = QPushButton("IEEE 14")
         self.btn_case30 = QPushButton("IEEE 30")
@@ -323,18 +511,30 @@ class MainWindow(QMainWindow):
         ieee_layout.addWidget(self.btn_case57)
         ieee_layout.addWidget(self.btn_case118)
         
-        # Botões SIN 45 e Ações
-        actions_layout = QHBoxLayout()
-        self.btn_generate_sin45 = QPushButton("Gerar e Carregar SIN 45")
-        self.btn_run_pf = QPushButton("▶ Executar Fluxo de Potência")
-        self.btn_run_pf.setStyleSheet("background-color: #4CAF50; color: white; font-weight: bold;")
-        actions_layout.addWidget(self.btn_generate_sin45)
-        actions_layout.addStretch()
-        actions_layout.addWidget(self.btn_run_pf)
+        sin_layout = QHBoxLayout()
+        self.btn_generate_sin45 = QPushButton("Gerar Dataset SIN 45")
+        self.btn_load_excel = QPushButton("Carregar de Excel...")
+        self.btn_export_excel = QPushButton("Exportar para Excel...")
+        sin_layout.addWidget(self.btn_generate_sin45)
+        sin_layout.addWidget(self.btn_load_excel)
+        sin_layout.addWidget(self.btn_export_excel)
         
-        controls_layout.addLayout(ieee_layout)
-        controls_layout.addLayout(actions_layout)
-        left_layout.addWidget(controls_group)
+        network_controls_layout.addLayout(ieee_layout)
+        network_controls_layout.addLayout(sin_layout)
+        left_layout.addWidget(network_controls_group)
+
+        # Grupo de Contingência
+        contingency_group = QGroupBox("2. Análise de Contingência")
+        contingency_layout = QVBoxLayout(contingency_group)
+        self.element_list = QListWidget()
+        self.element_list.setSelectionMode(QListWidget.MultiSelection)
+        contingency_layout.addWidget(self.element_list)
+        left_layout.addWidget(contingency_group)
+        
+        # Botão de Execução
+        self.btn_run_pf = QPushButton("▶ Executar Fluxo de Potência")
+        self.btn_run_pf.setStyleSheet("background-color: #2ca02c; color: white; font-weight: bold; padding: 12px;")
+        left_layout.addWidget(self.btn_run_pf)
 
         # Abas para tabelas de dados
         self.tabs = QTabWidget()
@@ -355,6 +555,69 @@ class MainWindow(QMainWindow):
             for j, value in enumerate(row):
                 table.setItem(i, j, QTableWidgetItem(str(value)))
         table.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
+        
+    def update_element_list(self, net):
+        """Atualiza a lista de elementos para análise de contingência."""
+        self.element_list.clear()
+        if not net: return
+        
+        if not net.line.empty:
+            for idx, row in net.line.iterrows():
+                item = QListWidgetItem(f"[L] Linha {idx}: Barra {row.from_bus} ↔ {row.to_bus}")
+                item.setData(Qt.UserRole, ('line', idx))
+                self.element_list.addItem(item)
+        if not net.trafo.empty:
+            for idx, row in net.trafo.iterrows():
+                item = QListWidgetItem(f"[T] Trafo {idx}: Barra {row.hv_bus} ↔ {row.lv_bus}")
+                item.setData(Qt.UserRole, ('trafo', idx))
+                self.element_list.addItem(item)
+
+
+    def update_status_banner(self, message, status_type):
+        """Atualiza o texto e a cor do banner de status."""
+        self.status_banner.setText(message)
+        self.status_banner.setProperty("status", status_type)
+        self.status_banner.style().polish(self.status_banner)
+
+    def update_network_description(self, net):
+        if not net:
+            self.network_description_text.setHtml("<h3>Nenhuma rede carregada.</h3>")
+            return
+
+        description = f"""
+        <style>
+            body {{ color: #e0e0e0; font-family: 'Segoe UI'; }}
+            h3 {{ color: #58cfff; }}
+            h4 {{ color: #c0c0c0; border-bottom: 1px solid #3a3f44; padding-bottom: 5px;}}
+            ul {{ list-style-type: none; padding-left: 0; }}
+            li {{ margin-bottom: 3px; }}
+            b {{ color: #ffffff; }}
+        </style>
+        <h3>Detalhes da Rede: {net.name.upper()}</h3>
+        <p>Esta seção fornece uma visão geral dos componentes da rede.</p>
+        """
+        def create_html_list(title, count, items):
+            s = f"<h4>{title} ({count}):</h4>"
+            if not items: return s + "<p>Nenhum componente definido.</p>"
+            s += "<ul>" + "".join([f"<li>{item}</li>" for item in items[:10]]) + "</ul>" # Limita a 10 itens
+            if count > 10: s += f"<p><i>... e mais {count-10} outros.</i></p>"
+            return s
+
+        bus_items = [f"<b>Barra {idx}:</b> Tensão Nominal = {bus.vn_kv} kV" for idx, bus in net.bus.iterrows()]
+        line_items = [f"<b>Linha {idx}:</b> De {row.from_bus} para {row.to_bus}" for idx, row in net.line.iterrows()]
+        trafo_items = [f"<b>Trafo {idx}:</b> HV {row.hv_bus} ↔ LV {row.lv_bus}" for idx, row in net.trafo.iterrows()]
+        load_items = [f"<b>Carga {idx}</b> @ Barra {row.bus}: P={row.p_mw:.2f} MW, Q={row.q_mvar:.2f} MVAr" for idx, row in net.load.iterrows()]
+        gen_items = [f"<b>Gerador {idx}</b> @ Barra {row.bus}: P={row.p_mw:.2f} MW" for idx, row in net.gen.iterrows()]
+        ext_grid_items = [f"<b>Grid Externo {idx}</b> @ Barra {row.bus}" for idx, row in net.ext_grid.iterrows()]
+
+        description += create_html_list("Barras", len(net.bus), bus_items)
+        description += create_html_list("Linhas", len(net.line), line_items)
+        if not net.trafo.empty: description += create_html_list("Transformadores", len(net.trafo), trafo_items)
+        description += create_html_list("Cargas", len(net.load), load_items)
+        description += create_html_list("Geradores", len(net.gen), gen_items)
+        description += create_html_list("Grid Externo", len(net.ext_grid), ext_grid_items)
+        self.network_description_text.setHtml(description)
+
 
 # =============================================================================
 # 3. CONTROLLER (Conecta a View com o Model)
@@ -362,6 +625,7 @@ class MainWindow(QMainWindow):
 class AppController:
     def __init__(self):
         self.app = QApplication(sys.argv)
+        self.app.setStyleSheet(STYLESHEET_DARK)
         self.view = MainWindow()
         self.model = RedeEletricaModel()
         self._connect_signals()
@@ -375,7 +639,9 @@ class AppController:
         self.view.btn_case118.clicked.connect(lambda: self.load_ieee_case("IEEE 118"))
         
         # Conecta outros botões
-        self.view.btn_generate_sin45.clicked.connect(self.generate_and_load_sin45)
+        self.view.btn_generate_sin45.clicked.connect(self.generate_sin45_file)
+        self.view.btn_load_excel.clicked.connect(self.load_from_excel)
+        self.view.btn_export_excel.clicked.connect(self.export_to_excel)
         self.view.btn_run_pf.clicked.connect(self.run_power_flow)
 
     def run(self):
@@ -388,56 +654,112 @@ class AppController:
             self._update_view_after_load(f"Rede {case_name} carregada.")
         else:
             QMessageBox.critical(self.view, "Erro", message)
-
-    def generate_and_load_sin45(self):
-        """ Gera o dataset do SIN 45, carrega e atualiza a interface. """
+            
+    def generate_sin45_file(self):
+        """Apenas gera o arquivo Excel do SIN 45."""
         try:
             filepath = self.model.create_sin45_dataset_file()
-            success, message = self.model.load_network_from_excel(filepath)
-            if success:
-                self._update_view_after_load(f"Dataset SIN 45 gerado e carregado de:\n{filepath}")
-            else:
-                 QMessageBox.critical(self.view, "Erro", message)
+            QMessageBox.information(self.view, "Sucesso", f"Arquivo 'SIN_45_barras_dataset.xlsx' gerado com sucesso no diretório:\n{os.getcwd()}")
         except Exception as e:
-            QMessageBox.critical(self.view, "Erro", f"Falha ao gerar o dataset SIN 45: {e}")
+            QMessageBox.critical(self.view, "Erro", f"Falha ao gerar o arquivo: {e}")
+
+    def load_from_excel(self):
+        """Abre um diálogo para o usuário selecionar um arquivo Excel."""
+        filepath, _ = QFileDialog.getOpenFileName(self.view, "Carregar Rede de Excel", "", "Excel Files (*.xlsx)")
+        if not filepath: return
+        
+        success, message = self.model.load_network_from_excel(filepath)
+        if success:
+            self._update_view_after_load(f"Rede carregada de:\n{os.path.basename(filepath)}")
+        else:
+            QMessageBox.critical(self.view, "Erro de Carregamento", message)
+
 
     def _update_view_after_load(self, status_message):
         """ Função auxiliar para atualizar a UI após carregar uma rede. """
+        net = self.model.net
         self.view.tabs.clear()
         self.view.tables.clear()
         
-        # Adiciona tabelas de dados da rede (se disponíveis)
-        self.view.add_table_tab("bus", self.model.net.bus)
-        self.view.add_table_tab("line", self.model.net.line)
-        self.view.add_table_tab("load", self.model.net.load)
-        self.view.add_table_tab("gen", self.model.net.gen)
+        # Adiciona tabelas de dados da rede
+        self.view.add_table_tab("bus", net.bus)
+        self.view.add_table_tab("line", net.line)
+        self.view.add_table_tab("load", net.load)
+        self.view.add_table_tab("gen", net.gen)
+        if not net.trafo.empty: self.view.add_table_tab("trafo", net.trafo)
+        if not net.shunt.empty: self.view.add_table_tab("shunt", net.shunt)
         
-        self.view.network_canvas.plot_network(self.model.net, self.model.network_name, self.model.bus_map)
-        self.view.metrics_widget.update_metrics(0, 0)
-        QMessageBox.information(self.view, "Sucesso", status_message)
+        self.view.update_element_list(net)
+        self.view.network_canvas.plot_network(net, self.model.network_name, self.model.bus_map)
+        self.view.metrics_widget.update_metrics(self.model.get_kpis())
+        self.view.update_status_banner("Rede carregada. Pronto para simular.", 'idle')
+        self.view.update_network_description(net)
+
+    def export_to_excel(self):
+        """Exporta os dados da rede atualmente carregada para um arquivo Excel."""
+        if self.model.net is None:
+            QMessageBox.warning(self.view, "Aviso", "Nenhuma rede carregada para exportar.")
+            return
+
+        path, _ = QFileDialog.getSaveFileName(self.view, "Exportar Rede para Excel", f"{self.model.network_name.replace(' ', '_')}.xlsx", "Excel Files (*.xlsx)")
+        if not path: return
+
+        try:
+            with pd.ExcelWriter(path) as writer:
+                self.model.net.bus.to_excel(writer, sheet_name='bus')
+                self.model.net.line.to_excel(writer, sheet_name='line')
+                self.model.net.load.to_excel(writer, sheet_name='load')
+                self.model.net.gen.to_excel(writer, sheet_name='gen')
+                if not self.model.net.trafo.empty:
+                    self.model.net.trafo.to_excel(writer, sheet_name='trafo')
+                if not self.model.net.shunt.empty:
+                    self.model.net.shunt.to_excel(writer, sheet_name='shunt')
+                if hasattr(self.model.net, 'res_bus') and not self.model.net.res_bus.empty:
+                     self.model.net.res_bus.to_excel(writer, sheet_name='res_bus')
+                     self.model.net.res_line.to_excel(writer, sheet_name='res_line')
+            
+            QMessageBox.information(self.view, "Sucesso", f"Rede exportada para:\n{path}")
+        except Exception as e:
+            QMessageBox.critical(self.view, "Erro de Exportação", f"Não foi possível exportar o arquivo: {e}")
 
     def run_power_flow(self):
         """ Executa o fluxo de potência e atualiza os resultados. """
+        if self.model.net is None:
+            self.view.update_status_banner("Nenhuma rede carregada para simular.", 'error')
+            return
+
+        # Obtém contingências selecionadas na UI
+        contingencies = []
+        for i in range(self.view.element_list.count()):
+            item = self.view.element_list.item(i)
+            if item.isSelected():
+                 contingencies.append(item.data(Qt.UserRole))
+
+        self.model.apply_contingencies(contingencies)
+
         try:
-            success, message = self.model.run_power_flow()
+            success, message, status_type = self.model.run_power_flow()
+            
+            self.view.update_status_banner(message, status_type)
+
             if success:
-                QMessageBox.information(self.view, "Sucesso", message)
                 # Adiciona ou atualiza tabelas de resultados
-                self.view.add_table_tab("res_bus", self.model.net.res_bus)
-                self.view.add_table_tab("res_line", self.model.net.res_line)
+                self.view.add_table_tab("Resultados Barras", self.model.net.res_bus.round(4))
+                self.view.add_table_tab("Resultados Linhas", self.model.net.res_line.round(4))
                 
-                total_gen = self.model.net.res_gen.p_mw.sum() + self.model.net.res_ext_grid.p_mw.sum()
-                total_load = self.model.net.res_load.p_mw.sum()
-                self.view.metrics_widget.update_metrics(total_gen, total_load)
-                # Atualiza o diagrama após o fluxo de potência
-                self.view.network_canvas.plot_network(self.model.net, self.model.network_name, self.model.bus_map)
-            else:
-                QMessageBox.warning(self.view, "Falha", message)
+                kpis = self.model.get_kpis()
+                self.view.metrics_widget.update_metrics(kpis)
+
+            # Atualiza o diagrama para refletir o estado da rede (com ou sem convergência)
+            self.view.network_canvas.plot_network(self.model.net, self.model.network_name, self.model.bus_map)
+
         except Exception as e:
-            QMessageBox.critical(self.view, "Erro Crítico", f"Ocorreu um erro durante o fluxo de potência: {e}")
+            error_msg = f"Erro Crítico: {e}"
+            self.view.update_status_banner(error_msg, 'error')
+            QMessageBox.critical(self.view, "Erro Inesperado", error_msg)
 
 # =============================================================================
-# 4. PONTO DE ENTRADA DA APLICAÇÃO
+# 4. PONTO DE ENTRADA DA APLICAÇÃO - PVRV
 # =============================================================================
 if __name__ == '__main__':
     controller = AppController()
