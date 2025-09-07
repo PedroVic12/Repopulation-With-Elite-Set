@@ -1,27 +1,31 @@
 import sys
 import os
+import webbrowser
+import re
 import traceback
+import base64
+from io import BytesIO
 import pandas as pd
 import pandapower as pp
 import pandapower.networks as pn
 import pandapower.plotting as plot
 import matplotlib.pyplot as plt
-from matplotlib.lines import Line2D
-from matplotlib.figure import Figure
+import matplotlib.colors as mcolors
+import matplotlib.gridspec as gridspec
 import numpy as np
+from matplotlib.lines import Line2D
 
 # Define o backend Qt para o Matplotlib
 os.environ['QT_API'] = 'PySide6'
 
-from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 from PySide6.QtWidgets import (
     QApplication, QMainWindow, QWidget, QVBoxLayout, QHBoxLayout,
-    QLabel, QComboBox, QListWidget, QListWidgetItem, QPushButton,
-    QTabWidget, QTableWidget, QTableWidgetItem, QHeaderView,
-    QGroupBox, QSplitter, QTextEdit, QMessageBox, QFrame, QFileDialog
+    QPushButton, QTableWidget, QTableWidgetItem, QTabWidget, QFileDialog,
+    QMessageBox, QHeaderView, QGroupBox, QSplitter, QLabel, QScrollArea, QTextEdit, QTabWidget, QProgressBar, QListWidget, QListWidgetItem, QLineEdit
 )
-from PySide6.QtCore import Qt, Signal, QTimer
-from PySide6.QtGui import QFont, QColor
+from PySide6.QtCore import Qt
+from PySide6.QtGui import QFont
+from matplotlib.backends.backend_qtagg import FigureCanvasQTAgg as FigureCanvas
 
 # =============================================================================
 # ESTILO DA APLICAÇÃO (TEMA FUTURISTA ESCURO)
@@ -308,6 +312,7 @@ class NetworkCanvas(FigureCanvas):
         super().__init__(self.fig)
         self.setParent(parent)
         self.net = None
+        self.bus_map = {}
         self.rotation_angle = 0
         self.setFocusPolicy(Qt.StrongFocus)
 
@@ -325,18 +330,19 @@ class NetworkCanvas(FigureCanvas):
             return
         
         self.rotation_angle %= 360
-        # Redesenha a rede com o novo ângulo
         self.plot_network(self.net, self.net.name, self.bus_map)
 
 
-    def plot_network(self, net, network_name, bus_map={}):
+    def plot_network(self, net, network_name, bus_map={}, plot_results=False):
         self.net = net
-        self.bus_map = bus_map # Armazena o bus_map para rotação
+        self.bus_map = bus_map 
         self.ax.clear()
         
-        # Define cores do tema
-        bg_color = '#1e1f22'
-        text_color = '#e0e0e0'
+        is_ieee_case = "ieee" in network_name.lower()
+        
+        bg_color = '#ffffff'
+        text_color = '#000000'
+        line_color_ieee = '#cccccc'
         self.fig.set_facecolor(bg_color)
         self.ax.set_facecolor(bg_color)
 
@@ -345,21 +351,20 @@ class NetworkCanvas(FigureCanvas):
             self.draw()
             return
             
-        # Garante que as coordenadas existem para plotagem
-        plot.create_generic_coordinates(net, overwrite=True)
+        if not hasattr(net, "bus_geodata") or net.bus_geodata.empty:
+            plot.create_generic_coordinates(net, overwrite=True)
         
         collections = []
         handles = []
         
-        # --- Lógica de Plotagem para SIN 45 ---
         if network_name == "SIN 45 Barras":
             ramo1_pairs = [(1,19),(12,19),(12,13),(13,14),(14,15),(15,16),(16,17),(17,30)]
             ramo2_pairs = [(1,28),(26,28),(25,26),(24,25),(23,24),(3,23)]
             ramo3_pairs = [(4,5),(5,7),(7,8),(8,9)]
             ramos = {
-                "Troncal Sul-Sudeste": {"pairs": ramo1_pairs, "color": "#2ca02c"}, # Verde
-                "Troncal Sudoeste": {"pairs": ramo2_pairs, "color": "#1f77b4"}, # Azul
-                "Interligação Norte": {"pairs": ramo3_pairs, "color": "#d62728"} # Vermelho
+                "Troncal Sul-Sudeste": {"pairs": ramo1_pairs, "color": "#2ca02c"},
+                "Troncal Sudoeste": {"pairs": ramo2_pairs, "color": "#1f77b4"},
+                "Interligação Norte": {"pairs": ramo3_pairs, "color": "#d62728"}
             }
             
             plotted_lines = set()
@@ -372,69 +377,78 @@ class NetworkCanvas(FigureCanvas):
                         if not line.empty:
                             indices.append(line.index[0])
                 if indices:
-                    collections.append(plot.create_line_collection(net, lines=indices, color=data["color"]))
+                    collections.append(plot.create_line_collection(net, lines=indices, color=data["color"], linewidths=2.0))
                     plotted_lines.update(indices)
-                    handles.append(plt.Line2D([0], [0], color=data["color"], lw=2, label=name))
+                    handles.append(Line2D([0], [0], color=data["color"], lw=2, label=name))
 
             other_lines = list(set(net.line.index) - plotted_lines)
             collections.append(plot.create_line_collection(net, lines=other_lines, color="#606060"))
-            handles.append(plt.Line2D([0], [0], color='#606060', lw=2, label='Outras Linhas'))
-
-        # --- Lógica de Plotagem para Casos IEEE ---
-        else:
+            handles.append(Line2D([0], [0], color='#606060', lw=2, label='Outras Linhas'))
+        else: # Casos IEEE
             vn_kvs = sorted(net.bus.vn_kv.unique())
             cmap = plt.get_cmap('plasma', len(vn_kvs))
             for i, vn in enumerate(vn_kvs):
-                lines = net.line.index[net.bus.vn_kv[net.line.from_bus].values == vn]
+                lines = net.line.index[net.bus.vn_kv.loc[net.line.from_bus].values == vn]
                 if len(lines) > 0:
-                    collections.append(plot.create_line_collection(net, lines=lines, color=cmap(i)))
-                    handles.append(plt.Line2D([0], [0], color=cmap(i), lw=2, label=f'Linha {vn} kV'))
-        
-        # Elementos comuns a todas as redes
-        bus_collections, bus_handles = self.create_bus_collections(net)
+                    color = cmap(i / (len(vn_kvs)-1)) if len(vn_kvs) > 1 else cmap(0.5)
+                    collections.append(plot.create_line_collection(net, lines=lines, color=color, linewidths=1.2))
+                    handles.append(Line2D([0], [0], color=color, lw=2, label=f'Linha {vn} kV'))
+
+        bus_collections, bus_handles = self.create_bus_collections(net, is_ieee_case)
         collections.extend(bus_collections)
         handles.extend(bus_handles)
         
-        if len(net.trafo) > 0:
-            collections.append(plot.create_trafo_collection(net, color='#9467bd')) # Roxo
-            handles.append(plt.Line2D([0], [0], color='#9467bd', lw=2, label='Transformador'))
+        if not net.trafo.empty:
+            collections.append(plot.create_trafo_collection(net, color='#9467bd'))
+            handles.append(Line2D([0], [0], color='#9467bd', lw=2, label='Transformador'))
 
-        # Elementos fora de serviço (contingência)
         oos_lines = net.line.index[~net.line.in_service]
         if not oos_lines.empty:
             collections.append(plot.create_line_collection(net, lines=oos_lines, color="#ff7f0e", linestyle="--", linewidths=2.5))
-            handles.append(plt.Line2D([0], [0], color='#ff7f0e', linestyle='--', lw=2, label='Fora de Serviço'))
+            handles.append(Line2D([0], [0], color='#ff7f0e', linestyle='--', lw=2, label='Fora de Serviço'))
+
+        if plot_results and 'res_line' in net and not net.res_line.empty:
+            cmap = plt.get_cmap('coolwarm')
+            norm = plt.Normalize(vmin=0, vmax=100)
+            lc = plot.create_line_collection(net, lines=net.res_line.index, cmap=cmap, norm=norm, linewidths=3.0, use_bus_geodata=True)
+            lc.set_array(net.res_line.loading_percent.values)
+            collections.append(lc)
+            
+            sm = plt.cm.ScalarMappable(cmap=cmap, norm=norm)
+            sm.set_array([])
+            cbar = self.fig.colorbar(sm, ax=self.ax, orientation="vertical", shrink=0.7, pad=0.01)
+            cbar.set_label('Carregamento da Linha (%)', color=text_color)
+            plt.setp(plt.getp(cbar.ax.axes, 'yticklabels'), color=text_color)
 
         plot.draw_collections(collections, ax=self.ax)
         
-        legend = self.ax.legend(handles=handles, loc='upper left', bbox_to_anchor=(1, 1))
+        legend = self.ax.legend(handles=handles, loc='upper left', bbox_to_anchor=(1.01, 1))
         plt.setp(legend.get_texts(), color=text_color)
-        legend.get_frame().set_facecolor(bg_color)
-        legend.get_frame().set_edgecolor('#3a3f44')
+        legend.get_frame().set_facecolor('#f0f0f0')
+        legend.get_frame().set_edgecolor('#cccccc')
 
         self.ax.set_title(f"Diagrama Unifilar - {network_name}", color=text_color, weight='bold')
         self.fig.tight_layout()
         self.draw()
 
-    def create_bus_collections(self, net):
-        """Cria coleções de barras e handles para a legenda."""
-        collections = []
-        handles = []
+    def create_bus_collections(self, net, is_ieee_case=False):
+        collections, handles = [], []
+        size_factor = 0.5 if is_ieee_case else 1.0
+        slack_size, gen_size, other_size = 0.05*size_factor, 0.04*size_factor, 0.03*size_factor
 
         slack_buses = net.ext_grid.bus
         gen_buses = set(net.gen.bus) - set(slack_buses)
         
         if not slack_buses.empty:
-            collections.append(plot.create_bus_collection(net, buses=slack_buses, color='#d62728', size=0.05, zorder=11))
-            handles.append(plt.Line2D([0], [0], color='#d62728', marker='o', lw=0, label='Barra Slack (Swing)'))
+            collections.append(plot.create_bus_collection(net, buses=slack_buses, color='#d62728', size=slack_size, zorder=11))
+            handles.append(Line2D([0], [0], color='#d62728', marker='o', lw=0, label='Barra Slack (Swing)'))
         if gen_buses:
-            collections.append(plot.create_bus_collection(net, buses=list(gen_buses), color='#ff7f0e', size=0.04, zorder=10))
-            handles.append(plt.Line2D([0], [0], color='#ff7f0e', marker='o', lw=0, label='Barra de Geração (PV)'))
+            collections.append(plot.create_bus_collection(net, buses=list(gen_buses), color='#ff7f0e', size=gen_size, zorder=10))
+            handles.append(Line2D([0], [0], color='#ff7f0e', marker='o', lw=0, label='Barra de Geração (PV)'))
 
-        # Barras restantes (carga ou passagem)
         other_buses = set(net.bus.index) - set(slack_buses) - gen_buses
-        collections.append(plot.create_bus_collection(net, buses=list(other_buses), color='#1f77b4', size=0.03, zorder=9))
-        handles.append(plt.Line2D([0], [0], color='#1f77b4', marker='o', lw=0, label='Barra (Carga/Passagem)'))
+        collections.append(plot.create_bus_collection(net, buses=list(other_buses), color='#1f77b4', size=other_size, zorder=9))
+        handles.append(Line2D([0], [0], color='#1f77b4', marker='o', lw=0, label='Barra (Carga/Passagem)'))
         
         return collections, handles
 
@@ -751,7 +765,7 @@ class AppController:
                 self.view.metrics_widget.update_metrics(kpis)
 
             # Atualiza o diagrama para refletir o estado da rede (com ou sem convergência)
-            self.view.network_canvas.plot_network(self.model.net, self.model.network_name, self.model.bus_map)
+            self.view.network_canvas.plot_network(self.model.net, self.model.network_name, self.model.bus_map, plot_results=success)
 
         except Exception as e:
             error_msg = f"Erro Crítico: {e}"
