@@ -266,6 +266,8 @@ resultados = {
 
 }
 
+
+
 def hashtablesize_sin45():
     return len(contingencia_df) * 3 * (2**len(agendamento_df))
 
@@ -335,7 +337,6 @@ def funcao_objetivo_SIN45(individuo, setupobj, _debug=False):
             contingencia_df=contingencia_local
         )
         rede.log(f"\nFitness do agendamento = {fitness_final:.2f}\n", level="success")
-
         resultados["fitness"] = pd.DataFrame([{'fitness_final': fitness_final}])
         resultados[ "ramos_selecionados"] = contigencias_selecionadas
         
@@ -343,8 +344,6 @@ def funcao_objetivo_SIN45(individuo, setupobj, _debug=False):
     
     except Exception as e:
         print(f"\n[ERRO] na função objetivo SIN45: {e}")
-        import traceback
-        traceback.print_exc()
         return float("inf"), {}
 
 
