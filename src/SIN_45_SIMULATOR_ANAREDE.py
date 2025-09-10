@@ -97,7 +97,6 @@ QHeaderView::section {
     color: #F0F0F0;
 }
 """
-
 """
 =============================================================================
          SIMULADOR DE SISTEMAS ELÉTRICOS COM PANDAPOWER E PYSIDE6
@@ -134,6 +133,7 @@ Arquitetura:
    - A variável `AppStyles` contém todo o CSS (QSS) para estilizar a
      aplicação, mantendo o código num único ficheiro.
 """
+
 
 # =============================================================================
 # 1. PARSER (Lógica para Leitura de Ficheiros Específicos)
@@ -349,7 +349,7 @@ class NetworkCanvas(FigureCanvas):
     Mostra tipos de barras, tensões de linha, marcadores de componentes e sobreposições de resultados.
     """
     def __init__(self, parent=None):
-        self.fig = plt.figure(figsize=(12, 10), tight_layout=True)
+        self.fig = plt.figure(figsize=(14, 12), tight_layout=True)
         gs = gridspec.GridSpec(3, 1, height_ratios=[20, 1, 1], hspace=0.1)
         self.ax_diagram = self.fig.add_subplot(gs[0])
         self.ax_legend = self.fig.add_subplot(gs[1])
@@ -357,19 +357,19 @@ class NetworkCanvas(FigureCanvas):
         super().__init__(self.fig)
         self.setParent(parent)
         
-        # ! Mapa de estilos centralizado para o diagrama da rede
+        #! Mapa de estilos centralizado para o diagrama da rede
         self.network_map = {
-            'bus':          {'size': 0.07, 'zorder': 10},
+            'bus':          {'size': 0.08, 'zorder': 10},
             'bus_transfer': {'color': '#1f77b4'},
             'bus_gen':      {'color': '#2ca02c'},
             'bus_load':     {'color': '#ff7f0e'},
             'bus_gen_load': {'color': '#800080'}, # roxo
             'line':         {'linewidth': 1.5, 'zorder': 1},
-            'trafo':        {'linewidth': 2.0, 'color': 'purple', 'zorder': 5},
-            'load':         {'size': 0.07, 'zorder': 12},
-            'gen':          {'size': 0.07, 'zorder': 12},
-            'ext_grid':     {'size': 0.12, 'zorder': 12},
-            'shunt':        {'size': 0.07, 'color': 'cyan', 'zorder': 12},
+            'trafo':        {'linewidth': 1.5, 'color': 'purple', 'zorder': 5},
+            'load':         {'size': 0.08, 'zorder': 12},
+            'gen':          {'size': 0.08, 'zorder': 12},
+            'ext_grid':     {'size': 0.10, 'zorder': 12, 'color': 'gold'}, # ATUALIZADO
+            'shunt':        {'size': 0.12, 'color': 'cyan', 'zorder': 12},
             'diagram':      {'bg_color': '#FFFFFF', 'title_color': '#000000'},
             'legend':       {'text_color': '#000000'},
             'colorbar':     {'label_color': '#000000', 'tick_color': '#000000'}
@@ -451,7 +451,7 @@ class NetworkCanvas(FigureCanvas):
             # --- Desenha Marcadores de Outros Componentes usando o network_map ---
             if not net.load.empty: collections['load'] = plot.create_load_collection(net, size=self.network_map['load']['size'], zorder=self.network_map['load']['zorder'], orientation=np.pi/2)
             if not net.gen.empty: collections['gen'] = plot.create_gen_collection(net, size=self.network_map['gen']['size'], zorder=self.network_map['gen']['zorder'], orientation=-np.pi/2)
-            if not net.ext_grid.empty: collections['ext_grid'] = plot.create_ext_grid_collection(net, size=self.network_map['ext_grid']['size'], zorder=self.network_map['ext_grid']['zorder'])
+            if not net.ext_grid.empty: collections['ext_grid'] = plot.create_ext_grid_collection(net, size=self.network_map['ext_grid']['size'], zorder=self.network_map['ext_grid']['zorder'], color=self.network_map['ext_grid']['color'])
             if not net.shunt.empty: collections['shunt'] = self._create_shunt_collection(net, size=self.network_map['shunt']['size'], zorder=self.network_map['shunt']['zorder'])
 
             plot.draw_collections(list(collections.values()), ax=self.ax_diagram)
@@ -468,7 +468,7 @@ class NetworkCanvas(FigureCanvas):
                 cbar = self.fig.colorbar(sm, cax=self.ax_colorbar, label='Carregamento da Linha (%)', orientation='horizontal')
                 cbar.ax.xaxis.label.set_color(cbar_label_color); cbar.ax.tick_params(axis='x', colors=cbar_tick_color)
 
-            # --- Cria Legenda usando o network_map ---
+            # --- Cria Legenda COMPLETA usando o network_map ---
             bus_handles = [
                 Line2D([0], [0], marker='o', color='w', label='Barra (Transfer)', markerfacecolor=self.network_map['bus_transfer']['color'], markersize=8),
                 Line2D([0], [0], marker='o', color='w', label='Barra (Geração)', markerfacecolor=self.network_map['bus_gen']['color'], markersize=8),
@@ -476,7 +476,12 @@ class NetworkCanvas(FigureCanvas):
                 Line2D([0], [0], marker='o', color='w', label='Barra (Geração/Carga)', markerfacecolor=self.network_map['bus_gen_load']['color'], markersize=8)
             ]
             
-            all_handles = bus_handles + line_handles
+            component_handles = [
+                Line2D([0], [0], marker='s', color=self.network_map['ext_grid']['color'], label='Rede Externa', markersize=8, linestyle='None'),
+                Line2D([0], [0], marker='v', color=self.network_map['shunt']['color'], label='Reator Shunt', markersize=8, linestyle='None')
+            ]
+            
+            all_handles = bus_handles + line_handles + component_handles
             legend = self.ax_legend.legend(handles=all_handles, loc='center', ncol=len(all_handles), frameon=False, labelcolor=legend_text_color)
 
             self.ax_diagram.set_title("Diagrama Unifilar da Rede", color=title_color)
@@ -492,7 +497,6 @@ class ResultsPlotsCanvas(FigureCanvas):
         self.fig, (self.ax_voltage, self.ax_loading) = plt.subplots(2, 1, figsize=(8, 6), tight_layout=True)
         super().__init__(self.fig)
         self.setParent(parent)
-        # ATUALIZADO: Fundo branco
         self.fig.patch.set_facecolor('#FFFFFF') 
         self.ax_voltage.set_facecolor('#F0F0F0'); self.ax_loading.set_facecolor('#F0F0F0')
         self.clear_plots()
@@ -500,7 +504,6 @@ class ResultsPlotsCanvas(FigureCanvas):
     def plot_results(self, net):
         self.clear_plots()
         try:
-            # ATUALIZADO: Texto e grelha pretos para fundo branco
             text_color = '#000000'
             grid_color = '#CCCCCC'
 
@@ -532,8 +535,8 @@ class ResultsPlotsCanvas(FigureCanvas):
         for ax in [self.ax_voltage, self.ax_loading]:
             ax.clear()
             ax.text(0.5, 0.5, 'Resultados não disponíveis', ha='center', va='center', color='gray')
-            ax.tick_params(axis='both', colors='#000000') # ATUALIZADO
-            for spine in ax.spines.values(): spine.set_edgecolor('#CCCCCC') # ATUALIZADO
+            ax.tick_params(axis='both', colors='#000000') 
+            for spine in ax.spines.values(): spine.set_edgecolor('#CCCCCC') 
         self.draw()
 
 
@@ -719,8 +722,8 @@ class AppController:
         <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
         <style>body{{padding: 2rem; background-color: #f8f9fa;}} .table{{font-size: 0.85rem;}} h2{{border-bottom: 2px solid #dee2e6; padding-bottom: 10px; margin-top: 2.5rem; color: #495057;}} .img-container{{padding: 1rem; border: 1px solid #dee2e6; border-radius: .25rem; background-color: white; margin-bottom: 2rem;}}</style>
         </head><body><div class="container-fluid">
-        <h1 class="display-4 text-center mb-4">Relatório de Análise de Rede</h1>
-        <h2>Diagrama Unifilar</h2><div class="img-container"><img src="data:image/png;base64,{diagram_img}" class="img-fluid"></div>
+        <h1 class="display-4 text-center mb-4">Relatório de Análise de Rede - SIN 45</h1>
+        <h2>Diagrama: </h2><div class="img-container"><img src="data:image/png;base64,{diagram_img}" class="img-fluid"></div>
         <h2>Resultados Gráficos</h2><div class="img-container"><img src="data:image/png;base64,{results_img}" class="img-fluid"></div>
         <h2>Resultados das Barras</h2><div class="table-responsive">{bus_html}</div>
         <h2>Resultados das Linhas</h2><div class="table-responsive">{line_html}</div>
