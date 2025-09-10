@@ -102,12 +102,10 @@ QHeaderView::section {
 
 """
 =============================================================================
-         SIMULADOR DE SISTEMAS ELÉTRICOS COM PANDAPOWER E PYSIDE6
+         ! SIMULADOR DE SISTEMAS ELÉTRICOS COM PANDAPOWER E PYSIDE6
 =============================================================================
 
-Este ficheiro contém a aplicação completa para a simulação de redes elétricas,
-seguindo uma arquitetura Model-View-Controller (MVC) para uma organização
-limpa e manutenível do código.
+Este arquivo contém a aplicação completa para a simulação de redes elétricas, focado no SIN 45, seguindo uma arquitetura Model-View-Controller (MVC) para uma organização  limpa e manutenível do código.
 
 Arquitetura:
 -----------
