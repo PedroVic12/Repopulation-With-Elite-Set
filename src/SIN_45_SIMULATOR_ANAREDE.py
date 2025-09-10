@@ -97,6 +97,9 @@ QHeaderView::section {
     color: #F0F0F0;
 }
 """
+
+
+
 """
 =============================================================================
          SIMULADOR DE SISTEMAS ELÉTRICOS COM PANDAPOWER E PYSIDE6
@@ -133,6 +136,7 @@ Arquitetura:
    - A variável `AppStyles` contém todo o CSS (QSS) para estilizar a
      aplicação, mantendo o código num único ficheiro.
 """
+
 
 
 # =============================================================================
@@ -349,7 +353,7 @@ class NetworkCanvas(FigureCanvas):
     Mostra tipos de barras, tensões de linha, marcadores de componentes e sobreposições de resultados.
     """
     def __init__(self, parent=None):
-        self.fig = plt.figure(figsize=(14, 12), tight_layout=True)
+        self.fig = plt.figure(figsize=(12, 10), tight_layout=True)
         gs = gridspec.GridSpec(3, 1, height_ratios=[20, 1, 1], hspace=0.1)
         self.ax_diagram = self.fig.add_subplot(gs[0])
         self.ax_legend = self.fig.add_subplot(gs[1])
@@ -357,7 +361,7 @@ class NetworkCanvas(FigureCanvas):
         super().__init__(self.fig)
         self.setParent(parent)
         
-        #! Mapa de estilos centralizado para o diagrama da rede
+        # Mapa de estilos centralizado para o diagrama da rede
         self.network_map = {
             'bus':          {'size': 0.08, 'zorder': 10},
             'bus_transfer': {'color': '#1f77b4'},
@@ -470,10 +474,10 @@ class NetworkCanvas(FigureCanvas):
 
             # --- Cria Legenda COMPLETA usando o network_map ---
             bus_handles = [
-                Line2D([0], [0], marker='o', color='w', label='Barra (Transfer)', markerfacecolor=self.network_map['bus_transfer']['color'], markersize=8),
+                Line2D([0], [0], marker='o', color='w', label='Barra', markerfacecolor=self.network_map['bus_transfer']['color'], markersize=8),
                 Line2D([0], [0], marker='o', color='w', label='Barra (Geração)', markerfacecolor=self.network_map['bus_gen']['color'], markersize=8),
                 Line2D([0], [0], marker='o', color='w', label='Barra (Carga)', markerfacecolor=self.network_map['bus_load']['color'], markersize=8),
-                Line2D([0], [0], marker='o', color='w', label='Barra (Geração/Carga)', markerfacecolor=self.network_map['bus_gen_load']['color'], markersize=8)
+                Line2D([0], [0], marker='o', color='w', label='Transformadores', markerfacecolor=self.network_map['bus_gen_load']['color'], markersize=8)
             ]
             
             component_handles = [
@@ -685,14 +689,13 @@ class AppController:
         QMessageBox.information(self.view, "Sucesso", f"Rede exportada com sucesso para:\n{filepath}")
 
     def generate_interactive_report(self):
-        # Esta função permanece a mesma
         if not self.model.net or not hasattr(self.model.net, 'res_bus') or self.model.net.res_bus.empty:
             QMessageBox.warning(self.view, "Aviso", "É necessário executar o fluxo de potência primeiro."); return
         filepath, _ = QFileDialog.getSaveFileName(self.view, "Guardar Relatório HTML", "", "Ficheiro HTML (*.html)")
         if filepath: self._exec_task(self._do_generate_report, filepath)
 
     def _do_generate_report(self, filepath):
-        # A lógica de geração de relatórios permanece a mesma.
+        # Gerar imagens
         temp_diagram_canvas = NetworkCanvas()
         temp_diagram_canvas.plot_network(self.model.net, plot_results=True)
         diagram_img_b64 = self._fig_to_base64(temp_diagram_canvas.fig)
@@ -701,10 +704,29 @@ class AppController:
         temp_results_canvas.plot_results(self.model.net)
         results_img_b64 = self._fig_to_base64(temp_results_canvas.fig)
 
+        fig_p, fig_q = self._create_power_flow_plots()
+        p_flow_img_b64 = self._fig_to_base64(fig_p)
+        q_flow_img_b64 = self._fig_to_base64(fig_q)
+
+        # Gerar tabelas HTML
         res_bus_html = self.model.net.res_bus.to_html(classes='table table-striped table-hover', justify='center')
         res_line_html = self.model.net.res_line.to_html(classes='table table-striped table-hover', justify='center')
+        
+        # Obter dados da primeira aba carregada para a tabela
+        first_sheet_data_html = "<p>Nenhum dado de entrada carregado.</p>"
+        first_sheet_title = "Dados de Entrada"
+        if self.model.dataframes:
+            # Pega o nome e o dataframe da primeira aba
+            first_sheet_name = list(self.model.dataframes.keys())[0]
+            first_sheet_df = self.model.dataframes[first_sheet_name]
+            first_sheet_title = f"Dados de Entrada: Aba '{first_sheet_name.capitalize()}'"
+            if not first_sheet_df.empty:
+                first_sheet_data_html = first_sheet_df.to_html(classes='table table-striped table-hover', justify='center', index=False)
+            else:
+                first_sheet_data_html = f"<p>A aba '{first_sheet_name.capitalize()}' está vazia.</p>"
 
-        html = self._build_html_report(diagram_img_b64, results_img_b64, res_bus_html, res_line_html)
+        # Construir o HTML
+        html = self._build_html_report(diagram_img_b64, results_img_b64, res_bus_html, res_line_html, first_sheet_data_html, first_sheet_title, p_flow_img_b64, q_flow_img_b64)
         
         with open(filepath, 'w', encoding='utf-8') as f:
             f.write(html)
@@ -712,21 +734,75 @@ class AppController:
         QMessageBox.information(self.view, "Sucesso", f"Relatório gerado!\nA abrir {filepath}...")
         webbrowser.open(f"file://{os.path.realpath(filepath)}")
 
+    def _create_power_flow_plots(self):
+        fig_p, ax_p = plt.subplots(figsize=(10, 8))
+        fig_q, ax_q = plt.subplots(figsize=(10, 8))
+        net = self.model.net
+        text_color = '#000000'
+        grid_color = '#CCCCCC'
+
+        if 'res_line' in net and not net.res_line.empty:
+            # Potência Ativa
+            p_flow = net.res_line.p_from_mw
+            p_combined = pd.concat([p_flow.nlargest(10), p_flow.nsmallest(10)]).drop_duplicates().sort_values()
+            p_combined.plot(kind='barh', ax=ax_p, color=['#5cb85c' if v > 0 else '#d9534f' for v in p_combined], width=0.8)
+            ax_p.set_title('Fluxo de Potência Ativa (Valores Mais Significativos)', color=text_color)
+            ax_p.set_xlabel('Potência Ativa (MW)', color=text_color)
+            ax_p.grid(True, axis='x', linestyle=':', color=grid_color)
+            ax_p.tick_params(axis='both', colors=text_color)
+            for spine in ax_p.spines.values(): spine.set_edgecolor(grid_color)
+
+            # Potência Reativa
+            q_flow = net.res_line.q_from_mvar
+            q_combined = pd.concat([q_flow.nlargest(10), q_flow.nsmallest(10)]).drop_duplicates().sort_values()
+            q_combined.plot(kind='barh', ax=ax_q, color=['#5bc0de' if v > 0 else '#f0ad4e' for v in q_combined], width=0.8)
+            ax_q.set_title('Fluxo de Potência Reativa (Valores Mais Significativos)', color=text_color)
+            ax_q.set_xlabel('Potência Reativa (MVAr)', color=text_color)
+            ax_q.grid(True, axis='x', linestyle=':', color=grid_color)
+            ax_q.tick_params(axis='both', colors=text_color)
+            for spine in ax_q.spines.values(): spine.set_edgecolor(grid_color)
+
+        for fig in [fig_p, fig_q]:
+            fig.patch.set_facecolor('#FFFFFF')
+            fig.tight_layout()
+            
+        return fig_p, fig_q
+
     def _fig_to_base64(self, fig):
         buf = BytesIO(); fig.savefig(buf, format='png', bbox_inches='tight', facecolor=fig.get_facecolor()); plt.close(fig)
         return base64.b64encode(buf.getvalue()).decode('utf-8')
 
-    def _build_html_report(self, diagram_img, results_img, bus_html, line_html):
+    def _build_html_report(self, diagram_img, results_img, bus_html, line_html, first_sheet_data_html, first_sheet_title, p_flow_img, q_flow_img):
         return f"""
         <!DOCTYPE html><html lang="pt-br"><head><meta charset="UTF-8"><title>Relatório de Fluxo de Potência</title>
         <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
-        <style>body{{padding: 2rem; background-color: #f8f9fa;}} .table{{font-size: 0.85rem;}} h2{{border-bottom: 2px solid #dee2e6; padding-bottom: 10px; margin-top: 2.5rem; color: #495057;}} .img-container{{padding: 1rem; border: 1px solid #dee2e6; border-radius: .25rem; background-color: white; margin-bottom: 2rem;}}</style>
+        <style>body{{padding: 2rem; background-color: #f8f9fa;}} .table{{font-size: 0.85rem;}} h2{{border-bottom: 2px solid #dee2e6; padding-bottom: 10px; margin-top: 2.5rem; color: #495057;}} .img-container{{padding: 1rem; border: 1px solid #dee2e6; border-radius: .25rem; background-color: white; margin-bottom: 2rem;}} .table-container{{max-height: 600px; overflow-y: auto;}}</style>
         </head><body><div class="container-fluid">
-        <h1 class="display-4 text-center mb-4">Relatório de Análise de Rede - SIN 45</h1>
-        <h2>Diagrama: </h2><div class="img-container"><img src="data:image/png;base64,{diagram_img}" class="img-fluid"></div>
-        <h2>Resultados Gráficos</h2><div class="img-container"><img src="data:image/png;base64,{results_img}" class="img-fluid"></div>
+        <h1 class="display-4 text-center mb-4">Relatório de Análise de Rede</h1>
+        <h2>Diagrama Unifilar</h2><div class="img-container"><img src="data:image/png;base64,{diagram_img}" class="img-fluid"></div>
+        
+        <h2>Resultados Gráficos e Dados de Entrada</h2>
+        <div class="row">
+            <div class="col-lg-6">
+                <div class="img-container"><img src="data:image/png;base64,{results_img}" class="img-fluid"></div>
+            </div>
+            <div class="col-lg-6">
+                <div class="table-container border rounded p-2 bg-white">
+                    <h4>{first_sheet_title}</h4>
+                    {first_sheet_data_html}
+                </div>
+            </div>
+        </div>
+
         <h2>Resultados das Barras</h2><div class="table-responsive">{bus_html}</div>
         <h2>Resultados das Linhas</h2><div class="table-responsive">{line_html}</div>
+
+        <h2>Fluxo de Potência nas Linhas</h2>
+        <div class="row">
+            <div class="col-lg-6"><div class="img-container"><img src="data:image/png;base64,{p_flow_img}" class="img-fluid"></div></div>
+            <div class="col-lg-6"><div class="img-container"><img src="data:image/png;base64,{q_flow_img}" class="img-fluid"></div></div>
+        </div>
+
         </div></body></html>
         """
 
