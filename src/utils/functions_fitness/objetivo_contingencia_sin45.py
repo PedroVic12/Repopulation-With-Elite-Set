@@ -33,7 +33,9 @@ class SmartGridSin45:
         """
         Cria um arquivo Excel com os dados do sistema SIN 45 Barras.
         """
-        # Dicionários com os dados do SIN 45 Barras
+        if os.path.exists(filename):
+            os.remove(filename)
+            
         nomes_barras = {'Barra': list(range(1, 46)),'Nome': ['IVAIPORA.525', 'LONDRINA.525', 'BARRACAO13.8', 'SIDEROPOL230', 'FARROUPIL230','P.FUNDO.13.8', 'P.FUNDO.230', 'XANXERE.230', 'P.BRANCO.230', 'S.OSORIO13.8','S.OSORIO.230', 'AREIA.230', 'S.MATEUS.230', 'CURITIBA.230', 'JOINVILE.230','BLUMENAU.230', 'R.QUEIMAD230', 'F.AREIA.13.8', 'AREIA.525', 'CURITIBA.525','CUR.NORTE525', 'BLUMENAU.525', 'BARRACAO.525', 'GRAVATAI.525', 'V.AIRES.525','PINHEIRO.525', 'S.SANTIA13.8', 'S.SANTIAG525', 'J.LAC.A.13.8', 'J.LACERDA138','J.LAC.B.13.8', 'J.LAC.C.13.8', 'J.LACERDA230', 'SEGREDO.13.8', 'SEGREDO.525','CECI.230', 'GRAVATAI.230', 'ITAUBA.13.8', 'ITAUBA.230', 'V.AIRES.230','APUCARANA230', 'LONDRINA.230', 'MARINGA.230', 'C.MOURAO.230', 'FORQUILHI230']}
         reatores = {'Barra': [1, 20, 21, 23, 24, 25],'Susceptância Shunt B(pu)': [-2.000, -1.500, -1.500, -1.000, -1.500, -1.500]}
         dados_rede = {'De': [1, 1, 1, 2, 3, 4, 4, 4, 5, 5, 6, 7, 7, 8, 8, 9, 10, 11, 11, 12, 12, 13, 14, 14, 15, 16, 16, 17, 18, 19, 19, 19, 19, 20, 20, 23, 24, 25, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 36, 36, 38, 39, 41, 41, 41, 42, 43],'Para': [2, 19, 28, 42, 23, 5, 33, 45, 7, 36, 7, 8, 39, 9, 11, 11, 11, 12, 44, 13, 19, 14, 15, 20, 16, 17, 22, 33, 19, 20, 21, 23, 35, 21, 22, 24, 37, 26, 40, 28, 28, 35, 30, 33, 33, 33, 45, 35, 37, 40, 39, 40, 42, 43, 44, 43, 44],'R(pu)': [0.00035, 0.0018, 0.0014, 0.0, 0.0, 0.0386, 0.0096, 0.0033, 0.02315, 0.00885, 0.0, 0.00815, 0.025, 0.0163, 0.0316, 0.0153, 0.0, 0.0306, 0.0172, 0.0245, 0.0, 0.0088, 0.0091, 0.0, 0.0077, 0.0108, 0.0, 0.009, 0.0, 0.0019, 0.0019, 0.0014, 0.0005, 0.0005, 0.0012, 0.0021, 0.0, 0.0022, 0.0, 0.0014, 0.0, 0.0005, 0.0, 0.0, 0.0, 0.0, 0.0129, 0.0, 0.0006971, 0.0061315, 0.0, 0.0202, 0.0051987, 0.011, 0.0229, 0.0086, 0.0181],'X(pu)': [0.00725, 0.0227, 0.0204, 0.0063, 0.0136, 0.1985, 0.0491, 0.0167, 0.1189, 0.0455, 0.046, 0.04175, 0.1548, 0.0835, 0.1621, 0.0861, 0.0114, 0.1523, 0.088, 0.1256, 0.03, 0.0415, 0.04675, 0.0062, 0.0388, 0.05525, 0.0062, 0.046, 0.0067, 0.028, 0.0274, 0.0195, 0.007, 0.0069, 0.0175, 0.0309, 0.0062, 0.03, 0.0062, 0.0195, 0.0114, 0.007, 0.0871, 0.059, 0.0701, 0.045, 0.0657, 0.0068, 0.0035819, 0.0316242, 0.0236, 0.1129, 0.0268149, 0.1184, 0.1174, 0.0442, 0.0929],'B(pu)': [0.8305, 2.2721, 2.4475, 0.0, 0.0, 0.34, 0.0842, 0.2859, 0.2042, 0.07925, 0.0, 0.072, 0.469, 0.144, 0.2784, 0.1344, 0.0, 0.2702, 0.152, 0.2041, 0.0, 0.5211, 0.07975, 0.0, 0.0675, 0.09315, 0.0, 0.07765, 0.0, 3.3576, 3.2867, 2.3968, 0.8392, 0.8216, 2.097, 3.7183, 0.0, 3.83, 0.0, 2.397, 0.0, 0.8392, 0.0, 0.0, 0.0, 0.0, 0.1128, 0.0, 0.0668, 0.5236, 0.0, 0.2062, 0.1905, 0.2027, 0.2027, 0.2868, 0.1607]}
@@ -88,6 +90,7 @@ class SmartGridSin45:
             self.bus_map[bus_id] = new_idx
 
         self._add_elements_to_network()
+        self._validate_network()
         
         return self.net
 
@@ -142,6 +145,37 @@ class SmartGridSin45:
                                                    r_ohm_per_km=r_ohm, x_ohm_per_km=x_ohm,
                                                    c_nf_per_km=c_nf, max_i_ka=0.5)
 
+    def _validate_network(self):
+        """Valida a rede criada."""
+        print("\n--- Validando a rede criada ---")
+        
+        num_bus_excel = len(self.dataframes['bus'])
+        num_bus_pp = len(self.net.bus)
+        print(f"Número de barras (Excel): {num_bus_excel}, (pandapower): {num_bus_pp}")
+        if num_bus_excel != num_bus_pp:
+            print("AVISO: Número de barras diferente do esperado.")
+
+        num_line_excel = len(self.dataframes['line'])
+        num_line_pp = len(self.net.line)
+        num_trafo_pp = len(self.net.trafo)
+        print(f"Número de ramos (Excel): {num_line_excel}, (pandapower): {num_line_pp} (linhas) + {num_trafo_pp} (trafos) = {num_line_pp + num_trafo_pp}")
+        if num_line_excel != (num_line_pp + num_trafo_pp):
+            print("AVISO: Número de ramos (linhas + trafos) diferente do esperado.")
+
+        num_load_excel = len(self.dataframes['load_gen'][self.dataframes['load_gen']['Carga Ativa (MW)'] > 0])
+        num_load_pp = len(self.net.load)
+        print(f"Número de cargas (Excel): {num_load_excel}, (pandapower): {num_load_pp}")
+        if num_load_excel != num_load_pp:
+            print("AVISO: Número de cargas diferente do esperado.")
+
+        num_gen_excel = len(self.dataframes['load_gen'][self.dataframes['load_gen']['Potência Ativa (MW)'] > 0])
+        num_gen_pp = len(self.net.gen) + len(self.net.ext_grid)
+        print(f"Número de geradores (Excel): {num_gen_excel}, (pandapower): {num_gen_pp}")
+        if num_gen_excel != num_gen_pp:
+            print("AVISO: Número de geradores diferente do esperado.")
+        
+        print("--- Fim da validação ---\n")
+
 def analise_contigencias_sep(rede, setupobj, matriz_cenarios, agendamento_df, contingencia_df):
     """
     Executa a análise de contingências para um determinado agendamento de manutenção.
@@ -187,8 +221,6 @@ def analise_contigencias_sep(rede, setupobj, matriz_cenarios, agendamento_df, co
         return sum(violacoes_total), contigencias_selecionadas
 
     except Exception as e:
-        # Silenciando o erro para o algoritmo genético continuar
-        # print(f"\nErro durante a análise de contingências: {e}")
         return float('inf'), {}
 
 
@@ -196,24 +228,13 @@ def funcao_objetivo_contingencia_sin45(individuo, setupobj, _debug=False, return
     """
     Função objetivo principal para a análise de contingências do SIN 45.
     """
-    smart_grid = SmartGridSin45()
-    filepath = smart_grid.create_sin45_dataset_file()
-    smart_grid.load_data_from_excel(filepath)
-    pp_network = smart_grid.create_network_from_dataframes()
-    bus_map = smart_grid.bus_map
+    # Access global variables
+    smart_grid = global_smart_grid
+    agendamento_df = global_agendamento_df
+    contingencia_df = global_contingencia_df
 
-    # Criando os dataframes de agendamento e contingência dinamicamente
-    df_line = smart_grid.dataframes.get('line')
-    agendamento_df = pd.DataFrame({
-        'ramo': df_line[['De', 'Para']].head(5).values.tolist(),
-        'duracao': [5, 4, 6, 3, 5],
-        'prioridade': [1, 2, 1, 3, 1]
-    })
-    contingencia_df = pd.DataFrame({
-        'contingencia': range(1, 4),
-        'from': df_line['De'].iloc[5:8].values,
-        'to': df_line['Para'].iloc[5:8].values
-    })
+    pp_network = smart_grid.net
+    bus_map = smart_grid.bus_map
 
     try:
         rede = RedeEletricaPandaPower(network_name="nova", debug=_debug)
@@ -262,33 +283,59 @@ def funcao_objetivo_contingencia_sin45(individuo, setupobj, _debug=False, return
             return fitness_final,
 
     except Exception as e:
-        print(f"[ERRO] na função objetivo: {e}")
-        import traceback
-        traceback.print_exc()
         return float("inf"),
 
-if __name__ == '__main__':
-    # Estes dataframes são apenas para inicialização, os valores corretos são criados dinamicamente
-    agendamento_df = pd.DataFrame({'ramo':[], 'duracao':[], 'prioridade':[]})
-    contingencia_df = pd.DataFrame({'contingencia':[], 'from':[], 'to':[]})
+# Global variables
+global global_agendamento_df
+global global_contingencia_df
+global global_smart_grid
 
+if __name__ == '__main__':
+    # Criando os dataframes dinamicamente a partir do arquivo Excel
+    smart_grid = SmartGridSin45()
+    filepath = smart_grid.create_sin45_dataset_file()
+    smart_grid.load_data_from_excel(filepath)
+    smart_grid.create_network_from_dataframes()
+
+    df_line = smart_grid.dataframes.get('line')
+
+    # Usando as 5 primeiras linhas para o agendamento para manter o problema tratável.
+    agendamento_df = pd.DataFrame({
+        'ramo': df_line[['De', 'Para']].head(5).values.tolist(),
+        'duracao': 5,  # Valor de exemplo, ajuste se necessário
+        'prioridade': 1 # Valor de exemplo, ajuste se necessário
+    })
+
+    # Usando os valores originais para as contingências.
+    contingencia_df = pd.DataFrame([
+        {"contingencia": 1, "from": 1, "to": 19},
+        {"contingencia": 2, "from": 24, "to": 26},
+        {"contingencia": 3, "from": 35, "to": 28}
+    ])
+
+    # Assign to global variables
+    global_agendamento_df = agendamento_df
+    global_contingencia_df = contingencia_df
+    global_smart_grid = smart_grid
+
+    # Ajustando os parâmetros do algoritmo genético
+    horarios_iniciais = [15] * len(agendamento_df)
     params = {
         "NUM_GENERATIONS": 10,
         "CROSSOVER": 0.9,
         "MUTACAO": 0.1,
         "POP_SIZE": 10,
-        "IND_SIZE": 5, # Ajustado para o tamanho do agendamento_df dinâmico
+        "IND_SIZE": len(agendamento_df),
         "RCE_REPOPULATION_GENERATIONS": 5,
         "NUM_VAR_DIFERENTES": 1,
         "PORCENTAGEM": 0.2,
         "DELTA_MIN": 2,
-        "ARRAY_VAR": [15, 15, 10, 21, 16],
+        "ARRAY_VAR": horarios_iniciais,
         "LIMITE_VAR": [0, 31]
     }
     
-    # O tamanho da tabela hash agora é calculado com base nos dataframes dinâmicos
-    # (assumindo que o tamanho não muda entre as chamadas da função objetivo)
-    tabela_hash_size = 3 * 3 * (2**5)
+    tabela_hash_size = len(contingencia_df) * 3 * (2**len(agendamento_df))
+    
     setup = Setup(params=params, fitness_function=funcao_objetivo_contingencia_sin45, tamanho_hash=tabela_hash_size)
     
     print("Iniciando a execução do algoritmo genético...")
