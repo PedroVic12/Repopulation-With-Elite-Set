@@ -243,21 +243,25 @@ class SmartGridSin45:
 
 
 
-
-# --- DADOS DE AGENDAMENTO E CONTINGÊNCIA (EXEMPLO) ---
-# IMPORTANTE: Estes são dados de exemplo e devem ser ajustados para o caso real.
+# --- DADOS DE AGENDAMENTO E CONTINGÊNCIA (Retirado da tese de RZ na pagina 132-133) ---
 agendamento_df = pd.DataFrame([
-    {"ramo": [1, 2], "duracao": 5, "prioridade": 1},   # IVAIPORA -> LONDRINA
-    {"ramo": [7, 8], "duracao": 4, "prioridade": 2},   # P.FUNDO -> XANXERE
-    {"ramo": [20, 21], "duracao": 6, "prioridade": 1}, # CURITIBA -> CUR.NORTE
-    {"ramo": [24, 37], "duracao": 3, "prioridade": 3}, # GRAVATAI -> GRAVATAI.230
-    {"ramo": [41, 42], "duracao": 5, "prioridade": 1}  # APUCARANA -> LONDRINA.230
+    {"ramo": [8, 11],"inicio": "08:00",  "duracao": 4, "prioridade": 4},   # IVAIPORA -> LONDRINA
+    {"ramo": [43, 44],"inicio": "10:00", "duracao": 5, "prioridade": 1},   # P.FUNDO -> XANXERE
+    {"ramo": [4, 33], "inicio": "14:00", "duracao": 4, "prioridade": 1}, # CURITIBA -> CUR.NORTE
+    {"ramo": [7, 39], "inicio": "18:00", "duracao": 6 ,"prioridade": 1},
+    {"ramo": [41, 44], "inicio": "15:00", "duracao": 4, "prioridade": 1},
+    {"ramo": [20, 21], "inicio": "08:00", "duracao": 4, "prioridade": 1},
+    {"ramo": [39, 40], "inicio": "10:00", "duracao": 5, "prioridade": 1},
+    {"ramo": [42, 43], "inicio": "14:00", "duracao": 4, "prioridade": 1},
+    {"ramo": [4, 45], "inicio": "18:00", "duracao": 6, "prioridade": 1},
+    {"ramo": [5, 7], "inicio": "15:00", "duracao": 4, "prioridade": 1},
+
 ])
 
 contingencia_df = pd.DataFrame([
-    {"contingencia": 1, "from": 1, "to": 19},  # IVAIPORA -> AREIA.525
-    {"contingencia": 2, "from": 24, "to": 26}, # GRAVATAI -> PINHEIRO
-    {"contingencia": 3, "from": 35, "to": 28}  # SEGREDO -> S.SANTIAG525
+    {"contingencia": 1, "from": 4, "to": 5},  
+    {"contingencia": 2, "from": 9, "to": 11}, 
+    {"contingencia": 3, "from": 19, "to": 23}  
 ])
 
 
@@ -353,7 +357,7 @@ HORARIOS_COND_INICIAL = [15, 15, 10, 21, 20]
 
 # Dicionário de parâmetros para a função de teste
 params_json_teste = {
-    "NUM_GENERATIONS": 100,
+    "NUM_GENERATIONS": 10,
     "CROSSOVER": 0.9,
     "MUTACAO": 0.77,
     "POP_SIZE": 50,

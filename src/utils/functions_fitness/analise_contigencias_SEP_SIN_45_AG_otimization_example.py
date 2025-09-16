@@ -51,16 +51,17 @@ def analise_contigencias_SEP(rede, setupobj, matriz_cenarios , agendamento_df, c
             for contingencia_atual in range(1, num_contingencias + 1):
                 hash_key = rede.hashtableindex(perfil, num_carregamentos, contingencia_atual, num_contingencias, estado_ramos)
 
+                ramo_contingencia = list(contingencia_df.loc[contingencia_df['contingencia'] == contingencia_atual, ['from', 'to']].values[0])
+                
+                if ramo_contingencia not in contigencias_selecionadas["ramos"]:
+                    contigencias_selecionadas["ramos"].append(ramo_contingencia)
+                    contigencias_selecionadas["contingencia"].append(contingencia_atual)
+
                 if setupobj.tabela_hash[hash_key] < 0.0:
                     rede.religar_todos_os_ramos_agendamento()
                     rede.desligar_elementos_agendamento(estado_ramos)
                     
-                    ramo_contingencia = list(contingencia_df.loc[contingencia_df['contingencia'] == contingencia_atual, ['from', 'to']].values[0])
                     rede.desligar_contingencia(ramo_contingencia)
-                    
-                    if ramo_contingencia not in contigencias_selecionadas["ramos"]:
-                        contigencias_selecionadas["ramos"].append(ramo_contingencia)
-                        contigencias_selecionadas["contingencia"].append(contingencia_atual)
 
                     if rede.executar_fluxo_de_potencia():
                         fitness, _ = rede.calcular_violacoes_fitness()
@@ -102,12 +103,11 @@ class SmartGridSin45:
         print(f"A gerar gráfico da rede em '{filename}'...")
         try:
             pp.runpp(self.net)
-            fig = pplotly.simple_plotly(self.net)
+            fig = pp.plotting.plotly.simple_plotly(self.net)
             fig.write_html(filename)
             print(f"Gráfico guardado com sucesso! Pode abrir o ficheiro '{filename}' no navegador.")
         except Exception as e:
             print(f"Erro ao gerar o gráfico: {e}")
-
 
 
     def create_sin45_dataset_file(self, filename='SIN_45_barras_dataset.xlsx'):
@@ -243,22 +243,27 @@ class SmartGridSin45:
 
 
 
-
-# --- DADOS DE AGENDAMENTO E CONTINGÊNCIA (EXEMPLO) ---
-# IMPORTANTE: Estes são dados de exemplo e devem ser ajustados para o caso real.
+# --- DADOS DE AGENDAMENTO E CONTINGÊNCIA (Retirado da tese de RZ na pagina 132-133) ---
 agendamento_df = pd.DataFrame([
-    {"ramo": [1, 2], "duracao": 5, "prioridade": 1},   # IVAIPORA -> LONDRINA
-    {"ramo": [7, 8], "duracao": 4, "prioridade": 2},   # P.FUNDO -> XANXERE
-    {"ramo": [20, 21], "duracao": 6, "prioridade": 1}, # CURITIBA -> CUR.NORTE
-    {"ramo": [24, 37], "duracao": 3, "prioridade": 3}, # GRAVATAI -> GRAVATAI.230
-    {"ramo": [41, 42], "duracao": 5, "prioridade": 1}  # APUCARANA -> LONDRINA.230
+    {"ramo": [8, 11],"inicio": "08:00",  "duracao": 4, "prioridade": 4},   # IVAIPORA -> LONDRINA
+    {"ramo": [43, 44],"inicio": "10:00", "duracao": 5, "prioridade": 1},   # P.FUNDO -> XANXERE
+    {"ramo": [4, 33], "inicio": "14:00", "duracao": 4, "prioridade": 1}, # CURITIBA -> CUR.NORTE
+    {"ramo": [7, 39], "inicio": "18:00", "duracao": 6 ,"prioridade": 1},
+    {"ramo": [41, 44], "inicio": "15:00", "duracao": 4, "prioridade": 1},
+    {"ramo": [20, 21], "inicio": "08:00", "duracao": 4, "prioridade": 1},
+    {"ramo": [39, 40], "inicio": "10:00", "duracao": 5, "prioridade": 1},
+    {"ramo": [42, 43], "inicio": "14:00", "duracao": 4, "prioridade": 1},
+    {"ramo": [4, 45], "inicio": "18:00", "duracao": 6, "prioridade": 1},
+    {"ramo": [5, 7], "inicio": "15:00", "duracao": 4, "prioridade": 1},
+
 ])
 
 contingencia_df = pd.DataFrame([
-    {"contingencia": 1, "from": 1, "to": 19},  # IVAIPORA -> AREIA.525
-    {"contingencia": 2, "from": 24, "to": 26}, # GRAVATAI -> PINHEIRO
-    {"contingencia": 3, "from": 35, "to": 28}  # SEGREDO -> S.SANTIAG525
+    {"contingencia": 1, "from": 4, "to": 5},  
+    {"contingencia": 2, "from": 9, "to": 11}, 
+    {"contingencia": 3, "from": 19, "to": 23}  
 ])
+
 
 
 def hashtablesize_sin45():
@@ -287,8 +292,8 @@ def funcao_objetivo_SIN45(individuo, setupobj, _debug=False):
         rede = RedeEletricaPandaPower(network_name = "nova", debug=False)
         rede.net = pp_network_SIN
         
-        print(rede.net)
-        print("\n\n")
+        #print(rede.net)
+        #print("\n\n")
 
 
         # inicializa
@@ -357,7 +362,7 @@ HORARIOS_COND_INICIAL = [15, 15, 10, 21, 20]
 
 # Dicionário de parâmetros para a função de teste
 params_json_teste = {
-    "NUM_GENERATIONS": 100,
+    "NUM_GENERATIONS": 15,
     "CROSSOVER": 0.9,
     "MUTACAO": 0.5,
     "POP_SIZE": 10,
@@ -405,6 +410,11 @@ def run_simulate_SIN45():
     end_exec = datetime.now()
     elapsed_exec = end_exec - start_exec
 
+    # Re-executa a função objetivo com o melhor indivíduo para obter os dados detalhados
+    # Nota: A função objetivo pode imprimir informações da rede novamente.
+    print("\nAnalisando a melhor solução encontrada para gerar o relatório final...")
+    funcao_objetivo_SIN45(best_individual, setup, _debug=False)
+
     #! 7) Visualize os Resultados
     print("\nEvolução concluída  - 100%")
     best_solution_generation, _, _, _ = alg.dashboard.visualize(
@@ -415,15 +425,38 @@ def run_simulate_SIN45():
     )
 
     # Exibe os tempos e contadores de forma clara
-    print(f"\nDuração desta Execução: {elapsed_exec}")
+    print(f"\nDuração da Execução do Algoritmo: {elapsed_exec}")
     print(f"Objective functions runs: {setup.objectiveruns}")
     print(f"Consultas HashTable: {setup.hashtablereads}\n")
 
-    print("\nRamos de contingência selecionados:")
-    print(pd.DataFrame(resultados["ramos_selecionados"]))
+    # --- Preparação e Exibição do DataFrame Final ---
+    print("="*80)
+    print(">>> Análise Detalhada da Melhor Solução Encontrada <<<")
+    print("="*80)
 
+    df_contingencias = pd.DataFrame(resultados.get("ramos_selecionados", {}))
 
-    print(f"\nMelhores hórarios de agendamento de operação do SEP: SIN 45: {best_variables}")
+    if not df_contingencias.empty:
+        print("\nRamos de contingência avaliados na melhor solução:")
+        
+        # A coluna 'ramos' contém uma lista com os índices [from, to] do pandapower.
+        # Vamos separar em colunas para melhor visualização.
+        try:
+            df_contingencias['from_bus_idx'] = df_contingencias['ramos'].apply(lambda x: x[0] if isinstance(x, list) and len(x) > 0 else None)
+            df_contingencias['to_bus_idx'] = df_contingencias['ramos'].apply(lambda x: x[1] if isinstance(x, list) and len(x) > 1 else None)
+            
+            print(df_contingencias[['contingencia', 'from_bus_idx', 'to_bus_idx']].to_string(index=False))
+        except Exception as e:
+            print(f"Erro ao formatar o DataFrame de contingências: {e}")
+            print("Dados brutos:")
+            print(df_contingencias)
+
+    else:
+        print("\nNenhum ramo de contingência foi avaliado ou registrado para a melhor solução.")
+
+    print(f"\nMelhores horários de agendamento (melhor indivíduo):")
+    print(best_variables)
+    print("="*80)
 
 
 
