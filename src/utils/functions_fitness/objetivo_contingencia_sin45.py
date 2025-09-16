@@ -2,22 +2,22 @@
 """
 Arquivo: objetivo_contingencia_sin45.py
 
-Objetivo: Função objetivo unificada para análise de contingências do sistema SEP-SIN 45.
-
-Este script consolida e limpa as funcionalidades dos scripts anteriores,
-fornecendo uma função objetivo robusta e de fácil utilização para algoritmos genéticos.
+Objetivo: Função objetivo unificada para análise de contingências do sistema SEP-SIN 45,
+com execução do algoritmo genético e apresentação dos resultados.
 """
 
 import os
 import sys
 import pandas as pd
 import pandapower as pp
+from datetime import datetime
 
 # Adiciona o caminho do projeto ao sys.path para importação dos módulos locais
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..')))
 
 from RedeEletrica_backup.rede_eletrica import RedeEletricaPandaPower
 from AlgEvolutivoRCE_backup.Setup import Setup
+from AlgEvolutivoRCE_backup.alg_evolutivo_rce import AlgoritimoEvolutivoRCE
 
 
 class SmartGridSin45:
@@ -27,7 +27,7 @@ class SmartGridSin45:
     def __init__(self):
         self.net = None
         self.dataframes = {}
-        self.bus_map = {}  # Mapeia IDs de barras do Excel para índices do pandapower
+        self.bus_map = {}
 
     def create_sin45_dataset_file(self, filename='SIN_45_barras_dataset.xlsx'):
         """
@@ -68,7 +68,6 @@ class SmartGridSin45:
         if df_bus is None or df_load_gen is None:
             raise ValueError("As folhas 'bus' e 'load_gen' são necessárias.")
 
-        # Converte colunas relevantes para numérico, tratando erros
         for col in ['Barra', 'Tipo de Barra (*)', 'Potência Ativa (MW)', 'Carga Ativa (MW)', 'Carga Reativa (Mvar)']:
             if col in df_load_gen.columns:
                 df_load_gen[col] = pd.to_numeric(df_load_gen[col], errors='coerce').fillna(0)
@@ -88,7 +87,6 @@ class SmartGridSin45:
             new_idx = pp.create_bus(self.net, name=row['Nome'], vn_kv=vn_kv)
             self.bus_map[bus_id] = new_idx
 
-        # Adiciona cargas, geradores, linhas, etc., usando o bus_map
         self._add_elements_to_network()
         
         return self.net
@@ -97,14 +95,12 @@ class SmartGridSin45:
         """Adiciona os elementos (cargas, geradores, etc.) à rede."""
         df_load_gen = self.dataframes.get('load_gen')
 
-        # Adiciona cargas
         for _, row in df_load_gen.iterrows():
             if row['Carga Ativa (MW)'] > 0:
                 bus_idx = self.bus_map.get(int(row['Barra']))
                 if bus_idx is not None:
                     pp.create_load(self.net, bus=bus_idx, p_mw=row['Carga Ativa (MW)'], q_mvar=row['Carga Reativa (Mvar)'])
 
-        # Adiciona geradores e a rede externa (slack)
         for _, row in df_load_gen.iterrows():
             bus_idx = self.bus_map.get(int(row['Barra']))
             if bus_idx is None: continue
@@ -118,7 +114,6 @@ class SmartGridSin45:
                 else:
                     pp.create_gen(self.net, bus=bus_idx, p_mw=row['Potência Ativa (MW)'], vm_pu=1.0)
 
-        # Adiciona linhas e transformadores
         df_line = self.dataframes.get('line')
         if df_line is not None:
             s_base_mva = 100.0
@@ -165,8 +160,6 @@ def analise_contigencias_sep(rede, setupobj, matriz_cenarios, agendamento_df, co
                 contingencia_atual = contingencia_row['contingencia']
                 hash_key = rede.hashtableindex(perfil, 3, contingencia_atual, num_contingencias, estado_ramos)
 
-                print(f"--- DEBUG: hash_key: {hash_key}, tabela_hash size: {len(setupobj.tabela_hash)} ---")
-
                 if setupobj.tabela_hash[hash_key] < 0.0:
                     rede.religar_todos_os_ramos_agendamento()
                     rede.desligar_elementos_agendamento(estado_ramos)
@@ -198,8 +191,7 @@ def analise_contigencias_sep(rede, setupobj, matriz_cenarios, agendamento_df, co
         return float('inf'), {}
 
 
-
-def funcao_objetivo_contingencia_sin45(individuo, setupobj, _debug=False):
+def funcao_objetivo_contingencia_sin45(individuo, setupobj, _debug=False, return_details=False):
     """
     Função objetivo principal para a análise de contingências do SIN 45.
     """
@@ -240,9 +232,6 @@ def funcao_objetivo_contingencia_sin45(individuo, setupobj, _debug=False):
         agendamento_local["inicio"] = individuo
         duracao_total = (agendamento_local['inicio'] + agendamento_local['duracao']).max()
         
-        # A chamada para validar_dados foi removida para evitar o erro "Ramo não existe"
-        # rede.validar_dados(agendamento_local, contingencia_local)
-
         matriz_cenarios = rede.avalia_cenarios(
             horas=duracao_total,
             hora_inicio=agendamento_local['inicio'],
@@ -250,11 +239,14 @@ def funcao_objetivo_contingencia_sin45(individuo, setupobj, _debug=False):
             ls=0, le=8, ms=8, me=18, hs=18, he=24
         )
 
-        fitness_final, _ = analise_contigencias_sep(
+        fitness_final, contigencias_selecionadas = analise_contigencias_sep(
             rede, setupobj, matriz_cenarios, agendamento_local, contingencia_local
         )
         
-        return fitness_final, 
+        if return_details:
+            return fitness_final, contigencias_selecionadas
+        else:
+            return fitness_final,
 
     except Exception as e:
         print(f"\n[ERRO] na função objetivo: {e}")
@@ -264,17 +256,17 @@ def funcao_objetivo_contingencia_sin45(individuo, setupobj, _debug=False):
 
 # --- Dados de Exemplo e Execução ---
 agendamento_df = pd.DataFrame([
-    {"ramo": [1, 2], "duracao": 5, "prioridade": 1},   # IVAIPORA -> LONDRINA
-    {"ramo": [7, 8], "duracao": 4, "prioridade": 2},   # P.FUNDO -> XANXERE
-    {"ramo": [20, 21], "duracao": 6, "prioridade": 1}, # CURITIBA -> CUR.NORTE
-    {"ramo": [24, 37], "duracao": 3, "prioridade": 3}, # GRAVATAI -> GRAVATAI.230
-    {"ramo": [41, 42], "duracao": 5, "prioridade": 1}  # APUCARANA -> LONDRINA.230
+    {"ramo": [1, 2], "duracao": 5, "prioridade": 1},
+    {"ramo": [7, 8], "duracao": 4, "prioridade": 2},
+    {"ramo": [20, 21], "duracao": 6, "prioridade": 1},
+    {"ramo": [24, 37], "duracao": 3, "prioridade": 3},
+    {"ramo": [41, 42], "duracao": 5, "prioridade": 1}
 ])
 
 contingencia_df = pd.DataFrame([
-    {"contingencia": 1, "from": 1, "to": 19},  # IVAIPORA -> AREIA.525
-    {"contingencia": 2, "from": 24, "to": 26}, # GRAVATAI -> PINHEIRO
-    {"contingencia": 3, "from": 35, "to": 28}  # SEGREDO -> S.SANTIAG525
+    {"contingencia": 1, "from": 1, "to": 19},
+    {"contingencia": 2, "from": 24, "to": 26},
+    {"contingencia": 3, "from": 35, "to": 28}
 ])
 
 if __name__ == '__main__':
@@ -282,7 +274,7 @@ if __name__ == '__main__':
         "NUM_GENERATIONS": 10,
         "CROSSOVER": 0.9,
         "MUTACAO": 0.1,
-        "POP_SIZE": 4,
+        "POP_SIZE": 10,
         "IND_SIZE": len(agendamento_df),
         "RCE_REPOPULATION_GENERATIONS": 5,
         "NUM_VAR_DIFERENTES": 1,
@@ -295,13 +287,22 @@ if __name__ == '__main__':
     tabela_hash_size = len(contingencia_df) * 3 * (2**len(agendamento_df))
     setup = Setup(params=params, fitness_function=funcao_objetivo_contingencia_sin45, tamanho_hash=tabela_hash_size)
     
-    individuo_exemplo = [15, 15, 10, 21, 16]
+    print("Iniciando a execução do algoritmo genético...")
+    alg = AlgoritimoEvolutivoRCE(setup, DEBUG=False)
+    pop, logbook, best_ind, _ = alg.run(RCE=False)
     
-    print("Iniciando a execução da função objetivo...")
-    fitness, *_ = funcao_objetivo_contingencia_sin45(individuo_exemplo, setup, _debug=False)
-    
-    if fitness is not None and fitness != float("inf"):
-        print(f"\nExecução concluída com sucesso!")
-        print(f"Fitness final para o indivíduo de exemplo: {fitness:.2f}")
-    else:
-        print("\nA execução encontrou um erro.")
+    best_fitness = logbook.select("min")[-1]
+    best_horarios = best_ind
+
+    # Para obter os ramos selecionados, precisamos executar a função objetivo mais uma vez com o melhor indivíduo
+    _, contigencias_selecionadas = funcao_objetivo_contingencia_sin45(best_horarios, setup, return_details=True)
+
+    # Criando o DataFrame final
+    resultados_df = pd.DataFrame({
+        'Fitness': [best_fitness],
+        'Melhores Horarios': [best_horarios],
+        'Ramos Selecionados': [contigencias_selecionadas['ramos']]
+    })
+
+    print("\n--- Resultados Finais da Otimização ---")
+    print(resultados_df.to_string(index=False))

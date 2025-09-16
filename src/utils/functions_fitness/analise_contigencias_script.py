@@ -1,6 +1,9 @@
 #!/usr/bin/env python
 # coding: utf-8
 
+
+#! Import this function for your fitness function for your newtwork otimization case
+
 def analise_contigencias_SEP(rede, setupobj, matriz_cenarios , agendamento_df, contingencia_df):
     """
     Executa a análise de contingências para um determinado agendamento de manutenção.

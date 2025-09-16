@@ -402,12 +402,13 @@ def run_simulate_SIN45():
     best_variables = list(best_individual)
 
 
+
+    print("\nEvolução concluída  - 100%")
     # Finaliza o cronômetro e calcula a duração desta execução
     end_exec = datetime.now()
     elapsed_exec = end_exec - start_exec
-
+    
     #! 7) Visualize os Resultados
-    print("\nEvolução concluída  - 100%")
     best_solution_generation, _, _, _ = alg.dashboard.visualize(
         logbook_with_repopulation,
         pop_with_repopulation,
