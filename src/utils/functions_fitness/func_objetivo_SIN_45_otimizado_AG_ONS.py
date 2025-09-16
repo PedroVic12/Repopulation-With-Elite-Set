@@ -244,17 +244,19 @@ class SmartGridSin45:
 
 
 # --- DADOS DE AGENDAMENTO E CONTINGÊNCIA (Retirado da tese de RZ na pagina 132-133) ---
+#! Dados reduzidos para IND_SIZE = 5 para resultado rápido para o artigo
 agendamento_df = pd.DataFrame([
     {"ramo": [8, 11],"inicio": "08:00",  "duracao": 4, "prioridade": 4},   # IVAIPORA -> LONDRINA
     {"ramo": [43, 44],"inicio": "10:00", "duracao": 5, "prioridade": 1},   # P.FUNDO -> XANXERE
     {"ramo": [4, 33], "inicio": "14:00", "duracao": 4, "prioridade": 1}, # CURITIBA -> CUR.NORTE
     {"ramo": [7, 39], "inicio": "18:00", "duracao": 6 ,"prioridade": 1},
     {"ramo": [41, 44], "inicio": "15:00", "duracao": 4, "prioridade": 1},
-    {"ramo": [20, 21], "inicio": "08:00", "duracao": 4, "prioridade": 1},
-    {"ramo": [39, 40], "inicio": "10:00", "duracao": 5, "prioridade": 1},
-    {"ramo": [42, 43], "inicio": "14:00", "duracao": 4, "prioridade": 1},
-    {"ramo": [4, 45], "inicio": "18:00", "duracao": 6, "prioridade": 1},
-    {"ramo": [5, 7], "inicio": "15:00", "duracao": 4, "prioridade": 1},
+    
+    # {"ramo": [20, 21], "inicio": "08:00", "duracao": 4, "prioridade": 1},
+    # {"ramo": [39, 40], "inicio": "10:00", "duracao": 5, "prioridade": 1},
+    # {"ramo": [42, 43], "inicio": "14:00", "duracao": 4, "prioridade": 1},
+    # {"ramo": [4, 45], "inicio": "18:00", "duracao": 6, "prioridade": 1},
+    # {"ramo": [5, 7], "inicio": "15:00", "duracao": 4, "prioridade": 1},
 
 ])
 

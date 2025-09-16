@@ -296,8 +296,8 @@ def funcao_objetivo_SIN45(individuo, setupobj, _debug=False):
         #print("\n\n")
 
 
-        # inicializa
-        rede.pesos["tensao"] = {"min": 0.95, "max": 1.05}
+        # Limites Operativos da rede
+        rede.pesos["tensao"] = {"min": 0.90, "max": 1.10}
         rede.pesos["loading_linhas"] = 100
         rede.pesos["loading_trafos"] = 100
         rede.pesos["demanda"] = 99
@@ -358,7 +358,7 @@ def funcao_objetivo_SIN45(individuo, setupobj, _debug=False):
         return float("inf"), {}
 
 
-HORARIOS_COND_INICIAL = [15, 15, 10, 21, 20]
+HORARIOS_COND_INICIAL = [15, 15, 10, 21, 20, 12, 15, 8, 19,23]
 
 # Dicionário de parâmetros para a função de teste
 params_json_teste = {
@@ -366,7 +366,7 @@ params_json_teste = {
     "CROSSOVER": 0.9,
     "MUTACAO": 0.5,
     "POP_SIZE": 10,
-    "IND_SIZE": 5,
+    "IND_SIZE": 10,
     "RCE_REPOPULATION_GENERATIONS": 5,
     "NUM_VAR_DIFERENTES": 1,
     "PORCENTAGEM": 0.2,
@@ -375,7 +375,7 @@ params_json_teste = {
     "LIMITE_VAR": [0, 31]
 }
     
-def run_simulate_SIN45():
+def run_simulate_SIN45(plot_diagrama = False):
     tabela_hash = hashtablesize_sin45()
 
     setup = Setup(
@@ -394,7 +394,8 @@ def run_simulate_SIN45():
     print("\n--- Resultados Finais ---")
     print(f"Fitness Final: {fitness}")
 
-    SmartGrid_SIN45.plot_network()
+    if plot_diagrama:
+        SmartGrid_SIN45.plot_network()
 
     # Inicia o cronômetro para esta execução específica
     start_exec = datetime.now()
