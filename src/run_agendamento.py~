@@ -3,15 +3,7 @@
 Execução do framework RCE para o problema de agendamento de manutenção.
 Este script foi reestruturado usando `src/run.py` como referência para garantir
 robustez e a instanciação correta dos objetos.
-
-
-Update: 16/09/25 - PVRV
 """
-
-
-#! Esta nova versão tem o foco de usar o Framework usando modulos e funcoes de subrotinas em arquivos separados com foco em diagnosticar  a execução que esta repetindo 2x na configuração inicial
-
-
 import sys
 import os
 import json

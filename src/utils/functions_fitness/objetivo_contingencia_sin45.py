@@ -187,7 +187,8 @@ def analise_contigencias_sep(rede, setupobj, matriz_cenarios, agendamento_df, co
         return sum(violacoes_total), contigencias_selecionadas
 
     except Exception as e:
-        print(f"\nErro durante a análise de contingências: {e}")
+        # Silenciando o erro para o algoritmo genético continuar
+        # print(f"\nErro durante a análise de contingências: {e}")
         return float('inf'), {}
 
 
@@ -200,6 +201,19 @@ def funcao_objetivo_contingencia_sin45(individuo, setupobj, _debug=False, return
     smart_grid.load_data_from_excel(filepath)
     pp_network = smart_grid.create_network_from_dataframes()
     bus_map = smart_grid.bus_map
+
+    # Criando os dataframes de agendamento e contingência dinamicamente
+    df_line = smart_grid.dataframes.get('line')
+    agendamento_df = pd.DataFrame({
+        'ramo': df_line[['De', 'Para']].head(5).values.tolist(),
+        'duracao': [5, 4, 6, 3, 5],
+        'prioridade': [1, 2, 1, 3, 1]
+    })
+    contingencia_df = pd.DataFrame({
+        'contingencia': range(1, 4),
+        'from': df_line['De'].iloc[5:8].values,
+        'to': df_line['Para'].iloc[5:8].values
+    })
 
     try:
         rede = RedeEletricaPandaPower(network_name="nova", debug=_debug)
@@ -220,7 +234,6 @@ def funcao_objetivo_contingencia_sin45(individuo, setupobj, _debug=False, return
         agendamento_local = agendamento_df.copy()
         contingencia_local = contingencia_df.copy()
 
-        # Traduz IDs de barras para índices do pandapower
         agendamento_local['ramo'] = agendamento_local['ramo'].apply(lambda r: [bus_map.get(r[0]), bus_map.get(r[1])])
         contingencia_local['from'] = contingencia_local['from'].map(bus_map)
         contingencia_local['to'] = contingencia_local['to'].map(bus_map)
@@ -249,33 +262,22 @@ def funcao_objetivo_contingencia_sin45(individuo, setupobj, _debug=False, return
             return fitness_final,
 
     except Exception as e:
-        print(f"\n[ERRO] na função objetivo: {e}")
+        print(f"[ERRO] na função objetivo: {e}")
         import traceback
         traceback.print_exc()
         return float("inf"),
 
-# --- Dados de Exemplo e Execução ---
-agendamento_df = pd.DataFrame([
-    {"ramo": [1, 2], "duracao": 5, "prioridade": 1},
-    {"ramo": [7, 8], "duracao": 4, "prioridade": 2},
-    {"ramo": [20, 21], "duracao": 6, "prioridade": 1},
-    {"ramo": [24, 37], "duracao": 3, "prioridade": 3},
-    {"ramo": [41, 42], "duracao": 5, "prioridade": 1}
-])
-
-contingencia_df = pd.DataFrame([
-    {"contingencia": 1, "from": 1, "to": 19},
-    {"contingencia": 2, "from": 24, "to": 26},
-    {"contingencia": 3, "from": 35, "to": 28}
-])
-
 if __name__ == '__main__':
+    # Estes dataframes são apenas para inicialização, os valores corretos são criados dinamicamente
+    agendamento_df = pd.DataFrame({'ramo':[], 'duracao':[], 'prioridade':[]})
+    contingencia_df = pd.DataFrame({'contingencia':[], 'from':[], 'to':[]})
+
     params = {
         "NUM_GENERATIONS": 10,
         "CROSSOVER": 0.9,
         "MUTACAO": 0.1,
         "POP_SIZE": 10,
-        "IND_SIZE": len(agendamento_df),
+        "IND_SIZE": 5, # Ajustado para o tamanho do agendamento_df dinâmico
         "RCE_REPOPULATION_GENERATIONS": 5,
         "NUM_VAR_DIFERENTES": 1,
         "PORCENTAGEM": 0.2,
@@ -284,7 +286,9 @@ if __name__ == '__main__':
         "LIMITE_VAR": [0, 31]
     }
     
-    tabela_hash_size = len(contingencia_df) * 3 * (2**len(agendamento_df))
+    # O tamanho da tabela hash agora é calculado com base nos dataframes dinâmicos
+    # (assumindo que o tamanho não muda entre as chamadas da função objetivo)
+    tabela_hash_size = 3 * 3 * (2**5)
     setup = Setup(params=params, fitness_function=funcao_objetivo_contingencia_sin45, tamanho_hash=tabela_hash_size)
     
     print("Iniciando a execução do algoritmo genético...")
@@ -294,14 +298,12 @@ if __name__ == '__main__':
     best_fitness = logbook.select("min")[-1]
     best_horarios = best_ind
 
-    # Para obter os ramos selecionados, precisamos executar a função objetivo mais uma vez com o melhor indivíduo
     _, contigencias_selecionadas = funcao_objetivo_contingencia_sin45(best_horarios, setup, return_details=True)
 
-    # Criando o DataFrame final
     resultados_df = pd.DataFrame({
         'Fitness': [best_fitness],
         'Melhores Horarios': [best_horarios],
-        'Ramos Selecionados': [contigencias_selecionadas['ramos']]
+        'Ramos Selecionados': [contigencias_selecionadas.get('ramos', [])]
     })
 
     print("\n--- Resultados Finais da Otimização ---")

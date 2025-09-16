@@ -355,7 +355,7 @@ HORARIOS_COND_INICIAL = [15, 15, 10, 21, 20]
 params_json_teste = {
     "NUM_GENERATIONS": 100,
     "CROSSOVER": 0.9,
-    "MUTACAO": 0.5,
+    "MUTACAO": 0.77,
     "POP_SIZE": 50,
     "IND_SIZE": 5,
     "RCE_REPOPULATION_GENERATIONS": 50,
