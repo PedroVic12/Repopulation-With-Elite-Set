@@ -15,6 +15,13 @@
   </tr>
 </table>
 
+
+## Update - 16/09/25
+
+- O projeto esta sendo refatorado para a pasta /lib com arquitetura MVC com facil manutenção de código.
+
+- Versão estavél na pasta /src
+
 ## INTRODUÇÃO
 
 EAs são problemas de algoritmos de otimização global inspirados na evolução natural/biológica por seleção natural, como reprodução/recombinação/cruzamento, mutação e seleção, semelhantes à sobrevivência do mais apto na vida real. Isso os torna muito intuitivos de entender. Eles se enquadram no termo mais amplo de Algoritmos Metaheurísticos ou simplesmente Metaheurísticas .
@@ -126,28 +133,6 @@ streamlit run dashboard_RCE_APP.py
 
 
 8) A versão esta em desenvolvimento desde 10/04/2025 e segue buscando melhorias e contribuições em outros programadores para construir uma interface em Streamlit e programação funcional para obter um sistema que surporte diferentes execuções com tabelas e graficos dos resultados do algoritimo evolutivo com ou sem a estrategia RCE
-
-
-## UPDATE (21/08/2025)
-
-Foi desenvolvido um arquivo laucher.py onde é utilizado Pyside6(QT) para uma GUI desktop para configuração do algoritimo evolutivo.
-
-From a high-level perspective, the current architecture makes sense:
-
-1) params.json 
-  Stores the base configuration parameters for your algorithm. This is a standard practice for providing default or initial settings.
-
-2) run_execution.py script
-
-Executes your core algorithm, likely using params.json as input. It generates the output, including the JSON results files. You can use de GUI laucher.py for that
-
-3) Folder src/output/
-
-  The designated directory for storing the results of your algorithm executions. This separation of input configurations and output data is good for organization and reproducibility.
-
-4) Dashboard Streamlit with RCE_Framework_Page.py
- (Streamlit Dashboard): This script reads and visualizes the data from the output/ directory, providing insights into the performance of your algorithm under different configurations.
-
 
 
 ### **Dicas**:
