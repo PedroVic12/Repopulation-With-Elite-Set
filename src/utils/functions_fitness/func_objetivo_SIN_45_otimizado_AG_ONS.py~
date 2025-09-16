@@ -65,7 +65,7 @@ def analise_contigencias_SEP(rede, setupobj, matriz_cenarios , agendamento_df, c
                     if rede.executar_fluxo_de_potencia():
                         fitness, _ = rede.calcular_violacoes_fitness()
                     else:
-                        fitness = rede.pesos.get("demanda", 9999) # Usar .get para segurança
+                        fitness = rede.pesos.get("demanda", 99) # Usar .get para segurança
 
                     setupobj.tabela_hash[hash_key] = fitness
                     setupobj.objectiveruns += 1
@@ -93,6 +93,22 @@ class SmartGridSin45:
         self.net = None
         self.dataframes = {}
         self.bus_map = {} # Adicionado para mapear IDs de barras para índices do pandapower
+
+    def plot_network(self, filename='sin45_network_plot.html'):
+        """ Gera um gráfico interativo da rede e guarda como HTML. """
+        if self.net is None:
+            print("Rede não criada. Não é possível gerar o gráfico.")
+            return
+        print(f"A gerar gráfico da rede em '{filename}'...")
+        try:
+            pp.runpp(self.net, numba = False)
+            fig = pp.simple_plotly(self.net)
+            fig.write_html(filename)
+            print(f"\n\nGráfico guardado com sucesso! Pode abrir o ficheiro '{filename}' no navegador.")
+        except Exception as e:
+            print(f"Erro ao gerar o gráfico: {e}")
+
+
 
     def create_sin45_dataset_file(self, filename='SIN_45_barras_dataset.xlsx'):
         """
@@ -224,6 +240,10 @@ class SmartGridSin45:
         except Exception as e:
             return False, f"Falha no fluxo de potência: {e}"
 
+
+
+
+
 # --- DADOS DE AGENDAMENTO E CONTINGÊNCIA (EXEMPLO) ---
 # IMPORTANTE: Estes são dados de exemplo e devem ser ajustados para o caso real.
 agendamento_df = pd.DataFrame([
@@ -246,6 +266,8 @@ resultados = {
 
 }
 
+
+
 def hashtablesize_sin45():
     return len(contingencia_df) * 3 * (2**len(agendamento_df))
 
@@ -262,6 +284,8 @@ def funcao_objetivo_SIN45(individuo, setupobj, _debug=False):
         rede = RedeEletricaPandaPower(network_name = "nova", debug=False)
         rede.net = pp_network_SIN
         
+        print("\n\nAnalisando o Sistema elétrico: ", nome_rede)
+        print("\n")
         print(rede.net)
         print("\n\n")
 
@@ -314,8 +338,7 @@ def funcao_objetivo_SIN45(individuo, setupobj, _debug=False):
             agendamento_df=agenda_local,
             contingencia_df=contingencia_local
         )
-        rede.log(f"\nFitness do agendamento = {fitness_final:.2f}\n", level="success")
-
+        print(f"\nFitness do agendamento = {fitness_final:.2f}\n")
         resultados["fitness"] = pd.DataFrame([{'fitness_final': fitness_final}])
         resultados[ "ramos_selecionados"] = contigencias_selecionadas
         
@@ -323,8 +346,6 @@ def funcao_objetivo_SIN45(individuo, setupobj, _debug=False):
     
     except Exception as e:
         print(f"\n[ERRO] na função objetivo SIN45: {e}")
-        import traceback
-        traceback.print_exc()
         return float("inf"), {}
 
 
@@ -332,12 +353,12 @@ HORARIOS_COND_INICIAL = [15, 15, 10, 21, 20]
 
 # Dicionário de parâmetros para a função de teste
 params_json_teste = {
-    "NUM_GENERATIONS": 5,
+    "NUM_GENERATIONS": 300,
     "CROSSOVER": 0.9,
-    "MUTACAO": 0.1,
-    "POP_SIZE": 4,
+    "MUTACAO": 0.5,
+    "POP_SIZE": 50,
     "IND_SIZE": 5,
-    "RCE_REPOPULATION_GENERATIONS": 5,
+    "RCE_REPOPULATION_GENERATIONS": 50,
     "NUM_VAR_DIFERENTES": 1,
     "PORCENTAGEM": 0.2,
     "DELTA_MIN": 2,
@@ -366,15 +387,16 @@ def run_simulate_SIN45():
     print("\nRamos de contingência selecionados:")
     print(pd.DataFrame(resultados.get("ramos_selecionados", {})))
     print("\n\n")
+    print("-------------------------------------------------------")
 
 
     # Inicia o cronômetro para esta execução específica
     start_exec = datetime.now()
 
     #! 6) Executa algoritmo
-    alg = AlgoritimoEvolutivoRCE(setup, DEBUG=False)
+    alg = AlgoritimoEvolutivoRCE(setup, DEBUG=True)
     print(f"Algoritmo Evolutivo iniciado")
-    pop_with_repopulation, logbook_with_repopulation, best_individual, all_individual_values = alg.run(RCE=False)
+    pop_with_repopulation, logbook_with_repopulation, best_individual, all_individual_values = alg.run(RCE=True)
     best_variables = list(best_individual)
 
 
@@ -401,6 +423,5 @@ def run_simulate_SIN45():
 
     print(f"\nMelhores hórarios de agendamento de operação do SEP: SIN 45: {best_variables}")
 
+run_simulate_SIN45()
 
-
-#run_simulate_SIN45()

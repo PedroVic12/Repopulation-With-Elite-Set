@@ -101,10 +101,10 @@ class SmartGridSin45:
             return
         print(f"A gerar gráfico da rede em '{filename}'...")
         try:
-            pp.runpp(self.net)
+            pp.runpp(self.net, numba = False)
             fig = pp.simple_plotly(self.net)
             fig.write_html(filename)
-            print(f"Gráfico guardado com sucesso! Pode abrir o ficheiro '{filename}' no navegador.")
+            print(f"\n\nGráfico guardado com sucesso! Pode abrir o ficheiro '{filename}' no navegador.")
         except Exception as e:
             print(f"Erro ao gerar o gráfico: {e}")
 
@@ -284,6 +284,8 @@ def funcao_objetivo_SIN45(individuo, setupobj, _debug=False):
         rede = RedeEletricaPandaPower(network_name = "nova", debug=False)
         rede.net = pp_network_SIN
         
+        print("\n\nAnalisando o Sistema elétrico: ", nome_rede)
+        print("\n")
         print(rede.net)
         print("\n\n")
 
@@ -336,7 +338,7 @@ def funcao_objetivo_SIN45(individuo, setupobj, _debug=False):
             agendamento_df=agenda_local,
             contingencia_df=contingencia_local
         )
-        rede.log(f"\nFitness do agendamento = {fitness_final:.2f}\n", level="success")
+        print(f"\nFitness do agendamento = {fitness_final:.2f}\n")
         resultados["fitness"] = pd.DataFrame([{'fitness_final': fitness_final}])
         resultados[ "ramos_selecionados"] = contigencias_selecionadas
         
@@ -351,12 +353,12 @@ HORARIOS_COND_INICIAL = [15, 15, 10, 21, 20]
 
 # Dicionário de parâmetros para a função de teste
 params_json_teste = {
-    "NUM_GENERATIONS": 5,
+    "NUM_GENERATIONS": 100,
     "CROSSOVER": 0.9,
-    "MUTACAO": 0.1,
-    "POP_SIZE": 4,
+    "MUTACAO": 0.5,
+    "POP_SIZE": 50,
     "IND_SIZE": 5,
-    "RCE_REPOPULATION_GENERATIONS": 5,
+    "RCE_REPOPULATION_GENERATIONS": 50,
     "NUM_VAR_DIFERENTES": 1,
     "PORCENTAGEM": 0.2,
     "DELTA_MIN": 2,
@@ -372,6 +374,8 @@ def run_simulate_SIN45():
         fitness_function= funcao_objetivo_SIN45,
         tamanho_hash= tabela_hash,
     )
+    
+    print(f"\n\nRodando a otimização de Agendamento de Intervençoões no SEP com SIN 45 em {params_json_teste["NUM_GENERATIONS"]} Gerações com AG with Repopulation With Elit Set" )
 
     fitness  = funcao_objetivo_SIN45(
         individuo= HORARIOS_COND_INICIAL,
@@ -385,15 +389,16 @@ def run_simulate_SIN45():
     print("\nRamos de contingência selecionados:")
     print(pd.DataFrame(resultados.get("ramos_selecionados", {})))
     print("\n\n")
+    print("-------------------------------------------------------")
 
 
     # Inicia o cronômetro para esta execução específica
     start_exec = datetime.now()
 
     #! 6) Executa algoritmo
-    alg = AlgoritimoEvolutivoRCE(setup, DEBUG=False)
+    alg = AlgoritimoEvolutivoRCE(setup, DEBUG=True)
     print(f"Algoritmo Evolutivo iniciado")
-    pop_with_repopulation, logbook_with_repopulation, best_individual, all_individual_values = alg.run(RCE=False)
+    pop_with_repopulation, logbook_with_repopulation, best_individual, all_individual_values = alg.run(RCE=True)
     best_variables = list(best_individual)
 
 

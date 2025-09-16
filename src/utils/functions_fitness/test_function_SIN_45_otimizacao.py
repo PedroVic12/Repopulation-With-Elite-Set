@@ -137,7 +137,7 @@ class SmartGridSin45:
                     pp.create_line_from_parameters(self.net, from_bus=from_bus, to_bus=to_bus, length_km=1.0,
                                                    r_ohm_per_km=r_ohm, x_ohm_per_km=x_ohm,
                                                    c_nf_per_km=c_nf, max_i_ka=0.5)
-        return self.net
+        return self.net, bus_map
 
     def run_power_flow(self):
         if self.net is None:
@@ -172,7 +172,7 @@ def funcao_objetivo_SIN45(individuo, setupobj, _debug=False):
     SmartGrid_SIN45 = SmartGridSin45()
     filepath = SmartGrid_SIN45.create_sin45_dataset_file()
     SmartGrid_SIN45.load_data_from_excel(filepath)
-    pp_network_SIN = SmartGrid_SIN45.create_network_from_dataframes()
+    pp_network_SIN, bus_map = SmartGrid_SIN45.create_network_from_dataframes()
 
     try:
         #pp_net = _create_sin45_pandapower_net()
@@ -201,6 +201,11 @@ def funcao_objetivo_SIN45(individuo, setupobj, _debug=False):
         # Clona DFs para não modificar os originais
         agenda_local = agendamento_df.copy()
         contingencia_local = contingencia_df.copy()
+
+        # Convert bus numbers to pandapower indices
+        agenda_local['ramo'] = agenda_local['ramo'].apply(lambda x: [bus_map.get(x[0]), bus_map.get(x[1])])
+        contingencia_local['from'] = contingencia_local['from'].apply(lambda x: bus_map.get(x))
+        contingencia_local['to'] = contingencia_local['to'].apply(lambda x: bus_map.get(x))
 
         agenda_local["inicio"] = individuo
         duracao_total_agendamento = (agenda_local['inicio'] + agenda_local['duracao']).max()
@@ -241,7 +246,7 @@ def funcao_objetivo_SIN45(individuo, setupobj, _debug=False):
                 else:
                     rede.religar_todos_os_ramos_agendamento()
                     rede.desligar_elementos_agendamento(estado_ramos)
-                    ramo_contingencia = list(contingencia_df.loc[contingencia_df['contingencia'] == contingencia_atual, ['from', 'to']].values[0])
+                    ramo_contingencia = list(contingencia_local.loc[contingencia_local['contingencia'] == contingencia_atual, ['from', 'to']].values[0])
                     rede.desligar_contingencia(ramo_contingencia)
 
                     #! salva os ramos selecionados
@@ -279,6 +284,7 @@ def funcao_objetivo_SIN45(individuo, setupobj, _debug=False):
         traceback.print_exc()
         return float("inf"), {}
 
+
 # Dicionário de parâmetros para a função de teste
 params_json_teste = {
     "NUM_GENERATIONS": 10,
@@ -293,7 +299,7 @@ params_json_teste = {
     "ARRAY_VAR": [15, 15, 10, 21, 16, 13, 10, 14, 17, 18],
     "LIMITE_VAR": [0, 31]
 }
-    
+
 def run_simulate_SIN45():
     tabela_hash = hashtablesize_sin45()
 
@@ -303,16 +309,32 @@ def run_simulate_SIN45():
         tamanho_hash= tabela_hash,
     )
 
-    fitness,  ramos_selecionados = funcao_objetivo_SIN45(
+    fitness,  resultados = funcao_objetivo_SIN45(
         individuo= [15, 15, 10, 21, 16 ],
         setupobj= setup,
         _debug= False
     )
 
     print("Resultados:")
-    print(fitness)
-    print(ramos_selecionados)
+    
+    if resultados:
+        print("\n--- Fitness ---")
+        print(resultados['fitness'].to_string(index=False))
+        
+        print("\n--- Ramos Selecionados para Contingência ---")
+        if resultados['ramos_selecionados']['ramos']:
+            try:
+                ramos_df = pd.DataFrame(resultados['ramos_selecionados'])
+                print(ramos_df.to_string(index=False))
+            except Exception as e:
+                print("Erro ao criar DataFrame a partir de ramos_selecionados.")
+                print(resultados['ramos_selecionados'])
+                print(e)
+        else:
+            print("Nenhum ramo selecionado para contingência.")
+    else:
+        print(f"Fitness Final: {fitness}")
+        print("Não foram retornados resultados detalhados.")
 
-
-
-run_simulate_SIN45()
+if __name__ == "__main__":
+    run_simulate_SIN45()
