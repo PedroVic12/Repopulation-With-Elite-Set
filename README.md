@@ -40,8 +40,10 @@ Vamos implementar o Algoritmo Genético e esperamos que os seguintes passos bás
 8)   O indivíduo mais apto é registrado no final de todas as gerações; o mais apto de todos é a solução ótima .
     
    
-## EXEMPLO DE USO
+## EXEMPLO DE USO COM SIN 45 BARRAS (ONS) REGIAO RJ/SP
 ---
+
+Uso com 20 gerações e mutacao e crossover em 80&
 
 <img width="1133" height="621" alt="image" src="https://github.com/user-attachments/assets/c055622a-88ca-4e12-b9bd-bf815c577b22" />
 
