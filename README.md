@@ -41,6 +41,10 @@ Vamos implementar o Algoritmo Genético e esperamos que os seguintes passos bás
     
    
 ## EXEMPLO DE USO
+---
+
+<img width="1133" height="621" alt="image" src="https://github.com/user-attachments/assets/c055622a-88ca-4e12-b9bd-bf815c577b22" />
+
 
 Na pasta compartilhada onde possui três arquivos com extensão jupyter notebook que podem ser abertos diretamente no Google Colab.Para este fim, o usuário deverá seguir os seguintes passos:
 
