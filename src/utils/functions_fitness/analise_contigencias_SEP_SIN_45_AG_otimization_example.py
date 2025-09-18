@@ -16,7 +16,46 @@ from AlgEvolutivoRCE_backup.Setup import Setup
 from AlgEvolutivoRCE_backup.alg_evolutivo_rce import AlgoritimoEvolutivoRCE
 
 
+from IPython.display import display, HTML
 
+
+
+
+
+# Hash map de resultados
+resultados = {
+
+}
+
+# --- DADOS DE AGENDAMENTO E CONTINGÊNCIA (Retirado da tese de RZ na pagina 132-133) ---
+agendamento_df = pd.DataFrame([
+    {"ramo": [8, 11],"inicio": "08:00",  "duracao": 4, "prioridade": 4},   # IVAIPORA -> LONDRINA
+    {"ramo": [43, 44],"inicio": "10:00", "duracao": 5, "prioridade": 1},   # P.FUNDO -> XANXERE
+    {"ramo": [4, 33], "inicio": "14:00", "duracao": 4, "prioridade": 1}, # CURITIBA -> CUR.NORTE
+    {"ramo": [7, 39], "inicio": "18:00", "duracao": 6 ,"prioridade": 1},
+    {"ramo": [41, 44], "inicio": "15:00", "duracao": 4, "prioridade": 1},
+    {"ramo": [20, 21], "inicio": "08:00", "duracao": 4, "prioridade": 1},
+    {"ramo": [39, 40], "inicio": "10:00", "duracao": 5, "prioridade": 1},
+    {"ramo": [42, 43], "inicio": "14:00", "duracao": 4, "prioridade": 1},
+    {"ramo": [4, 45], "inicio": "18:00", "duracao": 6, "prioridade": 1},
+    {"ramo": [5, 7], "inicio": "15:00", "duracao": 4, "prioridade": 1},
+
+])
+
+contingencia_df = pd.DataFrame([
+    {"contingencia": 1, "from": 4, "to": 5},  
+    {"contingencia": 2, "from": 9, "to": 11}, 
+    {"contingencia": 3, "from": 19, "to": 23}  
+])
+
+
+
+def hashtablesize_sin45():
+    return len(contingencia_df) * 3 * (2**len(agendamento_df))
+
+
+
+##############################################################################################################################################################
 
 
 def analise_contigencias_SEP(rede, setupobj, matriz_cenarios , agendamento_df, contingencia_df):
@@ -109,27 +148,33 @@ class SmartGridSin45:
 
 
             # topologia da rede
-            pp.topology.create_nxgraph(self.net, respect_switches = False)
+            fig_topology = pp.topology.create_nxgraph(self.net, respect_switches = False)
+            display(fig_topology)
 
             #Geo Mapa
             #pp.plotting.plotly.mapbox_plot.set_mapbox_token('<token>')
 
+                        # Adicionar o diagrama da rede (subplot 1)
+            power_flow_plot = pp.plotting.plotly.pf_res_plotly(self.net)
+
+
+            #pp.plotting.to_html(self.net, filename, respect_switches=True, include_lines=True, include_trafos=True, show_tables=True)
+
             # Crie uma figura com 3 subplots em uma coluna
             fig = make_subplots(
-                rows=3, cols=1,
+                rows=5, cols=1,
                 subplot_titles=("Diagrama da Rede SIN45", "Perfil de Tensões nas Barras", "Carregamento das Linhas"),
                 vertical_spacing=0.15 # Espaçamento entre os gráficos
             )
 
-            # Adicionar o diagrama da rede (subplot 1)
-            pp.plotting.plotly.pf_res_plotly(self.net)
+
 
             # pf_res_plotly ou simple_plotly ou vlevel_plotly
             fig_network = pp.plotting.plotly.simple_plotly(
                 self.net,
                 trafo_color="purple", # Transformadores em roxo
                 respect_switches=True,
-                map_style="streets",  
+                #map_style="streets",  
                 line_width = 1.2,
                 #on_map = True,
                 #projection = "EPSG:29193"
@@ -140,14 +185,23 @@ class SmartGridSin45:
                 fig.add_trace(trace, row=1, col=1)
 
             # Adicionar o perfil de tensões (subplot 2)
-            fig_voltage = self.plot_voltage_profile(filename=None) # Passa None para não salvar separadamente
+            fig_voltage = self.plot_voltage_profile() 
             for trace in fig_voltage.data:
-                fig.add_trace(trace, row=2, col=1)
+                fig.add_trace(trace, row=1, col=2)
 
             # Adicionar o carregamento das linhas (subplot 3)
-            fig_loading = self.plot_line_loading(filename=None) # Passa None para não salvar separadamente
+            fig_loading = self.plot_line_loading() 
             for trace in fig_loading.data:
-                fig.add_trace(trace, row=3, col=1)
+                fig.add_trace(trace, row=1, col=3)
+
+            # Adicionar o diagrama da rede (subplot 1)
+            #for trace in fig_topology.data:
+           #     fig.add_trace(trace, row=5, col=1)
+
+            # Adicionar o fluxo de potência (subplot 2)
+            #for trace in power_flow_plot.data:
+            #    fig.add_trace(trace, row=5, col=1)
+
 
             # Atualizar layout geral da figura
             fig.update_layout(
@@ -163,12 +217,11 @@ class SmartGridSin45:
 
 
 
-    def plot_voltage_profile(self, filename='sin45_voltage_profile.html'):
+    def plot_voltage_profile(self, ):
         """ Gera um gráfico do perfil de tensões nas barras. """
         if self.net is None:
             print("Rede não criada. Não é possível gerar o gráfico de tensões.")
             return
-        print(f"A gerar gráfico do perfil de tensões em '{filename}'...")
         try:
             # Fluxo de potencia
             # pp.runpp(self.net) # Removido, pois será chamado na plot_network
@@ -188,12 +241,11 @@ class SmartGridSin45:
         except Exception as e:
             print(f"Erro ao gerar o gráfico de perfil de tensões: {e}")
 
-    def plot_line_loading(self, filename='sin45_line_loading.html'):
+    def plot_line_loading(self, ):
         """ Gera um gráfico do carregamento das linhas. """
         if self.net is None:
             print("Rede não criada. Não é possível gerar o gráfico de carregamento das linhas.")
             return
-        print(f"A gerar gráfico do carregamento das linhas em '{filename}'...")
         try:
             # pp.runpp(self.net) # Removido, pois será chamado na plot_network
             
@@ -336,39 +388,7 @@ class SmartGridSin45:
 
 
 
-
-# --- DADOS DE AGENDAMENTO E CONTINGÊNCIA (Retirado da tese de RZ na pagina 132-133) ---
-agendamento_df = pd.DataFrame([
-    {"ramo": [8, 11],"inicio": "08:00",  "duracao": 4, "prioridade": 4},   # IVAIPORA -> LONDRINA
-    {"ramo": [43, 44],"inicio": "10:00", "duracao": 5, "prioridade": 1},   # P.FUNDO -> XANXERE
-    {"ramo": [4, 33], "inicio": "14:00", "duracao": 4, "prioridade": 1}, # CURITIBA -> CUR.NORTE
-    {"ramo": [7, 39], "inicio": "18:00", "duracao": 6 ,"prioridade": 1},
-    {"ramo": [41, 44], "inicio": "15:00", "duracao": 4, "prioridade": 1},
-    {"ramo": [20, 21], "inicio": "08:00", "duracao": 4, "prioridade": 1},
-    {"ramo": [39, 40], "inicio": "10:00", "duracao": 5, "prioridade": 1},
-    {"ramo": [42, 43], "inicio": "14:00", "duracao": 4, "prioridade": 1},
-    {"ramo": [4, 45], "inicio": "18:00", "duracao": 6, "prioridade": 1},
-    {"ramo": [5, 7], "inicio": "15:00", "duracao": 4, "prioridade": 1},
-
-])
-
-contingencia_df = pd.DataFrame([
-    {"contingencia": 1, "from": 4, "to": 5},  
-    {"contingencia": 2, "from": 9, "to": 11}, 
-    {"contingencia": 3, "from": 19, "to": 23}  
-])
-
-
-
-def hashtablesize_sin45():
-    return len(contingencia_df) * 3 * (2**len(agendamento_df))
-
-
-# Hash map de resultados
-resultados = {
-
-}
-
+##############################################################################################################################################################
 
 #! Inicialização de objetos
 SmartGrid_SIN45 = SmartGridSin45()
@@ -485,68 +505,13 @@ params_json_teste = {
     "LIMITE_VAR": [0, 31]
 }
 
-    
-def run_simulate_SIN45(plot = False):
-    tabela_hash = hashtablesize_sin45()
 
-    setup = Setup(
-        params= params_json_teste,
-        fitness_function= funcao_objetivo_SIN45,
-        tamanho_hash= tabela_hash,
-    )
+def get_resultados_agendamento_otimo(setup, resultados, plot = False):
 
-    fitness  = funcao_objetivo_SIN45(
-        individuo= HORARIOS_COND_INICIAL,
-        setupobj= setup,
-        _debug= False
-    )
-
-
-    print("\n--- Resultados Finais ---")
-    #print(f"Fitness Final: {fitness}")
-
-
-    # Inicia o cronômetro para esta execução específica
-    start_exec = datetime.now()
-
-    #! 6) Executa algoritmo
-    alg = AlgoritimoEvolutivoRCE(setup, DEBUG=False)
-    print(f"Algoritmo Evolutivo iniciado")
-    pop_with_repopulation, logbook_with_repopulation, best_individual, all_individual_values = alg.run(RCE=True)
-
-
-
-
-    # Finaliza o cronômetro e calcula a duração desta execução
-    end_exec = datetime.now()
-    elapsed_exec = end_exec - start_exec
-
-    # Re-executa a função objetivo com o melhor indivíduo para obter os dados detalhados
-    # Nota: A função objetivo pode imprimir informações da rede novamente com os melhores horarios do agendamento ótimo
-    #print("\nAnalisando a melhor solução encontrada para gerar o relatório final...")
-    #funcao_objetivo_SIN45(best_individual, setup, _debug=False)
-
-    #! 7) Visualize os Resultados
-    resultados["best_variables"] = list(best_individual)
-    print("\nEvolução concluída  - 100%")
-    
-    # camada dashboard com arquivos .html e logbook do DEAP
-    best_solution_index, best_solution_variables, best_solution_fitness, grafico_RCE = alg.dashboard.visualize(
-        logbook_with_repopulation,
-        pop_with_repopulation,
-        config_num=1,
-        execution_num=1,
-    )
-    
-    resultados["best_generation"] = best_solution_index
-
-
-    # Exibe os tempos e contadores de forma clara
-    print(f"\nDuração da Execução do Algoritmo: {elapsed_exec}")
+    # Resultados do algoritmo
     print(f"Objective functions runs: {setup.objectiveruns}")
     print(f"Consultas HashTable: {setup.hashtablereads}\n")
 
-    # --- Preparação e Exibição do DataFrame Final ---
     print("="*80)
     print(">>> Análise Detalhada da Melhor Solução Encontrada <<<")
     print("="*80)
@@ -565,11 +530,8 @@ def run_simulate_SIN45(plot = False):
             print(df_contingencias[['contingencia', 'from_bus_idx', 'to_bus_idx']].to_string(index=False))
         except Exception as e:
             print(f"Erro ao formatar o DataFrame de contingências: {e}")
-            print("Dados brutos:")
+            print("Dados do dataframe de contingências:")
             print(df_contingencias)
-
-
-
 
     else:
         print("\nNenhum ramo de contingência foi avaliado ou registrado para a melhor solução.")
@@ -577,22 +539,75 @@ def run_simulate_SIN45(plot = False):
         
     if plot:
         SmartGrid_SIN45.plot_network()
-        grafico_RCE.show(renderer="browser", config={'scrollZoom': True})
-        # SmartGrid_SIN45.plot_voltage_profile() # Removido, integrado na plot_network
-        # SmartGrid_SIN45.plot_line_loading()    # Removido, integrado na plot_network
-        #grafico_RCE.write_html("./temp_graph.html")
+
 
 
     print(f"\nMelhores horários de agendamento (melhor indivíduo):")
-    print(resultados["best_variables"])
+    print(set(resultados["best_variables"]))
     print(f"Na melhor geração encontrada = {resultados["best_generation"]} de {setup.params['NUM_GENERATIONS']} ")
     print("="*80)
 
 
 
+    
+def run_simulate_SIN45(plot = False):
+    tabela_hash = hashtablesize_sin45()
+
+    setup = Setup(
+        params= params_json_teste,
+        fitness_function= funcao_objetivo_SIN45,
+        tamanho_hash= tabela_hash,
+    )
+
+    fitness  = funcao_objetivo_SIN45(
+        individuo= HORARIOS_COND_INICIAL,
+        setupobj= setup,
+        _debug= False
+    )
+
+
+    # Inicia o cronômetro para esta execução específica
+    start_exec = datetime.now()
+
+    #! 6) Executa algoritmo
+    alg = AlgoritimoEvolutivoRCE(setup, DEBUG=False)
+    print(f"Algoritmo Evolutivo iniciado")
+    pop_with_repopulation, logbook_with_repopulation, best_individual, all_individual_values = alg.run(RCE=True)
+
+
+    # Finaliza o cronômetro e calcula a duração desta execução
+    end_exec = datetime.now()
+    elapsed_exec = end_exec - start_exec
+
+    #! Re-executa a função objetivo com o melhor indivíduo para obter os dados detalhados
+    # Nota: A função objetivo pode imprimir informações da rede novamente com os melhores horarios do agendamento ótimo
+    #print("\nAnalisando a melhor solução encontrada para gerar o relatório final...")
+    #funcao_objetivo_SIN45(best_individual, setup, _debug=False)
+
+    #! 7) Visualize os Resultados
+    print("\n--- Resultados Finais ---")
+    resultados["best_variables"] = list(best_individual)
+    print("\nEvolução concluída  - 100%")
+    
+    # camada dashboard com arquivos .html e logbook do DEAP
+    best_solution_index, best_solution_variables, best_solution_fitness, grafico_RCE = alg.dashboard.visualize(
+        logbook_with_repopulation,
+        pop_with_repopulation,
+        config_num=1,
+        execution_num=1,
+    )
+    
+    resultados["best_generation"] = best_solution_index
+    grafico_RCE.show(renderer="browser", config={'scrollZoom': True})
+
+
+    # Exibe os tempos e contadores de forma clara
+    print(f"\nDuração da Execução do Algoritmo: {elapsed_exec}")
+
+    # Resultados do algoritmo
+    get_resultados_agendamento_otimo(setup, resultados, plot = True)
+
+
+
 run_simulate_SIN45(plot = True)
 
-
-def get_resultados_agendamento_otimo(setup, resultados):
-    pass
-    pass
