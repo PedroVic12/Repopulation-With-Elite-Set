@@ -158,8 +158,8 @@ try:
     df_line = smart_grid_inspector.dataframes.get('line')
 
     if df_bus is not None:
-        print("\n--- Conteúdo da aba 'bus' (coluna 'Barra') ---")
-        print(df_bus[['Barra']].to_string(index=False))
+        print("\n--- Conteúdo da aba 'bus' ---")
+        print(df_bus.to_string())
     else:
         print("\nAba 'bus' não encontrada no arquivo Excel.")
 
