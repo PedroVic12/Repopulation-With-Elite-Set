@@ -152,7 +152,10 @@ class SmartGridSin45:
             new_idx = pp.create_bus(self.net, name=row['Nome'], vn_kv=vn_kv)
             self.bus_map[bus_id] = new_idx
 
-        # CORREÇÃO: Adiciona limites de tensão para todas as barras para evitar KeyError
+        #print("\n--- Bus Map after creation ---")
+        #print(self.bus_map)
+
+        # Adiciona limites de tensão para todas as barras para evitar KeyError
         self.net.bus['min_vm_pu'] = 0.95
         self.net.bus['max_vm_pu'] = 1.05
 
@@ -163,7 +166,7 @@ class SmartGridSin45:
                 if bus_idx is not None:
                     pp.create_load(self.net, bus=bus_idx, p_mw=row['Carga Ativa (MW)'], q_mvar=row['Carga Reativa (Mvar)'])
 
-        # Adiciona geradores e a rede externa (slack)
+        # Adiciona geradores e a rede externa (Swing)
         for _, row in df_load_gen.iterrows():
             bus_idx = self.bus_map.get(int(row['Barra']))
             if bus_idx is None: continue
@@ -173,13 +176,17 @@ class SmartGridSin45:
 
             if is_gen:
                 if is_slack:
-                    pp.create_ext_grid(self.net, bus=bus_idx, vm_pu=1.0, name="Slack Bus")
+                    pp.create_ext_grid(self.net, bus=bus_idx, vm_pu=1.0, name="Swing Bus")
                 else:
                     pp.create_gen(self.net, bus=bus_idx, p_mw=row['Potência Ativa (MW)'], vm_pu=1.0)
 
         # Adiciona linhas e transformadores
         df_line = self.dataframes.get('line')
         if df_line is not None:
+            
+            #print("\n--- df_line before iteration ---")
+            #print(df_line[['De', 'Para']].to_string(index=False))
+            
             # Converte colunas para numérico
             for col in ['De', 'Para', 'R(pu)', 'X(pu)', 'B(pu)']:
                  if col in df_line.columns:
@@ -187,10 +194,12 @@ class SmartGridSin45:
 
             s_base_mva = 100.0
             for _, row in df_line.iterrows():
-                from_bus = self.bus_map.get(int(row['De']))
-                to_bus = self.bus_map.get(int(row['Para']))
+                from_bus_id = int(row['De'])
+                to_bus_id = int(row['Para'])
+                from_bus = self.bus_map.get(from_bus_id)
+                to_bus = self.bus_map.get(to_bus_id)
                 if from_bus is None or to_bus is None:
-                    print(f"Skipping line/transformer from bus {int(row['De'])} to bus {int(row['Para'])}: One or both buses not found in network.")
+                    print(f"Skipping line/transformer from bus {from_bus_id} to bus {to_bus_id}: One or both buses not found in network.")
                     continue
                 
                 from_vn_kv = self.net.bus.vn_kv.at[from_bus]
@@ -342,22 +351,24 @@ def funcao_objetivo_SIN45(individuo, setupobj, _debug=False):
         return float("inf"), {}
 
 
+# horarios aleatorios para teste para o artigo
 HORARIOS_COND_INICIAL = [15, 15, 10, 21, 20, 12, 15, 8, 19,23]
 
 # Dicionário de parâmetros para a função de teste
 params_json_teste = {
-    "NUM_GENERATIONS": 15,
+    "NUM_GENERATIONS": 500,
     "CROSSOVER": 0.9,
-    "MUTACAO": 0.5,
+    "MUTACAO": 0.7,
     "POP_SIZE": 10,
     "IND_SIZE": 10,
-    "RCE_REPOPULATION_GENERATIONS": 5,
+    "RCE_REPOPULATION_GENERATIONS": 50,
     "NUM_VAR_DIFERENTES": 1,
     "PORCENTAGEM": 0.2,
     "DELTA_MIN": 2,
     "ARRAY_VAR": HORARIOS_COND_INICIAL, 
     "LIMITE_VAR": [0, 31]
 }
+
     
 def run_simulate_SIN45(plot_diagrama = False):
     tabela_hash = hashtablesize_sin45()
@@ -387,7 +398,7 @@ def run_simulate_SIN45(plot_diagrama = False):
     #! 6) Executa algoritmo
     alg = AlgoritimoEvolutivoRCE(setup, DEBUG=False)
     print(f"Algoritmo Evolutivo iniciado")
-    pop_with_repopulation, logbook_with_repopulation, best_individual, all_individual_values = alg.run(RCE=False)
+    pop_with_repopulation, logbook_with_repopulation, best_individual, all_individual_values = alg.run(RCE=True)
     best_variables = list(best_individual)
 
 
