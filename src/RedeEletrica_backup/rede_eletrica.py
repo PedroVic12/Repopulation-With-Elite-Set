@@ -54,7 +54,7 @@ class RedeEletricaPandaPower:
         
         self.console = Logger()
 
-        #metodos
+        #criação de um mapeamento de ramos para facilitar a manipulação da rede
         self.criar_mapeamento_ramos()
 
         # global
@@ -67,16 +67,6 @@ class RedeEletricaPandaPower:
         self.agendamento = pd.DataFrame()
         self.contingencia= pd.DataFrame()
         
-        
-        ## UPGRADE HASH TABLE
-        #! Inicializa a HashTable na instancia do Objeto !
-        # if tamanho_hash > 0:
-        #     self.tabela_hash = [-1] * tamanho_hash
-        # else:
-        #     self.tabela_hash = None
-            
-        # self.objectiveruns = 0
-        # self.hashtablereads = 0
 
     def loading_networks_cases(self, network_name = "14"):
         #!todo -> Switch para as redes disponiveis na lib
@@ -145,19 +135,6 @@ class RedeEletricaPandaPower:
 
         return self.mapeamento_ramos
 
-    def resetar_rede(self):
-        """Restaura a rede para o estado operacional religando todos os elementos."""
-        self.net.line['in_service'] = True
-        if not self.net.trafo.empty:
-            self.net.trafo['in_service'] = True
-            
-    def aplicar_contingencia(self, tipo_elemento, elemento_id):
-        """Aplica uma contingência desligando um elemento da rede."""
-        if tipo_elemento == 'Linha' and elemento_id in self.net.line.index:
-            self.net.line.loc[elemento_id, 'in_service'] = False
-        elif tipo_elemento == 'Transformador' and elemento_id in self.net.trafo.index:
-            self.net.trafo.loc[elemento_id, 'in_service'] = False
-
     def validar_dados(self, df_agendamento, df_contingencia):
         """Valida consistência dos dados antes de processar"""
         # Verifica colunas obrigatórias
@@ -171,11 +148,25 @@ class RedeEletricaPandaPower:
         for _, row in df_agendamento.iterrows():
             ramo = tuple(sorted(row['ramo']))
             if not (ramo in self.mapeamento_ramos['linhas'] or ramo in self.mapeamento_ramos['trafos']):
-                #raise ValueError(f"Ramo {row['ramo']} não existe na rede")
-                print(f"Ramo {row['ramo']} não existe na rede")
+                print(f"[warning] Ramo {row['ramo']} não existe na rede")
 
         self.agendamento = df_agendamento
         self.contingencia = df_contingencia
+
+    def resetar_rede(self):
+        """Restaura a rede para o estado operacional religando todos os elementos."""
+        self.net.line['in_service'] = True
+        if not self.net.trafo.empty:
+            self.net.trafo['in_service'] = True
+            
+    def aplicar_contingencia(self, tipo_elemento, elemento_id):
+        """Aplica uma contingência desligando um elemento da rede."""
+        if tipo_elemento == 'Linha' and elemento_id in self.net.line.index:
+            self.net.line.loc[elemento_id, 'in_service'] = False
+        elif tipo_elemento == 'Transformador' and elemento_id in self.net.trafo.index:
+            self.net.trafo.loc[elemento_id, 'in_service'] = False
+
+
 
 
     def hashtableindex (self, carregamento, n_carregamentos, contingencia, n_contingencias, desligamentos):

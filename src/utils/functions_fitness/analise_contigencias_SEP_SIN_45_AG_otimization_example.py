@@ -125,6 +125,7 @@ def analise_contigencias_SEP(rede, setupobj, matriz_cenarios , agendamento_df, c
         return float('inf'), {}
 
 
+######################################################################################################################################
 # Extraídos de SIMULATOR_SIN_45.py
 class SmartGridSin45:
     """
@@ -134,86 +135,89 @@ class SmartGridSin45:
         self.net = None
         self.dataframes = {}
         self.bus_map = {} # Adicionado para mapear IDs de barras para índices do pandapower
+        self.line_loading_threshold = 100 # Novo atributo para o limite de carregamento das linhas
 
-    def plot_network(self, filename='sin45_network_plot.html'):
+    def plot_network(self, filename='sin45_network_plot.html', grafico_rce_fig=None):
         """ Gera um gráfico interativo da rede e guarda como HTML. """
         if self.net is None:
             print("Rede não criada. Não é possível gerar o gráfico.")
             return
         print(f"gráfico da rede em '{filename}'...")
         try:
-            # Fluxo de potencia uma única vez
-            #pp.runpp(self.net)
-            self.run_power_flow()
 
-
-            # topologia da rede
-            fig_topology = pp.topology.create_nxgraph(self.net, respect_switches = False)
-            display(fig_topology)
-
-            #Geo Mapa
-            #pp.plotting.plotly.mapbox_plot.set_mapbox_token('<token>')
-
-                        # Adicionar o diagrama da rede (subplot 1)
-            power_flow_plot = pp.plotting.plotly.pf_res_plotly(self.net)
-
-
-            #pp.plotting.to_html(self.net, filename, respect_switches=True, include_lines=True, include_trafos=True, show_tables=True)
-
-            # Crie uma figura com 3 subplots em uma coluna
+            # Crie uma figura com 5 subplots
             fig = make_subplots(
-                rows=5, cols=1,
-                subplot_titles=("Diagrama da Rede SIN45", "Perfil de Tensões nas Barras", "Carregamento das Linhas"),
-                vertical_spacing=0.15 # Espaçamento entre os gráficos
+                rows=4, cols=1,
+                subplot_titles=(
+                    "Diagrama da Rede SIN45 (vlevel_plotly)", 
+                    "Perfil de Tensões nas Barras", 
+                    "Carregamento das Linhas",
+                    "Evolução do Algoritmo Genético (RCE)",
+                ),
+                vertical_spacing=0.12,
+
             )
 
-
-
-            # pf_res_plotly ou simple_plotly ou vlevel_plotly
-            fig_network = pp.plotting.plotly.simple_plotly(
+            # 1. Diagrama da Rede (agora com vlevel_plotly)
+            fig_network = pp.plotting.plotly.vlevel_plotly(
                 self.net,
-                trafo_color="purple", # Transformadores em roxo
                 respect_switches=True,
-                #map_style="streets",  
-                line_width = 1.2,
-                #on_map = True,
-                #projection = "EPSG:29193"
+                line_width=1.2,
+                bus_size=12,
+                auto_open=False
             )
-
-            # Adicionar traces do diagrama da rede à primeira subplot
             for trace in fig_network.data:
                 fig.add_trace(trace, row=1, col=1)
 
-            # Adicionar o perfil de tensões (subplot 2)
+            # Ajusta o tamanho da figura para ser maior (por exemplo, altura de 3000)
+    
+
+            # 2. Resultado do Fluxo de Potência
+            self.run_power_flow()
+            power_flow_plot = pp.plotting.plotly.pf_res_plotly(
+                self.net,
+                auto_open=False,
+            )
+
+
+            # 3. Perfil de Tensões
             fig_voltage = self.plot_voltage_profile() 
             for trace in fig_voltage.data:
-                fig.add_trace(trace, row=1, col=2)
+                fig.add_trace(trace, row=2, col=1)
 
-            # Adicionar o carregamento das linhas (subplot 3)
-            fig_loading = self.plot_line_loading() 
+            # 4. Carregamento das Linhas
+            fig_loading = self.plot_line_loading(self.line_loading_threshold) 
             for trace in fig_loading.data:
-                fig.add_trace(trace, row=1, col=3)
-
-            # Adicionar o diagrama da rede (subplot 1)
-            #for trace in fig_topology.data:
-           #     fig.add_trace(trace, row=5, col=1)
-
-            # Adicionar o fluxo de potência (subplot 2)
-            #for trace in power_flow_plot.data:
-            #    fig.add_trace(trace, row=5, col=1)
+                fig.add_trace(trace, row=3, col=1)
+            
+            # 5. Gráfico de Evolução do AG (se fornecido)
+            if grafico_rce_fig:
+                for trace in grafico_rce_fig.data:
+                    fig.add_trace(trace, row=4, col=1)
 
 
             # Atualizar layout geral da figura
+    
             fig.update_layout(
-                title_text="Análise Completa da Rede SIN45 (Diagrama, Tensão e Carregamento)",
-                height=1500,  # Altura total da figura
+                title_text="Análise Completa da Rede SIN45 e Otimização",
+                height=2200,
                 showlegend=True
             )
+            # Adiciona scroll vertical via CSS no HTML exportado (caso necessário)
+            fig.write_html(
+                filename,
+                full_html=True,
+                #include_plotlyjs='cdn',
+                #include_mathjax ="cdn",
+                config={"scrollZoom": True},
+                auto_open=True
+            )
 
-            fig.write_html(filename)
             print(f"Diagrama completo da Rede Elétrica carregado com sucesso! Pode abrir o ficheiro '{filename}' no navegador.")
         except Exception as e:
             print(f"Erro ao gerar o gráfico: {e}")
+            import traceback
+            traceback.print_exc()
 
 
 
@@ -223,12 +227,8 @@ class SmartGridSin45:
             print("Rede não criada. Não é possível gerar o gráfico de tensões.")
             return
         try:
-            # Fluxo de potencia
-            # pp.runpp(self.net) # Removido, pois será chamado na plot_network
-            
-            # Plot do perfil de tensões em cada barra em um grafico de barras
-            bus_voltages = self.net.res_bus['vm_pu'] # Tensões em p.u.
-            bus_names = self.net.bus['name'] # Nomes das barras
+            bus_voltages = self.net.res_bus['vm_pu']
+            bus_names = self.net.bus['name']
 
             fig = go.Figure(data=[go.Bar(x=bus_names, y=bus_voltages)])
             fig.update_layout(title_text='Perfil de Tensões nas Barras (p.u.)',
@@ -241,22 +241,23 @@ class SmartGridSin45:
         except Exception as e:
             print(f"Erro ao gerar o gráfico de perfil de tensões: {e}")
 
-    def plot_line_loading(self, ):
+    def plot_line_loading(self, threshold_percent=None):
         """ Gera um gráfico do carregamento das linhas. """
         if self.net is None:
             print("Rede não criada. Não é possível gerar o gráfico de carregamento das linhas.")
             return
         try:
-            # pp.runpp(self.net) # Removido, pois será chamado na plot_network
-            
-            # Plot do carregamento das linhas em porcentagem
-            line_loading = self.net.res_line['loading_percent'] # Carregamento em porcentagem
-            line_names = [f"Linha {i}" for i in self.net.line.index] # Nomes das linhas
+            line_loading = self.net.res_line['loading_percent']
+            line_names = [f"Linha {i}" for i in self.net.line.index]
 
             fig = go.Figure(data=[go.Bar(x=line_names, y=line_loading)])
             fig.update_layout(title_text='Carregamento das Linhas (%)',
                               xaxis_title='Linha',
                               yaxis_title='Carregamento (%)')
+
+            if threshold_percent is not None:
+                fig.add_hline(y=threshold_percent, annotation_text=f"Limite: {threshold_percent}%", 
+                              annotation_position="bottom right", line_color="red", line_dash="dash")
 
             print(f"Gráfico de carregamento das linhas criado com sucesso.")
             return fig 
@@ -393,15 +394,14 @@ class SmartGridSin45:
 #! Inicialização de objetos
 SmartGrid_SIN45 = SmartGridSin45()
 filepath = "SIN_45_barras_dataset.xlsx"
-SmartGrid_SIN45.load_data_from_excel(filepath)
 
+SmartGrid_SIN45.load_data_from_excel(filepath)
 nome_rede = "SIN 45"
-rede = RedeEletricaPandaPower(network_name = "nova", debug=False)
 
 
 def funcao_objetivo_SIN45(individuo, setupobj, _debug=False):
 
-
+    rede = RedeEletricaPandaPower(network_name = "nova", debug=False)
     #! Criando a rede do pandapower por arquivo Excel e .PWF
     pp_network_SIN = SmartGrid_SIN45.create_network_from_dataframes()
     bus_map = SmartGrid_SIN45.bus_map # Obtém o mapa de barras
@@ -409,6 +409,7 @@ def funcao_objetivo_SIN45(individuo, setupobj, _debug=False):
 
     try:
         rede.net = pp_network_SIN
+        rede.criar_mapeamento_ramos() # Força a atualização do mapeamento de ramos interno
 
         print("Carregando a Rede Elétrica: ", nome_rede)
         print(rede.net)
@@ -428,6 +429,8 @@ def funcao_objetivo_SIN45(individuo, setupobj, _debug=False):
         rede.net.bus['max_vm_pu'] = rede.pesos["tensao"]["max"]
         rede.net.line['max_loading_percent'] = rede.pesos["loading_linhas"]
         rede.net.trafo['max_loading_percent'] = rede.pesos["loading_trafos"]
+
+        SmartGrid_SIN45.line_loading_threshold = rede.pesos["loading_linhas"]
 
         #! Clona DFs e traduz os IDs das barras para os índices do pandapower
         agenda_local = agendamento_df.copy()
@@ -464,7 +467,7 @@ def funcao_objetivo_SIN45(individuo, setupobj, _debug=False):
         print("1) Carga Leve, 2) Carga Média, 3) Carga Pesada")
         print("0/1 - Ramos desligado/ligado\n")
         
-        print(matriz_cenarios)
+        #print(matriz_cenarios)
         
         print(f"Total de Cenários de contigencias = {len(matriz_cenarios)}\n", )
 
@@ -475,7 +478,7 @@ def funcao_objetivo_SIN45(individuo, setupobj, _debug=False):
             agendamento_df=agenda_local,
             contingencia_df=contingencia_local
         )
-        print(f"\nFitness da função aptidão = {fitness_final:.2f}\n")
+        print(f"\nFitness da função aptidão agendamento = {fitness_final:.2f}\n")
         resultados["fitness"] = pd.DataFrame([{'fitness_final': fitness_final}])
         resultados["ramos_selecionados"] = contigencias_selecionadas
         return fitness_final, 
@@ -492,7 +495,7 @@ HORARIOS_COND_INICIAL = [15, 15, 10, 21, 20, 12, 15, 8, 19,23]
 
 # Dicionário de parâmetros para a função de teste
 params_json_teste = {
-    "NUM_GENERATIONS": 7,
+    "NUM_GENERATIONS": 250,
     "CROSSOVER": 0.92,
     "MUTACAO": 0.77,
     "POP_SIZE": 10,
@@ -506,7 +509,7 @@ params_json_teste = {
 }
 
 
-def get_resultados_agendamento_otimo(setup, resultados, plot = False):
+def get_resultados_agendamento_otimo(setup, resultados, plot=False, grafico_rce_fig=None):
 
     # Resultados do algoritmo
     print(f"Objective functions runs: {setup.objectiveruns}")
@@ -521,8 +524,6 @@ def get_resultados_agendamento_otimo(setup, resultados, plot = False):
     if not df_contingencias.empty:
         print("\nRamos de contingência avaliados na melhor solução:")
         
-        # A coluna 'ramos' contém uma lista com os índices [from, to] do pandapower.
-        # Vamos separar em colunas para melhor visualização.
         try:
             df_contingencias['from_bus_idx'] = df_contingencias['ramos'].apply(lambda x: x[0] if isinstance(x, list) and len(x) > 0 else None)
             df_contingencias['to_bus_idx'] = df_contingencias['ramos'].apply(lambda x: x[1] if isinstance(x, list) and len(x) > 1 else None)
@@ -538,7 +539,8 @@ def get_resultados_agendamento_otimo(setup, resultados, plot = False):
         
         
     if plot:
-        SmartGrid_SIN45.plot_network()
+        # Passa a figura do RCE para a função de plotagem da rede
+        SmartGrid_SIN45.plot_network(grafico_rce_fig=grafico_rce_fig)
 
 
 
@@ -549,7 +551,8 @@ def get_resultados_agendamento_otimo(setup, resultados, plot = False):
 
 
 
-    
+##############################################################################################################################################################
+#! Função principal para executar s
 def run_simulate_SIN45(plot = False):
     tabela_hash = hashtablesize_sin45()
 
@@ -580,9 +583,8 @@ def run_simulate_SIN45(plot = False):
     elapsed_exec = end_exec - start_exec
 
     #! Re-executa a função objetivo com o melhor indivíduo para obter os dados detalhados
-    # Nota: A função objetivo pode imprimir informações da rede novamente com os melhores horarios do agendamento ótimo
-    #print("\nAnalisando a melhor solução encontrada para gerar o relatório final...")
-    #funcao_objetivo_SIN45(best_individual, setup, _debug=False)
+    print("\nAnalisando a melhor solução encontrada para gerar o relatório final...")
+    funcao_objetivo_SIN45(best_individual, setup, _debug=False)
 
     #! 7) Visualize os Resultados
     print("\n--- Resultados Finais ---")
@@ -598,14 +600,12 @@ def run_simulate_SIN45(plot = False):
     )
     
     resultados["best_generation"] = best_solution_index
-    grafico_RCE.show(renderer="browser", config={'scrollZoom': True})
-
 
     # Exibe os tempos e contadores de forma clara
     print(f"\nDuração da Execução do Algoritmo: {elapsed_exec}")
 
     # Resultados do algoritmo
-    get_resultados_agendamento_otimo(setup, resultados, plot = True)
+    get_resultados_agendamento_otimo(setup, resultados, plot = True, grafico_rce_fig=grafico_RCE)
 
 
 

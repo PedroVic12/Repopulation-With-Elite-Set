@@ -48,3 +48,4 @@ create_switch(net, bus = 1, element = 5, et = 'l')
 
 mg = create_nxgraph(net)
 nx.shortest_path(mg, 0, 5)
+mg
