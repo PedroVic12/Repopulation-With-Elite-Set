@@ -47,6 +47,8 @@ Uso com 20 gerações e mutacao e crossover em 80& com demandas de contigencias 
 
 <img width="1133" height="621" alt="image" src="https://github.com/user-attachments/assets/c055622a-88ca-4e12-b9bd-bf815c577b22" />
 
+Este script utiliza um Algoritmo Genético para otimizar o agendamento de manutenções em linhas de transmissão de um sistema elétrico de potência (o SIN 45, um modelo com 45 barras).
+
 
 Na pasta compartilhada onde possui três arquivos com extensão jupyter notebook que podem ser abertos diretamente no Google Colab.Para este fim, o usuário deverá seguir os seguintes passos:
 
@@ -172,6 +174,19 @@ Exemplo de simulação da Rede Eletrica IEEE 14 barras com PandaPower
 	  <img src="https://icseg.iti.illinois.edu/files/2013/10/WSCC14.png" />
   </tr>
 </table>
+
+A não convergência do fluxo de potência é um problema clássico e esperado,
+  especialmente quando você simula múltiplas falhas na rede (N-2), que é o que seu código faz (uma
+  manutenção + uma contingência).
+
+  Por que não converge?
+
+  Isso geralmente acontece quando um cenário de operação (um agendamento + uma contingência) leva a
+   uma condição fisicamente instável ou impossível na rede, como:
+   * Colapso de Tensão: As tensões em algumas barras caem para níveis tão baixos que o sistema
+     "apaga".
+   * Sobrecargas Extremas: Linhas ou transformadores sobrecarregados a níveis absurdos.
+   * Ilhamento: A rede se divide em "ilhas" e uma delas fica sem geração própria para se sustentar.
 
 
 ## Classe RedeEletricaPandaPower
