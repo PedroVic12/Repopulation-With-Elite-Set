@@ -4,6 +4,7 @@ import pandas as pd
 import pathlib
 import pandapower as pp
 from datetime import datetime
+from plotly.subplots import make_subplots
 
 
 
@@ -99,17 +100,89 @@ class SmartGridSin45:
         if self.net is None:
             print("Rede não criada. Não é possível gerar o gráfico.")
             return
-        print(f"A gerar gráfico da rede em '{filename}'...")
+        print(f"gráfico da rede em '{filename}'...")
         try:
-            pp.runpp(self.net)
-            fig = pp.plotting.plotly.simple_plotly(self.net)
+            # Fluxo de potencia uma única vez
+            #pp.runpp(self.net)
+            self.run_power_flow()
+
+            # Crie uma figura com 3 subplots em uma coluna
+            fig = make_subplots(
+                rows=3, cols=1,
+                subplot_titles=("Diagrama da Rede SIN45", "Perfil de Tensões nas Barras", "Carregamento das Linhas"),
+                vertical_spacing=0.15 # Espaçamento entre os gráficos
+            )
+
+            # Adicionar o diagrama da rede (subplot 1)
+            fig_network = pp.plotting.plotly.simple_plotly(
+                self.net,
+                trafo_color="purple", # Transformadores em roxo
+                respect_switches=True,
+                show_markers=True,  # Mostrar marcadores para facilitar a identificação
+                return_coords=True # Adicionado para obter as coordenadas das barras
+            )
+
+            # Adicionar traces do diagrama da rede à primeira subplot
+            for trace in fig_network.data:
+                fig.add_trace(trace, row=1, col=1)
+
+            # Adicionar o perfil de tensões (subplot 2)
+            fig_voltage = self.plot_voltage_profile(filename=None) # Passa None para não salvar separadamente
+            for trace in fig_voltage.data:
+                fig.add_trace(trace, row=2, col=1)
+
+            # Adicionar o carregamento das linhas (subplot 3)
+            fig_loading = self.plot_line_loading(filename=None) # Passa None para não salvar separadamente
+            for trace in fig_loading.data:
+                fig.add_trace(trace, row=3, col=1)
+
+            # Atualizar layout geral da figura
+            fig.update_layout(
+                title_text="Análise Completa da Rede SIN45 (Diagrama, Tensão e Carregamento)",
+                height=1500,  # Altura total da figura
+                showlegend=True
+            )
+
             fig.write_html(filename)
-            print(f"Gráfico guardado com sucesso! Pode abrir o ficheiro '{filename}' no navegador.")
+            print(f"Diagrama completo da Rede Elétrica carregado com sucesso! Pode abrir o ficheiro '{filename}' no navegador.")
         except Exception as e:
             print(f"Erro ao gerar o gráfico: {e}")
 
 
+    def plot_voltage_profile(self, filename='sin45_voltage_profile.html'):
+        """ Gera um gráfico do perfil de tensões nas barras. """
+        if self.net is None:
+            print("Rede não criada. Não é possível gerar o gráfico de tensões.")
+            return
+        print(f"A gerar gráfico do perfil de tensões em '{filename}'...")
+        try:
+            # Fluxo de potencia
+            # pp.runpp(self.net) # Removido, pois será chamado na plot_network
+            
+            # Plot do perfil de tensões
+            fig = pp.plotting.plotly.create_bus_voltage_profile_plotly_res(self.net)
+            # fig.write_html(filename) # Removido para integrar em uma figura única
+            print(f"Gráfico de perfil de tensões criado com sucesso.")
+            return fig
 
+        except Exception as e:
+            print(f"Erro ao gerar o gráfico de perfil de tensões: {e}")
+
+
+    def plot_line_loading(self, filename='sin45_line_loading.html'):
+        """ Gera um gráfico do carregamento das linhas. """
+        if self.net is None:
+            print("Rede não criada. Não é possível gerar o gráfico de carregamento das linhas.")
+            return
+        print(f"A gerar gráfico do carregamento das linhas em '{filename}'...")
+        try:
+            # pp.runpp(self.net) # Removido, pois será chamado na plot_network
+            fig = pp.plotting.plotly.create_line_loading_plotly_res(self.net)
+            # fig.write_html(filename) # Removido para integrar em uma figura única
+            print(f"Gráfico de carregamento das linhas criado com sucesso.")
+            return fig
+        except Exception as e:
+            print(f"Erro ao gerar o gráfico de carregamento das linhas: {e}")
 
     def load_data_from_excel(self, filepath):
         """Carrega dados de um ficheiro Excel para um dicionário de DataFrames."""
@@ -205,7 +278,7 @@ class SmartGridSin45:
                 from_vn_kv = self.net.bus.vn_kv.at[from_bus]
                 to_vn_kv = self.net.bus.vn_kv.at[to_bus]
 
-                # Se as tensões das barras forem diferentes, é um transformador
+                #! Se as tensões das barras forem diferentes, é um transformador
                 if abs(from_vn_kv - to_vn_kv) > 1e-3:
                     hv_bus, lv_bus = (from_bus, to_bus) if from_vn_kv > to_vn_kv else (to_bus, from_bus)
                     pp.create_transformer_from_parameters(
@@ -214,7 +287,7 @@ class SmartGridSin45:
                         vkr_percent=row['R(pu)'] * 100.0, vk_percent=row['X(pu)'] * 100.0,
                         pfe_kw=0, i0_percent=0
                     )
-                else: # Caso contrário, é uma linha de transmissão
+                else: #! Caso contrário, é uma linha de transmissão
                     z_base_ohm = (from_vn_kv ** 2) / s_base_mva
                     r_ohm = row['R(pu)'] * z_base_ohm
                     x_ohm = row['X(pu)'] * z_base_ohm
@@ -229,9 +302,9 @@ class SmartGridSin45:
             raise ValueError("A rede não foi criada.")
         try:
             pp.runpp(self.net)
-            return True, "Fluxo de potência do SIN 45 executado com sucesso."
+            return True, "Fluxo de potência executado com sucesso."
         except Exception as e:
-            return False, f"Falha no fluxo de potência: {e}"
+            return False, f"Falha no Cálculo de fluxo de potência: {e}"
 
 
 
@@ -263,30 +336,35 @@ def hashtablesize_sin45():
     return len(contingencia_df) * 3 * (2**len(agendamento_df))
 
 
-
+# Hash map de resultados
 resultados = {
 
 }
 
+
+#! Inicialização de objetos
 SmartGrid_SIN45 = SmartGridSin45()
 filepath = "SIN_45_barras_dataset.xlsx"
 SmartGrid_SIN45.load_data_from_excel(filepath)
+
+nome_rede = "SIN 45"
+rede = RedeEletricaPandaPower(network_name = "nova", debug=False)
 
 
 def funcao_objetivo_SIN45(individuo, setupobj, _debug=False):
 
 
+    #! Criando a rede do pandapower por arquivo Excel e .PWF
     pp_network_SIN = SmartGrid_SIN45.create_network_from_dataframes()
     bus_map = SmartGrid_SIN45.bus_map # Obtém o mapa de barras
 
 
     try:
-        nome_rede = "SIN 45"
-        rede = RedeEletricaPandaPower(network_name = "nova", debug=False)
         rede.net = pp_network_SIN
-        
-        #print(rede.net)
-        #print("\n\n")
+
+        print("Carregando a Rede Elétrica: ", nome_rede)
+        print(rede.net)
+        print("\n")
 
 
         # Limites Operativos da rede
@@ -294,14 +372,16 @@ def funcao_objetivo_SIN45(individuo, setupobj, _debug=False):
         rede.pesos["loading_linhas"] = 100
         rede.pesos["loading_trafos"] = 100
         rede.pesos["demanda"] = 99
+        
+        print(f"\nInicializando com limites operacionais nas barras com: Tensão: {rede.pesos['tensao']} e Linhas de trasmissão em: {rede.pesos['loading_linhas']} %\n")
 
-        # Set voltage limits on buses
+        #! Set voltage limits on buses in net object of pandapower
         rede.net.bus['min_vm_pu'] = rede.pesos["tensao"]["min"]
         rede.net.bus['max_vm_pu'] = rede.pesos["tensao"]["max"]
         rede.net.line['max_loading_percent'] = rede.pesos["loading_linhas"]
         rede.net.trafo['max_loading_percent'] = rede.pesos["loading_trafos"]
 
-        # Clona DFs e traduz os IDs das barras para os índices do pandapower
+        #! Clona DFs e traduz os IDs das barras para os índices do pandapower
         agenda_local = agendamento_df.copy()
         contingencia_local = contingencia_df.copy()
 
@@ -318,6 +398,7 @@ def funcao_objetivo_SIN45(individuo, setupobj, _debug=False):
         contingencia_local = contingencia_local.astype({'from': int, 'to': int})
 
 
+        #! DEBUG HERE
         agenda_local["inicio"] = individuo
         duracao_total_agendamento = (agenda_local['inicio'] + agenda_local['duracao']).max()
         rede.validar_dados(agenda_local, contingencia_local)
@@ -329,6 +410,15 @@ def funcao_objetivo_SIN45(individuo, setupobj, _debug=False):
             duracao=agenda_local['duracao'],
             ls=0, le=8, ms=8, me=18, hs=18, he=24
         )
+        
+        print("\nMatriz Cenários")
+        
+        print("1) Carga Leve, 2) Carga Média, 3) Carga Pesada")
+        print("0/1 - Ramos desligado/ligado\n")
+        
+        print(matriz_cenarios)
+        
+        print(f"Total de Cenários de contigencias = {len(matriz_cenarios)}\n", )
 
         fitness_final, contigencias_selecionadas = analise_contigencias_SEP(
             rede=rede,
@@ -337,11 +427,9 @@ def funcao_objetivo_SIN45(individuo, setupobj, _debug=False):
             agendamento_df=agenda_local,
             contingencia_df=contingencia_local
         )
-        rede.log(f"\nFitness do agendamento = {fitness_final:.2f}\n", level="success")
-
+        print(f"\nFitness da função aptidão = {fitness_final:.2f}\n")
         resultados["fitness"] = pd.DataFrame([{'fitness_final': fitness_final}])
         resultados["ramos_selecionados"] = contigencias_selecionadas
-        
         return fitness_final, 
     
     except Exception as e:
@@ -356,9 +444,9 @@ HORARIOS_COND_INICIAL = [15, 15, 10, 21, 20, 12, 15, 8, 19,23]
 
 # Dicionário de parâmetros para a função de teste
 params_json_teste = {
-    "NUM_GENERATIONS": 500,
-    "CROSSOVER": 0.9,
-    "MUTACAO": 0.7,
+    "NUM_GENERATIONS": 5,
+    "CROSSOVER": 0.92,
+    "MUTACAO": 0.77,
     "POP_SIZE": 10,
     "IND_SIZE": 10,
     "RCE_REPOPULATION_GENERATIONS": 50,
@@ -370,7 +458,7 @@ params_json_teste = {
 }
 
     
-def run_simulate_SIN45(plot_diagrama = False):
+def run_simulate_SIN45(plot = False):
     tabela_hash = hashtablesize_sin45()
 
     setup = Setup(
@@ -387,10 +475,8 @@ def run_simulate_SIN45(plot_diagrama = False):
 
 
     print("\n--- Resultados Finais ---")
-    print(f"Fitness Final: {fitness}")
+    #print(f"Fitness Final: {fitness}")
 
-    if plot_diagrama:
-        SmartGrid_SIN45.plot_network()
 
     # Inicia o cronômetro para esta execução específica
     start_exec = datetime.now()
@@ -399,7 +485,8 @@ def run_simulate_SIN45(plot_diagrama = False):
     alg = AlgoritimoEvolutivoRCE(setup, DEBUG=False)
     print(f"Algoritmo Evolutivo iniciado")
     pop_with_repopulation, logbook_with_repopulation, best_individual, all_individual_values = alg.run(RCE=True)
-    best_variables = list(best_individual)
+
+
 
 
     # Finaliza o cronômetro e calcula a duração desta execução
@@ -412,13 +499,19 @@ def run_simulate_SIN45(plot_diagrama = False):
     #funcao_objetivo_SIN45(best_individual, setup, _debug=False)
 
     #! 7) Visualize os Resultados
+    resultados["best_variables"] = list(best_individual)
     print("\nEvolução concluída  - 100%")
-    best_solution_generation, _, _, _ = alg.dashboard.visualize(
+    
+    # camada dashboard com arquivos .html e logbook do DEAP
+    best_solution_index, best_solution_variables, best_solution_fitness, grafico_RCE = alg.dashboard.visualize(
         logbook_with_repopulation,
         pop_with_repopulation,
         config_num=1,
         execution_num=1,
     )
+    
+    resultados["best_generation"] = best_solution_index
+
 
     # Exibe os tempos e contadores de forma clara
     print(f"\nDuração da Execução do Algoritmo: {elapsed_exec}")
@@ -447,13 +540,30 @@ def run_simulate_SIN45(plot_diagrama = False):
             print("Dados brutos:")
             print(df_contingencias)
 
+
+
+
     else:
         print("\nNenhum ramo de contingência foi avaliado ou registrado para a melhor solução.")
+        
+        
+    if plot:
+        SmartGrid_SIN45.plot_network()
+        # SmartGrid_SIN45.plot_voltage_profile() # Removido, integrado na plot_network
+        # SmartGrid_SIN45.plot_line_loading()    # Removido, integrado na plot_network
+        grafico_RCE.write_html("./temp_graph.html")
+
 
     print(f"\nMelhores horários de agendamento (melhor indivíduo):")
-    print(best_variables)
+    print(resultados["best_variables"])
+    print(f"Na melhor geração encontrada = {resultados["best_generation"]} de {setup.params['NUM_GENERATIONS']} ")
     print("="*80)
 
 
 
-run_simulate_SIN45()
+run_simulate_SIN45(plot = True)
+
+
+def get_resultados_agendamento_otimo(setup, resultados):
+    pass
+    pass
