@@ -5,6 +5,7 @@ import pathlib
 import pandapower as pp
 from datetime import datetime
 from plotly.subplots import make_subplots
+import plotly.graph_objects as go
 
 
 
@@ -106,6 +107,13 @@ class SmartGridSin45:
             #pp.runpp(self.net)
             self.run_power_flow()
 
+
+            # topologia da rede
+            pp.topology.create_nxgraph(self.net, respect_switches = False)
+
+            #Geo Mapa
+            #pp.plotting.plotly.mapbox_plot.set_mapbox_token('<token>')
+
             # Crie uma figura com 3 subplots em uma coluna
             fig = make_subplots(
                 rows=3, cols=1,
@@ -114,12 +122,17 @@ class SmartGridSin45:
             )
 
             # Adicionar o diagrama da rede (subplot 1)
+            pp.plotting.plotly.pf_res_plotly(self.net)
+
+            # pf_res_plotly ou simple_plotly ou vlevel_plotly
             fig_network = pp.plotting.plotly.simple_plotly(
                 self.net,
                 trafo_color="purple", # Transformadores em roxo
                 respect_switches=True,
-                show_markers=True,  # Mostrar marcadores para facilitar a identificação
-                return_coords=True # Adicionado para obter as coordenadas das barras
+                map_style="streets",  
+                line_width = 1.2,
+                #on_map = True,
+                #projection = "EPSG:29193"
             )
 
             # Adicionar traces do diagrama da rede à primeira subplot
@@ -149,6 +162,7 @@ class SmartGridSin45:
             print(f"Erro ao gerar o gráfico: {e}")
 
 
+
     def plot_voltage_profile(self, filename='sin45_voltage_profile.html'):
         """ Gera um gráfico do perfil de tensões nas barras. """
         if self.net is None:
@@ -159,15 +173,20 @@ class SmartGridSin45:
             # Fluxo de potencia
             # pp.runpp(self.net) # Removido, pois será chamado na plot_network
             
-            # Plot do perfil de tensões
-            fig = pp.plotting.plotly.create_bus_voltage_profile_plotly_res(self.net)
-            # fig.write_html(filename) # Removido para integrar em uma figura única
+            # Plot do perfil de tensões em cada barra em um grafico de barras
+            bus_voltages = self.net.res_bus['vm_pu'] # Tensões em p.u.
+            bus_names = self.net.bus['name'] # Nomes das barras
+
+            fig = go.Figure(data=[go.Bar(x=bus_names, y=bus_voltages)])
+            fig.update_layout(title_text='Perfil de Tensões nas Barras (p.u.)',
+                              xaxis_title='Barra',
+                              yaxis_title='Tensão (p.u.)')
+
             print(f"Gráfico de perfil de tensões criado com sucesso.")
-            return fig
+            return fig 
 
         except Exception as e:
             print(f"Erro ao gerar o gráfico de perfil de tensões: {e}")
-
 
     def plot_line_loading(self, filename='sin45_line_loading.html'):
         """ Gera um gráfico do carregamento das linhas. """
@@ -177,10 +196,19 @@ class SmartGridSin45:
         print(f"A gerar gráfico do carregamento das linhas em '{filename}'...")
         try:
             # pp.runpp(self.net) # Removido, pois será chamado na plot_network
-            fig = pp.plotting.plotly.create_line_loading_plotly_res(self.net)
-            # fig.write_html(filename) # Removido para integrar em uma figura única
+            
+            # Plot do carregamento das linhas em porcentagem
+            line_loading = self.net.res_line['loading_percent'] # Carregamento em porcentagem
+            line_names = [f"Linha {i}" for i in self.net.line.index] # Nomes das linhas
+
+            fig = go.Figure(data=[go.Bar(x=line_names, y=line_loading)])
+            fig.update_layout(title_text='Carregamento das Linhas (%)',
+                              xaxis_title='Linha',
+                              yaxis_title='Carregamento (%)')
+
             print(f"Gráfico de carregamento das linhas criado com sucesso.")
-            return fig
+            return fig 
+
         except Exception as e:
             print(f"Erro ao gerar o gráfico de carregamento das linhas: {e}")
 
@@ -444,7 +472,7 @@ HORARIOS_COND_INICIAL = [15, 15, 10, 21, 20, 12, 15, 8, 19,23]
 
 # Dicionário de parâmetros para a função de teste
 params_json_teste = {
-    "NUM_GENERATIONS": 5,
+    "NUM_GENERATIONS": 7,
     "CROSSOVER": 0.92,
     "MUTACAO": 0.77,
     "POP_SIZE": 10,
@@ -549,9 +577,10 @@ def run_simulate_SIN45(plot = False):
         
     if plot:
         SmartGrid_SIN45.plot_network()
+        grafico_RCE.show(renderer="browser", config={'scrollZoom': True})
         # SmartGrid_SIN45.plot_voltage_profile() # Removido, integrado na plot_network
         # SmartGrid_SIN45.plot_line_loading()    # Removido, integrado na plot_network
-        grafico_RCE.write_html("./temp_graph.html")
+        #grafico_RCE.write_html("./temp_graph.html")
 
 
     print(f"\nMelhores horários de agendamento (melhor indivíduo):")
