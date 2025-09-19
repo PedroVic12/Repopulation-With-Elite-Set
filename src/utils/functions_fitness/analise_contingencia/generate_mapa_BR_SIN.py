@@ -2,13 +2,15 @@ import pandas as pd
 import pandapower as pp
 import pandapower.plotting.plotly as pplotly
 import os
-import plotly.express as px
 
-# Set Mapbox token
-px.set_mapbox_access_token("pk.eyJ1IjoiZXRpZW5uZTIiLCJhIjoiY2s2eGNhbjJ2MGY5czNtbzI4dDBpYnJqbyJ9.OaS4u24i2B-s2b2xmr2s0A")
+# Custom class to allow both attribute and dictionary access
+class AttrDict(dict):
+    def __init__(self, *args, **kwargs):
+        super(AttrDict, self).__init__(*args, **kwargs)
+        self.__dict__ = self
 
 # Carregar o DataFrame de barras com coordenadas
-df_bus_coords = pd.read_excel("/home/pedrov12/Documentos/GitHub/SIN_45_barras_com_coordenadas.xlsx")
+# df_bus_coords = pd.read_excel("/home/pedrov12/Documentos/GitHub/SIN_45_barras_com_coordenadas.xlsx")
 
 # --- Conteúdo da classe SmartGridSin45 (copiado e adaptado do arquivo original) ---
 class SmartGridSin45:
@@ -30,7 +32,7 @@ class SmartGridSin45:
         except Exception as e:
             raise ValueError(f"Não foi possível ler o ficheiro Excel: {e}")
 
-    def create_network_from_dataframes(self, df_bus_coords):
+    def create_network_from_dataframes(self):
         """Cria uma rede pandapower a partir dos DataFrames carregados e adiciona coordenadas."""
         if not self.dataframes:
             raise ValueError("Nenhum dado carregado para criar a rede.")
@@ -48,11 +50,6 @@ class SmartGridSin45:
         
         df_bus["Barra"] = pd.to_numeric(df_bus["Barra"], errors="coerce").fillna(0)
 
-        df_bus = pd.merge(df_bus, df_bus_coords[["Barra", "latitude", "longitude"]], on="Barra", how="left")
-
-        # Create bus_geodata DataFrame before creating buses
-        self.net['bus_geodata'] = pd.DataFrame(columns=['x', 'y'])
-
         for _, row in df_bus.iterrows():
             bus_id = int(row["Barra"])
             try:
@@ -64,9 +61,6 @@ class SmartGridSin45:
 
             new_idx = pp.create_bus(self.net, name=row["Nome"], vn_kv=vn_kv)
             self.bus_map[bus_id] = new_idx
-
-            if pd.notna(row['latitude']) and pd.notna(row['longitude']):
-                self.net['bus_geodata'].loc[new_idx] = [row['longitude'], row['latitude']]
 
         self.net["bus"]["min_vm_pu"] = 0.95
         self.net["bus"]["max_vm_pu"] = 1.05
@@ -135,46 +129,28 @@ class SmartGridSin45:
         except Exception as e:
             return False, f"Falha no Cálculo de fluxo de potência: {e}"
 
-    def plot_network_with_coords(self, filename='sin45_network_plot.html'):
-        """ Gera um gráfico interativo da rede em um mapa e guarda como HTML. """
+    def plot_network(self, filename='sin45_network_plot.html'):
+        """ Gera um gráfico interativo da rede e guarda como HTML. """
         if self.net is None:
             print("Rede não criada. Não é possível gerar o gráfico.")
             return
         
-        net_to_plot = self.net.copy()
-        buses_with_geo = net_to_plot['bus_geodata'][net_to_plot['bus_geodata'].x.notna()].index
-        buses_without_geo = net_to_plot['bus_geodata'][net_to_plot['bus_geodata'].x.isnull()].index
-
-        # Plot com coordenadas geográficas
-        if not buses_with_geo.empty:
-            net_geo = pp.select_subnet(self.net, buses=buses_with_geo, include_results=True)
-            print(f"Gerando gráfico com coordenadas geográficas para {len(buses_with_geo)} barras...")
-            try:
-                fig = pplotly.simple_plotly(net_geo, on_map=True, map_style='satellite')
-                fig.write_html(filename)
-                print(f"Gráfico geográfico salvo em '{filename}'.")
-            except Exception as e:
-                print(f"Erro ao gerar o gráfico geográfico: {e}")
-
-        # Plot com coordenadas genéricas para o restante
-        if not buses_without_geo.empty:
-            net_generic = pp.select_subnet(self.net, buses=buses_without_geo, include_results=True)
-            print(f"Gerando gráfico com coordenadas genéricas para {len(buses_without_geo)} barras...")
-            try:
-                fig = pplotly.simple_plotly(net_generic)
-                generic_filename = filename.replace('.html', '_generic.html')
-                fig.write_html(generic_filename)
-                print(f"Gráfico genérico salvo em '{generic_filename}'.")
-            except Exception as e:
-                print(f"Erro ao gerar o gráfico genérico: {e}")
+        print(f"Gerando gráfico da rede em '{filename}'...")
+        try:
+            net_to_plot_obj = AttrDict(self.net)
+            fig = pplotly.simple_plotly(net_to_plot_obj)
+            fig.write_html(filename)
+            print(f"Gráfico guardado com sucesso! Pode abrir o ficheiro '{filename}' no navegador.")
+        except Exception as e:
+            print(f"Erro ao gerar o gráfico: {e}")
 
 # --- Execução ---
 SmartGrid_SIN45 = SmartGridSin45()
 filepath = "/home/pedrov12/Documentos/GitHub/Repopulation-With-Elite-Set/src/utils/functions_fitness/SIN_45_barras_dataset.xlsx"
 SmartGrid_SIN45.load_data_from_excel(filepath)
-SmartGrid_SIN45.create_network_from_dataframes(df_bus_coords)
+SmartGrid_SIN45.create_network_from_dataframes()
 
 success, message = SmartGrid_SIN45.run_power_flow()
 print(message)
 
-SmartGrid_SIN45.plot_network_with_coords(filename='sin45_network_plot.html')
+SmartGrid_SIN45.plot_network(filename='sin45_network_plot.html')
