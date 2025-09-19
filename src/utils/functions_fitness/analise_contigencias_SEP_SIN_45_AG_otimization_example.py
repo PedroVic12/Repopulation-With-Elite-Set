@@ -149,9 +149,9 @@ class SmartGridSin45:
             fig = make_subplots(
                 rows=4, cols=1,
                 subplot_titles=(
-                    "Diagrama da Rede SIN45 (vlevel_plotly)", 
+                    "Diagrama da Rede SIN45 (Tensões nas Barras de Carga e Geração)", 
                     "Perfil de Tensões nas Barras", 
-                    "Carregamento das Linhas",
+                    "Carregamento das Linhas em %",
                     "Evolução do Algoritmo Genético (RCE)",
                 ),
                 vertical_spacing=0.12,
