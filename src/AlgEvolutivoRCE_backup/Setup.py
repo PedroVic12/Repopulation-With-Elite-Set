@@ -6,6 +6,7 @@ import random
 import pandas as pd
 import os
 import sys
+import json 
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 from config_backup import configuracoes_execucoes
@@ -42,6 +43,10 @@ params = {
 
 
 
+def load_params(file_path):
+    """Carrega parâmetros de um arquivo JSON."""
+    with open(file_path, "r") as file:
+        return json.load(file)
 
 
  

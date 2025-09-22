@@ -14,6 +14,30 @@ from RedeEletrica_backup.rede_eletrica import RedeEletricaPandaPower
 from AlgEvolutivoRCE_backup.Setup import Setup
 
 
+def consultaHashTable():
+    # Consulta hash_table se existir (sub rotina)
+    if os.path.exists(HASH_TABLE_PATH):
+        try:
+            
+            # Read from Excel, using the first column as the index (our hash key)
+            hash_excel = pd.read_excel(HASH_TABLE_PATH, index_col=0)
+            if not hash_excel.empty:
+                
+                # Update the list-based hash table from the loaded dictionary
+                for key, value in hash_excel['Fitness'].items():
+                    
+                    if isinstance(key, int) and key < len(setup.tabela_hash):
+                        setup.tabela_hash[key] = value
+                        
+                print(f"Tabela hash carregada e atualizada com {len(hash_excel)} registros!")
+        except Exception as e:
+            print(f"Erro ao carregar hash_table.xlsx: {e}")
+    else:
+        # If the file doesn't exist, create it from the initial hash table
+        hash_df = pd.DataFrame(data=setup.tabela_hash, columns=['Fitness'])
+        hash_df.to_excel(HASH_TABLE_PATH, index=False)
+        print(f"Tabela hash INICIAL com {len(setup.tabela_hash)} posições não existia e foi criada! - PVRV")
+
 
 #=====================================================
 # Tabela agendamentos em xlsx hardcoded

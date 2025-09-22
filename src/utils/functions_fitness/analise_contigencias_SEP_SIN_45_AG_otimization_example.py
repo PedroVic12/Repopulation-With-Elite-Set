@@ -583,8 +583,8 @@ def run_simulate_SIN45(plot = False):
     elapsed_exec = end_exec - start_exec
 
     #! Re-executa a função objetivo com o melhor indivíduo para obter os dados detalhados
-    print("\nAnalisando a melhor solução encontrada para gerar o relatório final...")
-    funcao_objetivo_SIN45(best_individual, setup, _debug=False)
+    #print("\nAnalisando a melhor solução encontrada para gerar o relatório final...")
+    #funcao_objetivo_SIN45(best_individual, setup, _debug=False)
 
     #! 7) Visualize os Resultados
     print("\n--- Resultados Finais ---")
