@@ -27,6 +27,11 @@ resultados = {
 
 }
 
+contigencias_selecionadas = {
+        "ramos": [],
+        "contingencia": []
+        }
+    
 # --- DADOS DE AGENDAMENTO E CONTINGÊNCIA (Retirado da tese de RZ na pagina 132-133) ---
 agendamento_df = pd.DataFrame([
     {"ramo": [8, 11],"inicio": "08:00",  "duracao": 4, "prioridade": 4},   # IVAIPORA -> LONDRINA
@@ -78,10 +83,7 @@ def analise_contigencias_SEP(rede, setupobj, matriz_cenarios , agendamento_df, c
     num_desligamentos = len(agendamento_df)
     violacoes_total = []
     
-    contigencias_selecionadas = {
-        "ramos": [],
-        "contingencia": []
-    }
+
     
     try:
         for cenario in matriz_cenarios:
@@ -168,8 +170,6 @@ class SmartGridSin45:
             )
             for trace in fig_network.data:
                 fig.add_trace(trace, row=1, col=1)
-
-            # Ajusta o tamanho da figura para ser maior (por exemplo, altura de 3000)
     
 
             # 2. Resultado do Fluxo de Potência
@@ -206,10 +206,10 @@ class SmartGridSin45:
             # Adiciona scroll vertical via CSS no HTML exportado (caso necessário)
             fig.write_html(
                 filename,
-                full_html=True,
+                full_html=False,
                 #include_plotlyjs='cdn',
                 #include_mathjax ="cdn",
-                config={"scrollZoom": True},
+                config={"scrollZoom": False},
                 auto_open=True
             )
 
