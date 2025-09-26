@@ -19,9 +19,6 @@ from AlgEvolutivoRCE_backup.alg_evolutivo_rce import AlgoritimoEvolutivoRCE
 from IPython.display import display, HTML
 
 
-
-
-
 # Hash map de resultados
 resultados = {
 
@@ -552,7 +549,7 @@ def get_resultados_agendamento_otimo(setup, resultados, plot=False, grafico_rce_
 
 
 ##############################################################################################################################################################
-#! Função principal para executar s
+#! Função principal para executar 
 def run_simulate_SIN45(plot = False):
     tabela_hash = hashtablesize_sin45()
 
