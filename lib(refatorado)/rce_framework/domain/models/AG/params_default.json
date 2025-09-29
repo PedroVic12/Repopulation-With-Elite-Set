@@ -1,0 +1,17 @@
+{
+    "ARRAY_VAR": [14.0, 15.0, 14.0, 18.0, 15.0],
+    "LIMITE_VAR": [0, 31],
+
+    "NUM_GENERATIONS": 700,
+    "CROSSOVER": 0.77,
+    "MUTACAO": 0.95,
+
+    "POP_SIZE": 100,
+    "IND_SIZE": 5,
+
+    "RCE_REPOPULATION_GENERATIONS": 50,
+    
+    "NUM_VAR_DIFERENTES": 1,
+    "PORCENTAGEM": 0.2,
+    "DELTA_MIN": 2
+  }
