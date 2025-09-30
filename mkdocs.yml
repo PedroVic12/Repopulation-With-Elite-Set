@@ -1,0 +1,132 @@
+site_name: Repopulation-With-Elite-Set
+docs_dir: docs
+nav:
+  - Home: index.md
+  - Algevolutivorce backup alg evolutivo rce: AlgEvolutivoRCE_backup_alg_evolutivo_rce.md
+  - Algevolutivorce backup benchmarking functions: AlgEvolutivoRCE_backup_benchmarking_functions.md
+  - Algevolutivorce backup dashboard: AlgEvolutivoRCE_backup_Dashboard.md
+  - Algevolutivorce backup getting started: AlgEvolutivoRCE_backup_getting_started.md
+  - Algevolutivorce backup run ag exemplo: AlgEvolutivoRCE_backup_run_AG_exemplo.md
+  - Algevolutivorce backup setup: AlgEvolutivoRCE_backup_Setup.md
+  - Algevolutivorce backup test rastrigin 20x ag benchmarking: AlgEvolutivoRCE_backup_test_rastrigin_20x_AG_benchmarking.md
+  - Config backup: config_backup.md
+  - Dashboardapp  init : DashboardApp___init__.md
+  - Dashboardapp controllers  init : DashboardApp_controllers___init__.md
+  - Dashboardapp controllers configrepository: DashboardApp_controllers_ConfigRepository.md
+  - Dashboardapp controllers utils: DashboardApp_controllers_Utils.md
+  - Dashboardapp dashboard alura template: DashboardApp_DASHBOARD_ALURA_TEMPLATE.md
+  - Dashboardapp dashboard rce app: DashboardApp_dashboard_RCE_APP.md
+  - Dashboardapp rede dashboard: DashboardApp_Rede_Dashboard.md
+  - Dashboardapp repository  init : DashboardApp_repository___init__.md
+  - Dashboardapp repository configrepository: DashboardApp_repository_ConfigRepository.md
+  - Dashboardapp repository dashboard simulate repository: DashboardApp_repository_dashboard_simulate_repository.md
+  - Dashboardapp timeline solucoes agendamento jsonserver: DashboardApp_timeline_solucoes_agendamento_jsonserver.md
+  - Dashboardapp views app simulate dashboard ieee cases: DashboardApp_views_app_simulate_dashboard_ieee_cases.md
+  - Dashboardapp views app simulator redes eletricas app: DashboardApp_views_app_simulator_redes_eletricas_app.md
+  - Dashboardapp views pages agendamentoredepage: DashboardApp_views_pages_AgendamentoRedePage.md
+  - Dashboardapp views pages c3po chatbot page: DashboardApp_views_pages_c3po_chatbot_page.md
+  - Dashboardapp views pages code editor page: DashboardApp_views_pages_code_editor_page.md
+  - Dashboardapp views pages config: DashboardApp_views_pages_config.md
+  - Dashboardapp views pages configurador: DashboardApp_views_pages_Configurador.md
+  - Dashboardapp views pages easypdf page: DashboardApp_views_pages_EasyPDF_page.md
+  - Dashboardapp views pages framewrokrcedashboardpage: DashboardApp_views_pages_FramewrokRCEDashboardPage.md
+  - Dashboardapp views pages graficos: DashboardApp_views_pages_graficos.md
+  - Dashboardapp views pages screens: DashboardApp_views_pages_screens.md
+  - Dashboardapp views pages sessionstates: DashboardApp_views_pages_SessionStates.md
+  - Dashboardapp views pages streamlit dashboard template v1: DashboardApp_views_pages_streamlit_dashboard_template_v1.md
+  - Dashboardapp views pages streamlitdashbord: DashboardApp_views_pages_StreamlitDashbord.md
+  - Dashboardapp views pages themes: DashboardApp_views_pages_themes.md
+  - Dashboardapp views screens components agendamentoredepage: DashboardApp_views_Screens_components_AgendamentoRedePage.md
+  - Dashboardapp views screens components custom components: DashboardApp_views_Screens_components_custom_components.md
+  - Dashboardapp views screens components dash components: DashboardApp_views_Screens_components_dash_components.md
+  - Dashboardapp views screens components dash rce components: DashboardApp_views_Screens_components_dash_rce_components.md
+  - Dashboardapp views screens components dashboard config: DashboardApp_views_Screens_components_dashboard_config.md
+  - Dashboardapp views screens components side bar widget: DashboardApp_views_Screens_components_side_bar_widget.md
+  - Dashboardapp views screens dashboard rce backup fullstreamlit: DashboardApp_views_Screens_dashboard_rce_backup_fullStreamlit.md
+  - Dashboardapp views screens dashboardrcepage: DashboardApp_views_Screens_DashboardRCEPage.md
+  - Dashboardapp views screens rce framework page: DashboardApp_views_Screens_RCE_Framework_Page.md
+  - Dashboardapp views screens streamlit dashboard template v1: DashboardApp_views_Screens_streamlit_dashboard_template_v1.md
+  - Dashboardapp views screens ui gradiente rce screen: DashboardApp_views_Screens_UI_Gradiente_RCE_SCREEN.md
+  - Dashboardapp views templates components: DashboardApp_views_templates_components.md
+  - Dashboardapp views templates dashboard app v4: DashboardApp_views_templates_dashboard_app_v4.md
+  - Dashboardapp views templates dashboard app v5: DashboardApp_views_templates_dashboard_app_v5.md
+  - Dashboardapp views templates dashboard old page 29 04 25: DashboardApp_views_templates_dashboard_old_page_29_04_25.md
+  - Dashboardapp views templates dashboard rce test functions: DashboardApp_views_templates_dashboard_rce_test_functions.md
+  - Dashboardapp views templates dashboard template bi: DashboardApp_views_templates_dashboard_template_BI.md
+  - Dashboardapp views templates dashboard v1 css streamlit: DashboardApp_views_templates_dashboard_v1_css_streamlit.md
+  - Dashboardapp views templates dashboard v2 pandapower: DashboardApp_views_templates_dashboard_v2_pandapower.md
+  - Dashboardapp views templates json editor: DashboardApp_views_templates_json_editor.md
+  - Dashboardapp views templates rce template app: DashboardApp_views_templates_rce_template_app.md
+  - Dashboardapp views templates rce test functions page: DashboardApp_views_templates_rce_test_functions_page.md
+  - Dashboardapp views templates timeline matplotlb: DashboardApp_views_templates_timeline_matplotlb.md
+  - Dashboardapp views templates timeline plot: DashboardApp_views_templates_timeline_plot.md
+  - Database controller: database_controller.md
+  - Instalador: instalador.md
+  - New simulator sin 45: new_simulator_SIN_45.md
+  - Rede eletrica backup basic network: RedeEletrica_backup_basic_network.md
+  - Rede eletrica backup exemplos getting started deap pandapower exemplo: RedeEletrica_backup_exemplos_getting_started_deap_pandapower_exemplo.md
+  - Rede eletrica backup exemplos scripts create deck system website: RedeEletrica_backup_exemplos_scripts_create_deck_system_website.md
+  - Rede eletrica backup exemplos scripts create your new network: RedeEletrica_backup_exemplos_scripts_create_your_new_network.md
+  - Rede eletrica backup exemplos scripts dashboard alura: RedeEletrica_backup_exemplos_scripts_dashboard_alura.md
+  - Rede eletrica backup exemplos scripts database json redis: RedeEletrica_backup_exemplos_scripts_database_json_redis.md
+  - Rede eletrica backup exemplos scripts gemini read pdf: RedeEletrica_backup_exemplos_scripts_gemini_read_PDF.md
+  - Rede eletrica backup exemplos scripts plot power flow: RedeEletrica_backup_exemplos_scripts_plot_power_flow.md
+  - Rede eletrica backup exemplos scripts rede 16 barras anarede: RedeEletrica_backup_exemplos_scripts_rede_16_barras_anaREDE.md
+  - Rede eletrica backup exemplos scripts redis connection: RedeEletrica_backup_exemplos_scripts_redis_connection.md
+  - Rede eletrica backup exemplos scripts run redis: RedeEletrica_backup_exemplos_scripts_run_redis.md
+  - Rede eletrica backup exemplos scripts sistema canarinho 16barras: RedeEletrica_backup_exemplos_scripts_sistema_canarinho_16barras.md
+  - Rede eletrica backup exemplos simulate func objetivo ieee14: RedeEletrica_backup_exemplos_simulate_func_objetivo_IEEE14.md
+  - Rede eletrica backup rede eletrica: RedeEletrica_backup_rede_eletrica.md
+  - Rede eletrica backup simulator anarede dataset: RedeEletrica_backup_simulator_anarede_dataset.md
+  - Rede eletrica backup simulator create new network from excel: RedeEletrica_backup_simulator_create_new_network_from_excel.md
+  - Rede eletrica backup simulator email automate: RedeEletrica_backup_simulator_email_automate.md
+  - Rede eletrica backup simulator modelagem fluxo potencia: RedeEletrica_backup_simulator_modelagem_fluxo_potencia.md
+  - Rede eletrica backup simulator plot network: RedeEletrica_backup_simulator_plot_network.md
+  - Rede eletrica backup simulator web crappy browser: RedeEletrica_backup_simulator_web_crappy_browser.md
+  - Run: run.md
+  - Run agendamento: run_agendamento.md
+  - Sin 45 simulator anarede: SIN_45_SIMULATOR_ANAREDE.md
+  - Test rastrigin: test_rastrigin.md
+  - Utils functions fitness  pycache  function ieee 58 otimizacao: utils_functions_fitness___pycache___function_IEEE_58_otimizacao.md
+  - Utils functions fitness analise contigencias script: utils_functions_fitness_analise_contigencias_script.md
+  - Utils functions fitness analise contigencias sep sin 45 ag otimization example: utils_functions_fitness_analise_contigencias_SEP_SIN_45_AG_otimization_example.md
+  - Utils functions fitness analise contingencia analise contingencia ieee118: utils_functions_fitness_analise_contingencia_analise_contingencia_ieee118.md
+  - Utils functions fitness analise contingencia analise contingencia ieee14: utils_functions_fitness_analise_contingencia_analise_contingencia_ieee14.md
+  - Utils functions fitness analise contingencia analise contingencia ieee30: utils_functions_fitness_analise_contingencia_analise_contingencia_ieee30.md
+  - Utils functions fitness analise contingencia create sin 45 dataset: utils_functions_fitness_analise_contingencia_CREATE_SIN_45_DATASET.md
+  - Utils functions fitness analise contingencia generate mapa br sin: utils_functions_fitness_analise_contingencia_generate_mapa_BR_SIN.md
+  - Utils functions fitness analise contingencia get coordenadas sin: utils_functions_fitness_analise_contingencia_get_coordenadas_SIN.md
+  - Utils functions fitness create function fitness: utils_functions_fitness_create_function_fitness.md
+  - Utils functions fitness func objetivo sin 45 otimizado ag ons: utils_functions_fitness_func_objetivo_SIN_45_otimizado_AG_ONS.md
+  - Utils functions fitness function ieee 118 otimizacao: utils_functions_fitness_function_IEEE_118_otimizacao.md
+  - Utils functions fitness function ieee 14 contigencias: utils_functions_fitness_function_IEEE_14_contigencias.md
+  - Utils functions fitness function ieee 30 otimizacao: utils_functions_fitness_function_IEEE_30_otimizacao.md
+  - Utils functions fitness function ieee 30 otimizacao (4): utils_functions_fitness_function_IEEE_30_otimizacao (4).md
+  - Utils functions fitness function ieee 57 otimizacao: utils_functions_fitness_function_IEEE_57_otimizacao.md
+  - Utils functions fitness functions benchmarking: utils_functions_fitness_functions_benchmarking.md
+  - Utils functions fitness inspect excel: utils_functions_fitness_inspect_excel.md
+  - Utils functions fitness read excel dataset file: utils_functions_fitness_read_excel_dataset_file.md
+  - Utils functions fitness test function sin 45 otimizacao: utils_functions_fitness_test_function_SIN_45_otimizacao.md
+  - Utils functions fitness teste sin 45: utils_functions_fitness_teste_SIN_45.md
+  - Utils modules automate cadastro automate: utils_modules_automate_cadastro_automate.md
+  - Utils modules automate cadastro page estoque atutomate: utils_modules_automate_cadastro_page_estoque_atutomate.md
+  - Utils modules automate gui desktop automate: utils_modules_automate_gui_desktop_automate.md
+  - Utils modules automate playwright automate module: utils_modules_automate_playwright_automate_module.md
+  - Utils modules conjunto execucoes: utils_modules_conjunto_execucoes.md
+  - Utils run execution: utils_run_execution.md
+
+theme:
+  name: material
+  palette:
+    - scheme: default
+      toggle:
+        icon: material/toggle-switch-off-outline
+        name: Switch to dark mode
+    - scheme: slate
+      toggle:
+        icon: material/toggle-switch
+        name: Switch to light mode
+  features:
+    - navigation.tabs
+    - navigation.sections
+    - navigation.top
