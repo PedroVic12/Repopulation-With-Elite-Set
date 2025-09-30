@@ -1,8 +1,8 @@
-
 site_name: Repopulation-With-Elite-Set
 docs_dir: docs
 nav:
   - Home: index.md
+  - Guia de Documentação: guia_documentacao.md
   - Algoritmo Evolutivo RCE:
     - Alg evolutivo rce: AlgEvolutivoRCE_backup_alg_evolutivo_rce.md
     - Benchmarking functions: AlgEvolutivoRCE_backup_benchmarking_functions.md
