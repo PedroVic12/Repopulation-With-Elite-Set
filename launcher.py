@@ -1,4 +1,3 @@
-
 import sys
 import os
 import json
@@ -17,7 +16,6 @@ from PySide6.QtWidgets import (
 from PySide6.QtCore import Qt, QThread, Signal, QTimer
 from PySide6.QtGui import QFont, QIcon, QIntValidator, QDoubleValidator, QColor
 
-
 # --- IMPORTS DO PROJETO ---
 from style import STYLESHEET
 from src.database_controller import DatabaseController
@@ -27,7 +25,6 @@ BASE_DIR = Path(__file__).parent
 SRC_DIR = BASE_DIR / "src"
 RUN_FRAMEWORK_SCRIPT = SRC_DIR / "run.py"
 DASHBOARD_SCRIPT = SRC_DIR / "DashboardApp" / "dashboard_RCE_APP.py"
-
 
 # Parâmetros que podem variar via options.json (arrays)
 VARYING_KEYS = {"MUTACAO", "CROSSOVER", "NUM_GENERATIONS", "POP_SIZE"}
@@ -290,7 +287,6 @@ class ParamsAGTab(QWidget):
             k: v for k, v in all_params.items() if k not in self.EXCLUDED_PARAMS
         }
         
-        
         print("Parametros editáveis para o AG", params_to_show)
         
         self.table.setRowCount(len(params_to_show))
@@ -361,6 +357,7 @@ class ExecutionTab(QWidget):
         self.db_controller = self.config_manager.db_controller
         self.execution_thread = None
         self.configurations = []
+        self.is_executing = False  # CORREÇÃO: Flag para controlar estado de execução
         self.init_ui()
 
     def init_ui(self):
@@ -407,8 +404,14 @@ class ExecutionTab(QWidget):
         layout.addLayout(control_layout)
 
     def start_executions(self, configs, runs_per_config):
+        """CORREÇÃO: Este método só deve ser chamado quando o usuário clica em executar"""
         if not RUN_FRAMEWORK_SCRIPT.exists():
             QMessageBox.critical(self, "Erro", f"Script não encontrado: {RUN_FRAMEWORK_SCRIPT}")
+            return
+
+        # CORREÇÃO: Verificar se já está executando
+        if self.is_executing:
+            QMessageBox.warning(self, "Atenção", "Já existe uma execução em andamento!")
             return
 
         # Variaveis contadores de execução com QThread
@@ -416,6 +419,7 @@ class ExecutionTab(QWidget):
         self.runs_per_config = runs_per_config
         self.total_runs = len(self.configurations) * self.runs_per_config
         self.current_run_number = 0
+        self.is_executing = True  # CORREÇÃO: Marcar como executando
 
         self.log_text.clear()
         self.append_log(f"Iniciando bateria de testes com {self.total_runs} execuções totais.")
@@ -428,9 +432,10 @@ class ExecutionTab(QWidget):
         self.run_next_configuration()
 
     def run_next_configuration(self):
-        #if self.current_run_number >= self.total_runs:
-        #    self.on_all_executions_finished(True, "Todas as execuções foram concluídas...")
-        #    return
+        # CORREÇÃO: Verificação de término movida para cá
+        if self.current_run_number >= self.total_runs:
+            self.on_all_executions_finished(True, "Todas as execuções foram concluídas...")
+            return
 
         config_index = self.current_run_number // self.runs_per_config
         repetition = (self.current_run_number % self.runs_per_config) + 1
@@ -456,10 +461,7 @@ class ExecutionTab(QWidget):
         
         # Inicia a thread de execução do Subprocesso do arquivo run.py
         self.execution_thread.start()
-        
-        
-        
-        
+
     def on_single_execution_finished(self, success, message):
         self.append_log(f"Finalizada execução. Sucesso: {success}. {message}")
         
@@ -469,16 +471,18 @@ class ExecutionTab(QWidget):
         self.current_run_number += 1
         self.progress_bar.setValue(self.current_run_number)
         
-        # PVRV - 02/10 - Tentativa de corrigir bug de execução repetida, a principio retirar o Single Shot e funcionar mais limpo
-        QTimer.singleShot(100, self.run_next_configuration)
+        self.append_log(f"Progresso - current_run_number: {self.current_run_number}, total_runs: {self.total_runs}")
         
-        self.append_log(f"Estou travado aqui - current_run_number: {self.current_run_number}, total_runs: {self.total_runs}")
-        
-        if self.current_run_number >= self.total_runs:
+        # CORREÇÃO PRINCIPAL: Lógica simplificada sem QTimer
+        if self.current_run_number < self.total_runs:
+            # Executa a próxima configuração imediatamente
+            self.run_next_configuration()
+        else:
+            # Todas as execuções foram concluídas
             self.on_all_executions_finished(True, "Todas as execuções foram concluídas!!!")
-            return
 
     def stop_execution(self):
+        self.is_executing = False  # CORREÇÃO: Parar execução
         self.current_run_number = self.total_runs
         if self.execution_thread and self.execution_thread.isRunning():
             self.execution_thread.stop()
@@ -486,6 +490,7 @@ class ExecutionTab(QWidget):
         self.on_all_executions_finished(False, "Interrompido pelo usuário.")
 
     def on_all_executions_finished(self, success, message):
+        self.is_executing = False  # CORREÇÃO: Resetar flag
         self.stop_btn.setEnabled(False)
         self.progress_bar.setValue(self.progress_bar.maximum())
         self.status_label.setText(f"Finalizado! {message}")
@@ -511,10 +516,7 @@ class ExecutionTab(QWidget):
         PORTA=8501
 
         try:
-            #os.system("ls -l && echo 'Comandos executados com sucesso!'") 
             os.system(f"streamlit run {DASHBOARD_SCRIPT} --server.port {PORTA} &")
-            #! Tirando subprocess para tirar logs desnecessários
-            #subprocess.Popen(["streamlit", "run", str(DASHBOARD_SCRIPT), "--server.port", "8501"], cwd=BASE_DIR)
             self.append_log(f"\nDashboard iniciado em http://localhost:{PORTA}")
         except Exception as e:
             self.append_log(f"Erro ao iniciar dashboard: {e}")
@@ -564,7 +566,6 @@ class LauncherWindow(QMainWindow):
         self.params_ag_tab = ParamsAGTab(self.config_manager)
         self.execution_tab = ExecutionTab(self.config_manager)
         
-        
         # Adicionando as abas ao widget de abas 
         tab_widget.addTab(self.config_tab, "⚙️ Configuração")
         tab_widget.addTab(self.params_ag_tab, "⌨ Parametros AG - RCE")
@@ -572,13 +573,18 @@ class LauncherWindow(QMainWindow):
         
         layout.addWidget(tab_widget)
 
-        # Conectando sinais de gerenciamento de estado com Signal para trasmição de dados entre abas 
+        # CORREÇÃO: Conexão mantida apenas para quando o usuário solicitar execução
         self.config_tab.execution_requested.connect(self.execution_tab.start_executions)
         self.config_tab.execution_requested.connect(lambda: tab_widget.setCurrentWidget(self.execution_tab))
 
 if __name__ == "__main__":
+
+    print("RCE - laucher Desktop")
     app = QApplication(sys.argv)
     app.setStyleSheet(STYLESHEET)
     window = LauncherWindow()
     window.showMaximized()
     sys.exit(app.exec())
+
+
+
