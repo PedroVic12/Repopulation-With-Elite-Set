@@ -233,22 +233,19 @@ class ConfigTab(QWidget):
         base_params = self.config_manager.db_controller.get_params()
         variable_arrays = self._get_variable_arrays()
 
+        # Escolhe valores fixos para os parâmetros não variáveis
         for name, info in self.param_widgets.items():
             if info["mode"].checkedButton().text() == "Fixo":
                 base_params[name] = int(info["fixed"].text()) if info["is_int"] else float(info["fixed"].text())
-
         options_to_save = {'repeticoes_por_config': self.runs_per_config_spin.value(), **variable_arrays}
-        
         
         # Save and connect the json configurations file
         self.config_manager.db_controller.save_params(base_params)
         self.config_manager.db_controller.save_options(options_to_save)
 
-
         # Generate all combinations 
         keys = list(variable_arrays.keys())
         combinations = [dict(zip(keys, v)) for v in product(*variable_arrays.values())] if keys else [{}]
-        
         configurations = [dict(base_params, **combo) for combo in combinations]
 
         msg = f"{len(configurations)} Configurações únicas serão executadas {self.runs_per_config_spin.value()} vez(es) cada."
@@ -414,6 +411,7 @@ class ExecutionTab(QWidget):
             QMessageBox.critical(self, "Erro", f"Script não encontrado: {RUN_FRAMEWORK_SCRIPT}")
             return
 
+        # Variaveis contadores de execução com QThread
         self.configurations = configs
         self.runs_per_config = runs_per_config
         self.total_runs = len(self.configurations) * self.runs_per_config
@@ -430,17 +428,18 @@ class ExecutionTab(QWidget):
         self.run_next_configuration()
 
     def run_next_configuration(self):
-        if self.current_run_number >= self.total_runs:
-            self.on_all_executions_finished(True, "Todas as execuções foram concluídas.")
-            return
+        #if self.current_run_number >= self.total_runs:
+        #    self.on_all_executions_finished(True, "Todas as execuções foram concluídas...")
+        #    return
 
         config_index = self.current_run_number // self.runs_per_config
         repetition = (self.current_run_number % self.runs_per_config) + 1
         current_config = self.configurations[config_index]
         
-        self.status_label.setText(f"\nExecutando {self.current_run_number + 1}/{self.total_runs} (Config {config_index + 1}, Rep {repetition})")
+        self.status_label.setText(f"\nExecutando {self.current_run_number + 1}/{self.total_runs} (Config: {config_index + 1}, Rep: {repetition})")
         self.append_log("-" * 80)
         self.append_log(f"Iniciando Config {config_index + 1}, Repetição {repetition}")
+        self.append_log("-" * 80)
 
         if not self.db_controller.save_params(current_config):
              self.append_log(f"❌ Erro ao salvar o arquivo de parâmetros.")
@@ -454,41 +453,56 @@ class ExecutionTab(QWidget):
         self.execution_thread = ExecutionThread(RUN_FRAMEWORK_SCRIPT, args)
         self.execution_thread.log_updated.connect(self.append_log)
         self.execution_thread.execution_finished.connect(self.on_single_execution_finished)
+        
+        # Inicia a thread de execução do Subprocesso do arquivo run.py
         self.execution_thread.start()
+        
+        
+        
+                
 
     def on_single_execution_finished(self, success, message):
         self.append_log(f"Finalizada execução. Sucesso: {success}. {message}")
+        
         if not success:
             self.append_log(f"❌ Erro na execução, pulando para a próxima.")
         
         self.current_run_number += 1
         self.progress_bar.setValue(self.current_run_number)
+        
+        # PVRV - 02/10 - Tentativa de corrigir bug de execução repetida, a principio retirar o Single Shot e funcionar mais limpo
         QTimer.singleShot(100, self.run_next_configuration)
+        
+        self.append_log(f"Estou travado aqui - current_run_number: {self.current_run_number}, total_runs: {self.total_runs}")
+        
+        if self.current_run_number >= self.total_runs:
+            self.on_all_executions_finished(True, "Todas as execuções foram concluídas!!!")
+            return
 
     def stop_execution(self):
         self.current_run_number = self.total_runs
         if self.execution_thread and self.execution_thread.isRunning():
             self.execution_thread.stop()
+            
         self.on_all_executions_finished(False, "Interrompido pelo usuário.")
 
     def on_all_executions_finished(self, success, message):
         self.stop_btn.setEnabled(False)
         self.progress_bar.setValue(self.progress_bar.maximum())
-        self.status_label.setText(f"Finalizado. {message}")
+        self.status_label.setText(f"Finalizado! {message}")
         self.append_log(f"✅ {message}")
-        QMessageBox.information(self, "Bateria de Testes Concluída", message)
+        QMessageBox.information(self, "Bateria de Testes Concluída! Abra o Dashboard para ver os resultados!", message)
 
     def consolidate_results(self):
         self.append_log("\nIniciando consolidação de resultados via chamada de script...")
         try:
             
-            #self.db_controller.consolidar_script_button()
-
             #! Alteração na arquitetura do projeto com MVC  + Observer + Controller
             self.db_controller.consolidate_results()
             self.append_log("Consolidação com Desgin Pattern DatabaseController!")
             self.append_log("Verifique o terminal para ver quantos arquivos foram resultados da simulação!")
             QMessageBox.information(self, "Sucesso", "Resultados consolidados com sucesso!")
+            
         except Exception as e:
             self.append_log(f"Erro durante a consolidação: {e}")
             QMessageBox.critical(self, "Erro", f"Falha ao consolidar resultados: {e}")
@@ -496,7 +510,6 @@ class ExecutionTab(QWidget):
     def run_dashboard(self):
 
         PORTA=8501
-
 
         try:
             #os.system("ls -l && echo 'Comandos executados com sucesso!'") 
@@ -552,13 +565,15 @@ class LauncherWindow(QMainWindow):
         self.params_ag_tab = ParamsAGTab(self.config_manager)
         self.execution_tab = ExecutionTab(self.config_manager)
         
-        tab_widget.addTab(self.config_tab, "⚙️ Configuração e Execução")
-        tab_widget.addTab(self.params_ag_tab, "🧬 Parametros AG - RCE")
-        tab_widget.addTab(self.execution_tab, "📈 Dashboard e Logs")
+        
+        # Adicionando as abas ao widget de abas 
+        tab_widget.addTab(self.config_tab, "⚙️ Configuração")
+        tab_widget.addTab(self.params_ag_tab, "⌨ Parametros AG - RCE")
+        tab_widget.addTab(self.execution_tab, "▶️ Exibição de Logs e Dashboard")
         
         layout.addWidget(tab_widget)
 
-        # Conectando sinais
+        # Conectando sinais de gerenciamento de estado com Signal para trasmição de dados entre abas 
         self.config_tab.execution_requested.connect(self.execution_tab.start_executions)
         self.config_tab.execution_requested.connect(lambda: tab_widget.setCurrentWidget(self.execution_tab))
 

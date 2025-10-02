@@ -291,6 +291,8 @@ def run_framework_many_executions(function_bechmarking=False):
         # Salva a tabela hash UMA VEZ no final de todas as execuções da configuração
         print("\n" + "="*60)
         print(f"FIM DA CONFIGURAÇÃO {config_num}")
+        print("=" * 60)
+
         try:
             hash_df = pd.DataFrame(data=setup.tabela_hash, columns=['Fitness'])
             hash_df.to_excel(HASH_TABLE_PATH, index=False)
