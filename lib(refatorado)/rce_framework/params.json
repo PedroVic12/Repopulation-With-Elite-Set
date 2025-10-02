@@ -18,10 +18,10 @@
         0,
         31
     ],
-    "MUTACAO": 0.9,
-    "NUM_GENERATIONS": 20,
+    "MUTACAO": 0.8,
+    "NUM_GENERATIONS": 3,
     "NUM_VAR_DIFERENTES": 1,
-    "POP_SIZE": 10,
+    "POP_SIZE": 6,
     "PORCENTAGEM": 0.2,
     "RCE_REPOPULATION_GENERATIONS": 50
 }

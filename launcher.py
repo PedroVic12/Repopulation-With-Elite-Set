@@ -459,8 +459,7 @@ class ExecutionTab(QWidget):
         
         
         
-                
-
+        
     def on_single_execution_finished(self, success, message):
         self.append_log(f"Finalizada execução. Sucesso: {success}. {message}")
         
