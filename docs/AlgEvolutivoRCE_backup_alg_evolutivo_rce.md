@@ -1,5 +1,9 @@
 # alg_evolutivo_rce.py
 
+
+
+Este código é o prnicipal da otimização...
+
 ```python
 import numpy as np
 from deap import base, creator, tools

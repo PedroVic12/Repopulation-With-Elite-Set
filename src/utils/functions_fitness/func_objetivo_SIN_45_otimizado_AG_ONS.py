@@ -432,5 +432,5 @@ def run_simulate_SIN45():
 
     print(f"\nMelhores hórarios de agendamento de operação do SEP: SIN 45: {best_variables}")
 
-run_simulate_SIN45()
+#run_simulate_SIN45()
 

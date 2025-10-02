@@ -69,15 +69,19 @@ class ExecutionThread(QThread):
         try:
             cmd = [sys.executable, str(self.script_path)] + self.args
             self.log_updated.emit(f"Executando: {' '.join(cmd)}")
+            
             self.process = subprocess.Popen(
                 cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
                 universal_newlines=True, cwd=SRC_DIR, encoding='utf-8', errors='replace'
             )
+                        
             for line in iter(self.process.stdout.readline, ''):
                 if line:
                     self.log_updated.emit(line.strip())
+                    
             return_code = self.process.wait()
             self.execution_finished.emit(return_code == 0, f"Código de retorno: {return_code}")
+            
         except Exception as e:
             self.log_updated.emit(f"Erro na execução: {e}")
             self.execution_finished.emit(False, str(e))
@@ -147,7 +151,7 @@ class ConfigTab(QWidget):
         layout.addWidget(summary_group)
 
     def create_run_button(self, layout):
-        self.run_button = QPushButton("💾 Salvar e Executar")
+        self.run_button = QPushButton("Salvar e Executar")
         self.run_button.clicked.connect(self.prepare_and_run)
         layout.addWidget(self.run_button, alignment=Qt.AlignCenter)
 
@@ -224,6 +228,8 @@ class ConfigTab(QWidget):
         return arrays
 
     def prepare_and_run(self):
+        
+        # Fetch current base params and variable arrays
         base_params = self.config_manager.db_controller.get_params()
         variable_arrays = self._get_variable_arrays()
 
@@ -232,15 +238,20 @@ class ConfigTab(QWidget):
                 base_params[name] = int(info["fixed"].text()) if info["is_int"] else float(info["fixed"].text())
 
         options_to_save = {'repeticoes_por_config': self.runs_per_config_spin.value(), **variable_arrays}
+        
+        
+        # Save and connect the json configurations file
         self.config_manager.db_controller.save_params(base_params)
         self.config_manager.db_controller.save_options(options_to_save)
 
+
+        # Generate all combinations 
         keys = list(variable_arrays.keys())
         combinations = [dict(zip(keys, v)) for v in product(*variable_arrays.values())] if keys else [{}]
         
         configurations = [dict(base_params, **combo) for combo in combinations]
 
-        msg = f"{len(configurations)} configs únicas serão executadas {self.runs_per_config_spin.value()} vez(es) cada."
+        msg = f"{len(configurations)} Configurações únicas serão executadas {self.runs_per_config_spin.value()} vez(es) cada."
         QMessageBox.information(self, "Pronto para Iniciar", msg)
         self.execution_requested.emit(configurations, self.runs_per_config_spin.value())
 
@@ -436,7 +447,10 @@ class ExecutionTab(QWidget):
              self.on_all_executions_finished(False, "Erro de arquivo.")
              return
 
+        # Argumentos do itertools
         args = ["--config_num", str(config_index + 1), "--exec_num", str(repetition)]
+        
+        # Inicia a thread de execução na tela GUI
         self.execution_thread = ExecutionThread(RUN_FRAMEWORK_SCRIPT, args)
         self.execution_thread.log_updated.connect(self.append_log)
         self.execution_thread.execution_finished.connect(self.on_single_execution_finished)
@@ -506,11 +520,13 @@ class LauncherWindow(QMainWindow):
 
     def init_ui(self):
         self.setWindowTitle("RCE Framework Launcher Desktop - Otimizado para AG")
+        
         scroll = QScrollArea()
         scroll.setWidgetResizable(True)
         content = QWidget()
         main_layout = QVBoxLayout(content)
         scroll.setWidget(content)
+             
         self.setCentralWidget(scroll)
         
         self.create_header(main_layout)
