@@ -573,18 +573,16 @@ class LauncherWindow(QMainWindow):
         
         layout.addWidget(tab_widget)
 
-        # CORREÇÃO: Conexão mantida apenas para quando o usuário solicitar execução
+        # CORREÇÃO: Signal é necessário apenas para quando o usuário solicitar execução
         self.config_tab.execution_requested.connect(self.execution_tab.start_executions)
         self.config_tab.execution_requested.connect(lambda: tab_widget.setCurrentWidget(self.execution_tab))
 
 if __name__ == "__main__":
 
-    print("RCE - laucher Desktop")
+    print("RCE - Launcher GUI Pyside6 - Desktop Software"
+
     app = QApplication(sys.argv)
     app.setStyleSheet(STYLESHEET)
     window = LauncherWindow()
     window.showMaximized()
     sys.exit(app.exec())
-
-
-
