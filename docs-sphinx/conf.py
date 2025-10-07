@@ -27,6 +27,7 @@ language = 'pt_BR'
 # 1: Sphinx Book Theme
 # 2: Furo
 # 3: PyData Sphinx Theme
+
 theme_choice = 1  # <-- Mude este número para trocar o tema
 
 if theme_choice == 1:
