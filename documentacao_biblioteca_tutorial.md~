@@ -1,0 +1,9 @@
+## Docs pelo menos do pandapower
+
+sphinx-quickstart docs-sphinx 
+
+## docs pelo mkdocs (markdwon como site)
+
+mkdocs serve
+
+
