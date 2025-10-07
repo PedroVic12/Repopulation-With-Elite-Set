@@ -1,0 +1,635 @@
+
+<!DOCTYPE html>
+
+
+<html lang="pt-BR" data-content_root="./" >
+
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>dashboard_rce_test_functions.py &#8212; Documentação Repopulation-With-Elite-Set 0.1</title>
+  
+  
+  
+  <script data-cfasync="false">
+    document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
+    document.documentElement.dataset.theme = localStorage.getItem("theme") || "";
+  </script>
+  
+  <!-- Loaded before other Sphinx assets -->
+  <link href="_static/styles/theme.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+<link href="_static/styles/bootstrap.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+<link href="_static/styles/pydata-sphinx-theme.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+
+  
+  <link href="_static/vendor/fontawesome/6.5.2/css/all.min.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+  <link rel="preload" as="font" type="font/woff2" crossorigin href="_static/vendor/fontawesome/6.5.2/webfonts/fa-solid-900.woff2" />
+<link rel="preload" as="font" type="font/woff2" crossorigin href="_static/vendor/fontawesome/6.5.2/webfonts/fa-brands-400.woff2" />
+<link rel="preload" as="font" type="font/woff2" crossorigin href="_static/vendor/fontawesome/6.5.2/webfonts/fa-regular-400.woff2" />
+
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=8f2a1f02" />
+    <link rel="stylesheet" type="text/css" href="_static/styles/sphinx-book-theme.css?v=eba8b062" />
+  
+  <!-- Pre-loaded scripts that we'll load fully later -->
+  <link rel="preload" as="script" href="_static/scripts/bootstrap.js?digest=dfe6caa3a7d634c4db9b" />
+<link rel="preload" as="script" href="_static/scripts/pydata-sphinx-theme.js?digest=dfe6caa3a7d634c4db9b" />
+  <script src="_static/vendor/fontawesome/6.5.2/js/all.min.js?digest=dfe6caa3a7d634c4db9b"></script>
+
+    <script src="_static/documentation_options.js?v=bf871653"></script>
+    <script src="_static/doctools.js?v=9bcbadda"></script>
+    <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="_static/scripts/sphinx-book-theme.js?v=887ef09a"></script>
+    <script src="_static/translations.js?v=71a39b36"></script>
+    <script>DOCUMENTATION_OPTIONS.pagename = 'DashboardApp_views_templates_dashboard_rce_test_functions';</script>
+    <link rel="index" title="Índice" href="genindex.html" />
+    <link rel="search" title="Buscar" href="search.html" />
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="docsearch:language" content="pt-BR"/>
+  </head>
+  
+  
+  <body data-bs-spy="scroll" data-bs-target=".bd-toc-nav" data-offset="180" data-bs-root-margin="0px 0px -60%" data-default-mode="">
+
+  
+  
+  <div id="pst-skip-link" class="skip-link d-print-none"><a href="#main-content">Skip to main content</a></div>
+  
+  <div id="pst-scroll-pixel-helper"></div>
+  
+  <button type="button" class="btn rounded-pill" id="pst-back-to-top">
+    <i class="fa-solid fa-arrow-up"></i>Back to top</button>
+
+  
+  <input type="checkbox"
+          class="sidebar-toggle"
+          id="pst-primary-sidebar-checkbox"/>
+  <label class="overlay overlay-primary" for="pst-primary-sidebar-checkbox"></label>
+  
+  <input type="checkbox"
+          class="sidebar-toggle"
+          id="pst-secondary-sidebar-checkbox"/>
+  <label class="overlay overlay-secondary" for="pst-secondary-sidebar-checkbox"></label>
+  
+  <div class="search-button__wrapper">
+    <div class="search-button__overlay"></div>
+    <div class="search-button__search-container">
+<form class="bd-search d-flex align-items-center"
+      action="search.html"
+      method="get">
+  <i class="fa-solid fa-magnifying-glass"></i>
+  <input type="search"
+         class="form-control"
+         name="q"
+         id="search-input"
+         placeholder="Search..."
+         aria-label="Search..."
+         autocomplete="off"
+         autocorrect="off"
+         autocapitalize="off"
+         spellcheck="false"/>
+  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
+</form></div>
+  </div>
+
+  <div class="pst-async-banner-revealer d-none">
+  <aside id="bd-header-version-warning" class="d-none d-print-none" aria-label="Version warning"></aside>
+</div>
+
+  
+    <header class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
+    </header>
+  
+
+  <div class="bd-container">
+    <div class="bd-container__inner bd-page-width">
+      
+      
+      
+        
+      
+      <div class="bd-sidebar-primary bd-sidebar">
+        
+
+  
+  <div class="sidebar-header-items sidebar-primary__section">
+    
+    
+    
+    
+  </div>
+  
+    <div class="sidebar-primary-items__start sidebar-primary__section">
+        <div class="sidebar-primary-item">
+
+  
+    
+  
+
+<a class="navbar-brand logo" href="index.html">
+  
+  
+  
+  
+  
+  
+    <p class="title logo__title">Repopulation-With-Elite-Set</p>
+  
+</a></div>
+        <div class="sidebar-primary-item">
+
+ <script>
+ document.write(`
+   <button class="btn search-button-field search-button__button" title="Buscar" aria-label="Buscar" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass"></i>
+    <span class="search-button__default-text">Buscar</span>
+    <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+   </button>
+ `);
+ </script></div>
+        <div class="sidebar-primary-item"><nav class="bd-links bd-docs-nav" aria-label="Main">
+    <div class="bd-toc-item navbar-nav active">
+        
+        <ul class="nav bd-sidenav bd-sidenav__home-link">
+            <li class="toctree-l1">
+                <a class="reference internal" href="index.html">
+                    Documentação do Projeto RCE
+                </a>
+            </li>
+        </ul>
+        <p aria-level="2" class="caption" role="heading"><span class="caption-text">Guia Geral</span></p>
+<ul class="nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="guia_documentacao.html">Guia para Desenvolvimento da Documentação com MkDocs</a></li>
+<li class="toctree-l1"><a class="reference internal" href="sphinx_vs_mkdocs.html">Sphinx vs. MkDocs: Uma Comparação</a></li>
+<li class="toctree-l1"><a class="reference internal" href="run.html">run.py</a></li>
+<li class="toctree-l1"><a class="reference internal" href="run_agendamento.html">run_agendamento.py</a></li>
+<li class="toctree-l1"><a class="reference internal" href="instalador.html">instalador.py</a></li>
+</ul>
+<p aria-level="2" class="caption" role="heading"><span class="caption-text">Algoritmo Evolutivo (RCE)</span></p>
+<ul class="nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="AlgEvolutivoRCE_backup_alg_evolutivo_rce.html">alg_evolutivo_rce.py</a></li>
+<li class="toctree-l1"><a class="reference internal" href="AlgEvolutivoRCE_backup_Setup.html">Setup.py</a></li>
+<li class="toctree-l1"><a class="reference internal" href="AlgEvolutivoRCE_backup_Dashboard.html">Dashboard.py</a></li>
+</ul>
+<p aria-level="2" class="caption" role="heading"><span class="caption-text">Dashboard App</span></p>
+<ul class="nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="DashboardApp_dashboard_RCE_APP.html">dashboard_RCE_APP.py</a></li>
+<li class="toctree-l1"><a class="reference internal" href="DashboardApp_views_Screens_DashboardRCEPage.html">DashboardRCEPage.py</a></li>
+<li class="toctree-l1"><a class="reference internal" href="DashboardApp_controllers_Utils.html">Utils.py</a></li>
+</ul>
+<p aria-level="2" class="caption" role="heading"><span class="caption-text">Modelo da Rede Elétrica</span></p>
+<ul class="nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="RedeEletrica_backup_rede_eletrica.html">rede_eletrica.py</a></li>
+<li class="toctree-l1"><a class="reference internal" href="RedeEletrica_backup_exemplos_getting_started_deap_pandapower_exemplo.html">getting_started_deap_pandapower_exemplo.py</a></li>
+<li class="toctree-l1"><a class="reference internal" href="RedeEletrica_backup_simulator_anarede_dataset.html">anarede_dataset.py</a></li>
+</ul>
+
+    </div>
+</nav></div>
+    </div>
+  
+  
+  <div class="sidebar-primary-items__end sidebar-primary__section">
+  </div>
+  
+  <div id="rtd-footer-container"></div>
+
+
+      </div>
+      
+      <main id="main-content" class="bd-main" role="main">
+        
+        
+
+<div class="sbt-scroll-pixel-helper"></div>
+
+          <div class="bd-content">
+            <div class="bd-article-container">
+              
+              <div class="bd-header-article d-print-none">
+<div class="header-article-items header-article__inner">
+  
+    <div class="header-article-items__start">
+      
+        <div class="header-article-item"><button class="sidebar-toggle primary-toggle btn btn-sm" title="Toggle primary sidebar" data-bs-placement="bottom" data-bs-toggle="tooltip">
+  <span class="fa-solid fa-bars"></span>
+</button></div>
+      
+    </div>
+  
+  
+    <div class="header-article-items__end">
+      
+        <div class="header-article-item">
+
+<div class="article-header-buttons">
+
+
+<a href="https://github.com/PedroVic12/Repopulation-With-Elite-Set" target="_blank"
+   class="btn btn-sm btn-source-repository-button"
+   title="Repositório fonte"
+   data-bs-placement="bottom" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fab fa-github"></i>
+  </span>
+
+</a>
+
+
+
+
+
+
+<div class="dropdown dropdown-download-buttons">
+  <button class="btn dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false" aria-label="Baixe esta página">
+    <i class="fas fa-download"></i>
+  </button>
+  <ul class="dropdown-menu">
+      
+      
+      
+      <li><a href="_sources/DashboardApp_views_templates_dashboard_rce_test_functions.md" target="_blank"
+   class="btn btn-sm btn-download-source-button dropdown-item"
+   title="Baixar arquivo fonte"
+   data-bs-placement="left" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-file"></i>
+  </span>
+<span class="btn__text-container">.md</span>
+</a>
+</li>
+      
+      
+      
+      
+      <li>
+<button onclick="window.print()"
+  class="btn btn-sm btn-download-pdf-button dropdown-item"
+  title="Imprimir em PDF"
+  data-bs-placement="left" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-file-pdf"></i>
+  </span>
+<span class="btn__text-container">.pdf</span>
+</button>
+</li>
+      
+  </ul>
+</div>
+
+
+
+
+<button onclick="toggleFullScreen()"
+  class="btn btn-sm btn-fullscreen-button"
+  title="Modo tela cheia"
+  data-bs-placement="bottom" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-expand"></i>
+  </span>
+
+</button>
+
+
+
+<script>
+document.write(`
+  <button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button" title="light/dark" aria-label="light/dark" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="theme-switch fa-solid fa-sun fa-lg" data-mode="light"></i>
+    <i class="theme-switch fa-solid fa-moon fa-lg" data-mode="dark"></i>
+    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto"></i>
+  </button>
+`);
+</script>
+
+
+<script>
+document.write(`
+  <button class="btn btn-sm pst-navbar-icon search-button search-button__button" title="Buscar" aria-label="Buscar" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass fa-lg"></i>
+  </button>
+`);
+</script>
+
+</div></div>
+      
+    </div>
+  
+</div>
+</div>
+              
+              
+
+<div id="jb-print-docs-body" class="onlyprint">
+    <h1>dashboard_rce_test_functions.py</h1>
+    <!-- Table of contents -->
+    <div id="print-main-content">
+        <div id="jb-print-toc">
+            
+        </div>
+    </div>
+</div>
+
+              
+                
+<div id="searchbox"></div>
+                <article class="bd-article">
+                  
+  <section id="dashboard-rce-test-functions-py">
+<h1>dashboard_rce_test_functions.py<a class="headerlink" href="#dashboard-rce-test-functions-py" title="Link para este cabeçalho">#</a></h1>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># -*- coding: utf-8 -*-</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">streamlit</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">st</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">pickle</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">plotly.io</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">pio</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">plotly.graph_objects</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">go</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">pandas</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">pd</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">glob</span> <span class="c1"># Importar glob para encontrar arquivos</span>
+
+<span class="c1"># --- Configuração ---</span>
+<span class="n">FOLDER_NAME</span> <span class="o">=</span> <span class="s2">&quot;output&quot;</span> <span class="c1"># Nome da pasta onde os arquivos estão localizados</span>
+
+<span class="c1"># Garante que a pasta exista (útil se rodar antes do script gerador por algum motivo)</span>
+<span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">FOLDER_NAME</span><span class="p">):</span>
+    <span class="n">st</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;A pasta &#39;</span><span class="si">{</span><span class="n">FOLDER_NAME</span><span class="si">}</span><span class="s2">&#39; não foi encontrada. Criando pasta vazia.&quot;</span><span class="p">)</span>
+    <span class="n">os</span><span class="o">.</span><span class="n">makedirs</span><span class="p">(</span><span class="n">FOLDER_NAME</span><span class="p">)</span>
+
+<span class="c1"># --- Funções Auxiliares ---</span>
+
+<span class="k">def</span><span class="w"> </span><span class="nf">find_available_executions</span><span class="p">():</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Encontra arquivos .pkl de execução na pasta especificada</span>
+<span class="sd">       e retorna os números de execução ordenados.&quot;&quot;&quot;</span>
+    <span class="c1"># Modificado para buscar dentro da pasta FOLDER_NAME</span>
+    <span class="n">search_pattern</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">FOLDER_NAME</span><span class="p">,</span> <span class="s2">&quot;dashboard_data_*.pkl&quot;</span><span class="p">)</span>
+    <span class="n">data_files</span> <span class="o">=</span> <span class="n">glob</span><span class="o">.</span><span class="n">glob</span><span class="p">(</span><span class="n">search_pattern</span><span class="p">)</span>
+    <span class="n">execution_numbers</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">f_path</span> <span class="ow">in</span> <span class="n">data_files</span><span class="p">:</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="c1"># Extrai apenas o nome do arquivo do caminho completo</span>
+            <span class="n">filename_only</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">basename</span><span class="p">(</span><span class="n">f_path</span><span class="p">)</span>
+            <span class="c1"># Extrai o número do nome do arquivo (ex: &#39;dashboard_data_5.pkl&#39; -&gt; 5)</span>
+            <span class="n">num_str</span> <span class="o">=</span> <span class="n">filename_only</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;_&#39;</span><span class="p">)[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;.&#39;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="n">execution_numbers</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">num_str</span><span class="p">))</span>
+        <span class="k">except</span> <span class="p">(</span><span class="ne">IndexError</span><span class="p">,</span> <span class="ne">ValueError</span><span class="p">):</span>
+            <span class="n">st</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Não foi possível extrair o número de execução do arquivo: </span><span class="si">{</span><span class="n">f_path</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="k">return</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">execution_numbers</span><span class="p">)</span> <span class="c1"># Retorna a lista ordenada</span>
+
+<span class="k">def</span><span class="w"> </span><span class="nf">select_execution</span><span class="p">(</span><span class="n">execution_numbers</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Exibe o seletor na barra lateral e retorna o número da execução selecionada.&quot;&quot;&quot;</span>
+    <span class="n">st</span><span class="o">.</span><span class="n">sidebar</span><span class="o">.</span><span class="n">header</span><span class="p">(</span><span class="s2">&quot;Seleção da Execução&quot;</span><span class="p">)</span>
+    <span class="n">selected_num</span> <span class="o">=</span> <span class="n">st</span><span class="o">.</span><span class="n">sidebar</span><span class="o">.</span><span class="n">selectbox</span><span class="p">(</span>
+        <span class="s2">&quot;Selecione o número da execução para visualizar:&quot;</span><span class="p">,</span>
+        <span class="n">execution_numbers</span> <span class="c1"># Já vem ordenada da função anterior</span>
+    <span class="p">)</span>
+    <span class="k">return</span> <span class="n">selected_num</span>
+
+<span class="k">def</span><span class="w"> </span><span class="nf">load_execution_data</span><span class="p">(</span><span class="n">exec_num</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Carrega os dados .pkl e a figura .json para a execução especificada,</span>
+<span class="sd">       buscando na pasta FOLDER_NAME.&quot;&quot;&quot;</span>
+    <span class="n">data</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="n">fig</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="c1"># Modificado para construir o caminho dentro de FOLDER_NAME</span>
+    <span class="n">data_file_selected</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">FOLDER_NAME</span><span class="p">,</span> <span class="sa">f</span><span class="s2">&quot;dashboard_data_</span><span class="si">{</span><span class="n">exec_num</span><span class="si">}</span><span class="s2">.pkl&quot;</span><span class="p">)</span>
+    <span class="n">fig_file_selected</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">FOLDER_NAME</span><span class="p">,</span> <span class="sa">f</span><span class="s2">&quot;dashboard_fig_</span><span class="si">{</span><span class="n">exec_num</span><span class="si">}</span><span class="s2">.json&quot;</span><span class="p">)</span>
+
+    <span class="n">st</span><span class="o">.</span><span class="n">sidebar</span><span class="o">.</span><span class="n">markdown</span><span class="p">(</span><span class="s2">&quot;---&quot;</span><span class="p">)</span> <span class="c1"># Separador visual</span>
+
+    <span class="c1"># Carregar Dados</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">data_file_selected</span><span class="p">,</span> <span class="s1">&#39;rb&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+            <span class="n">data</span> <span class="o">=</span> <span class="n">pickle</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
+        <span class="n">st</span><span class="o">.</span><span class="n">sidebar</span><span class="o">.</span><span class="n">success</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Dados da execução </span><span class="si">{</span><span class="n">exec_num</span><span class="si">}</span><span class="s2"> carregados de &#39;</span><span class="si">{</span><span class="n">FOLDER_NAME</span><span class="si">}</span><span class="s2">&#39;.&quot;</span><span class="p">)</span>
+    <span class="k">except</span> <span class="ne">FileNotFoundError</span><span class="p">:</span>
+        <span class="n">st</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Erro Crítico: Arquivo de dados selecionado (</span><span class="si">{</span><span class="n">data_file_selected</span><span class="si">}</span><span class="s2">) não encontrado.&quot;</span><span class="p">)</span>
+        <span class="n">st</span><span class="o">.</span><span class="n">stop</span><span class="p">()</span> <span class="c1"># Para se o arquivo esperado não for encontrado</span>
+    <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+        <span class="n">st</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Erro ao carregar dados de </span><span class="si">{</span><span class="n">data_file_selected</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="n">st</span><span class="o">.</span><span class="n">stop</span><span class="p">()</span> <span class="c1"># Para em caso de erro de carregamento</span>
+
+    <span class="c1"># Carregar Figura</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="c1"># Verifica a existência usando o caminho completo</span>
+        <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">fig_file_selected</span><span class="p">):</span>
+            <span class="n">fig</span> <span class="o">=</span> <span class="n">pio</span><span class="o">.</span><span class="n">read_json</span><span class="p">(</span><span class="n">fig_file_selected</span><span class="p">)</span>
+            <span class="n">st</span><span class="o">.</span><span class="n">sidebar</span><span class="o">.</span><span class="n">success</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Figura da execução </span><span class="si">{</span><span class="n">exec_num</span><span class="si">}</span><span class="s2"> carregada de &#39;</span><span class="si">{</span><span class="n">FOLDER_NAME</span><span class="si">}</span><span class="s2">&#39;.&quot;</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">st</span><span class="o">.</span><span class="n">sidebar</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Arquivo da figura (</span><span class="si">{</span><span class="n">fig_file_selected</span><span class="si">}</span><span class="s2">) não encontrado.&quot;</span><span class="p">)</span>
+            <span class="n">fig</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+        <span class="n">st</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Erro ao carregar figura de </span><span class="si">{</span><span class="n">fig_file_selected</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="n">fig</span> <span class="o">=</span> <span class="kc">None</span>
+
+    <span class="k">return</span> <span class="n">data</span><span class="p">,</span> <span class="n">fig</span>
+
+<span class="c1"># --- Funções de Exibição (sem alterações, pois recebem os dados/figura já carregados) ---</span>
+
+<span class="k">def</span><span class="w"> </span><span class="nf">display_summary</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">exec_num</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Exibe o cabeçalho e o resumo da melhor solução na página principal.&quot;&quot;&quot;</span>
+    <span class="n">st</span><span class="o">.</span><span class="n">header</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Resultados da Execução: </span><span class="si">{</span><span class="n">exec_num</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+    <span class="n">col1</span><span class="p">,</span> <span class="n">col2</span> <span class="o">=</span> <span class="n">st</span><span class="o">.</span><span class="n">columns</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span>
+    <span class="k">with</span> <span class="n">col1</span><span class="p">:</span>
+        <span class="n">st</span><span class="o">.</span><span class="n">markdown</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s2">&quot;&quot;&quot;</span>
+<span class="s2">            &lt;div style=&quot;border: 2px solid #e6e6e6; border-radius: 5px; padding: 30px; margin: 10px 0; background-color: #d3d3d3;&quot;&gt;</span>
+<span class="s2">            &lt;h3 style=&quot;color: #1f77b4;&quot;&gt;Resumo da Melhor Solução&lt;/h3&gt;</span>
+<span class="s2">            &lt;h4&gt;&lt;strong&gt;Melhor Fitness:&lt;/strong&gt; </span><span class="si">{</span><span class="n">data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;best_fitness&#39;</span><span class="p">,</span><span class="w"> </span><span class="s1">&#39;N/A&#39;</span><span class="p">)</span><span class="si">:</span><span class="s2">.6f</span><span class="si">}</span><span class="s2">&lt;/h4&gt;</span>
+<span class="s2">            &lt;h4&gt;&lt;strong&gt;Melhor Geração (Índice):&lt;/strong&gt; </span><span class="si">{</span><span class="n">data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;best_gen_idx&#39;</span><span class="p">,</span><span class="w"> </span><span class="s1">&#39;N/A&#39;</span><span class="p">)</span><span class="si">}</span><span class="s2">&lt;/h4&gt;</span>
+<span class="s2">            &lt;/div&gt;</span>
+<span class="s2">            &quot;&quot;&quot;</span><span class="p">,</span> <span class="n">unsafe_allow_html</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="k">with</span> <span class="n">col2</span><span class="p">:</span>
+        <span class="n">st</span><span class="o">.</span><span class="n">subheader</span><span class="p">(</span><span class="s2">&quot;BEST DECISION VARIABLES&quot;</span><span class="p">)</span>
+        <span class="n">st</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;best_vars&#39;</span><span class="p">,</span> <span class="s1">&#39;N/A&#39;</span><span class="p">))</span>
+
+    <span class="k">with</span> <span class="n">st</span><span class="o">.</span><span class="n">expander</span><span class="p">(</span><span class="s2">&quot;Parâmetros Utilizados nesta Execução&quot;</span><span class="p">):</span>
+        <span class="n">st</span><span class="o">.</span><span class="n">json</span><span class="p">(</span><span class="n">data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;params&#39;</span><span class="p">,</span> <span class="p">{}))</span>
+
+<span class="k">def</span><span class="w"> </span><span class="nf">display_statistics_table</span><span class="p">(</span><span class="n">data</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Exibe a tabela de estatísticas por geração, se disponível.&quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="s1">&#39;logbook_data&#39;</span> <span class="ow">in</span> <span class="n">data</span> <span class="ow">and</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="s1">&#39;logbook_data&#39;</span><span class="p">],</span> <span class="nb">dict</span><span class="p">):</span>
+        <span class="n">st</span><span class="o">.</span><span class="n">subheader</span><span class="p">(</span><span class="s2">&quot;Estatísticas por Geração&quot;</span><span class="p">)</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">log_data</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="s1">&#39;logbook_data&#39;</span><span class="p">]</span>
+            <span class="n">statics</span> <span class="o">=</span> <span class="n">log_data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;statics&#39;</span><span class="p">,</span> <span class="p">{})</span>
+            <span class="n">stats_data</span> <span class="o">=</span> <span class="p">{</span>
+                <span class="s2">&quot;Geração&quot;</span><span class="p">:</span> <span class="n">log_data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;generation&#39;</span><span class="p">,</span> <span class="p">[]),</span>
+                <span class="s2">&quot;Min Fitness&quot;</span><span class="p">:</span> <span class="n">statics</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;min_fitness&#39;</span><span class="p">,</span> <span class="p">[]),</span>
+                <span class="s2">&quot;Média Fitness&quot;</span><span class="p">:</span> <span class="n">statics</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;avg_fitness&#39;</span><span class="p">,</span> <span class="p">[]),</span>
+                <span class="s2">&quot;Max Fitness&quot;</span><span class="p">:</span> <span class="n">statics</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;max_fitness&#39;</span><span class="p">,</span> <span class="p">[]),</span>
+                <span class="s2">&quot;Std Dev Fitness&quot;</span><span class="p">:</span> <span class="n">statics</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;std_fitness&#39;</span><span class="p">,</span> <span class="p">[])</span>
+            <span class="p">}</span>
+            <span class="n">lengths</span> <span class="o">=</span> <span class="p">{</span><span class="n">key</span><span class="p">:</span> <span class="nb">len</span><span class="p">(</span><span class="n">value</span><span class="p">)</span> <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">stats_data</span><span class="o">.</span><span class="n">items</span><span class="p">()}</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">lengths</span><span class="o">.</span><span class="n">values</span><span class="p">()))</span> <span class="o">&lt;=</span> <span class="mi">1</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">lengths</span> <span class="ow">and</span> <span class="nb">list</span><span class="p">(</span><span class="n">lengths</span><span class="o">.</span><span class="n">values</span><span class="p">())[</span><span class="mi">0</span><span class="p">]</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+                    <span class="n">stats_df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">stats_data</span><span class="p">)</span>
+                    <span class="n">st</span><span class="o">.</span><span class="n">dataframe</span><span class="p">(</span><span class="n">stats_df</span><span class="p">,</span> <span class="n">use_container_width</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">st</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Não há dados de estatísticas por geração para exibir.&quot;</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">st</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;Dados de estatísticas por geração têm tamanhos inconsistentes.&quot;</span><span class="p">)</span>
+                <span class="n">st</span><span class="o">.</span><span class="n">json</span><span class="p">(</span><span class="n">lengths</span><span class="p">)</span>
+
+        <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="n">st</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Não foi possível exibir tabela de estatísticas: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="n">st</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;Dados do logbook encontrados:&quot;</span><span class="p">)</span>
+            <span class="n">st</span><span class="o">.</span><span class="n">json</span><span class="p">(</span><span class="n">data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;logbook_data&#39;</span><span class="p">,</span> <span class="p">{}))</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">st</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Dados do logbook não encontrados ou em formato inválido no arquivo .pkl.&quot;</span><span class="p">)</span>
+
+<span class="k">def</span><span class="w"> </span><span class="nf">display_convergence_graph</span><span class="p">(</span><span class="n">fig</span><span class="p">,</span> <span class="n">exec_num</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Exibe o gráfico de convergência na página principal.&quot;&quot;&quot;</span>
+    <span class="n">st</span><span class="o">.</span><span class="n">header</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Gráfico de Convergência (Execução </span><span class="si">{</span><span class="n">exec_num</span><span class="si">}</span><span class="s2">)&quot;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">fig</span><span class="p">:</span>
+        <span class="n">st</span><span class="o">.</span><span class="n">plotly_chart</span><span class="p">(</span><span class="n">fig</span><span class="p">,</span> <span class="n">use_container_width</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">st</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;Figura não disponível para exibição.&quot;</span><span class="p">)</span>
+
+<span class="k">def</span><span class="w"> </span><span class="nf">display_consolidated_results</span><span class="p">():</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Verifica e exibe a seção de resultados consolidados,</span>
+<span class="sd">       buscando o arquivo na pasta FOLDER_NAME.&quot;&quot;&quot;</span>
+    <span class="c1"># Nome base do arquivo</span>
+    <span class="n">consolidated_excel_filename</span> <span class="o">=</span> <span class="s2">&quot;results_consolidados.xlsx&quot;</span>
+    <span class="c1"># Caminho completo para o arquivo</span>
+    <span class="c1">#   consolidated_excel_path = os.path.join(FOLDER_NAME, consolidated_excel_filename)</span>
+    <span class="n">consolidated_excel_path</span> <span class="o">=</span> <span class="n">consolidated_excel_filename</span>
+
+
+    <span class="c1"># Verifica a existência usando o caminho completo</span>
+    <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">consolidated_excel_path</span><span class="p">):</span>
+        <span class="n">st</span><span class="o">.</span><span class="n">markdown</span><span class="p">(</span><span class="s2">&quot;---&quot;</span><span class="p">)</span>
+        <span class="n">st</span><span class="o">.</span><span class="n">header</span><span class="p">(</span><span class="s2">&quot;Resultados Consolidados Gerais de todas as execuções&quot;</span><span class="p">)</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="c1"># Lê o excel usando o caminho completo</span>
+            <span class="n">df_consolidado</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_excel</span><span class="p">(</span><span class="n">consolidated_excel_path</span><span class="p">)</span>
+            <span class="n">st</span><span class="o">.</span><span class="n">dataframe</span><span class="p">(</span><span class="n">df_consolidado</span><span class="p">)</span>
+            <span class="c1"># Abre o arquivo usando o caminho completo para o botão de download</span>
+            <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">consolidated_excel_path</span><span class="p">,</span> <span class="s2">&quot;rb&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">fp</span><span class="p">:</span>
+                <span class="n">st</span><span class="o">.</span><span class="n">download_button</span><span class="p">(</span>
+                    <span class="n">label</span><span class="o">=</span><span class="s2">&quot;Baixar Resultados Consolidados (Excel)&quot;</span><span class="p">,</span>
+                    <span class="n">data</span><span class="o">=</span><span class="n">fp</span><span class="p">,</span>
+                    <span class="c1"># Usa o nome base do arquivo para o download</span>
+                    <span class="n">file_name</span><span class="o">=</span><span class="n">consolidated_excel_filename</span><span class="p">,</span>
+                    <span class="n">mime</span><span class="o">=</span><span class="s2">&quot;application/vnd.ms-excel&quot;</span>
+                <span class="p">)</span>
+        <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="n">st</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Erro ao ler o arquivo consolidado </span><span class="si">{</span><span class="n">consolidated_excel_path</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">st</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Arquivo de resultados consolidados (</span><span class="si">{</span><span class="n">consolidated_excel_path</span><span class="si">}</span><span class="s2">) não encontrado.&quot;</span><span class="p">)</span>
+
+
+<span class="c1"># --- Fluxo Principal do Script ---</span>
+
+<span class="k">def</span><span class="w"> </span><span class="nf">main</span><span class="p">():</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Função principal que organiza a execução do dashboard Streamlit.&quot;&quot;&quot;</span>
+    <span class="n">st</span><span class="o">.</span><span class="n">set_page_config</span><span class="p">(</span><span class="n">layout</span><span class="o">=</span><span class="s2">&quot;wide&quot;</span><span class="p">,</span> <span class="n">page_title</span><span class="o">=</span><span class="s2">&quot;Visualizador de Execuções RCE&quot;</span><span class="p">)</span>
+    <span class="n">st</span><span class="o">.</span><span class="n">title</span><span class="p">(</span><span class="s2">&quot;Visualizador da Execução do Framework: Repopulation-With-Elite-Set RCE&quot;</span><span class="p">)</span>
+
+    <span class="n">execution_numbers</span> <span class="o">=</span> <span class="n">find_available_executions</span><span class="p">()</span>
+
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">execution_numbers</span><span class="p">:</span>
+        <span class="n">st</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Nenhum arquivo de resultado (&#39;dashboard_data_*.pkl&#39;) encontrado na pasta &#39;</span><span class="si">{</span><span class="n">FOLDER_NAME</span><span class="si">}</span><span class="s2">&#39;.&quot;</span><span class="p">)</span>
+        <span class="n">st</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Certifique-se de que executou o script principal (&#39;app.py&#39; ou similar) que gera esses arquivos na pasta correta.&quot;</span><span class="p">)</span>
+        <span class="n">st</span><span class="o">.</span><span class="n">stop</span><span class="p">()</span>
+
+    <span class="n">selected_exec_num</span> <span class="o">=</span> <span class="n">select_execution</span><span class="p">(</span><span class="n">execution_numbers</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">selected_exec_num</span><span class="p">:</span>
+        <span class="n">data</span><span class="p">,</span> <span class="n">fig</span> <span class="o">=</span> <span class="n">load_execution_data</span><span class="p">(</span><span class="n">selected_exec_num</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">data</span><span class="p">:</span>
+            <span class="n">display_summary</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">selected_exec_num</span><span class="p">)</span>
+            <span class="n">display_statistics_table</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+            <span class="n">display_convergence_graph</span><span class="p">(</span><span class="n">fig</span><span class="p">,</span> <span class="n">selected_exec_num</span><span class="p">)</span>
+            <span class="n">display_consolidated_results</span><span class="p">()</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="c1"># Se execution_numbers não estiver vazio, selectbox sempre terá um valor.</span>
+        <span class="c1"># Mas por segurança, podemos adicionar:</span>
+        <span class="n">st</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;Nenhuma execução selecionada ou disponível.&quot;</span><span class="p">)</span>
+
+<span class="c1"># --- Execução ---</span>
+<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s2">&quot;__main__&quot;</span><span class="p">:</span>
+    <span class="n">main</span><span class="p">()</span>
+</pre></div>
+</div>
+</section>
+
+
+                </article>
+              
+
+              
+              
+              
+              
+                <footer class="prev-next-footer d-print-none">
+                  
+<div class="prev-next-area">
+</div>
+                </footer>
+              
+            </div>
+            
+            
+              
+            
+          </div>
+          <footer class="bd-footer-content">
+            
+<div class="bd-footer-content__inner container">
+  
+  <div class="footer-item">
+    
+<p class="component-author">
+De Pedro
+</p>
+
+  </div>
+  
+  <div class="footer-item">
+    
+
+  <p class="copyright">
+    
+      © Copyright 2025, Pedro.
+      <br/>
+    
+  </p>
+
+  </div>
+  
+  <div class="footer-item">
+    
+  </div>
+  
+  <div class="footer-item">
+    
+  </div>
+  
+</div>
+          </footer>
+        
+
+      </main>
+    </div>
+  </div>
+  
+  <!-- Scripts loaded after <body> so the DOM is not blocked -->
+  <script src="_static/scripts/bootstrap.js?digest=dfe6caa3a7d634c4db9b"></script>
+<script src="_static/scripts/pydata-sphinx-theme.js?digest=dfe6caa3a7d634c4db9b"></script>
+
+  <footer class="bd-footer">
+  </footer>
+  </body>
+</html>

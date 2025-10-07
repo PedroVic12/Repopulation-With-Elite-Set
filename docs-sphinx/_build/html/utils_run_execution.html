@@ -1,0 +1,792 @@
+
+<!DOCTYPE html>
+
+
+<html lang="pt-BR" data-content_root="./" >
+
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Execução do Framework (run.py) &#8212; Documentação Repopulation-With-Elite-Set 0.1</title>
+  
+  
+  
+  <script data-cfasync="false">
+    document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
+    document.documentElement.dataset.theme = localStorage.getItem("theme") || "";
+  </script>
+  
+  <!-- Loaded before other Sphinx assets -->
+  <link href="_static/styles/theme.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+<link href="_static/styles/bootstrap.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+<link href="_static/styles/pydata-sphinx-theme.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+
+  
+  <link href="_static/vendor/fontawesome/6.5.2/css/all.min.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+  <link rel="preload" as="font" type="font/woff2" crossorigin href="_static/vendor/fontawesome/6.5.2/webfonts/fa-solid-900.woff2" />
+<link rel="preload" as="font" type="font/woff2" crossorigin href="_static/vendor/fontawesome/6.5.2/webfonts/fa-brands-400.woff2" />
+<link rel="preload" as="font" type="font/woff2" crossorigin href="_static/vendor/fontawesome/6.5.2/webfonts/fa-regular-400.woff2" />
+
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=8f2a1f02" />
+    <link rel="stylesheet" type="text/css" href="_static/styles/sphinx-book-theme.css?v=eba8b062" />
+  
+  <!-- Pre-loaded scripts that we'll load fully later -->
+  <link rel="preload" as="script" href="_static/scripts/bootstrap.js?digest=dfe6caa3a7d634c4db9b" />
+<link rel="preload" as="script" href="_static/scripts/pydata-sphinx-theme.js?digest=dfe6caa3a7d634c4db9b" />
+  <script src="_static/vendor/fontawesome/6.5.2/js/all.min.js?digest=dfe6caa3a7d634c4db9b"></script>
+
+    <script src="_static/documentation_options.js?v=bf871653"></script>
+    <script src="_static/doctools.js?v=9bcbadda"></script>
+    <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="_static/scripts/sphinx-book-theme.js?v=887ef09a"></script>
+    <script src="_static/translations.js?v=71a39b36"></script>
+    <script>DOCUMENTATION_OPTIONS.pagename = 'utils_run_execution';</script>
+    <link rel="index" title="Índice" href="genindex.html" />
+    <link rel="search" title="Buscar" href="search.html" />
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="docsearch:language" content="pt-BR"/>
+  </head>
+  
+  
+  <body data-bs-spy="scroll" data-bs-target=".bd-toc-nav" data-offset="180" data-bs-root-margin="0px 0px -60%" data-default-mode="">
+
+  
+  
+  <div id="pst-skip-link" class="skip-link d-print-none"><a href="#main-content">Skip to main content</a></div>
+  
+  <div id="pst-scroll-pixel-helper"></div>
+  
+  <button type="button" class="btn rounded-pill" id="pst-back-to-top">
+    <i class="fa-solid fa-arrow-up"></i>Back to top</button>
+
+  
+  <input type="checkbox"
+          class="sidebar-toggle"
+          id="pst-primary-sidebar-checkbox"/>
+  <label class="overlay overlay-primary" for="pst-primary-sidebar-checkbox"></label>
+  
+  <input type="checkbox"
+          class="sidebar-toggle"
+          id="pst-secondary-sidebar-checkbox"/>
+  <label class="overlay overlay-secondary" for="pst-secondary-sidebar-checkbox"></label>
+  
+  <div class="search-button__wrapper">
+    <div class="search-button__overlay"></div>
+    <div class="search-button__search-container">
+<form class="bd-search d-flex align-items-center"
+      action="search.html"
+      method="get">
+  <i class="fa-solid fa-magnifying-glass"></i>
+  <input type="search"
+         class="form-control"
+         name="q"
+         id="search-input"
+         placeholder="Search..."
+         aria-label="Search..."
+         autocomplete="off"
+         autocorrect="off"
+         autocapitalize="off"
+         spellcheck="false"/>
+  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
+</form></div>
+  </div>
+
+  <div class="pst-async-banner-revealer d-none">
+  <aside id="bd-header-version-warning" class="d-none d-print-none" aria-label="Version warning"></aside>
+</div>
+
+  
+    <header class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
+    </header>
+  
+
+  <div class="bd-container">
+    <div class="bd-container__inner bd-page-width">
+      
+      
+      
+        
+      
+      <div class="bd-sidebar-primary bd-sidebar">
+        
+
+  
+  <div class="sidebar-header-items sidebar-primary__section">
+    
+    
+    
+    
+  </div>
+  
+    <div class="sidebar-primary-items__start sidebar-primary__section">
+        <div class="sidebar-primary-item">
+
+  
+    
+  
+
+<a class="navbar-brand logo" href="index.html">
+  
+  
+  
+  
+  
+  
+    <p class="title logo__title">Repopulation-With-Elite-Set</p>
+  
+</a></div>
+        <div class="sidebar-primary-item">
+
+ <script>
+ document.write(`
+   <button class="btn search-button-field search-button__button" title="Buscar" aria-label="Buscar" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass"></i>
+    <span class="search-button__default-text">Buscar</span>
+    <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+   </button>
+ `);
+ </script></div>
+        <div class="sidebar-primary-item"><nav class="bd-links bd-docs-nav" aria-label="Main">
+    <div class="bd-toc-item navbar-nav active">
+        
+        <ul class="nav bd-sidenav bd-sidenav__home-link">
+            <li class="toctree-l1">
+                <a class="reference internal" href="index.html">
+                    Documentação do Projeto RCE
+                </a>
+            </li>
+        </ul>
+        <p aria-level="2" class="caption" role="heading"><span class="caption-text">Guia Geral</span></p>
+<ul class="nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="guia_documentacao.html">Guia para Desenvolvimento da Documentação com MkDocs</a></li>
+<li class="toctree-l1"><a class="reference internal" href="sphinx_vs_mkdocs.html">Sphinx vs. MkDocs: Uma Comparação</a></li>
+<li class="toctree-l1"><a class="reference internal" href="run.html">run.py</a></li>
+<li class="toctree-l1"><a class="reference internal" href="run_agendamento.html">run_agendamento.py</a></li>
+<li class="toctree-l1"><a class="reference internal" href="instalador.html">instalador.py</a></li>
+</ul>
+<p aria-level="2" class="caption" role="heading"><span class="caption-text">Algoritmo Evolutivo (RCE)</span></p>
+<ul class="nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="AlgEvolutivoRCE_backup_alg_evolutivo_rce.html">alg_evolutivo_rce.py</a></li>
+<li class="toctree-l1"><a class="reference internal" href="AlgEvolutivoRCE_backup_Setup.html">Setup.py</a></li>
+<li class="toctree-l1"><a class="reference internal" href="AlgEvolutivoRCE_backup_Dashboard.html">Dashboard.py</a></li>
+</ul>
+<p aria-level="2" class="caption" role="heading"><span class="caption-text">Dashboard App</span></p>
+<ul class="nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="DashboardApp_dashboard_RCE_APP.html">dashboard_RCE_APP.py</a></li>
+<li class="toctree-l1"><a class="reference internal" href="DashboardApp_views_Screens_DashboardRCEPage.html">DashboardRCEPage.py</a></li>
+<li class="toctree-l1"><a class="reference internal" href="DashboardApp_controllers_Utils.html">Utils.py</a></li>
+</ul>
+<p aria-level="2" class="caption" role="heading"><span class="caption-text">Modelo da Rede Elétrica</span></p>
+<ul class="nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="RedeEletrica_backup_rede_eletrica.html">rede_eletrica.py</a></li>
+<li class="toctree-l1"><a class="reference internal" href="RedeEletrica_backup_exemplos_getting_started_deap_pandapower_exemplo.html">getting_started_deap_pandapower_exemplo.py</a></li>
+<li class="toctree-l1"><a class="reference internal" href="RedeEletrica_backup_simulator_anarede_dataset.html">anarede_dataset.py</a></li>
+</ul>
+
+    </div>
+</nav></div>
+    </div>
+  
+  
+  <div class="sidebar-primary-items__end sidebar-primary__section">
+  </div>
+  
+  <div id="rtd-footer-container"></div>
+
+
+      </div>
+      
+      <main id="main-content" class="bd-main" role="main">
+        
+        
+
+<div class="sbt-scroll-pixel-helper"></div>
+
+          <div class="bd-content">
+            <div class="bd-article-container">
+              
+              <div class="bd-header-article d-print-none">
+<div class="header-article-items header-article__inner">
+  
+    <div class="header-article-items__start">
+      
+        <div class="header-article-item"><button class="sidebar-toggle primary-toggle btn btn-sm" title="Toggle primary sidebar" data-bs-placement="bottom" data-bs-toggle="tooltip">
+  <span class="fa-solid fa-bars"></span>
+</button></div>
+      
+    </div>
+  
+  
+    <div class="header-article-items__end">
+      
+        <div class="header-article-item">
+
+<div class="article-header-buttons">
+
+
+<a href="https://github.com/PedroVic12/Repopulation-With-Elite-Set" target="_blank"
+   class="btn btn-sm btn-source-repository-button"
+   title="Repositório fonte"
+   data-bs-placement="bottom" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fab fa-github"></i>
+  </span>
+
+</a>
+
+
+
+
+
+
+<div class="dropdown dropdown-download-buttons">
+  <button class="btn dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false" aria-label="Baixe esta página">
+    <i class="fas fa-download"></i>
+  </button>
+  <ul class="dropdown-menu">
+      
+      
+      
+      <li><a href="_sources/utils_run_execution.md" target="_blank"
+   class="btn btn-sm btn-download-source-button dropdown-item"
+   title="Baixar arquivo fonte"
+   data-bs-placement="left" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-file"></i>
+  </span>
+<span class="btn__text-container">.md</span>
+</a>
+</li>
+      
+      
+      
+      
+      <li>
+<button onclick="window.print()"
+  class="btn btn-sm btn-download-pdf-button dropdown-item"
+  title="Imprimir em PDF"
+  data-bs-placement="left" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-file-pdf"></i>
+  </span>
+<span class="btn__text-container">.pdf</span>
+</button>
+</li>
+      
+  </ul>
+</div>
+
+
+
+
+<button onclick="toggleFullScreen()"
+  class="btn btn-sm btn-fullscreen-button"
+  title="Modo tela cheia"
+  data-bs-placement="bottom" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-expand"></i>
+  </span>
+
+</button>
+
+
+
+<script>
+document.write(`
+  <button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button" title="light/dark" aria-label="light/dark" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="theme-switch fa-solid fa-sun fa-lg" data-mode="light"></i>
+    <i class="theme-switch fa-solid fa-moon fa-lg" data-mode="dark"></i>
+    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto"></i>
+  </button>
+`);
+</script>
+
+
+<script>
+document.write(`
+  <button class="btn btn-sm pst-navbar-icon search-button search-button__button" title="Buscar" aria-label="Buscar" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass fa-lg"></i>
+  </button>
+`);
+</script>
+<button class="sidebar-toggle secondary-toggle btn btn-sm" title="Toggle secondary sidebar" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <span class="fa-solid fa-list"></span>
+</button>
+</div></div>
+      
+    </div>
+  
+</div>
+</div>
+              
+              
+
+<div id="jb-print-docs-body" class="onlyprint">
+    <h1>Execução do Framework (run.py)</h1>
+    <!-- Table of contents -->
+    <div id="print-main-content">
+        <div id="jb-print-toc">
+            
+            <div>
+                <h2> Conteúdo </h2>
+            </div>
+            <nav aria-label="Page">
+                <ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#funcionalidades-principais">Funcionalidades Principais</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#codigo-fonte-run-py">Código Fonte (<code class="docutils literal notranslate"><span class="pre">run.py</span></code>)</a></li>
+</ul>
+            </nav>
+        </div>
+    </div>
+</div>
+
+              
+                
+<div id="searchbox"></div>
+                <article class="bd-article">
+                  
+  <section id="execucao-do-framework-run-py">
+<h1>Execução do Framework (<code class="docutils literal notranslate"><span class="pre">run.py</span></code>)<a class="headerlink" href="#execucao-do-framework-run-py" title="Link para este cabeçalho">#</a></h1>
+<p>Este script é o ponto de entrada principal para executar o framework de otimização com Algoritmos Genéticos (RCE). Ele orquestra a execução de múltiplas simulações com diferentes configurações de parâmetros, permitindo a realização de estudos de sensibilidade e a comparação de resultados.</p>
+<section id="funcionalidades-principais">
+<h2>Funcionalidades Principais<a class="headerlink" href="#funcionalidades-principais" title="Link para este cabeçalho">#</a></h2>
+<ul class="simple">
+<li><p><strong>Carregamento de Configurações</strong>: Carrega os parâmetros base do <code class="docutils literal notranslate"><span class="pre">params.json</span></code> e as variações de parâmetros do <code class="docutils literal notranslate"><span class="pre">options.json</span></code>.</p></li>
+<li><p><strong>Geração de Cenários</strong>: Cria todas as combinações possíveis de parâmetros para as execuções.</p></li>
+<li><p><strong>Seleção da Função Objetivo</strong>: Permite a seleção da função de fitness a ser otimizada, incluindo funções de benchmark e funções específicas para casos de estudo de redes elétricas (IEEE 14, 30, 57, 118 e SIN 45).</p></li>
+<li><p><strong>Execução do Algoritmo Genético</strong>: Instancia e executa o <code class="docutils literal notranslate"><span class="pre">AlgoritimoEvolutivoRCE</span></code> para cada configuração.</p></li>
+<li><p><strong>Armazenamento de Resultados</strong>: Salva os resultados de cada execução, incluindo os melhores indivíduos, fitness, e estatísticas de execução, em ficheiros JSON individuais.</p></li>
+<li><p><strong>Consolidação de Resultados</strong>: Ao final de todas as execuções, invoca um script para consolidar todos os resultados num único ficheiro Excel.</p></li>
+</ul>
+</section>
+<section id="codigo-fonte-run-py">
+<h2>Código Fonte (<code class="docutils literal notranslate"><span class="pre">run.py</span></code>)<a class="headerlink" href="#codigo-fonte-run-py" title="Link para este cabeçalho">#</a></h2>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># -*- coding: utf-8 -*-</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Execução do framework RCE com configuração de várias execuções e variações de parâmetros.</span>
+<span class="sd">PVRV - 20/08/2025</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="c1"># Imports principais do framework</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">AlgEvolutivoRCE_backup.Setup</span><span class="w"> </span><span class="kn">import</span> <span class="n">Setup</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">AlgEvolutivoRCE_backup.alg_evolutivo_rce</span><span class="w"> </span><span class="kn">import</span> <span class="n">AlgoritimoEvolutivoRCE</span>
+
+<span class="c1"># Utils - Trazer esses codigos para esse unico arquivo</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">config_backup</span><span class="w"> </span><span class="kn">import</span> <span class="n">FOLDER_NAME</span><span class="p">,</span> <span class="n">format_elapsed_time</span>
+
+<span class="c1">#! Importando a minha função objetivo dentro do projeto</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">utils.functions_fitness.functions_benchmarking</span><span class="w"> </span><span class="kn">import</span> <span class="n">rastrigin</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">utils.functions_fitness.function_IEEE_14_contigencias</span><span class="w"> </span><span class="kn">import</span> <span class="n">funcao_objetivo_IEEE14</span><span class="p">,</span> <span class="n">HASH_TABLE_PATH</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">utils.functions_fitness.function_IEEE_118_otimizacao</span><span class="w"> </span><span class="kn">import</span> <span class="n">funcao_objetivo_IEEE118</span><span class="p">,</span> <span class="n">HASH_TABLE_PATH</span><span class="p">,</span> <span class="n">hashtablesize_IEEE118</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">utils.functions_fitness.function_IEEE_30_otimizacao</span><span class="w"> </span><span class="kn">import</span> <span class="n">funcao_objetivo_IEEE30</span><span class="p">,</span> <span class="n">HASH_TABLE_PATH</span><span class="p">,</span> <span class="n">hashtablesize</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">utils.functions_fitness.function_IEEE_57_otimizacao</span><span class="w"> </span><span class="kn">import</span> <span class="n">funcao_objetivo_IEEE57</span><span class="p">,</span> <span class="n">HASH_TABLE_PATH</span>
+<span class="c1">#from utils.functions_fitness.function_SIN_45_otimizacao import funcao_objetivo_SIN45, hashtablesize_sin45</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">utils.functions_fitness.func_objetivo_SIN_45_otimizado_AG_ONS</span><span class="w"> </span><span class="kn">import</span> <span class="n">funcao_objetivo_SIN45</span><span class="p">,</span> <span class="n">hashtablesize_sin45</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">database_controller</span><span class="w"> </span><span class="kn">import</span> <span class="n">run_consolidar_resultados</span>
+
+<span class="c1"># Bibliotecas padrão</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">json</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">pathlib</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">pandas</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">pd</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">datetime</span><span class="w"> </span><span class="kn">import</span> <span class="n">datetime</span>
+
+
+
+
+<span class="c1"># VARIAVEIS GLOBAIS</span>
+<span class="n">ARRAY_FITNESS_FUNCTIONS</span> <span class="o">=</span> <span class="p">[</span><span class="n">funcao_objetivo_IEEE14</span><span class="p">,</span><span class="n">funcao_objetivo_IEEE30</span><span class="p">,</span> <span class="n">funcao_objetivo_IEEE57</span><span class="p">,</span> <span class="n">funcao_objetivo_IEEE118</span><span class="p">,</span> <span class="n">funcao_objetivo_SIN45</span><span class="p">]</span>
+
+<span class="n">HASHTABLE_SIZE_FUNCS</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s2">&quot;funcao_objetivo_IEEE30&quot;</span><span class="p">:</span> <span class="n">hashtablesize</span><span class="p">,</span>
+    <span class="s2">&quot;funcao_objetivo_SIN45&quot;</span><span class="p">:</span> <span class="n">hashtablesize_sin45</span><span class="p">,</span>
+    <span class="s2">&quot;funcao_objetivo_IEEE118&quot;</span><span class="p">:</span> <span class="n">hashtablesize_IEEE118</span><span class="p">,</span>
+<span class="p">}</span>
+
+<span class="n">BASE_DIR</span> <span class="o">=</span> <span class="n">pathlib</span><span class="o">.</span><span class="n">Path</span><span class="p">(</span><span class="vm">__file__</span><span class="p">)</span><span class="o">.</span><span class="n">resolve</span><span class="p">()</span><span class="o">.</span><span class="n">parent</span>
+
+<span class="c1"># variaveis de controle</span>
+<span class="n">CLI</span> <span class="o">=</span> <span class="kc">False</span>
+<span class="n">DEBUG_MODE</span> <span class="o">=</span> <span class="kc">False</span>
+<span class="n">BECHMARKING_MODE</span> <span class="o">=</span> <span class="kc">False</span>
+<span class="n">SHOW_SETTINGS</span> <span class="o">=</span> <span class="kc">False</span>
+<span class="n">NUMERO</span> <span class="o">=</span> <span class="mi">3</span> <span class="c1"># 0 1 3 4</span>
+
+
+
+
+<span class="c1"># Entrada de dados do usuario</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">--------------------------------&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;No arquivo:&quot;</span><span class="p">,</span> <span class="n">BASE_DIR</span> <span class="o">/</span> <span class="s2">&quot;utils&quot;</span> <span class="o">/</span> <span class="s2">&quot;functions_fitness&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">SELECIONE O SEU CASO DE SIMULAÇÃO DE AGENDAMENTO DE DESLIGAMENTOS DE CONTINGENCIAS E OTIMIZAÇÃO PARA REDES ELÉTRICAS&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">--------------------------------&quot;</span><span class="p">)</span>
+<span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">ARRAY_FITNESS_FUNCTIONS</span><span class="p">)):</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">i</span><span class="si">}</span><span class="s2"> - </span><span class="si">{</span><span class="n">ARRAY_FITNESS_FUNCTIONS</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="vm">__name__</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;--------------------------------</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+
+
+<span class="k">if</span> <span class="n">CLI</span><span class="p">:</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Responda no terminal onde o seu laucher.py esta sendo executado&quot;</span><span class="p">)</span>
+    <span class="n">choice</span> <span class="o">=</span> <span class="nb">input</span><span class="p">(</span><span class="s2">&quot;Digite o número da função objetivo: &quot;</span><span class="p">)</span>
+    <span class="n">NUMERO</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">choice</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="n">choice_benchmarking</span> <span class="o">=</span> <span class="nb">input</span><span class="p">(</span><span class="s2">&quot;Deseja usar o modo benchmarking? (S/N): default (N) &quot;</span><span class="p">)</span>
+    <span class="n">BECHMARKING_MODE</span> <span class="o">=</span> <span class="kc">True</span> <span class="k">if</span> <span class="n">choice_benchmarking</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="o">==</span> <span class="s2">&quot;s&quot;</span> <span class="k">else</span> <span class="kc">False</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="n">debug_mode</span> <span class="o">=</span> <span class="nb">input</span><span class="p">(</span><span class="s2">&quot;Deseja usar o modo debug? (S/N): default (N) &quot;</span><span class="p">)</span>
+    <span class="n">DEBUG_MODE</span> <span class="o">=</span> <span class="kc">True</span> <span class="k">if</span> <span class="n">debug_mode</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="o">==</span> <span class="s2">&quot;s&quot;</span> <span class="k">else</span> <span class="kc">False</span>
+
+<span class="c1">#! https://budavariam.github.io/asciiart-text/</span>
+<span class="n">MSG_TERMINAL</span> <span class="o">=</span><span class="s2">&quot;&quot;&quot;</span>
+<span class="s2"> __       _______ .___________. __      _______.   .______        ______     ______  __  ___  __  </span>
+<span class="s2">|  |     |   ____||           |(_ )    /       |   |   _  \      /  __  \   /      ||  |/  / |  | </span>
+<span class="s2">|  |     |  |__   `---|  |----` |/    |   (----`   |  |_)  |    |  |  |  | |  ,----&#39;|  &#39;  /  |  | </span>
+<span class="s2">|  |     |   __|      |  |             \   \       |      /     |  |  |  | |  |     |    &lt;   |  | </span>
+<span class="s2">|  `----.|  |____     |  |         .----)   |      |  |\  \----.|  `--&#39;  | |  `----.|  .  \  |__| </span>
+<span class="s2">|_______||_______|    |__|         |_______/       | _| `._____| \______/   \______||__|&#39;__\ (__)</span>
+<span class="s2">                                                                                                  </span>
+<span class="s2">&quot;&quot;&quot;</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="se">\n</span><span class="si">{</span><span class="n">MSG_TERMINAL</span><span class="si">}</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+
+<span class="c1"># Funções auxiliares</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">load_params</span><span class="p">(</span><span class="n">file_path</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Carrega parâmetros de um arquivo JSON.&quot;&quot;&quot;</span>
+    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">file_path</span><span class="p">,</span> <span class="s2">&quot;r&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">file</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">json</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">file</span><span class="p">)</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">convert_values_to_int</span><span class="p">(</span><span class="n">params</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Converte valores dos parâmetros para int, float ou listas, se aplicável.&quot;&quot;&quot;</span>
+    <span class="n">float_keys</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;MUTACAO&quot;</span><span class="p">,</span> <span class="s2">&quot;CROSSOVER&quot;</span><span class="p">,</span> <span class="s2">&quot;PORCENTAGEM&quot;</span><span class="p">}</span>
+    <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">params</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+        <span class="c1"># Se for uma string que parece uma lista, tenta converter</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="nb">str</span><span class="p">)</span> <span class="ow">and</span> <span class="n">value</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s1">&#39;[&#39;</span><span class="p">):</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">params</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
+                <span class="k">continue</span> <span class="c1"># Pula para o próximo item</span>
+            <span class="k">except</span> <span class="n">json</span><span class="o">.</span><span class="n">JSONDecodeError</span><span class="p">:</span>
+                <span class="c1"># Se não for um JSON válido, ignora e mantém a string original</span>
+                <span class="k">pass</span>
+        
+        <span class="c1"># Lógica original para floats e ints</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">key</span><span class="o">.</span><span class="n">upper</span><span class="p">()</span> <span class="ow">in</span> <span class="n">float_keys</span><span class="p">:</span>
+                <span class="n">params</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">params</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="n">value</span><span class="p">))</span>
+        <span class="k">except</span> <span class="p">(</span><span class="ne">ValueError</span><span class="p">,</span> <span class="ne">TypeError</span><span class="p">):</span>
+            <span class="c1"># Ignora erros de conversão para valores que não são numéricos (como as listas já convertidas ou outras strings)</span>
+            <span class="k">pass</span>
+    <span class="k">return</span> <span class="n">params</span>
+
+<span class="c1"># Função principal para executar o framework com múltiplas execuções</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">run_framework_many_executions</span><span class="p">(</span><span class="n">function_bechmarking</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+
+
+    <span class="k">if</span> <span class="n">function_bechmarking</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Função objetivo selecionada: Rastrigin&quot;</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Função objetivo selecionada: </span><span class="si">{</span><span class="n">ARRAY_FITNESS_FUNCTIONS</span><span class="p">[</span><span class="n">NUMERO</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+
+    <span class="c1"># 1. Carrega parâmetros base e opções</span>
+    <span class="n">params_base</span> <span class="o">=</span> <span class="n">load_params</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">BASE_DIR</span><span class="si">}</span><span class="s2">/params.json&quot;</span><span class="p">)</span>
+    <span class="n">options</span> <span class="o">=</span> <span class="n">load_params</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">BASE_DIR</span><span class="si">}</span><span class="s2">/options.json&quot;</span><span class="p">)</span>
+    <span class="n">params_base</span> <span class="o">=</span> <span class="n">convert_values_to_int</span><span class="p">(</span><span class="n">params_base</span><span class="p">)</span>
+
+    <span class="c1"># 2. Descobre variações e número de execuções</span>
+    <span class="n">varying_keys</span> <span class="o">=</span> <span class="p">[</span><span class="n">k</span> <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">options</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">options</span><span class="p">[</span><span class="n">k</span><span class="p">],</span> <span class="nb">list</span><span class="p">)</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">options</span><span class="p">[</span><span class="n">k</span><span class="p">])</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">]</span>
+    <span class="n">varying_values</span> <span class="o">=</span> <span class="p">[</span><span class="n">options</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">varying_keys</span><span class="p">]</span>
+    <span class="n">repeticoes</span> <span class="o">=</span> <span class="n">options</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;repeticoes_por_config&#39;</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+
+    <span class="c1"># 3. Gera todas as combinações de parâmetros</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">itertools</span><span class="w"> </span><span class="kn">import</span> <span class="n">product</span>
+    <span class="n">combinations</span> <span class="o">=</span> <span class="p">[</span><span class="nb">dict</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">varying_keys</span><span class="p">,</span> <span class="n">vals</span><span class="p">))</span> <span class="k">for</span> <span class="n">vals</span> <span class="ow">in</span> <span class="n">product</span><span class="p">(</span><span class="o">*</span><span class="n">varying_values</span><span class="p">)]</span> <span class="k">if</span> <span class="n">varying_keys</span> <span class="k">else</span> <span class="p">[{}]</span>
+    
+    <span class="c1">#! Inicia o contador de tempo de execução</span>
+    <span class="n">start</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">()</span>
+
+    <span class="c1"># Exibe informações das configurações</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">Total de configurações únicas: </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">combinations</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Execuções por configuração: </span><span class="si">{</span><span class="n">repeticoes</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+    <span class="c1"># Cria um diretório de saída com timestamp para evitar sobreposições</span>
+    <span class="n">timestamp</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">()</span><span class="o">.</span><span class="n">strftime</span><span class="p">(</span><span class="s2">&quot;%Y-%m-</span><span class="si">%d</span><span class="s2">_%H-%M-%S&quot;</span><span class="p">)</span>
+    <span class="n">main_output_dir</span> <span class="o">=</span> <span class="n">BASE_DIR</span> <span class="o">/</span> <span class="s2">&quot;output&quot;</span> <span class="o">/</span> <span class="sa">f</span><span class="s2">&quot;run_</span><span class="si">{</span><span class="n">timestamp</span><span class="si">}</span><span class="s2">&quot;</span>
+    <span class="n">os</span><span class="o">.</span><span class="n">makedirs</span><span class="p">(</span><span class="n">main_output_dir</span><span class="p">,</span> <span class="n">exist_ok</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="c1">#print(f&quot;\nSalvando resultados em: {main_output_dir}&quot;)</span>
+
+
+
+    <span class="n">config_num</span> <span class="o">=</span> <span class="mi">1</span>
+    <span class="k">for</span> <span class="n">combo</span> <span class="ow">in</span> <span class="n">combinations</span><span class="p">:</span>
+
+        <span class="c1"># Cria um diretório específico para a configuração</span>
+        <span class="n">config_dir</span> <span class="o">=</span> <span class="n">main_output_dir</span> <span class="o">/</span> <span class="sa">f</span><span class="s2">&quot;config_</span><span class="si">{</span><span class="n">config_num</span><span class="si">}</span><span class="s2">&quot;</span>
+        <span class="n">os</span><span class="o">.</span><span class="n">makedirs</span><span class="p">(</span><span class="n">config_dir</span><span class="p">,</span> <span class="n">exist_ok</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+        <span class="c1"># Monta params para esta configuração</span>
+        <span class="n">params</span> <span class="o">=</span> <span class="n">params_base</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+        <span class="n">params</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">combo</span><span class="p">)</span>
+        <span class="n">params</span> <span class="o">=</span> <span class="n">convert_values_to_int</span><span class="p">(</span><span class="n">params</span><span class="p">)</span>
+
+        <span class="c1">#! 4) Define função objetivo</span>
+        <span class="n">fitness_func</span> <span class="o">=</span> <span class="n">ARRAY_FITNESS_FUNCTIONS</span><span class="p">[</span><span class="n">NUMERO</span><span class="p">]</span> <span class="k">if</span> <span class="ow">not</span> <span class="n">function_bechmarking</span> <span class="k">else</span> <span class="n">rastrigin</span>
+
+        <span class="c1">#! Pega a função de cálculo de tamanho de hash correspondente, se existir</span>
+        <span class="n">size_func</span> <span class="o">=</span> <span class="n">HASHTABLE_SIZE_FUNCS</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">fitness_func</span><span class="o">.</span><span class="vm">__name__</span><span class="p">)</span>
+        
+        <span class="n">tamanho_hash_val</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="k">if</span> <span class="n">size_func</span><span class="p">:</span>
+            <span class="n">tamanho_hash_val</span> <span class="o">=</span> <span class="n">size_func</span><span class="p">()</span>
+
+        <span class="c1">#! 5) Instancia Setup uma vez por configuração</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="se">\n\n</span><span class="s2">Iniciando configuração </span><span class="si">{</span><span class="n">config_num</span><span class="si">}</span><span class="s2"> com os params.json:</span><span class="se">\n</span><span class="si">{</span><span class="n">params</span><span class="si">}</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="n">setup</span> <span class="o">=</span> <span class="n">Setup</span><span class="p">(</span>
+            <span class="n">params</span><span class="p">,</span>
+            <span class="n">fitness_function</span><span class="o">=</span><span class="n">fitness_func</span><span class="p">,</span>
+            <span class="n">tamanho_hash</span><span class="o">=</span><span class="n">tamanho_hash_val</span>
+        <span class="p">)</span>
+
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Classe Setup iniciada para a configuração.&quot;</span><span class="p">)</span>
+
+        <span class="k">def</span><span class="w"> </span><span class="nf">consultaHashTable</span><span class="p">():</span>
+            <span class="c1"># Consulta hash_table se existir (sub rotina)</span>
+            <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">HASH_TABLE_PATH</span><span class="p">):</span>
+                <span class="k">try</span><span class="p">:</span>
+                    
+                    <span class="c1"># Read from Excel, using the first column as the index (our hash key)</span>
+                    <span class="n">hash_excel</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_excel</span><span class="p">(</span><span class="n">HASH_TABLE_PATH</span><span class="p">,</span> <span class="n">index_col</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+                    <span class="k">if</span> <span class="ow">not</span> <span class="n">hash_excel</span><span class="o">.</span><span class="n">empty</span><span class="p">:</span>
+                        
+                        <span class="c1"># Update the list-based hash table from the loaded dictionary</span>
+                        <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">hash_excel</span><span class="p">[</span><span class="s1">&#39;Fitness&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+                            
+                            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="nb">int</span><span class="p">)</span> <span class="ow">and</span> <span class="n">key</span> <span class="o">&lt;</span> <span class="nb">len</span><span class="p">(</span><span class="n">setup</span><span class="o">.</span><span class="n">tabela_hash</span><span class="p">):</span>
+                                <span class="n">setup</span><span class="o">.</span><span class="n">tabela_hash</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">value</span>
+                                
+                        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Tabela hash carregada e atualizada com </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">hash_excel</span><span class="p">)</span><span class="si">}</span><span class="s2"> registros!&quot;</span><span class="p">)</span>
+                <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+                    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Erro ao carregar hash_table.xlsx: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="c1"># If the file doesn&#39;t exist, create it from the initial hash table</span>
+                <span class="n">hash_df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">data</span><span class="o">=</span><span class="n">setup</span><span class="o">.</span><span class="n">tabela_hash</span><span class="p">,</span> <span class="n">columns</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;Fitness&#39;</span><span class="p">])</span>
+                <span class="n">hash_df</span><span class="o">.</span><span class="n">to_excel</span><span class="p">(</span><span class="n">HASH_TABLE_PATH</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+                <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Tabela hash INICIAL com </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">setup</span><span class="o">.</span><span class="n">tabela_hash</span><span class="p">)</span><span class="si">}</span><span class="s2"> posições não existia e foi criada! - PVRV&quot;</span><span class="p">)</span>
+
+        <span class="c1">#!PVRV - Retirando e colocando no inicio de cada funcao objetivo</span>
+        <span class="n">consultaHashTable</span><span class="p">()</span>
+
+        <span class="c1"># O loop de repetições agora mede o tempo individualmente</span>
+        <span class="k">for</span> <span class="n">exec_num</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">repeticoes</span> <span class="o">+</span> <span class="mi">1</span><span class="p">):</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">--- Iniciando execução </span><span class="si">{</span><span class="n">exec_num</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="n">repeticoes</span><span class="si">}</span><span class="s2"> ---&quot;</span><span class="p">)</span>
+
+            <span class="c1"># Inicia o cronômetro para esta execução específica</span>
+            <span class="n">start_exec</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">()</span>
+
+            <span class="c1">#! 6) Executa algoritmo</span>
+            <span class="n">alg</span> <span class="o">=</span> <span class="n">AlgoritimoEvolutivoRCE</span><span class="p">(</span><span class="n">setup</span><span class="p">,</span> <span class="n">DEBUG</span><span class="o">=</span><span class="n">DEBUG_MODE</span><span class="p">)</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Algoritmo Evolutivo iniciado. DEBUG MODE = </span><span class="si">{</span><span class="n">DEBUG_MODE</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="n">pop_with_repopulation</span><span class="p">,</span> <span class="n">logbook_with_repopulation</span><span class="p">,</span> <span class="n">best_individual</span><span class="p">,</span> <span class="n">all_individual_values</span> <span class="o">=</span> <span class="n">alg</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">RCE</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+            <span class="n">best_variables</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">best_individual</span><span class="p">)</span>
+
+            <span class="c1"># Finaliza o cronômetro e calcula a duração desta execução</span>
+            <span class="n">end_exec</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">()</span>
+            <span class="n">elapsed_exec</span> <span class="o">=</span> <span class="n">end_exec</span> <span class="o">-</span> <span class="n">start_exec</span>
+            <span class="n">formatted_time_exec</span> <span class="o">=</span> <span class="n">format_elapsed_time</span><span class="p">(</span><span class="n">elapsed_exec</span><span class="p">)</span>
+
+            <span class="c1">#! 7) Visualize os Resultados</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">Evolução concluída  - 100%&quot;</span><span class="p">)</span>
+            <span class="n">best_solution_generation</span><span class="p">,</span> <span class="n">_</span><span class="p">,</span> <span class="n">_</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">alg</span><span class="o">.</span><span class="n">dashboard</span><span class="o">.</span><span class="n">visualize</span><span class="p">(</span>
+                <span class="n">logbook_with_repopulation</span><span class="p">,</span>
+                <span class="n">pop_with_repopulation</span><span class="p">,</span>
+                <span class="n">config_num</span><span class="o">=</span><span class="n">config_num</span><span class="p">,</span>
+                <span class="n">execution_num</span><span class="o">=</span><span class="n">exec_num</span><span class="p">,</span>
+            <span class="p">)</span>
+
+            <span class="c1"># Exibe os tempos e contadores de forma clara</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">Duração desta Execução: </span><span class="si">{</span><span class="n">formatted_time_exec</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Tempo Total Acumulado: </span><span class="si">{</span><span class="n">format_elapsed_time</span><span class="p">(</span><span class="n">end_exec</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="n">start</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Objective functions runs: </span><span class="si">{</span><span class="n">setup</span><span class="o">.</span><span class="n">objectiveruns</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Consultas HashTable: </span><span class="si">{</span><span class="n">setup</span><span class="o">.</span><span class="n">hashtablereads</span><span class="si">}</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+
+            <span class="c1">#! 8) Salva os dados de visualização</span>
+            <span class="n">vis_output_path</span> <span class="o">=</span> <span class="n">config_dir</span> <span class="o">/</span> <span class="sa">f</span><span class="s2">&quot;config_</span><span class="si">{</span><span class="n">config_num</span><span class="si">}</span><span class="s2">_exec_</span><span class="si">{</span><span class="n">exec_num</span><span class="si">}</span><span class="s2">_visualization.json&quot;</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="n">all_individual_values</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="s1">&#39;Variaveis de Decisão&#39;</span> <span class="ow">in</span> <span class="n">item</span> <span class="ow">and</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">item</span><span class="p">[</span><span class="s1">&#39;Variaveis de Decisão&#39;</span><span class="p">],</span> <span class="s1">&#39;tolist&#39;</span><span class="p">):</span>
+                        <span class="n">item</span><span class="p">[</span><span class="s1">&#39;Variaveis de Decisão&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">item</span><span class="p">[</span><span class="s1">&#39;Variaveis de Decisão&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span>
+                    <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">item</span><span class="p">[</span><span class="s1">&#39;Variaveis de Decisão&#39;</span><span class="p">],</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">):</span>
+                        <span class="n">item</span><span class="p">[</span><span class="s1">&#39;Variaveis de Decisão&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">item</span><span class="p">[</span><span class="s1">&#39;Variaveis de Decisão&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span>
+                    <span class="k">elif</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">item</span><span class="p">[</span><span class="s1">&#39;Variaveis de Decisão&#39;</span><span class="p">],</span> <span class="p">(</span><span class="nb">list</span><span class="p">,</span> <span class="nb">str</span><span class="p">)):</span>
+                        <span class="n">item</span><span class="p">[</span><span class="s1">&#39;Variaveis de Decisão&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">item</span><span class="p">[</span><span class="s1">&#39;Variaveis de Decisão&#39;</span><span class="p">])</span>
+                <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">vis_output_path</span><span class="p">,</span> <span class="s1">&#39;w&#39;</span><span class="p">,</span> <span class="n">encoding</span><span class="o">=</span><span class="s1">&#39;utf-8&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+                    <span class="n">json</span><span class="o">.</span><span class="n">dump</span><span class="p">(</span><span class="n">all_individual_values</span><span class="p">,</span> <span class="n">f</span><span class="p">,</span> <span class="n">indent</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span> <span class="n">ensure_ascii</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+            <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+                <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Erro ao salvar dados de visualização: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+            <span class="c1">#! 9) Salva resultado individual como JSON</span>
+            <span class="n">best_fitness</span> <span class="o">=</span> <span class="n">best_individual</span><span class="o">.</span><span class="n">fitness</span><span class="o">.</span><span class="n">values</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="k">if</span> <span class="n">best_individual</span><span class="o">.</span><span class="n">fitness</span><span class="o">.</span><span class="n">valid</span> <span class="k">else</span> <span class="nb">float</span><span class="p">(</span><span class="s1">&#39;inf&#39;</span><span class="p">)</span>
+            <span class="n">result</span> <span class="o">=</span> <span class="p">{</span>
+                <span class="s2">&quot;config_num&quot;</span><span class="p">:</span> <span class="n">config_num</span><span class="p">,</span>
+                <span class="s2">&quot;exec_num&quot;</span><span class="p">:</span> <span class="n">exec_num</span><span class="p">,</span>
+                <span class="s2">&quot;params&quot;</span><span class="p">:</span> <span class="n">params</span><span class="p">,</span>
+                <span class="s2">&quot;best_variables&quot;</span><span class="p">:</span> <span class="n">best_variables</span><span class="p">,</span>
+                <span class="s2">&quot;best_fitness&quot;</span><span class="p">:</span> <span class="n">best_fitness</span><span class="p">,</span>
+                <span class="s2">&quot;best_gen_idx&quot;</span><span class="p">:</span> <span class="n">best_solution_generation</span><span class="p">,</span>
+                <span class="s2">&quot;time&quot;</span><span class="p">:</span> <span class="n">formatted_time_exec</span><span class="p">,</span>  <span class="c1"># Usa o tempo da execução individual</span>
+                <span class="s2">&quot;fitness_function&quot;</span><span class="p">:</span> <span class="n">fitness_func</span><span class="o">.</span><span class="vm">__name__</span>
+            <span class="p">}</span>
+            <span class="n">output_path</span> <span class="o">=</span> <span class="n">config_dir</span> <span class="o">/</span> <span class="sa">f</span><span class="s2">&quot;config_</span><span class="si">{</span><span class="n">config_num</span><span class="si">}</span><span class="s2">_exec_</span><span class="si">{</span><span class="n">exec_num</span><span class="si">}</span><span class="s2">_results.json&quot;</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">output_path</span><span class="p">,</span> <span class="s1">&#39;w&#39;</span><span class="p">,</span> <span class="n">encoding</span><span class="o">=</span><span class="s1">&#39;utf-8&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+                    <span class="n">json</span><span class="o">.</span><span class="n">dump</span><span class="p">(</span><span class="n">result</span><span class="p">,</span> <span class="n">f</span><span class="p">,</span> <span class="n">indent</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span> <span class="n">ensure_ascii</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+            <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+                <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Erro ao salvar resultado: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Resultados e visualizações salvos com sucesso.&quot;</span><span class="p">)</span>
+
+        <span class="c1"># --- FIM DO LOOP DE REPETIÇÕES ---</span>
+
+        <span class="c1"># Salva a tabela hash UMA VEZ no final de todas as execuções da configuração</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span> <span class="o">+</span> <span class="s2">&quot;=&quot;</span><span class="o">*</span><span class="mi">60</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;FIM DA CONFIGURAÇÃO </span><span class="si">{</span><span class="n">config_num</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">hash_df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">data</span><span class="o">=</span><span class="n">setup</span><span class="o">.</span><span class="n">tabela_hash</span><span class="p">,</span> <span class="n">columns</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;Fitness&#39;</span><span class="p">])</span>
+            <span class="n">hash_df</span><span class="o">.</span><span class="n">to_excel</span><span class="p">(</span><span class="n">HASH_TABLE_PATH</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Salvando tabela hash em </span><span class="si">{</span><span class="n">HASH_TABLE_PATH</span><span class="si">}</span><span class="s2">... com tamanho de </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">setup</span><span class="o">.</span><span class="n">tabela_hash</span><span class="p">)</span><span class="si">}</span><span class="s2"> posições!&quot;</span><span class="p">)</span>
+
+        <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;ERRO ao salvar a tabela hash: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+
+        <span class="n">config_num</span> <span class="o">+=</span> <span class="mi">1</span>
+    
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">Todas as execuções foram concluídas.&quot;</span><span class="p">)</span>
+    
+    <span class="c1"># Consolidar resultados automaticamente em um subprocesso</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="kn">import</span><span class="w"> </span><span class="nn">subprocess</span>
+        <span class="kn">import</span><span class="w"> </span><span class="nn">sys</span>
+        
+        <span class="n">command</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="n">sys</span><span class="o">.</span><span class="n">executable</span><span class="p">,</span> <span class="c1"># Garante que está usando o mesmo interpretador Python</span>
+            <span class="s2">&quot;-c&quot;</span><span class="p">,</span> 
+            <span class="s2">&quot;from database_controller import run_consolidar_resultados; run_consolidar_resultados()&quot;</span>
+        <span class="p">]</span>
+        
+        <span class="c1"># Popen não bloqueia, o script principal pode terminar enquanto a consolidação roda.</span>
+        <span class="n">subprocess</span><span class="o">.</span><span class="n">Popen</span><span class="p">(</span><span class="n">command</span><span class="p">,</span> <span class="n">stdout</span><span class="o">=</span><span class="n">subprocess</span><span class="o">.</span><span class="n">PIPE</span><span class="p">,</span> <span class="n">stderr</span><span class="o">=</span><span class="n">subprocess</span><span class="o">.</span><span class="n">STDOUT</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">Iniciando consolidação de resultados em segundo plano...&quot;</span><span class="p">)</span>
+
+    <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot; Erro ao iniciar o subprocesso de consolidação: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+
+<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s2">&quot;__main__&quot;</span><span class="p">:</span>
+    <span class="n">run_framework_many_executions</span><span class="p">(</span><span class="n">function_bechmarking</span><span class="o">=</span><span class="n">BECHMARKING_MODE</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+</section>
+
+
+                </article>
+              
+
+              
+              
+              
+              
+                <footer class="prev-next-footer d-print-none">
+                  
+<div class="prev-next-area">
+</div>
+                </footer>
+              
+            </div>
+            
+            
+              
+                <div class="bd-sidebar-secondary bd-toc"><div class="sidebar-secondary-items sidebar-secondary__inner">
+
+
+  <div class="sidebar-secondary-item">
+  <div class="page-toc tocsection onthispage">
+    <i class="fa-solid fa-list"></i> Conteúdo
+  </div>
+  <nav class="bd-toc-nav page-toc">
+    <ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#funcionalidades-principais">Funcionalidades Principais</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#codigo-fonte-run-py">Código Fonte (<code class="docutils literal notranslate"><span class="pre">run.py</span></code>)</a></li>
+</ul>
+  </nav></div>
+
+</div></div>
+              
+            
+          </div>
+          <footer class="bd-footer-content">
+            
+<div class="bd-footer-content__inner container">
+  
+  <div class="footer-item">
+    
+<p class="component-author">
+De Pedro
+</p>
+
+  </div>
+  
+  <div class="footer-item">
+    
+
+  <p class="copyright">
+    
+      © Copyright 2025, Pedro.
+      <br/>
+    
+  </p>
+
+  </div>
+  
+  <div class="footer-item">
+    
+  </div>
+  
+  <div class="footer-item">
+    
+  </div>
+  
+</div>
+          </footer>
+        
+
+      </main>
+    </div>
+  </div>
+  
+  <!-- Scripts loaded after <body> so the DOM is not blocked -->
+  <script src="_static/scripts/bootstrap.js?digest=dfe6caa3a7d634c4db9b"></script>
+<script src="_static/scripts/pydata-sphinx-theme.js?digest=dfe6caa3a7d634c4db9b"></script>
+
+  <footer class="bd-footer">
+  </footer>
+  </body>
+</html>

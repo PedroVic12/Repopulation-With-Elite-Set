@@ -1,0 +1,814 @@
+
+<!DOCTYPE html>
+
+
+<html lang="pt-BR" data-content_root="./" >
+
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>sistema_canarinho_16barras.py &#8212; Documentação Repopulation-With-Elite-Set 0.1</title>
+  
+  
+  
+  <script data-cfasync="false">
+    document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
+    document.documentElement.dataset.theme = localStorage.getItem("theme") || "";
+  </script>
+  
+  <!-- Loaded before other Sphinx assets -->
+  <link href="_static/styles/theme.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+<link href="_static/styles/bootstrap.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+<link href="_static/styles/pydata-sphinx-theme.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+
+  
+  <link href="_static/vendor/fontawesome/6.5.2/css/all.min.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+  <link rel="preload" as="font" type="font/woff2" crossorigin href="_static/vendor/fontawesome/6.5.2/webfonts/fa-solid-900.woff2" />
+<link rel="preload" as="font" type="font/woff2" crossorigin href="_static/vendor/fontawesome/6.5.2/webfonts/fa-brands-400.woff2" />
+<link rel="preload" as="font" type="font/woff2" crossorigin href="_static/vendor/fontawesome/6.5.2/webfonts/fa-regular-400.woff2" />
+
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=8f2a1f02" />
+    <link rel="stylesheet" type="text/css" href="_static/styles/sphinx-book-theme.css?v=eba8b062" />
+  
+  <!-- Pre-loaded scripts that we'll load fully later -->
+  <link rel="preload" as="script" href="_static/scripts/bootstrap.js?digest=dfe6caa3a7d634c4db9b" />
+<link rel="preload" as="script" href="_static/scripts/pydata-sphinx-theme.js?digest=dfe6caa3a7d634c4db9b" />
+  <script src="_static/vendor/fontawesome/6.5.2/js/all.min.js?digest=dfe6caa3a7d634c4db9b"></script>
+
+    <script src="_static/documentation_options.js?v=bf871653"></script>
+    <script src="_static/doctools.js?v=9bcbadda"></script>
+    <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="_static/scripts/sphinx-book-theme.js?v=887ef09a"></script>
+    <script src="_static/translations.js?v=71a39b36"></script>
+    <script>DOCUMENTATION_OPTIONS.pagename = 'RedeEletrica_backup_exemplos_scripts_sistema_canarinho_16barras';</script>
+    <link rel="index" title="Índice" href="genindex.html" />
+    <link rel="search" title="Buscar" href="search.html" />
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="docsearch:language" content="pt-BR"/>
+  </head>
+  
+  
+  <body data-bs-spy="scroll" data-bs-target=".bd-toc-nav" data-offset="180" data-bs-root-margin="0px 0px -60%" data-default-mode="">
+
+  
+  
+  <div id="pst-skip-link" class="skip-link d-print-none"><a href="#main-content">Skip to main content</a></div>
+  
+  <div id="pst-scroll-pixel-helper"></div>
+  
+  <button type="button" class="btn rounded-pill" id="pst-back-to-top">
+    <i class="fa-solid fa-arrow-up"></i>Back to top</button>
+
+  
+  <input type="checkbox"
+          class="sidebar-toggle"
+          id="pst-primary-sidebar-checkbox"/>
+  <label class="overlay overlay-primary" for="pst-primary-sidebar-checkbox"></label>
+  
+  <input type="checkbox"
+          class="sidebar-toggle"
+          id="pst-secondary-sidebar-checkbox"/>
+  <label class="overlay overlay-secondary" for="pst-secondary-sidebar-checkbox"></label>
+  
+  <div class="search-button__wrapper">
+    <div class="search-button__overlay"></div>
+    <div class="search-button__search-container">
+<form class="bd-search d-flex align-items-center"
+      action="search.html"
+      method="get">
+  <i class="fa-solid fa-magnifying-glass"></i>
+  <input type="search"
+         class="form-control"
+         name="q"
+         id="search-input"
+         placeholder="Search..."
+         aria-label="Search..."
+         autocomplete="off"
+         autocorrect="off"
+         autocapitalize="off"
+         spellcheck="false"/>
+  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
+</form></div>
+  </div>
+
+  <div class="pst-async-banner-revealer d-none">
+  <aside id="bd-header-version-warning" class="d-none d-print-none" aria-label="Version warning"></aside>
+</div>
+
+  
+    <header class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
+    </header>
+  
+
+  <div class="bd-container">
+    <div class="bd-container__inner bd-page-width">
+      
+      
+      
+        
+      
+      <div class="bd-sidebar-primary bd-sidebar">
+        
+
+  
+  <div class="sidebar-header-items sidebar-primary__section">
+    
+    
+    
+    
+  </div>
+  
+    <div class="sidebar-primary-items__start sidebar-primary__section">
+        <div class="sidebar-primary-item">
+
+  
+    
+  
+
+<a class="navbar-brand logo" href="index.html">
+  
+  
+  
+  
+  
+  
+    <p class="title logo__title">Repopulation-With-Elite-Set</p>
+  
+</a></div>
+        <div class="sidebar-primary-item">
+
+ <script>
+ document.write(`
+   <button class="btn search-button-field search-button__button" title="Buscar" aria-label="Buscar" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass"></i>
+    <span class="search-button__default-text">Buscar</span>
+    <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+   </button>
+ `);
+ </script></div>
+        <div class="sidebar-primary-item"><nav class="bd-links bd-docs-nav" aria-label="Main">
+    <div class="bd-toc-item navbar-nav active">
+        
+        <ul class="nav bd-sidenav bd-sidenav__home-link">
+            <li class="toctree-l1">
+                <a class="reference internal" href="index.html">
+                    Documentação do Projeto RCE
+                </a>
+            </li>
+        </ul>
+        <p aria-level="2" class="caption" role="heading"><span class="caption-text">Guia Geral</span></p>
+<ul class="nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="guia_documentacao.html">Guia para Desenvolvimento da Documentação com MkDocs</a></li>
+<li class="toctree-l1"><a class="reference internal" href="sphinx_vs_mkdocs.html">Sphinx vs. MkDocs: Uma Comparação</a></li>
+<li class="toctree-l1"><a class="reference internal" href="run.html">run.py</a></li>
+<li class="toctree-l1"><a class="reference internal" href="run_agendamento.html">run_agendamento.py</a></li>
+<li class="toctree-l1"><a class="reference internal" href="instalador.html">instalador.py</a></li>
+</ul>
+<p aria-level="2" class="caption" role="heading"><span class="caption-text">Algoritmo Evolutivo (RCE)</span></p>
+<ul class="nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="AlgEvolutivoRCE_backup_alg_evolutivo_rce.html">alg_evolutivo_rce.py</a></li>
+<li class="toctree-l1"><a class="reference internal" href="AlgEvolutivoRCE_backup_Setup.html">Setup.py</a></li>
+<li class="toctree-l1"><a class="reference internal" href="AlgEvolutivoRCE_backup_Dashboard.html">Dashboard.py</a></li>
+</ul>
+<p aria-level="2" class="caption" role="heading"><span class="caption-text">Dashboard App</span></p>
+<ul class="nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="DashboardApp_dashboard_RCE_APP.html">dashboard_RCE_APP.py</a></li>
+<li class="toctree-l1"><a class="reference internal" href="DashboardApp_views_Screens_DashboardRCEPage.html">DashboardRCEPage.py</a></li>
+<li class="toctree-l1"><a class="reference internal" href="DashboardApp_controllers_Utils.html">Utils.py</a></li>
+</ul>
+<p aria-level="2" class="caption" role="heading"><span class="caption-text">Modelo da Rede Elétrica</span></p>
+<ul class="nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="RedeEletrica_backup_rede_eletrica.html">rede_eletrica.py</a></li>
+<li class="toctree-l1"><a class="reference internal" href="RedeEletrica_backup_exemplos_getting_started_deap_pandapower_exemplo.html">getting_started_deap_pandapower_exemplo.py</a></li>
+<li class="toctree-l1"><a class="reference internal" href="RedeEletrica_backup_simulator_anarede_dataset.html">anarede_dataset.py</a></li>
+</ul>
+
+    </div>
+</nav></div>
+    </div>
+  
+  
+  <div class="sidebar-primary-items__end sidebar-primary__section">
+  </div>
+  
+  <div id="rtd-footer-container"></div>
+
+
+      </div>
+      
+      <main id="main-content" class="bd-main" role="main">
+        
+        
+
+<div class="sbt-scroll-pixel-helper"></div>
+
+          <div class="bd-content">
+            <div class="bd-article-container">
+              
+              <div class="bd-header-article d-print-none">
+<div class="header-article-items header-article__inner">
+  
+    <div class="header-article-items__start">
+      
+        <div class="header-article-item"><button class="sidebar-toggle primary-toggle btn btn-sm" title="Toggle primary sidebar" data-bs-placement="bottom" data-bs-toggle="tooltip">
+  <span class="fa-solid fa-bars"></span>
+</button></div>
+      
+    </div>
+  
+  
+    <div class="header-article-items__end">
+      
+        <div class="header-article-item">
+
+<div class="article-header-buttons">
+
+
+<a href="https://github.com/PedroVic12/Repopulation-With-Elite-Set" target="_blank"
+   class="btn btn-sm btn-source-repository-button"
+   title="Repositório fonte"
+   data-bs-placement="bottom" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fab fa-github"></i>
+  </span>
+
+</a>
+
+
+
+
+
+
+<div class="dropdown dropdown-download-buttons">
+  <button class="btn dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false" aria-label="Baixe esta página">
+    <i class="fas fa-download"></i>
+  </button>
+  <ul class="dropdown-menu">
+      
+      
+      
+      <li><a href="_sources/RedeEletrica_backup_exemplos_scripts_sistema_canarinho_16barras.md" target="_blank"
+   class="btn btn-sm btn-download-source-button dropdown-item"
+   title="Baixar arquivo fonte"
+   data-bs-placement="left" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-file"></i>
+  </span>
+<span class="btn__text-container">.md</span>
+</a>
+</li>
+      
+      
+      
+      
+      <li>
+<button onclick="window.print()"
+  class="btn btn-sm btn-download-pdf-button dropdown-item"
+  title="Imprimir em PDF"
+  data-bs-placement="left" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-file-pdf"></i>
+  </span>
+<span class="btn__text-container">.pdf</span>
+</button>
+</li>
+      
+  </ul>
+</div>
+
+
+
+
+<button onclick="toggleFullScreen()"
+  class="btn btn-sm btn-fullscreen-button"
+  title="Modo tela cheia"
+  data-bs-placement="bottom" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-expand"></i>
+  </span>
+
+</button>
+
+
+
+<script>
+document.write(`
+  <button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button" title="light/dark" aria-label="light/dark" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="theme-switch fa-solid fa-sun fa-lg" data-mode="light"></i>
+    <i class="theme-switch fa-solid fa-moon fa-lg" data-mode="dark"></i>
+    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto"></i>
+  </button>
+`);
+</script>
+
+
+<script>
+document.write(`
+  <button class="btn btn-sm pst-navbar-icon search-button search-button__button" title="Buscar" aria-label="Buscar" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass fa-lg"></i>
+  </button>
+`);
+</script>
+
+</div></div>
+      
+    </div>
+  
+</div>
+</div>
+              
+              
+
+<div id="jb-print-docs-body" class="onlyprint">
+    <h1>sistema_canarinho_16barras.py</h1>
+    <!-- Table of contents -->
+    <div id="print-main-content">
+        <div id="jb-print-toc">
+            
+        </div>
+    </div>
+</div>
+
+              
+                
+<div id="searchbox"></div>
+                <article class="bd-article">
+                  
+  <section id="sistema-canarinho-16barras-py">
+<h1>sistema_canarinho_16barras.py<a class="headerlink" href="#sistema-canarinho-16barras-py" title="Link para este cabeçalho">#</a></h1>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span>
+<span class="c1"># -*- coding: utf-8 -*-</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Ferramenta de Visualização de Fluxo de Potência para Análise de Sistemas Elétricos.</span>
+
+<span class="sd">Este script é uma ferramenta de visualização para análise de sistemas de potência,</span>
+<span class="sd">inspirado pela necessidade de apresentar resultados claros em trabalhos acadêmicos,</span>
+<span class="sd">como a tese de doutorado sobre agendamento de intervenções que você compartilhou.</span>
+
+<span class="sd">Ele é projetado para pegar os resultados de uma simulação de fluxo de potência,</span>
+<span class="sd">que pode ser gerada por ferramentas como o Pandapower (visto no seu código do GitHub),</span>
+<span class="sd">e criar visualizações vetoriais da potência ativa (P) e reativa (Q) em cada barra.</span>
+
+<span class="sd">A ideia é transformar dados numéricos de uma simulação em uma &quot;história&quot; visual</span>
+<span class="sd">para o seu artigo, mostrando de forma intuitiva onde estão as principais cargas e</span>
+<span class="sd">geradores do seu sistema de teste.</span>
+
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pathlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">Path</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">pandas</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">pd</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">matplotlib</span>
+
+<span class="c1"># Use backend sem interface gráfica em ambientes sem display (headless)</span>
+<span class="n">_HEADLESS</span> <span class="o">=</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;DISPLAY&quot;</span><span class="p">)</span> <span class="ow">and</span> <span class="n">os</span><span class="o">.</span><span class="n">name</span> <span class="o">!=</span> <span class="s2">&quot;nt&quot;</span>
+<span class="k">if</span> <span class="n">_HEADLESS</span><span class="p">:</span>
+    <span class="n">matplotlib</span><span class="o">.</span><span class="n">use</span><span class="p">(</span><span class="s2">&quot;Agg&quot;</span><span class="p">)</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">matplotlib.pyplot</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">plt</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">matplotlib.collections</span><span class="w"> </span><span class="kn">import</span> <span class="n">LineCollection</span>
+
+<span class="c1"># -----------------------------------------------------------------------------</span>
+<span class="c1"># DADOS DO SISTEMA DE 16 BARRAS (POPULAÇÃO DO ALGORITMO GENÉTICO)</span>
+<span class="c1"># -----------------------------------------------------------------------------</span>
+<span class="c1"># Esta seção define o nosso sistema de teste.</span>
+<span class="c1"># A nomeação das barras com aves brasileiras é uma forma criativa de</span>
+<span class="c1"># identificar os &quot;indivíduos&quot; da população para um Algoritmo Genético (AG),</span>
+<span class="c1"># tornando o estudo mais único para o seu artigo.</span>
+
+<span class="k">def</span><span class="w"> </span><span class="nf">criar_sistema_de_teste</span><span class="p">():</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Cria um DataFrame do Pandas com dados fictícios para um sistema de 16 barras.&quot;&quot;&quot;</span>
+    
+    <span class="c1"># Nomes de 16 aves brasileiras famosas</span>
+    <span class="n">nomes_barras</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="s2">&quot;Arara-Azul&quot;</span><span class="p">,</span> <span class="s2">&quot;Tucano&quot;</span><span class="p">,</span> <span class="s2">&quot;Beija-Flor&quot;</span><span class="p">,</span> <span class="s2">&quot;Canário-da-Terra&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;Pato-Selvagem&quot;</span><span class="p">,</span> <span class="s2">&quot;Garça&quot;</span><span class="p">,</span> <span class="s2">&quot;Martim-Pescador&quot;</span><span class="p">,</span> <span class="s2">&quot;Ema&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;Falcão&quot;</span><span class="p">,</span> <span class="s2">&quot;Coruja&quot;</span><span class="p">,</span> <span class="s2">&quot;Andorinha&quot;</span><span class="p">,</span> <span class="s2">&quot;Pica-Pau&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;Sabiá-Laranjeira&quot;</span><span class="p">,</span> <span class="s2">&quot;João-de-Barro&quot;</span><span class="p">,</span> <span class="s2">&quot;Bem-te-vi&quot;</span><span class="p">,</span> <span class="s2">&quot;Urubu-Rei&quot;</span>
+    <span class="p">]</span>
+
+    <span class="c1"># Coordenadas (x, y) fictícias para a disposição geográfica das barras</span>
+    <span class="n">coordenadas</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s2">&quot;Arara-Azul&quot;</span><span class="p">:</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">5</span><span class="p">),</span> <span class="s2">&quot;Tucano&quot;</span><span class="p">:</span> <span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">6</span><span class="p">),</span> <span class="s2">&quot;Beija-Flor&quot;</span><span class="p">:</span> <span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="mi">5</span><span class="p">),</span> <span class="s2">&quot;Canário-da-Terra&quot;</span><span class="p">:</span> <span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">4</span><span class="p">),</span>
+        <span class="s2">&quot;Pato-Selvagem&quot;</span><span class="p">:</span> <span class="p">(</span><span class="mi">5</span><span class="p">,</span> <span class="mi">7</span><span class="p">),</span> <span class="s2">&quot;Garça&quot;</span><span class="p">:</span> <span class="p">(</span><span class="mi">6</span><span class="p">,</span> <span class="mi">6</span><span class="p">),</span> <span class="s2">&quot;Martim-Pescador&quot;</span><span class="p">:</span> <span class="p">(</span><span class="mi">7</span><span class="p">,</span> <span class="mi">7</span><span class="p">),</span> <span class="s2">&quot;Ema&quot;</span><span class="p">:</span> <span class="p">(</span><span class="mi">6</span><span class="p">,</span> <span class="mi">5</span><span class="p">),</span>
+        <span class="s2">&quot;Falcão&quot;</span><span class="p">:</span> <span class="p">(</span><span class="mi">8</span><span class="p">,</span> <span class="mi">4</span><span class="p">),</span> <span class="s2">&quot;Coruja&quot;</span><span class="p">:</span> <span class="p">(</span><span class="mi">9</span><span class="p">,</span> <span class="mi">5</span><span class="p">),</span> <span class="s2">&quot;Andorinha&quot;</span><span class="p">:</span> <span class="p">(</span><span class="mi">8</span><span class="p">,</span> <span class="mi">3</span><span class="p">),</span> <span class="s2">&quot;Pica-Pau&quot;</span><span class="p">:</span> <span class="p">(</span><span class="mi">9</span><span class="p">,</span> <span class="mi">3</span><span class="p">),</span>
+        <span class="s2">&quot;Sabiá-Laranjeira&quot;</span><span class="p">:</span> <span class="p">(</span><span class="mi">4</span><span class="p">,</span> <span class="mi">2</span><span class="p">),</span> <span class="s2">&quot;João-de-Barro&quot;</span><span class="p">:</span> <span class="p">(</span><span class="mi">5</span><span class="p">,</span> <span class="mi">3</span><span class="p">),</span> <span class="s2">&quot;Bem-te-vi&quot;</span><span class="p">:</span> <span class="p">(</span><span class="mi">6</span><span class="p">,</span> <span class="mi">2</span><span class="p">),</span> <span class="s2">&quot;Urubu-Rei&quot;</span><span class="p">:</span> <span class="p">(</span><span class="mi">7</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+    <span class="p">}</span>
+
+    <span class="c1"># Potência ativa (P) e reativa (Q) fictícias (em MW e MVAr)</span>
+    <span class="c1"># Sinal negativo indica carga, positivo indica geração.</span>
+    <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">seed</span><span class="p">(</span><span class="mi">42</span><span class="p">)</span>  <span class="c1"># Garante que os valores aleatórios sejam sempre os mesmos</span>
+    <span class="n">potencias</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="n">nome</span><span class="p">:</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">uniform</span><span class="p">(</span><span class="o">-</span><span class="mi">50</span><span class="p">,</span> <span class="mi">20</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">uniform</span><span class="p">(</span><span class="o">-</span><span class="mi">30</span><span class="p">,</span> <span class="mi">15</span><span class="p">))</span>
+        <span class="k">for</span> <span class="n">nome</span> <span class="ow">in</span> <span class="n">nomes_barras</span>
+    <span class="p">}</span>
+
+    <span class="c1"># Organizando tudo em um DataFrame do Pandas</span>
+    <span class="n">df_barras</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">index</span><span class="o">=</span><span class="n">nomes_barras</span><span class="p">)</span>
+    <span class="n">df_barras</span><span class="p">[</span><span class="s1">&#39;x&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="n">coordenadas</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">nome</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span> <span class="k">for</span> <span class="n">nome</span> <span class="ow">in</span> <span class="n">nomes_barras</span><span class="p">]</span>
+    <span class="n">df_barras</span><span class="p">[</span><span class="s1">&#39;y&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="n">coordenadas</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">nome</span><span class="p">)[</span><span class="mi">1</span><span class="p">]</span> <span class="k">for</span> <span class="n">nome</span> <span class="ow">in</span> <span class="n">nomes_barras</span><span class="p">]</span>
+    <span class="n">df_barras</span><span class="p">[</span><span class="s1">&#39;p_mw&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="n">potencias</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">nome</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span> <span class="k">for</span> <span class="n">nome</span> <span class="ow">in</span> <span class="n">nomes_barras</span><span class="p">]</span>
+    <span class="n">df_barras</span><span class="p">[</span><span class="s1">&#39;q_mvar&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="n">potencias</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">nome</span><span class="p">)[</span><span class="mi">1</span><span class="p">]</span> <span class="k">for</span> <span class="n">nome</span> <span class="ow">in</span> <span class="n">nomes_barras</span><span class="p">]</span>
+    
+    <span class="k">return</span> <span class="n">df_barras</span>
+
+<span class="k">def</span><span class="w"> </span><span class="nf">criar_template_excel</span><span class="p">(</span><span class="n">caminho_excel</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">df_barras</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">,</span> <span class="n">linhas</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">tuple</span><span class="p">]):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Cria um arquivo Excel (template) com múltiplas planilhas para entrada de dados.</span>
+
+<span class="sd">    Sheets:</span>
+<span class="sd">      - &#39;barras&#39;: colunas [nome, x, y, p_mw, q_mvar]</span>
+<span class="sd">      - &#39;linhas&#39;: colunas [from, to] usando nomes das barras</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        caminho_excel: caminho .xlsx a ser criado.</span>
+<span class="sd">        df_barras: DataFrame de barras com índice=nome e colunas x,y,p_mw,q_mvar.</span>
+<span class="sd">        linhas: lista de tuplas de conexões (por nome) entre barras.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># Garante diretório</span>
+    <span class="n">Path</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="n">caminho_excel</span><span class="p">))</span><span class="o">.</span><span class="n">mkdir</span><span class="p">(</span><span class="n">parents</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">exist_ok</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+    <span class="c1"># Monta DF de barras com índice como coluna &#39;nome&#39;</span>
+    <span class="n">df_b</span> <span class="o">=</span> <span class="n">df_barras</span><span class="o">.</span><span class="n">reset_index</span><span class="p">()</span><span class="o">.</span><span class="n">rename</span><span class="p">(</span><span class="n">columns</span><span class="o">=</span><span class="p">{</span><span class="n">df_barras</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">name</span> <span class="ow">or</span> <span class="s1">&#39;index&#39;</span><span class="p">:</span> <span class="s1">&#39;nome&#39;</span><span class="p">})</span>
+    <span class="k">if</span> <span class="s1">&#39;nome&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">df_b</span><span class="o">.</span><span class="n">columns</span><span class="p">:</span>
+        <span class="n">df_b</span> <span class="o">=</span> <span class="n">df_b</span><span class="o">.</span><span class="n">rename</span><span class="p">(</span><span class="n">columns</span><span class="o">=</span><span class="p">{</span><span class="n">df_b</span><span class="o">.</span><span class="n">columns</span><span class="p">[</span><span class="mi">0</span><span class="p">]:</span> <span class="s1">&#39;nome&#39;</span><span class="p">})</span>
+    <span class="n">df_b</span> <span class="o">=</span> <span class="n">df_b</span><span class="p">[[</span><span class="s1">&#39;nome&#39;</span><span class="p">,</span> <span class="s1">&#39;x&#39;</span><span class="p">,</span> <span class="s1">&#39;y&#39;</span><span class="p">,</span> <span class="s1">&#39;p_mw&#39;</span><span class="p">,</span> <span class="s1">&#39;q_mvar&#39;</span><span class="p">]]</span>
+
+    <span class="c1"># Monta DF de linhas</span>
+    <span class="n">df_l</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">linhas</span><span class="p">,</span> <span class="n">columns</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;from&#39;</span><span class="p">,</span> <span class="s1">&#39;to&#39;</span><span class="p">])</span>
+
+    <span class="k">with</span> <span class="n">pd</span><span class="o">.</span><span class="n">ExcelWriter</span><span class="p">(</span><span class="n">caminho_excel</span><span class="p">,</span> <span class="n">engine</span><span class="o">=</span><span class="s1">&#39;openpyxl&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">writer</span><span class="p">:</span>
+        <span class="n">df_b</span><span class="o">.</span><span class="n">to_excel</span><span class="p">(</span><span class="n">writer</span><span class="p">,</span> <span class="n">sheet_name</span><span class="o">=</span><span class="s1">&#39;barras&#39;</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+        <span class="n">df_l</span><span class="o">.</span><span class="n">to_excel</span><span class="p">(</span><span class="n">writer</span><span class="p">,</span> <span class="n">sheet_name</span><span class="o">=</span><span class="s1">&#39;linhas&#39;</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+
+<span class="k">def</span><span class="w"> </span><span class="nf">carregar_sistema_de_excel</span><span class="p">(</span><span class="n">caminho_excel</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">,</span> <span class="nb">list</span><span class="p">[</span><span class="nb">tuple</span><span class="p">]]:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Carrega os dados do sistema a partir de um Excel com múltiplas sheets.</span>
+
+<span class="sd">    Espera-se:</span>
+<span class="sd">      - Sheet &#39;barras&#39; com colunas: nome, x, y, p_mw, q_mvar</span>
+<span class="sd">      - Sheet &#39;linhas&#39; com colunas: from, to (nomes das barras)</span>
+
+<span class="sd">    Retorna:</span>
+<span class="sd">      (df_barras, linhas)</span>
+<span class="sd">        df_barras: índice=nome, colunas [x,y,p_mw,q_mvar]</span>
+<span class="sd">        linhas: lista de tuplas (from_name, to_name)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">sheets</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_excel</span><span class="p">(</span><span class="n">caminho_excel</span><span class="p">,</span> <span class="n">sheet_name</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">engine</span><span class="o">=</span><span class="s1">&#39;openpyxl&#39;</span><span class="p">)</span>
+    <span class="k">except</span> <span class="ne">ImportError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ImportError</span><span class="p">(</span><span class="s2">&quot;Pacote &#39;openpyxl&#39; é necessário para ler o Excel. Instale com: pip install openpyxl&quot;</span><span class="p">)</span> <span class="kn">from</span><span class="w"> </span><span class="nn">e</span>
+
+    <span class="k">if</span> <span class="s1">&#39;barras&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">sheets</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Excel não contém a sheet obrigatória &#39;barras&#39;.&quot;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="s1">&#39;linhas&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">sheets</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Excel não contém a sheet obrigatória &#39;linhas&#39;.&quot;</span><span class="p">)</span>
+
+    <span class="n">df_b</span> <span class="o">=</span> <span class="n">sheets</span><span class="p">[</span><span class="s1">&#39;barras&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+    <span class="n">obrig_b</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;nome&#39;</span><span class="p">,</span> <span class="s1">&#39;x&#39;</span><span class="p">,</span> <span class="s1">&#39;y&#39;</span><span class="p">,</span> <span class="s1">&#39;p_mw&#39;</span><span class="p">,</span> <span class="s1">&#39;q_mvar&#39;</span><span class="p">}</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">obrig_b</span><span class="o">.</span><span class="n">issubset</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">df_b</span><span class="o">.</span><span class="n">columns</span><span class="p">)):</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Sheet &#39;barras&#39; deve conter as colunas: </span><span class="si">{</span><span class="nb">sorted</span><span class="p">(</span><span class="n">obrig_b</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="n">df_barras</span> <span class="o">=</span> <span class="n">df_b</span><span class="p">[[</span><span class="s1">&#39;nome&#39;</span><span class="p">,</span> <span class="s1">&#39;x&#39;</span><span class="p">,</span> <span class="s1">&#39;y&#39;</span><span class="p">,</span> <span class="s1">&#39;p_mw&#39;</span><span class="p">,</span> <span class="s1">&#39;q_mvar&#39;</span><span class="p">]]</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+    <span class="n">df_barras</span> <span class="o">=</span> <span class="n">df_barras</span><span class="o">.</span><span class="n">set_index</span><span class="p">(</span><span class="s1">&#39;nome&#39;</span><span class="p">)</span>
+
+    <span class="n">df_l</span> <span class="o">=</span> <span class="n">sheets</span><span class="p">[</span><span class="s1">&#39;linhas&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+    <span class="n">obrig_l</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;from&#39;</span><span class="p">,</span> <span class="s1">&#39;to&#39;</span><span class="p">}</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">obrig_l</span><span class="o">.</span><span class="n">issubset</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">df_l</span><span class="o">.</span><span class="n">columns</span><span class="p">)):</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Sheet &#39;linhas&#39; deve conter as colunas: [&#39;from&#39;,&#39;to&#39;]&quot;</span><span class="p">)</span>
+    <span class="n">linhas</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">df_l</span><span class="p">[[</span><span class="s1">&#39;from&#39;</span><span class="p">,</span> <span class="s1">&#39;to&#39;</span><span class="p">]]</span><span class="o">.</span><span class="n">itertuples</span><span class="p">(</span><span class="n">index</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="kc">None</span><span class="p">))</span>
+
+    <span class="k">return</span> <span class="n">df_barras</span><span class="p">,</span> <span class="n">linhas</span>
+
+<span class="c1"># -----------------------------------------------------------------------------</span>
+<span class="c1"># CLASSE DE VISUALIZAÇÃO EM MATPLOTLIB</span>
+<span class="c1"># -----------------------------------------------------------------------------</span>
+<span class="c1"># Esta classe encapsula toda a lógica de plotagem. Ela recebe os dados do sistema</span>
+<span class="c1"># e oferece métodos para criar os gráficos, tornando o código principal mais limpo.</span>
+
+<span class="k">class</span><span class="w"> </span><span class="nc">VisualizadorFluxoPotencia</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Classe para criar visualizações de fluxo de potência a partir de dados de barras.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">df_barras</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Inicializa o visualizador com os dados das barras.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            df_barras (pd.DataFrame): DataFrame com colunas &#39;x&#39;, &#39;y&#39;, &#39;p_mw&#39;, &#39;q_mvar&#39; </span>
+<span class="sd">                                      e o índice sendo o nome da barra.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">all</span><span class="p">(</span><span class="n">col</span> <span class="ow">in</span> <span class="n">df_barras</span><span class="o">.</span><span class="n">columns</span> <span class="k">for</span> <span class="n">col</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;x&#39;</span><span class="p">,</span> <span class="s1">&#39;y&#39;</span><span class="p">,</span> <span class="s1">&#39;p_mw&#39;</span><span class="p">,</span> <span class="s1">&#39;q_mvar&#39;</span><span class="p">]):</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;O DataFrame precisa conter as colunas &#39;x&#39;, &#39;y&#39;, &#39;p_mw&#39;, &#39;q_mvar&#39;.&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">df</span> <span class="o">=</span> <span class="n">df_barras</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">plotar_rede_collections</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">linhas</span><span class="p">,</span> <span class="n">ax</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">titulo</span><span class="o">=</span><span class="s2">&quot;Rede Elétrica (Collections)&quot;</span><span class="p">,</span>
+                                <span class="n">largura_linha</span><span class="o">=</span><span class="mf">2.0</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Plota a rede (barras e linhas) usando matplotlib.collections.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            linhas (list[tuple]): lista de tuplas representando conexões entre barras.</span>
+<span class="sd">                Cada tupla pode conter índices do DataFrame ou nomes das barras.</span>
+<span class="sd">                Ex.: [(&quot;Arara-Azul&quot;, &quot;Tucano&quot;), (0, 1), (&quot;Tucano&quot;, &quot;Beija-Flor&quot;)]</span>
+<span class="sd">            ax (matplotlib.axes.Axes, optional): Eixos alvo.</span>
+<span class="sd">            titulo (str): Título do gráfico.</span>
+<span class="sd">            largura_linha (float): largura das linhas da rede.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">ax</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">fig</span><span class="p">,</span> <span class="n">ax</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">12</span><span class="p">,</span> <span class="mi">10</span><span class="p">))</span>
+
+        <span class="n">ax</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="n">titulo</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">16</span><span class="p">)</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s2">&quot;Coordenada Geográfica X&quot;</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">12</span><span class="p">)</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s2">&quot;Coordenada Geográfica Y&quot;</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">12</span><span class="p">)</span>
+
+        <span class="c1"># Dados base</span>
+        <span class="n">x</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">df</span><span class="p">[</span><span class="s1">&#39;x&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">to_numpy</span><span class="p">()</span>
+        <span class="n">y</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">df</span><span class="p">[</span><span class="s1">&#39;y&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">to_numpy</span><span class="p">()</span>
+        <span class="n">nomes</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">df</span><span class="o">.</span><span class="n">index</span><span class="p">)</span>
+        <span class="n">nome_para_idx</span> <span class="o">=</span> <span class="p">{</span><span class="n">n</span><span class="p">:</span> <span class="n">i</span> <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">n</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">nomes</span><span class="p">)}</span>
+
+        <span class="c1"># Determina cores das barras: geração (P&gt;0) verde, carga (P&lt;0) laranja, neutro azul</span>
+        <span class="n">p</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">df</span><span class="p">[</span><span class="s1">&#39;p_mw&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">to_numpy</span><span class="p">()</span>
+        <span class="n">cores_barras</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="p">(</span><span class="s1">&#39;green&#39;</span> <span class="k">if</span> <span class="n">val</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="k">else</span> <span class="p">(</span><span class="s1">&#39;orange&#39;</span> <span class="k">if</span> <span class="n">val</span> <span class="o">&lt;</span> <span class="mi">0</span> <span class="k">else</span> <span class="s1">&#39;blue&#39;</span><span class="p">))</span>
+            <span class="k">for</span> <span class="n">val</span> <span class="ow">in</span> <span class="n">p</span>
+        <span class="p">]</span>
+
+        <span class="c1"># Monta segmentos das linhas a partir das conexões</span>
+        <span class="n">segmentos</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">a</span><span class="p">,</span> <span class="n">b</span> <span class="ow">in</span> <span class="n">linhas</span><span class="p">:</span>
+            <span class="n">ia</span> <span class="o">=</span> <span class="n">nome_para_idx</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">a</span><span class="p">)</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="nb">str</span><span class="p">)</span> <span class="k">else</span> <span class="n">a</span>
+            <span class="n">ib</span> <span class="o">=</span> <span class="n">nome_para_idx</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">b</span><span class="p">,</span> <span class="n">b</span><span class="p">)</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">b</span><span class="p">,</span> <span class="nb">str</span><span class="p">)</span> <span class="k">else</span> <span class="n">b</span>
+            <span class="k">if</span> <span class="mi">0</span> <span class="o">&lt;=</span> <span class="n">ia</span> <span class="o">&lt;</span> <span class="nb">len</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="ow">and</span> <span class="mi">0</span> <span class="o">&lt;=</span> <span class="n">ib</span> <span class="o">&lt;</span> <span class="nb">len</span><span class="p">(</span><span class="n">x</span><span class="p">):</span>
+                <span class="n">segmentos</span><span class="o">.</span><span class="n">append</span><span class="p">([(</span><span class="n">x</span><span class="p">[</span><span class="n">ia</span><span class="p">],</span> <span class="n">y</span><span class="p">[</span><span class="n">ia</span><span class="p">]),</span> <span class="p">(</span><span class="n">x</span><span class="p">[</span><span class="n">ib</span><span class="p">],</span> <span class="n">y</span><span class="p">[</span><span class="n">ib</span><span class="p">])])</span>
+
+        <span class="c1"># Cor única para linhas por simplicidade; pode evoluir para mapa por tensão/carga</span>
+        <span class="n">lc</span> <span class="o">=</span> <span class="n">LineCollection</span><span class="p">(</span><span class="n">segmentos</span><span class="p">,</span> <span class="n">colors</span><span class="o">=</span><span class="s1">&#39;steelblue&#39;</span><span class="p">,</span> <span class="n">linewidths</span><span class="o">=</span><span class="n">largura_linha</span><span class="p">,</span> <span class="n">zorder</span><span class="o">=</span><span class="mi">5</span><span class="p">)</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">add_collection</span><span class="p">(</span><span class="n">lc</span><span class="p">)</span>
+
+        <span class="c1"># Desenha barras</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">scatter</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">s</span><span class="o">=</span><span class="mi">80</span><span class="p">,</span> <span class="n">c</span><span class="o">=</span><span class="n">cores_barras</span><span class="p">,</span> <span class="n">edgecolors</span><span class="o">=</span><span class="s1">&#39;k&#39;</span><span class="p">,</span> <span class="n">zorder</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s1">&#39;Barras&#39;</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">nome</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">nomes</span><span class="p">):</span>
+            <span class="n">ax</span><span class="o">.</span><span class="n">text</span><span class="p">(</span><span class="n">x</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">+</span> <span class="mf">0.08</span><span class="p">,</span> <span class="n">y</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">+</span> <span class="mf">0.08</span><span class="p">,</span> <span class="n">nome</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">9</span><span class="p">,</span> <span class="n">ha</span><span class="o">=</span><span class="s1">&#39;left&#39;</span><span class="p">,</span> <span class="n">zorder</span><span class="o">=</span><span class="mi">12</span><span class="p">)</span>
+
+        <span class="c1"># Legenda customizada simples</span>
+        <span class="kn">from</span><span class="w"> </span><span class="nn">matplotlib.lines</span><span class="w"> </span><span class="kn">import</span> <span class="n">Line2D</span>
+        <span class="n">legenda_elems</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="n">Line2D</span><span class="p">([</span><span class="mi">0</span><span class="p">],</span> <span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">color</span><span class="o">=</span><span class="s1">&#39;steelblue&#39;</span><span class="p">,</span> <span class="n">lw</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s1">&#39;Linhas&#39;</span><span class="p">),</span>
+            <span class="n">Line2D</span><span class="p">([</span><span class="mi">0</span><span class="p">],</span> <span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">marker</span><span class="o">=</span><span class="s1">&#39;o&#39;</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s1">&#39;w&#39;</span><span class="p">,</span> <span class="n">markerfacecolor</span><span class="o">=</span><span class="s1">&#39;green&#39;</span><span class="p">,</span> <span class="n">markeredgecolor</span><span class="o">=</span><span class="s1">&#39;k&#39;</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s1">&#39;Barra com Geração (P&gt;0)&#39;</span><span class="p">,</span> <span class="n">markersize</span><span class="o">=</span><span class="mi">8</span><span class="p">),</span>
+            <span class="n">Line2D</span><span class="p">([</span><span class="mi">0</span><span class="p">],</span> <span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">marker</span><span class="o">=</span><span class="s1">&#39;o&#39;</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s1">&#39;w&#39;</span><span class="p">,</span> <span class="n">markerfacecolor</span><span class="o">=</span><span class="s1">&#39;orange&#39;</span><span class="p">,</span> <span class="n">markeredgecolor</span><span class="o">=</span><span class="s1">&#39;k&#39;</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s1">&#39;Barra com Carga (P&lt;0)&#39;</span><span class="p">,</span> <span class="n">markersize</span><span class="o">=</span><span class="mi">8</span><span class="p">),</span>
+            <span class="n">Line2D</span><span class="p">([</span><span class="mi">0</span><span class="p">],</span> <span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">marker</span><span class="o">=</span><span class="s1">&#39;o&#39;</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s1">&#39;w&#39;</span><span class="p">,</span> <span class="n">markerfacecolor</span><span class="o">=</span><span class="s1">&#39;blue&#39;</span><span class="p">,</span> <span class="n">markeredgecolor</span><span class="o">=</span><span class="s1">&#39;k&#39;</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s1">&#39;Barra Neutra (P≈0)&#39;</span><span class="p">,</span> <span class="n">markersize</span><span class="o">=</span><span class="mi">8</span><span class="p">),</span>
+        <span class="p">]</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">legend</span><span class="p">(</span><span class="n">handles</span><span class="o">=</span><span class="n">legenda_elems</span><span class="p">)</span>
+
+        <span class="n">ax</span><span class="o">.</span><span class="n">grid</span><span class="p">(</span><span class="kc">True</span><span class="p">,</span> <span class="n">linestyle</span><span class="o">=</span><span class="s1">&#39;--&#39;</span><span class="p">,</span> <span class="n">alpha</span><span class="o">=</span><span class="mf">0.6</span><span class="p">)</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">set_aspect</span><span class="p">(</span><span class="s1">&#39;equal&#39;</span><span class="p">,</span> <span class="n">adjustable</span><span class="o">=</span><span class="s1">&#39;box&#39;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">ax</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">plotar_vetores_pq</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ax</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">escala</span><span class="o">=</span><span class="mf">0.05</span><span class="p">,</span> <span class="n">titulo</span><span class="o">=</span><span class="s2">&quot;Fluxo de Potência (P e Q)&quot;</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Plota vetores separados para potência ativa (P) e reativa (Q) em 2D.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            ax (matplotlib.axes.Axes, optional): Eixos para plotar. Se None, cria uma nova figura.</span>
+<span class="sd">            escala (float): Fator de escala para o tamanho dos vetores.</span>
+<span class="sd">            titulo (str): Título do gráfico.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">ax</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">fig</span><span class="p">,</span> <span class="n">ax</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">12</span><span class="p">,</span> <span class="mi">10</span><span class="p">))</span>
+        
+        <span class="n">ax</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="n">titulo</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">16</span><span class="p">)</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s2">&quot;Coordenada Geográfica X&quot;</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">12</span><span class="p">)</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s2">&quot;Coordenada Geográfica Y&quot;</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">12</span><span class="p">)</span>
+
+        <span class="c1"># Dados (como arrays numpy para garantir dimensões compatíveis no quiver)</span>
+        <span class="n">x</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">df</span><span class="p">[</span><span class="s1">&#39;x&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">to_numpy</span><span class="p">()</span>
+        <span class="n">y</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">df</span><span class="p">[</span><span class="s1">&#39;y&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">to_numpy</span><span class="p">()</span>
+        <span class="n">p</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">df</span><span class="p">[</span><span class="s1">&#39;p_mw&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">to_numpy</span><span class="p">()</span>
+        <span class="n">q</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">df</span><span class="p">[</span><span class="s1">&#39;q_mvar&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">to_numpy</span><span class="p">()</span>
+        <span class="n">nomes</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">df</span><span class="o">.</span><span class="n">index</span>
+
+        <span class="c1"># Componentes de vetores separados para P e Q</span>
+        <span class="n">u_p</span> <span class="o">=</span> <span class="n">p</span>
+        <span class="n">v_p</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros_like</span><span class="p">(</span><span class="n">p</span><span class="p">)</span>
+        <span class="n">u_q</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros_like</span><span class="p">(</span><span class="n">q</span><span class="p">)</span>
+        <span class="n">v_q</span> <span class="o">=</span> <span class="n">q</span>
+
+        <span class="c1"># Plotando os vetores (setas)</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">quiver</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">u_p</span><span class="p">,</span> <span class="n">v_p</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s1">&#39;red&#39;</span><span class="p">,</span> <span class="n">angles</span><span class="o">=</span><span class="s1">&#39;xy&#39;</span><span class="p">,</span> <span class="n">scale_units</span><span class="o">=</span><span class="s1">&#39;xy&#39;</span><span class="p">,</span> <span class="n">scale</span><span class="o">=</span><span class="mi">1</span><span class="o">/</span><span class="n">escala</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s1">&#39;Potência Ativa (P)&#39;</span><span class="p">)</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">quiver</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">u_q</span><span class="p">,</span> <span class="n">v_q</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s1">&#39;blue&#39;</span><span class="p">,</span> <span class="n">angles</span><span class="o">=</span><span class="s1">&#39;xy&#39;</span><span class="p">,</span> <span class="n">scale_units</span><span class="o">=</span><span class="s1">&#39;xy&#39;</span><span class="p">,</span> <span class="n">scale</span><span class="o">=</span><span class="mi">1</span><span class="o">/</span><span class="n">escala</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s1">&#39;Potência Reativa (Q)&#39;</span><span class="p">)</span>
+
+        <span class="c1"># Plotando as barras e seus nomes</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="s1">&#39;ko&#39;</span><span class="p">,</span> <span class="n">markersize</span><span class="o">=</span><span class="mi">8</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s1">&#39;Barras do Sistema&#39;</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">nome</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">nomes</span><span class="p">):</span>
+            <span class="n">ax</span><span class="o">.</span><span class="n">text</span><span class="p">(</span><span class="n">x</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">+</span> <span class="mf">0.1</span><span class="p">,</span> <span class="n">y</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">+</span> <span class="mf">0.1</span><span class="p">,</span> <span class="n">nome</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">9</span><span class="p">,</span> <span class="n">ha</span><span class="o">=</span><span class="s1">&#39;left&#39;</span><span class="p">)</span>
+
+        <span class="n">ax</span><span class="o">.</span><span class="n">legend</span><span class="p">()</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">grid</span><span class="p">(</span><span class="kc">True</span><span class="p">,</span> <span class="n">linestyle</span><span class="o">=</span><span class="s1">&#39;--&#39;</span><span class="p">,</span> <span class="n">alpha</span><span class="o">=</span><span class="mf">0.6</span><span class="p">)</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">set_aspect</span><span class="p">(</span><span class="s1">&#39;equal&#39;</span><span class="p">,</span> <span class="n">adjustable</span><span class="o">=</span><span class="s1">&#39;box&#39;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">ax</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">plotar_vetores_s</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ax</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">escala</span><span class="o">=</span><span class="mf">0.02</span><span class="p">,</span> <span class="n">titulo</span><span class="o">=</span><span class="s2">&quot;Vetor da Potência Aparente (S)&quot;</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Plota um único vetor para a potência aparente (S) em cada barra.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            ax (matplotlib.axes.Axes, optional): Eixos para plotar. Se None, cria uma nova figura.</span>
+<span class="sd">            escala (float): Fator de escala para o tamanho dos vetores.</span>
+<span class="sd">            titulo (str): Título do gráfico.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">ax</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">fig</span><span class="p">,</span> <span class="n">ax</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">12</span><span class="p">,</span> <span class="mi">10</span><span class="p">))</span>
+
+        <span class="n">ax</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="n">titulo</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">16</span><span class="p">)</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s2">&quot;Coordenada Geográfica X&quot;</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">12</span><span class="p">)</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s2">&quot;Coordenada Geográfica Y&quot;</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">12</span><span class="p">)</span>
+
+        <span class="c1"># Dados (como arrays numpy para garantir dimensões compatíveis no quiver)</span>
+        <span class="n">x</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">df</span><span class="p">[</span><span class="s1">&#39;x&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">to_numpy</span><span class="p">()</span>
+        <span class="n">y</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">df</span><span class="p">[</span><span class="s1">&#39;y&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">to_numpy</span><span class="p">()</span>
+        <span class="n">p</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">df</span><span class="p">[</span><span class="s1">&#39;p_mw&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">to_numpy</span><span class="p">()</span>
+        <span class="n">q</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">df</span><span class="p">[</span><span class="s1">&#39;q_mvar&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">to_numpy</span><span class="p">()</span>
+        <span class="n">nomes</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">df</span><span class="o">.</span><span class="n">index</span>
+
+        <span class="c1"># Plotando os vetores (setas) da potência aparente S = P + jQ</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">quiver</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">p</span><span class="p">,</span> <span class="n">q</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s1">&#39;green&#39;</span><span class="p">,</span> <span class="n">angles</span><span class="o">=</span><span class="s1">&#39;xy&#39;</span><span class="p">,</span> <span class="n">scale_units</span><span class="o">=</span><span class="s1">&#39;xy&#39;</span><span class="p">,</span> <span class="n">scale</span><span class="o">=</span><span class="mi">1</span><span class="o">/</span><span class="n">escala</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s1">&#39;Potência Aparente (S)&#39;</span><span class="p">)</span>
+        
+        <span class="c1"># Plotando as barras e seus nomes</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="s1">&#39;ko&#39;</span><span class="p">,</span> <span class="n">markersize</span><span class="o">=</span><span class="mi">8</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s1">&#39;Barras do Sistema&#39;</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">nome</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">nomes</span><span class="p">):</span>
+            <span class="n">ax</span><span class="o">.</span><span class="n">text</span><span class="p">(</span><span class="n">x</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">+</span> <span class="mf">0.1</span><span class="p">,</span> <span class="n">y</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">+</span> <span class="mf">0.1</span><span class="p">,</span> <span class="n">nome</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">9</span><span class="p">,</span> <span class="n">ha</span><span class="o">=</span><span class="s1">&#39;left&#39;</span><span class="p">)</span>
+
+        <span class="n">ax</span><span class="o">.</span><span class="n">legend</span><span class="p">()</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">grid</span><span class="p">(</span><span class="kc">True</span><span class="p">,</span> <span class="n">linestyle</span><span class="o">=</span><span class="s1">&#39;--&#39;</span><span class="p">,</span> <span class="n">alpha</span><span class="o">=</span><span class="mf">0.6</span><span class="p">)</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">set_aspect</span><span class="p">(</span><span class="s1">&#39;equal&#39;</span><span class="p">,</span> <span class="n">adjustable</span><span class="o">=</span><span class="s1">&#39;box&#39;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">ax</span>
+
+<span class="c1"># -----------------------------------------------------------------------------</span>
+<span class="c1"># EXECUÇÃO PRINCIPAL DO SCRIPT</span>
+<span class="c1"># -----------------------------------------------------------------------------</span>
+<span class="c1"># Esta é a parte &quot;executável&quot; do nosso código.</span>
+<span class="c1"># É aqui que criamos os dados, instanciamos a classe e chamamos os métodos de plotagem.</span>
+
+<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s2">&quot;__main__&quot;</span><span class="p">:</span>
+    <span class="c1"># 1. Gerar os dados do nosso sistema de teste</span>
+    <span class="n">dados_sistema_16_barras</span> <span class="o">=</span> <span class="n">criar_sistema_de_teste</span><span class="p">()</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;--- Dados do Sistema de Teste (16 Barras) ---&quot;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="n">dados_sistema_16_barras</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;-&quot;</span> <span class="o">*</span> <span class="mi">50</span><span class="p">)</span>
+    
+    <span class="c1"># 2. Criar uma instância da nossa classe de visualização</span>
+    <span class="n">visualizador</span> <span class="o">=</span> <span class="n">VisualizadorFluxoPotencia</span><span class="p">(</span><span class="n">dados_sistema_16_barras</span><span class="p">)</span>
+    
+    <span class="c1"># 3. Gerar e exibir os gráficos</span>
+
+    <span class="c1"># 3.1. Carregar dados de Excel (se existir), senão criar template com exemplos</span>
+    <span class="n">pasta_input</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="vm">__file__</span><span class="p">),</span> <span class="s2">&quot;input&quot;</span><span class="p">)</span>
+    <span class="n">os</span><span class="o">.</span><span class="n">makedirs</span><span class="p">(</span><span class="n">pasta_input</span><span class="p">,</span> <span class="n">exist_ok</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">caminho_excel</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">pasta_input</span><span class="p">,</span> <span class="s2">&quot;sistema_16barras.xlsx&quot;</span><span class="p">)</span>
+
+    <span class="n">linhas_exemplo</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">caminho_excel</span><span class="p">):</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">dados_sistema_16_barras</span><span class="p">,</span> <span class="n">linhas_exemplo</span> <span class="o">=</span> <span class="n">carregar_sistema_de_excel</span><span class="p">(</span><span class="n">caminho_excel</span><span class="p">)</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Dados carregados de: </span><span class="si">{</span><span class="n">caminho_excel</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Falha ao carregar Excel: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">. Usando dados fictícios e gerando template novo.&quot;</span><span class="p">)</span>
+    
+    <span class="k">if</span> <span class="n">linhas_exemplo</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="c1"># Topologia exemplo caso não exista Excel válido</span>
+        <span class="n">linhas_exemplo</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="p">(</span><span class="s2">&quot;Arara-Azul&quot;</span><span class="p">,</span> <span class="s2">&quot;Tucano&quot;</span><span class="p">),</span> <span class="p">(</span><span class="s2">&quot;Tucano&quot;</span><span class="p">,</span> <span class="s2">&quot;Beija-Flor&quot;</span><span class="p">),</span> <span class="p">(</span><span class="s2">&quot;Beija-Flor&quot;</span><span class="p">,</span> <span class="s2">&quot;Canário-da-Terra&quot;</span><span class="p">),</span>
+            <span class="p">(</span><span class="s2">&quot;Canário-da-Terra&quot;</span><span class="p">,</span> <span class="s2">&quot;João-de-Barro&quot;</span><span class="p">),</span> <span class="p">(</span><span class="s2">&quot;João-de-Barro&quot;</span><span class="p">,</span> <span class="s2">&quot;Sabiá-Laranjeira&quot;</span><span class="p">),</span> <span class="p">(</span><span class="s2">&quot;Sabiá-Laranjeira&quot;</span><span class="p">,</span> <span class="s2">&quot;Pato-Selvagem&quot;</span><span class="p">),</span>
+            <span class="p">(</span><span class="s2">&quot;Pato-Selvagem&quot;</span><span class="p">,</span> <span class="s2">&quot;Garça&quot;</span><span class="p">),</span> <span class="p">(</span><span class="s2">&quot;Garça&quot;</span><span class="p">,</span> <span class="s2">&quot;Martim-Pescador&quot;</span><span class="p">),</span> <span class="p">(</span><span class="s2">&quot;Martim-Pescador&quot;</span><span class="p">,</span> <span class="s2">&quot;Ema&quot;</span><span class="p">),</span>
+            <span class="p">(</span><span class="s2">&quot;Ema&quot;</span><span class="p">,</span> <span class="s2">&quot;Falcão&quot;</span><span class="p">),</span> <span class="p">(</span><span class="s2">&quot;Falcão&quot;</span><span class="p">,</span> <span class="s2">&quot;Coruja&quot;</span><span class="p">),</span> <span class="p">(</span><span class="s2">&quot;Coruja&quot;</span><span class="p">,</span> <span class="s2">&quot;Pica-Pau&quot;</span><span class="p">),</span>
+            <span class="p">(</span><span class="s2">&quot;Pica-Pau&quot;</span><span class="p">,</span> <span class="s2">&quot;Andorinha&quot;</span><span class="p">),</span> <span class="p">(</span><span class="s2">&quot;Andorinha&quot;</span><span class="p">,</span> <span class="s2">&quot;Bem-te-vi&quot;</span><span class="p">),</span> <span class="p">(</span><span class="s2">&quot;Bem-te-vi&quot;</span><span class="p">,</span> <span class="s2">&quot;Urubu-Rei&quot;</span><span class="p">),</span>
+            <span class="p">(</span><span class="s2">&quot;Urubu-Rei&quot;</span><span class="p">,</span> <span class="s2">&quot;Falcão&quot;</span><span class="p">)</span>
+        <span class="p">]</span>
+        <span class="c1"># Gerar template a partir dos dados atuais</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">criar_template_excel</span><span class="p">(</span><span class="n">caminho_excel</span><span class="p">,</span> <span class="n">dados_sistema_16_barras</span><span class="p">,</span> <span class="n">linhas_exemplo</span><span class="p">)</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Template Excel criado em: </span><span class="si">{</span><span class="n">caminho_excel</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Falha ao criar template Excel: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+    <span class="c1"># Figura da rede com collections</span>
+    <span class="n">fig0</span><span class="p">,</span> <span class="n">ax0</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">14</span><span class="p">,</span> <span class="mi">12</span><span class="p">))</span>
+    <span class="n">visualizador</span><span class="o">.</span><span class="n">plotar_rede_collections</span><span class="p">(</span><span class="n">linhas_exemplo</span><span class="p">,</span> <span class="n">ax</span><span class="o">=</span><span class="n">ax0</span><span class="p">)</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">tight_layout</span><span class="p">()</span>
+    
+    <span class="c1"># Gráfico 1: Vetores de P e Q separados</span>
+    <span class="n">fig1</span><span class="p">,</span> <span class="n">ax1</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">14</span><span class="p">,</span> <span class="mi">12</span><span class="p">))</span>
+    <span class="n">visualizador</span><span class="o">.</span><span class="n">plotar_vetores_pq</span><span class="p">(</span><span class="n">ax</span><span class="o">=</span><span class="n">ax1</span><span class="p">)</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">tight_layout</span><span class="p">()</span>
+    
+    <span class="c1"># Gráfico 2: Vetor único para a Potência Aparente S</span>
+    <span class="n">fig2</span><span class="p">,</span> <span class="n">ax2</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">14</span><span class="p">,</span> <span class="mi">12</span><span class="p">))</span>
+    <span class="n">visualizador</span><span class="o">.</span><span class="n">plotar_vetores_s</span><span class="p">(</span><span class="n">ax</span><span class="o">=</span><span class="n">ax2</span><span class="p">)</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">tight_layout</span><span class="p">()</span>
+
+    <span class="c1"># Salvar sempre as figuras em arquivo para garantir funcionamento em qualquer ambiente</span>
+    <span class="n">saida_dir</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="vm">__file__</span><span class="p">),</span> <span class="s2">&quot;output&quot;</span><span class="p">)</span>
+    <span class="n">os</span><span class="o">.</span><span class="n">makedirs</span><span class="p">(</span><span class="n">saida_dir</span><span class="p">,</span> <span class="n">exist_ok</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">caminho_fig0</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">saida_dir</span><span class="p">,</span> <span class="s2">&quot;rede_collections_16barras.png&quot;</span><span class="p">)</span>
+    <span class="n">caminho_fig1</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">saida_dir</span><span class="p">,</span> <span class="s2">&quot;fluxo_pq_16barras.png&quot;</span><span class="p">)</span>
+    <span class="n">caminho_fig2</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">saida_dir</span><span class="p">,</span> <span class="s2">&quot;fluxo_s_16barras.png&quot;</span><span class="p">)</span>
+    <span class="n">fig0</span><span class="o">.</span><span class="n">savefig</span><span class="p">(</span><span class="n">caminho_fig0</span><span class="p">,</span> <span class="n">dpi</span><span class="o">=</span><span class="mi">200</span><span class="p">,</span> <span class="n">bbox_inches</span><span class="o">=</span><span class="s2">&quot;tight&quot;</span><span class="p">)</span>
+    <span class="n">fig1</span><span class="o">.</span><span class="n">savefig</span><span class="p">(</span><span class="n">caminho_fig1</span><span class="p">,</span> <span class="n">dpi</span><span class="o">=</span><span class="mi">200</span><span class="p">,</span> <span class="n">bbox_inches</span><span class="o">=</span><span class="s2">&quot;tight&quot;</span><span class="p">)</span>
+    <span class="n">fig2</span><span class="o">.</span><span class="n">savefig</span><span class="p">(</span><span class="n">caminho_fig2</span><span class="p">,</span> <span class="n">dpi</span><span class="o">=</span><span class="mi">200</span><span class="p">,</span> <span class="n">bbox_inches</span><span class="o">=</span><span class="s2">&quot;tight&quot;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Figuras salvas em:</span><span class="se">\n</span><span class="s2"> - </span><span class="si">{</span><span class="n">caminho_fig0</span><span class="si">}</span><span class="se">\n</span><span class="s2"> - </span><span class="si">{</span><span class="n">caminho_fig1</span><span class="si">}</span><span class="se">\n</span><span class="s2"> - </span><span class="si">{</span><span class="n">caminho_fig2</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+    <span class="c1"># Exibir na tela apenas se houver display disponível</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">_HEADLESS</span><span class="p">:</span>
+        <span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">plt</span><span class="o">.</span><span class="n">close</span><span class="p">(</span><span class="n">fig0</span><span class="p">)</span>
+        <span class="n">plt</span><span class="o">.</span><span class="n">close</span><span class="p">(</span><span class="n">fig1</span><span class="p">)</span>
+        <span class="n">plt</span><span class="o">.</span><span class="n">close</span><span class="p">(</span><span class="n">fig2</span><span class="p">)</span>
+
+</pre></div>
+</div>
+</section>
+
+
+                </article>
+              
+
+              
+              
+              
+              
+                <footer class="prev-next-footer d-print-none">
+                  
+<div class="prev-next-area">
+</div>
+                </footer>
+              
+            </div>
+            
+            
+              
+            
+          </div>
+          <footer class="bd-footer-content">
+            
+<div class="bd-footer-content__inner container">
+  
+  <div class="footer-item">
+    
+<p class="component-author">
+De Pedro
+</p>
+
+  </div>
+  
+  <div class="footer-item">
+    
+
+  <p class="copyright">
+    
+      © Copyright 2025, Pedro.
+      <br/>
+    
+  </p>
+
+  </div>
+  
+  <div class="footer-item">
+    
+  </div>
+  
+  <div class="footer-item">
+    
+  </div>
+  
+</div>
+          </footer>
+        
+
+      </main>
+    </div>
+  </div>
+  
+  <!-- Scripts loaded after <body> so the DOM is not blocked -->
+  <script src="_static/scripts/bootstrap.js?digest=dfe6caa3a7d634c4db9b"></script>
+<script src="_static/scripts/pydata-sphinx-theme.js?digest=dfe6caa3a7d634c4db9b"></script>
+
+  <footer class="bd-footer">
+  </footer>
+  </body>
+</html>

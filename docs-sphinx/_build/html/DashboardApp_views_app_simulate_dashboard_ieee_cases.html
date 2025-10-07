@@ -1,0 +1,703 @@
+
+<!DOCTYPE html>
+
+
+<html lang="pt-BR" data-content_root="./" >
+
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>simulate_dashboard_ieee_cases.py &#8212; Documentação Repopulation-With-Elite-Set 0.1</title>
+  
+  
+  
+  <script data-cfasync="false">
+    document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
+    document.documentElement.dataset.theme = localStorage.getItem("theme") || "";
+  </script>
+  
+  <!-- Loaded before other Sphinx assets -->
+  <link href="_static/styles/theme.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+<link href="_static/styles/bootstrap.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+<link href="_static/styles/pydata-sphinx-theme.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+
+  
+  <link href="_static/vendor/fontawesome/6.5.2/css/all.min.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+  <link rel="preload" as="font" type="font/woff2" crossorigin href="_static/vendor/fontawesome/6.5.2/webfonts/fa-solid-900.woff2" />
+<link rel="preload" as="font" type="font/woff2" crossorigin href="_static/vendor/fontawesome/6.5.2/webfonts/fa-brands-400.woff2" />
+<link rel="preload" as="font" type="font/woff2" crossorigin href="_static/vendor/fontawesome/6.5.2/webfonts/fa-regular-400.woff2" />
+
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=8f2a1f02" />
+    <link rel="stylesheet" type="text/css" href="_static/styles/sphinx-book-theme.css?v=eba8b062" />
+  
+  <!-- Pre-loaded scripts that we'll load fully later -->
+  <link rel="preload" as="script" href="_static/scripts/bootstrap.js?digest=dfe6caa3a7d634c4db9b" />
+<link rel="preload" as="script" href="_static/scripts/pydata-sphinx-theme.js?digest=dfe6caa3a7d634c4db9b" />
+  <script src="_static/vendor/fontawesome/6.5.2/js/all.min.js?digest=dfe6caa3a7d634c4db9b"></script>
+
+    <script src="_static/documentation_options.js?v=bf871653"></script>
+    <script src="_static/doctools.js?v=9bcbadda"></script>
+    <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="_static/scripts/sphinx-book-theme.js?v=887ef09a"></script>
+    <script src="_static/translations.js?v=71a39b36"></script>
+    <script>DOCUMENTATION_OPTIONS.pagename = 'DashboardApp_views_app_simulate_dashboard_ieee_cases';</script>
+    <link rel="index" title="Índice" href="genindex.html" />
+    <link rel="search" title="Buscar" href="search.html" />
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="docsearch:language" content="pt-BR"/>
+  </head>
+  
+  
+  <body data-bs-spy="scroll" data-bs-target=".bd-toc-nav" data-offset="180" data-bs-root-margin="0px 0px -60%" data-default-mode="">
+
+  
+  
+  <div id="pst-skip-link" class="skip-link d-print-none"><a href="#main-content">Skip to main content</a></div>
+  
+  <div id="pst-scroll-pixel-helper"></div>
+  
+  <button type="button" class="btn rounded-pill" id="pst-back-to-top">
+    <i class="fa-solid fa-arrow-up"></i>Back to top</button>
+
+  
+  <input type="checkbox"
+          class="sidebar-toggle"
+          id="pst-primary-sidebar-checkbox"/>
+  <label class="overlay overlay-primary" for="pst-primary-sidebar-checkbox"></label>
+  
+  <input type="checkbox"
+          class="sidebar-toggle"
+          id="pst-secondary-sidebar-checkbox"/>
+  <label class="overlay overlay-secondary" for="pst-secondary-sidebar-checkbox"></label>
+  
+  <div class="search-button__wrapper">
+    <div class="search-button__overlay"></div>
+    <div class="search-button__search-container">
+<form class="bd-search d-flex align-items-center"
+      action="search.html"
+      method="get">
+  <i class="fa-solid fa-magnifying-glass"></i>
+  <input type="search"
+         class="form-control"
+         name="q"
+         id="search-input"
+         placeholder="Search..."
+         aria-label="Search..."
+         autocomplete="off"
+         autocorrect="off"
+         autocapitalize="off"
+         spellcheck="false"/>
+  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
+</form></div>
+  </div>
+
+  <div class="pst-async-banner-revealer d-none">
+  <aside id="bd-header-version-warning" class="d-none d-print-none" aria-label="Version warning"></aside>
+</div>
+
+  
+    <header class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
+    </header>
+  
+
+  <div class="bd-container">
+    <div class="bd-container__inner bd-page-width">
+      
+      
+      
+        
+      
+      <div class="bd-sidebar-primary bd-sidebar">
+        
+
+  
+  <div class="sidebar-header-items sidebar-primary__section">
+    
+    
+    
+    
+  </div>
+  
+    <div class="sidebar-primary-items__start sidebar-primary__section">
+        <div class="sidebar-primary-item">
+
+  
+    
+  
+
+<a class="navbar-brand logo" href="index.html">
+  
+  
+  
+  
+  
+  
+    <p class="title logo__title">Repopulation-With-Elite-Set</p>
+  
+</a></div>
+        <div class="sidebar-primary-item">
+
+ <script>
+ document.write(`
+   <button class="btn search-button-field search-button__button" title="Buscar" aria-label="Buscar" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass"></i>
+    <span class="search-button__default-text">Buscar</span>
+    <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+   </button>
+ `);
+ </script></div>
+        <div class="sidebar-primary-item"><nav class="bd-links bd-docs-nav" aria-label="Main">
+    <div class="bd-toc-item navbar-nav active">
+        
+        <ul class="nav bd-sidenav bd-sidenav__home-link">
+            <li class="toctree-l1">
+                <a class="reference internal" href="index.html">
+                    Documentação do Projeto RCE
+                </a>
+            </li>
+        </ul>
+        <p aria-level="2" class="caption" role="heading"><span class="caption-text">Guia Geral</span></p>
+<ul class="nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="guia_documentacao.html">Guia para Desenvolvimento da Documentação com MkDocs</a></li>
+<li class="toctree-l1"><a class="reference internal" href="sphinx_vs_mkdocs.html">Sphinx vs. MkDocs: Uma Comparação</a></li>
+<li class="toctree-l1"><a class="reference internal" href="run.html">run.py</a></li>
+<li class="toctree-l1"><a class="reference internal" href="run_agendamento.html">run_agendamento.py</a></li>
+<li class="toctree-l1"><a class="reference internal" href="instalador.html">instalador.py</a></li>
+</ul>
+<p aria-level="2" class="caption" role="heading"><span class="caption-text">Algoritmo Evolutivo (RCE)</span></p>
+<ul class="nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="AlgEvolutivoRCE_backup_alg_evolutivo_rce.html">alg_evolutivo_rce.py</a></li>
+<li class="toctree-l1"><a class="reference internal" href="AlgEvolutivoRCE_backup_Setup.html">Setup.py</a></li>
+<li class="toctree-l1"><a class="reference internal" href="AlgEvolutivoRCE_backup_Dashboard.html">Dashboard.py</a></li>
+</ul>
+<p aria-level="2" class="caption" role="heading"><span class="caption-text">Dashboard App</span></p>
+<ul class="nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="DashboardApp_dashboard_RCE_APP.html">dashboard_RCE_APP.py</a></li>
+<li class="toctree-l1"><a class="reference internal" href="DashboardApp_views_Screens_DashboardRCEPage.html">DashboardRCEPage.py</a></li>
+<li class="toctree-l1"><a class="reference internal" href="DashboardApp_controllers_Utils.html">Utils.py</a></li>
+</ul>
+<p aria-level="2" class="caption" role="heading"><span class="caption-text">Modelo da Rede Elétrica</span></p>
+<ul class="nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="RedeEletrica_backup_rede_eletrica.html">rede_eletrica.py</a></li>
+<li class="toctree-l1"><a class="reference internal" href="RedeEletrica_backup_exemplos_getting_started_deap_pandapower_exemplo.html">getting_started_deap_pandapower_exemplo.py</a></li>
+<li class="toctree-l1"><a class="reference internal" href="RedeEletrica_backup_simulator_anarede_dataset.html">anarede_dataset.py</a></li>
+</ul>
+
+    </div>
+</nav></div>
+    </div>
+  
+  
+  <div class="sidebar-primary-items__end sidebar-primary__section">
+  </div>
+  
+  <div id="rtd-footer-container"></div>
+
+
+      </div>
+      
+      <main id="main-content" class="bd-main" role="main">
+        
+        
+
+<div class="sbt-scroll-pixel-helper"></div>
+
+          <div class="bd-content">
+            <div class="bd-article-container">
+              
+              <div class="bd-header-article d-print-none">
+<div class="header-article-items header-article__inner">
+  
+    <div class="header-article-items__start">
+      
+        <div class="header-article-item"><button class="sidebar-toggle primary-toggle btn btn-sm" title="Toggle primary sidebar" data-bs-placement="bottom" data-bs-toggle="tooltip">
+  <span class="fa-solid fa-bars"></span>
+</button></div>
+      
+    </div>
+  
+  
+    <div class="header-article-items__end">
+      
+        <div class="header-article-item">
+
+<div class="article-header-buttons">
+
+
+<a href="https://github.com/PedroVic12/Repopulation-With-Elite-Set" target="_blank"
+   class="btn btn-sm btn-source-repository-button"
+   title="Repositório fonte"
+   data-bs-placement="bottom" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fab fa-github"></i>
+  </span>
+
+</a>
+
+
+
+
+
+
+<div class="dropdown dropdown-download-buttons">
+  <button class="btn dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false" aria-label="Baixe esta página">
+    <i class="fas fa-download"></i>
+  </button>
+  <ul class="dropdown-menu">
+      
+      
+      
+      <li><a href="_sources/DashboardApp_views_app_simulate_dashboard_ieee_cases.md" target="_blank"
+   class="btn btn-sm btn-download-source-button dropdown-item"
+   title="Baixar arquivo fonte"
+   data-bs-placement="left" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-file"></i>
+  </span>
+<span class="btn__text-container">.md</span>
+</a>
+</li>
+      
+      
+      
+      
+      <li>
+<button onclick="window.print()"
+  class="btn btn-sm btn-download-pdf-button dropdown-item"
+  title="Imprimir em PDF"
+  data-bs-placement="left" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-file-pdf"></i>
+  </span>
+<span class="btn__text-container">.pdf</span>
+</button>
+</li>
+      
+  </ul>
+</div>
+
+
+
+
+<button onclick="toggleFullScreen()"
+  class="btn btn-sm btn-fullscreen-button"
+  title="Modo tela cheia"
+  data-bs-placement="bottom" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-expand"></i>
+  </span>
+
+</button>
+
+
+
+<script>
+document.write(`
+  <button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button" title="light/dark" aria-label="light/dark" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="theme-switch fa-solid fa-sun fa-lg" data-mode="light"></i>
+    <i class="theme-switch fa-solid fa-moon fa-lg" data-mode="dark"></i>
+    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto"></i>
+  </button>
+`);
+</script>
+
+
+<script>
+document.write(`
+  <button class="btn btn-sm pst-navbar-icon search-button search-button__button" title="Buscar" aria-label="Buscar" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass fa-lg"></i>
+  </button>
+`);
+</script>
+
+</div></div>
+      
+    </div>
+  
+</div>
+</div>
+              
+              
+
+<div id="jb-print-docs-body" class="onlyprint">
+    <h1>simulate_dashboard_ieee_cases.py</h1>
+    <!-- Table of contents -->
+    <div id="print-main-content">
+        <div id="jb-print-toc">
+            
+        </div>
+    </div>
+</div>
+
+              
+                
+<div id="searchbox"></div>
+                <article class="bd-article">
+                  
+  <section id="simulate-dashboard-ieee-cases-py">
+<h1>simulate_dashboard_ieee_cases.py<a class="headerlink" href="#simulate-dashboard-ieee-cases-py" title="Link para este cabeçalho">#</a></h1>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">streamlit</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">st</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">pandas</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">pd</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">pandapower</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">pp</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">pandapower.networks</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">pn</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">pandapower.plotting</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">plot</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">matplotlib.pyplot</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">plt</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">plotly.express</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">px</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">plotly.graph_objects</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">go</span>
+
+<span class="c1"># --- Configuração da Página ---</span>
+<span class="n">st</span><span class="o">.</span><span class="n">set_page_config</span><span class="p">(</span>
+    <span class="n">page_title</span><span class="o">=</span><span class="s2">&quot;Simulador de Redes Elétricas&quot;</span><span class="p">,</span>
+    <span class="n">layout</span><span class="o">=</span><span class="s2">&quot;wide&quot;</span><span class="p">,</span>
+    <span class="n">initial_sidebar_state</span><span class="o">=</span><span class="s2">&quot;expanded&quot;</span>
+<span class="p">)</span>
+
+<span class="c1"># --- Classe de Lógica da Rede ---</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">RedeEletricaModel</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Encapsula a lógica de análise de redes elétricas com Pandapower.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">network_name</span><span class="o">=</span><span class="s2">&quot;case14&quot;</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">network_name</span> <span class="o">=</span> <span class="n">network_name</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">net</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">carregar_rede</span><span class="p">(</span><span class="n">network_name</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">carregar_rede</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">network_name</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Carrega uma rede de teste do pandapower.&quot;&quot;&quot;</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">network_name</span> <span class="o">==</span> <span class="s2">&quot;case14&quot;</span><span class="p">:</span>
+                <span class="k">return</span> <span class="n">pn</span><span class="o">.</span><span class="n">case14</span><span class="p">()</span>
+            <span class="k">elif</span> <span class="n">network_name</span> <span class="o">==</span> <span class="s2">&quot;case30&quot;</span><span class="p">:</span>
+                <span class="k">return</span> <span class="n">pn</span><span class="o">.</span><span class="n">case_ieee30</span><span class="p">()</span>
+            <span class="k">elif</span> <span class="n">network_name</span> <span class="o">==</span> <span class="s2">&quot;case57&quot;</span><span class="p">:</span>
+                <span class="k">return</span> <span class="n">pn</span><span class="o">.</span><span class="n">case57</span><span class="p">()</span>
+            <span class="k">elif</span> <span class="n">network_name</span> <span class="o">==</span> <span class="s2">&quot;case118&quot;</span><span class="p">:</span>
+                <span class="k">return</span> <span class="n">pn</span><span class="o">.</span><span class="n">case118</span><span class="p">()</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">st</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Rede &#39;</span><span class="si">{</span><span class="n">network_name</span><span class="si">}</span><span class="s2">&#39; não reconhecida. Usando &#39;case14&#39;.&quot;</span><span class="p">)</span>
+                <span class="k">return</span> <span class="n">pn</span><span class="o">.</span><span class="n">case14</span><span class="p">()</span>
+        <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="n">st</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Falha ao carregar a rede: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">pp</span><span class="o">.</span><span class="n">create_empty_network</span><span class="p">()</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">resetar_rede</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Restaura a rede para o estado operacional religando todos os elementos.&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">net</span><span class="o">.</span><span class="n">line</span><span class="p">[</span><span class="s1">&#39;in_service&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="kc">True</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">net</span><span class="o">.</span><span class="n">trafo</span><span class="o">.</span><span class="n">empty</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">net</span><span class="o">.</span><span class="n">trafo</span><span class="p">[</span><span class="s1">&#39;in_service&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="kc">True</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">executar_fluxo_de_carga</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Executa o fluxo de carga e retorna o status de convergência.&quot;&quot;&quot;</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">pp</span><span class="o">.</span><span class="n">runpp</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">net</span><span class="p">,</span> <span class="n">algorithm</span><span class="o">=</span><span class="s2">&quot;nr&quot;</span><span class="p">,</span> <span class="n">numba</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+            <span class="k">return</span> <span class="kc">True</span><span class="p">,</span> <span class="kc">None</span>
+        <span class="k">except</span> <span class="n">pp</span><span class="o">.</span><span class="n">LoadflowNotConverged</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">False</span><span class="p">,</span> <span class="s2">&quot;Fluxo de Potência não convergiu.&quot;</span>
+        <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">False</span><span class="p">,</span> <span class="sa">f</span><span class="s2">&quot;Ocorreu um erro inesperado: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">aplicar_contingencia</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">tipo_elemento</span><span class="p">,</span> <span class="n">elemento_id</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Aplica uma contingência desligando um elemento da rede.&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">tipo_elemento</span> <span class="o">==</span> <span class="s1">&#39;Linha&#39;</span> <span class="ow">and</span> <span class="n">elemento_id</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">net</span><span class="o">.</span><span class="n">line</span><span class="o">.</span><span class="n">index</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">net</span><span class="o">.</span><span class="n">line</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">elemento_id</span><span class="p">,</span> <span class="s1">&#39;in_service&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="k">elif</span> <span class="n">tipo_elemento</span> <span class="o">==</span> <span class="s1">&#39;Transformador&#39;</span> <span class="ow">and</span> <span class="n">elemento_id</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">net</span><span class="o">.</span><span class="n">trafo</span><span class="o">.</span><span class="n">index</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">net</span><span class="o">.</span><span class="n">trafo</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">elemento_id</span><span class="p">,</span> <span class="s1">&#39;in_service&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="kc">False</span>
+
+<span class="c1"># --- Classe Repositório de Dados ---</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">ResultsRepository</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Classe para buscar e formatar os dados de resultados da rede para os gráficos e KPIs.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">net</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">net</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="ow">not</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">net</span><span class="p">,</span> <span class="s1">&#39;res_bus&#39;</span><span class="p">)</span> <span class="ow">or</span> <span class="n">net</span><span class="o">.</span><span class="n">res_bus</span><span class="o">.</span><span class="n">empty</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;A rede pandapower não foi simulada ou não contém resultados.&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">net</span> <span class="o">=</span> <span class="n">net</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_kpis</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Calcula e retorna os principais indicadores (KPIs) da rede.&quot;&quot;&quot;</span>
+        <span class="n">kpis</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s2">&quot;total_load_mw&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">net</span><span class="o">.</span><span class="n">res_load</span><span class="o">.</span><span class="n">p_mw</span><span class="o">.</span><span class="n">sum</span><span class="p">(),</span>
+            <span class="s2">&quot;total_gen_mw&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">net</span><span class="o">.</span><span class="n">res_gen</span><span class="o">.</span><span class="n">p_mw</span><span class="o">.</span><span class="n">sum</span><span class="p">(),</span>
+            <span class="s2">&quot;voltage_violations&quot;</span><span class="p">:</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">net</span><span class="o">.</span><span class="n">res_bus</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">net</span><span class="o">.</span><span class="n">res_bus</span><span class="o">.</span><span class="n">vm_pu</span> <span class="o">&gt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">net</span><span class="o">.</span><span class="n">bus</span><span class="o">.</span><span class="n">max_vm_pu</span><span class="p">])</span> <span class="o">+</span> \
+                                  <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">net</span><span class="o">.</span><span class="n">res_bus</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">net</span><span class="o">.</span><span class="n">res_bus</span><span class="o">.</span><span class="n">vm_pu</span> <span class="o">&lt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">net</span><span class="o">.</span><span class="n">bus</span><span class="o">.</span><span class="n">min_vm_pu</span><span class="p">]),</span>
+            <span class="s2">&quot;overloads&quot;</span><span class="p">:</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">net</span><span class="o">.</span><span class="n">res_line</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">net</span><span class="o">.</span><span class="n">res_line</span><span class="o">.</span><span class="n">loading_percent</span> <span class="o">&gt;</span> <span class="mi">100</span><span class="p">])</span> <span class="o">+</span> \
+                         <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">net</span><span class="o">.</span><span class="n">res_trafo</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">net</span><span class="o">.</span><span class="n">res_trafo</span><span class="o">.</span><span class="n">loading_percent</span> <span class="o">&gt;</span> <span class="mi">100</span><span class="p">]</span> <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">net</span><span class="p">,</span> <span class="s1">&#39;res_trafo&#39;</span><span class="p">)</span> <span class="k">else</span> <span class="p">[])</span>
+        <span class="p">}</span>
+        <span class="k">return</span> <span class="n">kpis</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_centralized_generation_data</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Retorna um DataFrame com os dados de Geração Centralizada (baseado na imagem ONS).&quot;&quot;&quot;</span>
+        <span class="n">data</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s1">&#39;Fonte&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s1">&#39;Hidráulica&#39;</span><span class="p">,</span> <span class="s1">&#39;Eólica&#39;</span><span class="p">,</span> <span class="s1">&#39;Fotovoltaica&#39;</span><span class="p">,</span> <span class="s1">&#39;Térmica&#39;</span><span class="p">,</span> <span class="s1">&#39;Nuclear&#39;</span><span class="p">],</span>
+            <span class="s1">&#39;Geração (MW)&#39;</span><span class="p">:</span> <span class="p">[</span><span class="mi">31675</span><span class="p">,</span> <span class="mi">16416</span><span class="p">,</span> <span class="mi">6719</span><span class="p">,</span> <span class="mi">7531</span><span class="p">,</span> <span class="mi">1365</span><span class="p">]</span>
+        <span class="p">}</span>
+        <span class="k">return</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_distributed_generation_data</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Retorna um DataFrame com os dados de Geração Distribuída (baseado na imagem ONS).&quot;&quot;&quot;</span>
+        <span class="n">data</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s1">&#39;Fonte&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s1">&#39;MMGD&#39;</span><span class="p">,</span> <span class="s1">&#39;PCH&#39;</span><span class="p">,</span> <span class="s1">&#39;PCT&#39;</span><span class="p">],</span>
+            <span class="s1">&#39;Geração (MW)&#39;</span><span class="p">:</span> <span class="p">[</span><span class="mi">10316</span><span class="p">,</span> <span class="mi">2816</span><span class="p">,</span> <span class="mi">2054</span><span class="p">]</span>
+        <span class="p">}</span>
+        <span class="k">return</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_bus_voltage_data</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">df</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">net</span><span class="o">.</span><span class="n">res_bus</span><span class="p">[[</span><span class="s1">&#39;vm_pu&#39;</span><span class="p">]]</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+        <span class="n">df</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">reset_index</span><span class="p">()</span><span class="o">.</span><span class="n">rename</span><span class="p">(</span><span class="n">columns</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;index&#39;</span><span class="p">:</span> <span class="s1">&#39;Barra&#39;</span><span class="p">,</span> <span class="s1">&#39;vm_pu&#39;</span><span class="p">:</span> <span class="s1">&#39;Tensão (p.u.)&#39;</span><span class="p">})</span>
+        <span class="k">return</span> <span class="n">df</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_line_loading_data</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">df</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">net</span><span class="o">.</span><span class="n">res_line</span><span class="p">[[</span><span class="s1">&#39;loading_percent&#39;</span><span class="p">]]</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+        <span class="n">df</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">reset_index</span><span class="p">()</span><span class="o">.</span><span class="n">rename</span><span class="p">(</span><span class="n">columns</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;index&#39;</span><span class="p">:</span> <span class="s1">&#39;Linha&#39;</span><span class="p">,</span> <span class="s1">&#39;loading_percent&#39;</span><span class="p">:</span> <span class="s1">&#39;Carregamento (%)&#39;</span><span class="p">})</span>
+        <span class="k">return</span> <span class="n">df</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_trafo_loading_data</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">net</span><span class="p">,</span> <span class="s1">&#39;res_trafo&#39;</span><span class="p">)</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">net</span><span class="o">.</span><span class="n">res_trafo</span><span class="o">.</span><span class="n">empty</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">columns</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;Transformador&#39;</span><span class="p">,</span> <span class="s1">&#39;Carregamento (%)&#39;</span><span class="p">])</span>
+        <span class="n">df</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">net</span><span class="o">.</span><span class="n">res_trafo</span><span class="p">[[</span><span class="s1">&#39;loading_percent&#39;</span><span class="p">]]</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+        <span class="n">df</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">reset_index</span><span class="p">()</span><span class="o">.</span><span class="n">rename</span><span class="p">(</span><span class="n">columns</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;index&#39;</span><span class="p">:</span> <span class="s1">&#39;Transformador&#39;</span><span class="p">,</span> <span class="s1">&#39;loading_percent&#39;</span><span class="p">:</span> <span class="s1">&#39;Carregamento (%)&#39;</span><span class="p">})</span>
+        <span class="k">return</span> <span class="n">df</span>
+
+<span class="c1"># --- Funções de Plotagem ---</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">plotar_rede</span><span class="p">(</span><span class="n">net</span><span class="p">):</span>
+    <span class="n">fig</span><span class="p">,</span> <span class="n">ax</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">8</span><span class="p">,</span> <span class="mi">8</span><span class="p">))</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">set_facecolor</span><span class="p">(</span><span class="s2">&quot;#f0f2f6&quot;</span><span class="p">)</span>
+    <span class="n">fig</span><span class="o">.</span><span class="n">patch</span><span class="o">.</span><span class="n">set_facecolor</span><span class="p">(</span><span class="s2">&quot;#f0f2f6&quot;</span><span class="p">)</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">titulo</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;Diagrama da Rede: </span><span class="si">{</span><span class="n">net</span><span class="o">.</span><span class="n">name</span><span class="o">.</span><span class="n">upper</span><span class="p">()</span><span class="w"> </span><span class="k">if</span><span class="w"> </span><span class="nb">hasattr</span><span class="p">(</span><span class="n">net</span><span class="p">,</span><span class="w"> </span><span class="s1">&#39;name&#39;</span><span class="p">)</span><span class="w"> </span><span class="ow">and</span><span class="w"> </span><span class="n">net</span><span class="o">.</span><span class="n">name</span><span class="w"> </span><span class="k">else</span><span class="w"> </span><span class="s1">&#39;Desconhecida&#39;</span><span class="si">}</span><span class="s2">&quot;</span>
+        <span class="n">plot</span><span class="o">.</span><span class="n">simple_plot</span><span class="p">(</span><span class="n">net</span><span class="p">,</span> <span class="n">ax</span><span class="o">=</span><span class="n">ax</span><span class="p">,</span> <span class="n">bus_size</span><span class="o">=</span><span class="mf">0.6</span><span class="p">,</span> <span class="n">line_width</span><span class="o">=</span><span class="mf">2.0</span><span class="p">)</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="n">titulo</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">16</span><span class="p">)</span>
+    <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">text</span><span class="p">(</span><span class="mf">0.5</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">,</span> <span class="sa">f</span><span class="s2">&quot;Erro ao plotar a rede:</span><span class="se">\n</span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">ha</span><span class="o">=</span><span class="s1">&#39;center&#39;</span><span class="p">,</span> <span class="n">va</span><span class="o">=</span><span class="s1">&#39;center&#39;</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">fig</span>
+
+<span class="k">def</span><span class="w"> </span><span class="nf">plotar_grafico_barra_plotly</span><span class="p">(</span><span class="n">df</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">titulo</span><span class="p">):</span>
+    <span class="n">fig</span> <span class="o">=</span> <span class="n">px</span><span class="o">.</span><span class="n">bar</span><span class="p">(</span><span class="n">df</span><span class="p">,</span> <span class="n">x</span><span class="o">=</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="o">=</span><span class="n">y</span><span class="p">,</span> <span class="n">title</span><span class="o">=</span><span class="n">titulo</span><span class="p">,</span> <span class="n">text_auto</span><span class="o">=</span><span class="s1">&#39;.2f&#39;</span><span class="p">)</span>
+    <span class="n">fig</span><span class="o">.</span><span class="n">update_traces</span><span class="p">(</span><span class="n">textposition</span><span class="o">=</span><span class="s1">&#39;outside&#39;</span><span class="p">)</span>
+    <span class="n">fig</span><span class="o">.</span><span class="n">update_layout</span><span class="p">(</span><span class="n">title_x</span><span class="o">=</span><span class="mf">0.5</span><span class="p">,</span> <span class="n">xaxis_title</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">yaxis_title</span><span class="o">=</span><span class="n">y</span><span class="p">,</span> <span class="n">height</span><span class="o">=</span><span class="mi">350</span><span class="p">,</span> <span class="n">xaxis</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;type&#39;</span><span class="p">:</span> <span class="s1">&#39;category&#39;</span><span class="p">})</span>
+    <span class="k">return</span> <span class="n">fig</span>
+
+<span class="k">def</span><span class="w"> </span><span class="nf">plotar_grafico_donut_plotly</span><span class="p">(</span><span class="n">df</span><span class="p">,</span> <span class="n">values</span><span class="p">,</span> <span class="n">names</span><span class="p">,</span> <span class="n">titulo</span><span class="p">):</span>
+    <span class="n">fig</span> <span class="o">=</span> <span class="n">go</span><span class="o">.</span><span class="n">Figure</span><span class="p">(</span><span class="n">data</span><span class="o">=</span><span class="p">[</span><span class="n">go</span><span class="o">.</span><span class="n">Pie</span><span class="p">(</span><span class="n">labels</span><span class="o">=</span><span class="n">df</span><span class="p">[</span><span class="n">names</span><span class="p">],</span> <span class="n">values</span><span class="o">=</span><span class="n">df</span><span class="p">[</span><span class="n">values</span><span class="p">],</span> <span class="n">hole</span><span class="o">=</span><span class="mf">.4</span><span class="p">,</span> <span class="n">textinfo</span><span class="o">=</span><span class="s1">&#39;percent+label&#39;</span><span class="p">)])</span>
+    <span class="n">fig</span><span class="o">.</span><span class="n">update_layout</span><span class="p">(</span><span class="n">title_text</span><span class="o">=</span><span class="n">titulo</span><span class="p">,</span> <span class="n">title_x</span><span class="o">=</span><span class="mf">0.5</span><span class="p">,</span> <span class="n">height</span><span class="o">=</span><span class="mi">350</span><span class="p">,</span> <span class="n">showlegend</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">fig</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">SimulacaoAnaliseContigenciasPage</span><span class="p">():</span>
+
+    <span class="c1"># --- Interface Principal do Streamlit ---</span>
+    <span class="n">st</span><span class="o">.</span><span class="n">title</span><span class="p">(</span><span class="s2">&quot;⚡ Dashboard de Análise de Contingências Elétricas&quot;</span><span class="p">)</span>
+
+    <span class="c1"># --- Barra Lateral de Controles ---</span>
+    <span class="k">with</span> <span class="n">st</span><span class="o">.</span><span class="n">sidebar</span><span class="p">:</span>
+        <span class="n">st</span><span class="o">.</span><span class="n">header</span><span class="p">(</span><span class="s2">&quot;Parâmetros da Simulação&quot;</span><span class="p">)</span>
+        <span class="n">nome_rede</span> <span class="o">=</span> <span class="n">st</span><span class="o">.</span><span class="n">selectbox</span><span class="p">(</span><span class="s2">&quot;Selecione a Rede Elétrica:&quot;</span><span class="p">,</span> <span class="p">(</span><span class="s2">&quot;case14&quot;</span><span class="p">,</span> <span class="s2">&quot;case30&quot;</span><span class="p">,</span> <span class="s2">&quot;case57&quot;</span><span class="p">,</span> <span class="s2">&quot;case118&quot;</span><span class="p">),</span> <span class="n">key</span><span class="o">=</span><span class="s2">&quot;rede_selecionada&quot;</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="s1">&#39;rede_eletrica&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">st</span><span class="o">.</span><span class="n">session_state</span> <span class="ow">or</span> <span class="n">st</span><span class="o">.</span><span class="n">session_state</span><span class="o">.</span><span class="n">rede_eletrica</span><span class="o">.</span><span class="n">network_name</span> <span class="o">!=</span> <span class="n">nome_rede</span><span class="p">:</span>
+            <span class="k">with</span> <span class="n">st</span><span class="o">.</span><span class="n">spinner</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Carregando a rede </span><span class="si">{</span><span class="n">nome_rede</span><span class="si">}</span><span class="s2">...&quot;</span><span class="p">):</span>
+                <span class="n">st</span><span class="o">.</span><span class="n">session_state</span><span class="o">.</span><span class="n">rede_eletrica</span> <span class="o">=</span> <span class="n">RedeEletricaModel</span><span class="p">(</span><span class="n">nome_rede</span><span class="p">)</span>
+
+        <span class="n">rede</span> <span class="o">=</span> <span class="n">st</span><span class="o">.</span><span class="n">session_state</span><span class="o">.</span><span class="n">rede_eletrica</span>
+        <span class="n">rede</span><span class="o">.</span><span class="n">resetar_rede</span><span class="p">()</span>
+
+        <span class="n">st</span><span class="o">.</span><span class="n">subheader</span><span class="p">(</span><span class="s2">&quot;Análise de Contingência (N-1)&quot;</span><span class="p">)</span>
+        <span class="n">tipo_elemento</span> <span class="o">=</span> <span class="n">st</span><span class="o">.</span><span class="n">radio</span><span class="p">(</span><span class="s2">&quot;Tipo de Elemento para Desligar:&quot;</span><span class="p">,</span> <span class="p">(</span><span class="s1">&#39;Nenhum&#39;</span><span class="p">,</span> <span class="s1">&#39;Linha&#39;</span><span class="p">,</span> <span class="s1">&#39;Transformador&#39;</span><span class="p">),</span> <span class="n">key</span><span class="o">=</span><span class="s2">&quot;tipo_contingencia&quot;</span><span class="p">,</span> <span class="n">horizontal</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">tipo_elemento</span> <span class="o">==</span> <span class="s1">&#39;Linha&#39;</span><span class="p">:</span>
+            <span class="n">elemento_id</span> <span class="o">=</span> <span class="n">st</span><span class="o">.</span><span class="n">selectbox</span><span class="p">(</span><span class="s2">&quot;Selecione a Linha:&quot;</span><span class="p">,</span> <span class="n">rede</span><span class="o">.</span><span class="n">net</span><span class="o">.</span><span class="n">line</span><span class="o">.</span><span class="n">index</span><span class="p">,</span> <span class="n">format_func</span><span class="o">=</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="sa">f</span><span class="s2">&quot;Linha </span><span class="si">{</span><span class="n">x</span><span class="si">}</span><span class="s2"> (</span><span class="si">{</span><span class="n">rede</span><span class="o">.</span><span class="n">net</span><span class="o">.</span><span class="n">line</span><span class="o">.</span><span class="n">at</span><span class="p">[</span><span class="n">x</span><span class="p">,</span><span class="w"> </span><span class="s1">&#39;from_bus&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">↔</span><span class="si">{</span><span class="n">rede</span><span class="o">.</span><span class="n">net</span><span class="o">.</span><span class="n">line</span><span class="o">.</span><span class="n">at</span><span class="p">[</span><span class="n">x</span><span class="p">,</span><span class="w"> </span><span class="s1">&#39;to_bus&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">)&quot;</span><span class="p">)</span>
+            <span class="n">rede</span><span class="o">.</span><span class="n">aplicar_contingencia</span><span class="p">(</span><span class="s1">&#39;Linha&#39;</span><span class="p">,</span> <span class="n">elemento_id</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">tipo_elemento</span> <span class="o">==</span> <span class="s1">&#39;Transformador&#39;</span><span class="p">:</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">rede</span><span class="o">.</span><span class="n">net</span><span class="o">.</span><span class="n">trafo</span><span class="o">.</span><span class="n">empty</span><span class="p">:</span>
+                <span class="n">elemento_id</span> <span class="o">=</span> <span class="n">st</span><span class="o">.</span><span class="n">selectbox</span><span class="p">(</span><span class="s2">&quot;Selecione o Transformador:&quot;</span><span class="p">,</span> <span class="n">rede</span><span class="o">.</span><span class="n">net</span><span class="o">.</span><span class="n">trafo</span><span class="o">.</span><span class="n">index</span><span class="p">,</span> <span class="n">format_func</span><span class="o">=</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="sa">f</span><span class="s2">&quot;Trafo </span><span class="si">{</span><span class="n">x</span><span class="si">}</span><span class="s2"> (</span><span class="si">{</span><span class="n">rede</span><span class="o">.</span><span class="n">net</span><span class="o">.</span><span class="n">trafo</span><span class="o">.</span><span class="n">at</span><span class="p">[</span><span class="n">x</span><span class="p">,</span><span class="w"> </span><span class="s1">&#39;hv_bus&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">↔</span><span class="si">{</span><span class="n">rede</span><span class="o">.</span><span class="n">net</span><span class="o">.</span><span class="n">trafo</span><span class="o">.</span><span class="n">at</span><span class="p">[</span><span class="n">x</span><span class="p">,</span><span class="w"> </span><span class="s1">&#39;lv_bus&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">)&quot;</span><span class="p">)</span>
+                <span class="n">rede</span><span class="o">.</span><span class="n">aplicar_contingencia</span><span class="p">(</span><span class="s1">&#39;Transformador&#39;</span><span class="p">,</span> <span class="n">elemento_id</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">st</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;Esta rede não possui transformadores.&quot;</span><span class="p">)</span>
+
+    <span class="c1"># --- Execução da Análise ---</span>
+    <span class="k">with</span> <span class="n">st</span><span class="o">.</span><span class="n">spinner</span><span class="p">(</span><span class="s2">&quot;Executando fluxo de potência...&quot;</span><span class="p">):</span>
+        <span class="n">convergiu</span><span class="p">,</span> <span class="n">mensagem_erro</span> <span class="o">=</span> <span class="n">rede</span><span class="o">.</span><span class="n">executar_fluxo_de_carga</span><span class="p">()</span>
+
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">convergiu</span><span class="p">:</span>
+        <span class="n">st</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;**Falha na Simulação:** </span><span class="si">{</span><span class="n">mensagem_erro</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">st</span><span class="o">.</span><span class="n">success</span><span class="p">(</span><span class="s2">&quot;**Simulação concluída com sucesso!**&quot;</span><span class="p">)</span>
+        
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">repo</span> <span class="o">=</span> <span class="n">ResultsRepository</span><span class="p">(</span><span class="n">rede</span><span class="o">.</span><span class="n">net</span><span class="p">)</span>
+            <span class="n">kpis</span> <span class="o">=</span> <span class="n">repo</span><span class="o">.</span><span class="n">get_kpis</span><span class="p">()</span>
+
+            <span class="c1"># --- Painel de Métricas (KPIs) ---</span>
+            <span class="n">st</span><span class="o">.</span><span class="n">divider</span><span class="p">()</span>
+            <span class="n">col1</span><span class="p">,</span> <span class="n">col2</span><span class="p">,</span> <span class="n">col3</span><span class="p">,</span> <span class="n">col4</span> <span class="o">=</span> <span class="n">st</span><span class="o">.</span><span class="n">columns</span><span class="p">(</span><span class="mi">4</span><span class="p">)</span>
+            <span class="n">col1</span><span class="o">.</span><span class="n">metric</span><span class="p">(</span><span class="s2">&quot;Carga Total (MW)&quot;</span><span class="p">,</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">kpis</span><span class="p">[</span><span class="s1">&#39;total_load_mw&#39;</span><span class="p">]</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="n">col2</span><span class="o">.</span><span class="n">metric</span><span class="p">(</span><span class="s2">&quot;Geração Total (MW)&quot;</span><span class="p">,</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">kpis</span><span class="p">[</span><span class="s1">&#39;total_gen_mw&#39;</span><span class="p">]</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="n">col3</span><span class="o">.</span><span class="n">metric</span><span class="p">(</span><span class="s2">&quot;Violações de Tensão&quot;</span><span class="p">,</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">kpis</span><span class="p">[</span><span class="s1">&#39;voltage_violations&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">delta</span><span class="o">=</span><span class="n">kpis</span><span class="p">[</span><span class="s1">&#39;voltage_violations&#39;</span><span class="p">],</span> <span class="n">delta_color</span><span class="o">=</span><span class="s2">&quot;inverse&quot;</span><span class="p">)</span>
+            <span class="n">col4</span><span class="o">.</span><span class="n">metric</span><span class="p">(</span><span class="s2">&quot;Sobrecargas (Linha/Trafo)&quot;</span><span class="p">,</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">kpis</span><span class="p">[</span><span class="s1">&#39;overloads&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">delta</span><span class="o">=</span><span class="n">kpis</span><span class="p">[</span><span class="s1">&#39;overloads&#39;</span><span class="p">],</span> <span class="n">delta_color</span><span class="o">=</span><span class="s2">&quot;inverse&quot;</span><span class="p">)</span>
+            <span class="n">st</span><span class="o">.</span><span class="n">divider</span><span class="p">()</span>
+
+            <span class="c1"># --- Layout Principal ---</span>
+            <span class="n">col_esq</span><span class="p">,</span> <span class="n">col_dir</span> <span class="o">=</span> <span class="n">st</span><span class="o">.</span><span class="n">columns</span><span class="p">([</span><span class="mf">0.8</span><span class="p">,</span> <span class="mf">1.2</span><span class="p">],</span> <span class="n">gap</span><span class="o">=</span><span class="s2">&quot;large&quot;</span><span class="p">)</span>
+
+            <span class="k">with</span> <span class="n">col_esq</span><span class="p">:</span>
+
+                <span class="n">st</span><span class="o">.</span><span class="n">subheader</span><span class="p">(</span><span class="s2">&quot;Simulação da Rede&quot;</span><span class="p">)</span>
+                <span class="n">fig_rede</span> <span class="o">=</span> <span class="n">plotar_rede</span><span class="p">(</span><span class="n">rede</span><span class="o">.</span><span class="n">net</span><span class="p">)</span>
+                <span class="n">st</span><span class="o">.</span><span class="n">pyplot</span><span class="p">(</span><span class="n">fig_rede</span><span class="p">)</span>
+
+
+
+            <span class="k">with</span> <span class="n">col_dir</span><span class="p">:</span>
+
+                            <span class="c1"># --- Abas com Análises Detalhadas ---</span>
+                <span class="n">st</span><span class="o">.</span><span class="n">subheader</span><span class="p">(</span><span class="s2">&quot;Resultados Detalhados da Simulação&quot;</span><span class="p">)</span>
+                <span class="n">tab1</span><span class="p">,</span> <span class="n">tab2</span><span class="p">,</span> <span class="n">tab3</span> <span class="o">=</span> <span class="n">st</span><span class="o">.</span><span class="n">tabs</span><span class="p">([</span><span class="s2">&quot;📊 Tensões nas Barras&quot;</span><span class="p">,</span> <span class="s2">&quot;📈 Carregamento das Linhas&quot;</span><span class="p">,</span> <span class="s2">&quot;📈 Carregamento dos Transformadores&quot;</span><span class="p">])</span>
+
+                <span class="k">with</span> <span class="n">tab1</span><span class="p">:</span>
+                    <span class="n">df_tensao</span> <span class="o">=</span> <span class="n">repo</span><span class="o">.</span><span class="n">get_bus_voltage_data</span><span class="p">()</span>
+                    <span class="n">fig_tensao</span> <span class="o">=</span> <span class="n">plotar_grafico_barra_plotly</span><span class="p">(</span><span class="n">df_tensao</span><span class="p">,</span> <span class="s1">&#39;Barra&#39;</span><span class="p">,</span> <span class="s1">&#39;Tensão (p.u.)&#39;</span><span class="p">,</span> <span class="s1">&#39;Tensão por Barra (p.u.)&#39;</span><span class="p">)</span>
+                    <span class="n">st</span><span class="o">.</span><span class="n">plotly_chart</span><span class="p">(</span><span class="n">fig_tensao</span><span class="p">,</span> <span class="n">use_container_width</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+                    <span class="k">with</span> <span class="n">st</span><span class="o">.</span><span class="n">expander</span><span class="p">(</span><span class="s2">&quot;Ver dados de tensão&quot;</span><span class="p">):</span>
+                        <span class="n">st</span><span class="o">.</span><span class="n">dataframe</span><span class="p">(</span><span class="n">df_tensao</span><span class="p">,</span> <span class="n">use_container_width</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+                <span class="k">with</span> <span class="n">tab2</span><span class="p">:</span>
+                    <span class="n">df_linhas</span> <span class="o">=</span> <span class="n">repo</span><span class="o">.</span><span class="n">get_line_loading_data</span><span class="p">()</span>
+                    <span class="n">fig_linhas</span> <span class="o">=</span> <span class="n">plotar_grafico_barra_plotly</span><span class="p">(</span><span class="n">df_linhas</span><span class="p">,</span> <span class="s1">&#39;Linha&#39;</span><span class="p">,</span> <span class="s1">&#39;Carregamento (%)&#39;</span><span class="p">,</span> <span class="s1">&#39;Carregamento das Linhas (%)&#39;</span><span class="p">)</span>
+                    <span class="n">st</span><span class="o">.</span><span class="n">plotly_chart</span><span class="p">(</span><span class="n">fig_linhas</span><span class="p">,</span> <span class="n">use_container_width</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+                    <span class="k">with</span> <span class="n">st</span><span class="o">.</span><span class="n">expander</span><span class="p">(</span><span class="s2">&quot;Ver dados de carregamento de linhas&quot;</span><span class="p">):</span>
+                        <span class="n">st</span><span class="o">.</span><span class="n">dataframe</span><span class="p">(</span><span class="n">df_linhas</span><span class="p">,</span> <span class="n">use_container_width</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+                <span class="k">with</span> <span class="n">tab3</span><span class="p">:</span>
+                    <span class="n">df_trafos</span> <span class="o">=</span> <span class="n">repo</span><span class="o">.</span><span class="n">get_trafo_loading_data</span><span class="p">()</span>
+                    <span class="k">if</span> <span class="n">df_trafos</span><span class="o">.</span><span class="n">empty</span><span class="p">:</span>
+                        <span class="n">st</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Não há transformadores nesta rede para exibir resultados.&quot;</span><span class="p">)</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="n">fig_trafos</span> <span class="o">=</span> <span class="n">plotar_grafico_barra_plotly</span><span class="p">(</span><span class="n">df_trafos</span><span class="p">,</span> <span class="s1">&#39;Transformador&#39;</span><span class="p">,</span> <span class="s1">&#39;Carregamento (%)&#39;</span><span class="p">,</span> <span class="s1">&#39;Carregamento dos Transformadores (%)&#39;</span><span class="p">)</span>
+                        <span class="n">st</span><span class="o">.</span><span class="n">plotly_chart</span><span class="p">(</span><span class="n">fig_trafos</span><span class="p">,</span> <span class="n">use_container_width</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+                        <span class="k">with</span> <span class="n">st</span><span class="o">.</span><span class="n">expander</span><span class="p">(</span><span class="s2">&quot;Ver dados de carregamento de transformadores&quot;</span><span class="p">):</span>
+                            <span class="n">st</span><span class="o">.</span><span class="n">dataframe</span><span class="p">(</span><span class="n">df_trafos</span><span class="p">,</span> <span class="n">use_container_width</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+                            
+                <span class="n">st</span><span class="o">.</span><span class="n">subheader</span><span class="p">(</span><span class="s2">&quot;Visualização do Sistema&quot;</span><span class="p">)</span>
+                
+                <span class="c1"># --- Diagrama e Gráficos de Geração ---</span>
+                <span class="c1"># Simulação e descrição do sistema baseado no sistema que eu vi no ONS </span>
+                <span class="n">c1</span><span class="p">,</span> <span class="n">c2</span> <span class="o">=</span> <span class="n">st</span><span class="o">.</span><span class="n">columns</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span>
+                <span class="k">with</span> <span class="n">c1</span><span class="p">:</span>
+                    <span class="n">df_centralizada</span> <span class="o">=</span> <span class="n">repo</span><span class="o">.</span><span class="n">get_centralized_generation_data</span><span class="p">()</span>
+                    <span class="n">fig_centralizada</span> <span class="o">=</span> <span class="n">plotar_grafico_donut_plotly</span><span class="p">(</span><span class="n">df_centralizada</span><span class="p">,</span> <span class="s2">&quot;Geração (MW)&quot;</span><span class="p">,</span> <span class="s2">&quot;Fonte&quot;</span><span class="p">,</span> <span class="s2">&quot;Geração Centralizada (81%)&quot;</span><span class="p">)</span>
+                    <span class="n">st</span><span class="o">.</span><span class="n">plotly_chart</span><span class="p">(</span><span class="n">fig_centralizada</span><span class="p">,</span> <span class="n">use_container_width</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+                
+                <span class="k">with</span> <span class="n">c2</span><span class="p">:</span>
+                    <span class="n">df_distribuida</span> <span class="o">=</span> <span class="n">repo</span><span class="o">.</span><span class="n">get_distributed_generation_data</span><span class="p">()</span>
+                    <span class="n">fig_distribuida</span> <span class="o">=</span> <span class="n">plotar_grafico_donut_plotly</span><span class="p">(</span><span class="n">df_distribuida</span><span class="p">,</span> <span class="s2">&quot;Geração (MW)&quot;</span><span class="p">,</span> <span class="s2">&quot;Fonte&quot;</span><span class="p">,</span> <span class="s2">&quot;Geração Distribuída (19%)&quot;</span><span class="p">)</span>
+                    <span class="n">st</span><span class="o">.</span><span class="n">plotly_chart</span><span class="p">(</span><span class="n">fig_distribuida</span><span class="p">,</span> <span class="n">use_container_width</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+                <span class="n">st</span><span class="o">.</span><span class="n">subheader</span><span class="p">(</span><span class="s2">&quot;Resumo de Análise do Cenário da Rede&quot;</span><span class="p">)</span>
+                <span class="n">st</span><span class="o">.</span><span class="n">markdown</span><span class="p">(</span><span class="s2">&quot;&quot;&quot;</span>
+<span class="s2">                Este painel oferece uma visão interativa do estado do sistema elétrico. Use os controles na barra lateral para simular cenários e avaliar a segurança da rede.</span>
+
+<span class="s2">                **Componentes do Dashboard:**</span>
+<span class="s2">                - **Indicadores (KPIs):** Resumo da situação atual, incluindo carga, geração e alertas de violações.</span>
+<span class="s2">                - **Diagrama da Rede:** Topologia do sistema elétrico selecionado.</span>
+<span class="s2">                - **Mix de Geração:** Detalha a matriz energética do cenário base, inspirado no painel do ONS.</span>
+<span class="s2">                - **Resultados da Análise (Abas):** Monitoramento de tensões e carregamento de equipamentos.</span>
+
+<span class="s2">                Use a simulação de contingência (N-1) para desligar um elemento e observar como o sistema reage à falha.</span>
+<span class="s2">                &quot;&quot;&quot;</span><span class="p">)</span>
+
+
+                
+                
+
+        
+        <span class="k">except</span> <span class="ne">ValueError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="n">st</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Erro ao processar os resultados: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="n">st</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Ocorreu um erro inesperado ao exibir os resultados: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="n">st</span><span class="o">.</span><span class="n">exception</span><span class="p">(</span><span class="n">e</span><span class="p">)</span>
+
+
+<span class="n">SimulacaoAnaliseContigenciasPage</span><span class="p">()</span>
+</pre></div>
+</div>
+</section>
+
+
+                </article>
+              
+
+              
+              
+              
+              
+                <footer class="prev-next-footer d-print-none">
+                  
+<div class="prev-next-area">
+</div>
+                </footer>
+              
+            </div>
+            
+            
+              
+            
+          </div>
+          <footer class="bd-footer-content">
+            
+<div class="bd-footer-content__inner container">
+  
+  <div class="footer-item">
+    
+<p class="component-author">
+De Pedro
+</p>
+
+  </div>
+  
+  <div class="footer-item">
+    
+
+  <p class="copyright">
+    
+      © Copyright 2025, Pedro.
+      <br/>
+    
+  </p>
+
+  </div>
+  
+  <div class="footer-item">
+    
+  </div>
+  
+  <div class="footer-item">
+    
+  </div>
+  
+</div>
+          </footer>
+        
+
+      </main>
+    </div>
+  </div>
+  
+  <!-- Scripts loaded after <body> so the DOM is not blocked -->
+  <script src="_static/scripts/bootstrap.js?digest=dfe6caa3a7d634c4db9b"></script>
+<script src="_static/scripts/pydata-sphinx-theme.js?digest=dfe6caa3a7d634c4db9b"></script>
+
+  <footer class="bd-footer">
+  </footer>
+  </body>
+</html>

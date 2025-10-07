@@ -1,0 +1,1035 @@
+
+<!DOCTYPE html>
+
+
+<html lang="pt-BR" data-content_root="./" >
+
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>FramewrokRCEDashboardPage.py &#8212; Documentação Repopulation-With-Elite-Set 0.1</title>
+  
+  
+  
+  <script data-cfasync="false">
+    document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
+    document.documentElement.dataset.theme = localStorage.getItem("theme") || "";
+  </script>
+  
+  <!-- Loaded before other Sphinx assets -->
+  <link href="_static/styles/theme.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+<link href="_static/styles/bootstrap.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+<link href="_static/styles/pydata-sphinx-theme.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+
+  
+  <link href="_static/vendor/fontawesome/6.5.2/css/all.min.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+  <link rel="preload" as="font" type="font/woff2" crossorigin href="_static/vendor/fontawesome/6.5.2/webfonts/fa-solid-900.woff2" />
+<link rel="preload" as="font" type="font/woff2" crossorigin href="_static/vendor/fontawesome/6.5.2/webfonts/fa-brands-400.woff2" />
+<link rel="preload" as="font" type="font/woff2" crossorigin href="_static/vendor/fontawesome/6.5.2/webfonts/fa-regular-400.woff2" />
+
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=8f2a1f02" />
+    <link rel="stylesheet" type="text/css" href="_static/styles/sphinx-book-theme.css?v=eba8b062" />
+  
+  <!-- Pre-loaded scripts that we'll load fully later -->
+  <link rel="preload" as="script" href="_static/scripts/bootstrap.js?digest=dfe6caa3a7d634c4db9b" />
+<link rel="preload" as="script" href="_static/scripts/pydata-sphinx-theme.js?digest=dfe6caa3a7d634c4db9b" />
+  <script src="_static/vendor/fontawesome/6.5.2/js/all.min.js?digest=dfe6caa3a7d634c4db9b"></script>
+
+    <script src="_static/documentation_options.js?v=bf871653"></script>
+    <script src="_static/doctools.js?v=9bcbadda"></script>
+    <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="_static/scripts/sphinx-book-theme.js?v=887ef09a"></script>
+    <script src="_static/translations.js?v=71a39b36"></script>
+    <script>DOCUMENTATION_OPTIONS.pagename = 'DashboardApp_views_pages_FramewrokRCEDashboardPage';</script>
+    <link rel="index" title="Índice" href="genindex.html" />
+    <link rel="search" title="Buscar" href="search.html" />
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="docsearch:language" content="pt-BR"/>
+  </head>
+  
+  
+  <body data-bs-spy="scroll" data-bs-target=".bd-toc-nav" data-offset="180" data-bs-root-margin="0px 0px -60%" data-default-mode="">
+
+  
+  
+  <div id="pst-skip-link" class="skip-link d-print-none"><a href="#main-content">Skip to main content</a></div>
+  
+  <div id="pst-scroll-pixel-helper"></div>
+  
+  <button type="button" class="btn rounded-pill" id="pst-back-to-top">
+    <i class="fa-solid fa-arrow-up"></i>Back to top</button>
+
+  
+  <input type="checkbox"
+          class="sidebar-toggle"
+          id="pst-primary-sidebar-checkbox"/>
+  <label class="overlay overlay-primary" for="pst-primary-sidebar-checkbox"></label>
+  
+  <input type="checkbox"
+          class="sidebar-toggle"
+          id="pst-secondary-sidebar-checkbox"/>
+  <label class="overlay overlay-secondary" for="pst-secondary-sidebar-checkbox"></label>
+  
+  <div class="search-button__wrapper">
+    <div class="search-button__overlay"></div>
+    <div class="search-button__search-container">
+<form class="bd-search d-flex align-items-center"
+      action="search.html"
+      method="get">
+  <i class="fa-solid fa-magnifying-glass"></i>
+  <input type="search"
+         class="form-control"
+         name="q"
+         id="search-input"
+         placeholder="Search..."
+         aria-label="Search..."
+         autocomplete="off"
+         autocorrect="off"
+         autocapitalize="off"
+         spellcheck="false"/>
+  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
+</form></div>
+  </div>
+
+  <div class="pst-async-banner-revealer d-none">
+  <aside id="bd-header-version-warning" class="d-none d-print-none" aria-label="Version warning"></aside>
+</div>
+
+  
+    <header class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
+    </header>
+  
+
+  <div class="bd-container">
+    <div class="bd-container__inner bd-page-width">
+      
+      
+      
+        
+      
+      <div class="bd-sidebar-primary bd-sidebar">
+        
+
+  
+  <div class="sidebar-header-items sidebar-primary__section">
+    
+    
+    
+    
+  </div>
+  
+    <div class="sidebar-primary-items__start sidebar-primary__section">
+        <div class="sidebar-primary-item">
+
+  
+    
+  
+
+<a class="navbar-brand logo" href="index.html">
+  
+  
+  
+  
+  
+  
+    <p class="title logo__title">Repopulation-With-Elite-Set</p>
+  
+</a></div>
+        <div class="sidebar-primary-item">
+
+ <script>
+ document.write(`
+   <button class="btn search-button-field search-button__button" title="Buscar" aria-label="Buscar" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass"></i>
+    <span class="search-button__default-text">Buscar</span>
+    <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+   </button>
+ `);
+ </script></div>
+        <div class="sidebar-primary-item"><nav class="bd-links bd-docs-nav" aria-label="Main">
+    <div class="bd-toc-item navbar-nav active">
+        
+        <ul class="nav bd-sidenav bd-sidenav__home-link">
+            <li class="toctree-l1">
+                <a class="reference internal" href="index.html">
+                    Documentação do Projeto RCE
+                </a>
+            </li>
+        </ul>
+        <p aria-level="2" class="caption" role="heading"><span class="caption-text">Guia Geral</span></p>
+<ul class="nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="guia_documentacao.html">Guia para Desenvolvimento da Documentação com MkDocs</a></li>
+<li class="toctree-l1"><a class="reference internal" href="sphinx_vs_mkdocs.html">Sphinx vs. MkDocs: Uma Comparação</a></li>
+<li class="toctree-l1"><a class="reference internal" href="run.html">run.py</a></li>
+<li class="toctree-l1"><a class="reference internal" href="run_agendamento.html">run_agendamento.py</a></li>
+<li class="toctree-l1"><a class="reference internal" href="instalador.html">instalador.py</a></li>
+</ul>
+<p aria-level="2" class="caption" role="heading"><span class="caption-text">Algoritmo Evolutivo (RCE)</span></p>
+<ul class="nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="AlgEvolutivoRCE_backup_alg_evolutivo_rce.html">alg_evolutivo_rce.py</a></li>
+<li class="toctree-l1"><a class="reference internal" href="AlgEvolutivoRCE_backup_Setup.html">Setup.py</a></li>
+<li class="toctree-l1"><a class="reference internal" href="AlgEvolutivoRCE_backup_Dashboard.html">Dashboard.py</a></li>
+</ul>
+<p aria-level="2" class="caption" role="heading"><span class="caption-text">Dashboard App</span></p>
+<ul class="nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="DashboardApp_dashboard_RCE_APP.html">dashboard_RCE_APP.py</a></li>
+<li class="toctree-l1"><a class="reference internal" href="DashboardApp_views_Screens_DashboardRCEPage.html">DashboardRCEPage.py</a></li>
+<li class="toctree-l1"><a class="reference internal" href="DashboardApp_controllers_Utils.html">Utils.py</a></li>
+</ul>
+<p aria-level="2" class="caption" role="heading"><span class="caption-text">Modelo da Rede Elétrica</span></p>
+<ul class="nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="RedeEletrica_backup_rede_eletrica.html">rede_eletrica.py</a></li>
+<li class="toctree-l1"><a class="reference internal" href="RedeEletrica_backup_exemplos_getting_started_deap_pandapower_exemplo.html">getting_started_deap_pandapower_exemplo.py</a></li>
+<li class="toctree-l1"><a class="reference internal" href="RedeEletrica_backup_simulator_anarede_dataset.html">anarede_dataset.py</a></li>
+</ul>
+
+    </div>
+</nav></div>
+    </div>
+  
+  
+  <div class="sidebar-primary-items__end sidebar-primary__section">
+  </div>
+  
+  <div id="rtd-footer-container"></div>
+
+
+      </div>
+      
+      <main id="main-content" class="bd-main" role="main">
+        
+        
+
+<div class="sbt-scroll-pixel-helper"></div>
+
+          <div class="bd-content">
+            <div class="bd-article-container">
+              
+              <div class="bd-header-article d-print-none">
+<div class="header-article-items header-article__inner">
+  
+    <div class="header-article-items__start">
+      
+        <div class="header-article-item"><button class="sidebar-toggle primary-toggle btn btn-sm" title="Toggle primary sidebar" data-bs-placement="bottom" data-bs-toggle="tooltip">
+  <span class="fa-solid fa-bars"></span>
+</button></div>
+      
+    </div>
+  
+  
+    <div class="header-article-items__end">
+      
+        <div class="header-article-item">
+
+<div class="article-header-buttons">
+
+
+<a href="https://github.com/PedroVic12/Repopulation-With-Elite-Set" target="_blank"
+   class="btn btn-sm btn-source-repository-button"
+   title="Repositório fonte"
+   data-bs-placement="bottom" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fab fa-github"></i>
+  </span>
+
+</a>
+
+
+
+
+
+
+<div class="dropdown dropdown-download-buttons">
+  <button class="btn dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false" aria-label="Baixe esta página">
+    <i class="fas fa-download"></i>
+  </button>
+  <ul class="dropdown-menu">
+      
+      
+      
+      <li><a href="_sources/DashboardApp_views_pages_FramewrokRCEDashboardPage.md" target="_blank"
+   class="btn btn-sm btn-download-source-button dropdown-item"
+   title="Baixar arquivo fonte"
+   data-bs-placement="left" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-file"></i>
+  </span>
+<span class="btn__text-container">.md</span>
+</a>
+</li>
+      
+      
+      
+      
+      <li>
+<button onclick="window.print()"
+  class="btn btn-sm btn-download-pdf-button dropdown-item"
+  title="Imprimir em PDF"
+  data-bs-placement="left" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-file-pdf"></i>
+  </span>
+<span class="btn__text-container">.pdf</span>
+</button>
+</li>
+      
+  </ul>
+</div>
+
+
+
+
+<button onclick="toggleFullScreen()"
+  class="btn btn-sm btn-fullscreen-button"
+  title="Modo tela cheia"
+  data-bs-placement="bottom" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-expand"></i>
+  </span>
+
+</button>
+
+
+
+<script>
+document.write(`
+  <button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button" title="light/dark" aria-label="light/dark" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="theme-switch fa-solid fa-sun fa-lg" data-mode="light"></i>
+    <i class="theme-switch fa-solid fa-moon fa-lg" data-mode="dark"></i>
+    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto"></i>
+  </button>
+`);
+</script>
+
+
+<script>
+document.write(`
+  <button class="btn btn-sm pst-navbar-icon search-button search-button__button" title="Buscar" aria-label="Buscar" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass fa-lg"></i>
+  </button>
+`);
+</script>
+
+</div></div>
+      
+    </div>
+  
+</div>
+</div>
+              
+              
+
+<div id="jb-print-docs-body" class="onlyprint">
+    <h1>FramewrokRCEDashboardPage.py</h1>
+    <!-- Table of contents -->
+    <div id="print-main-content">
+        <div id="jb-print-toc">
+            
+        </div>
+    </div>
+</div>
+
+              
+                
+<div id="searchbox"></div>
+                <article class="bd-article">
+                  
+  <section id="framewrokrcedashboardpage-py">
+<h1>FramewrokRCEDashboardPage.py<a class="headerlink" href="#framewrokrcedashboardpage-py" title="Link para este cabeçalho">#</a></h1>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span>
+
+<span class="c1"># --- Componentes da Interface de Usuário ---</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">functools</span><span class="w"> </span><span class="kn">import</span> <span class="n">reduce</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">json</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">operator</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">..components.dash_rce_components</span><span class="w"> </span><span class="kn">import</span> <span class="n">ConsolidatedResultsComponent</span><span class="p">,</span> <span class="n">CardSolutions</span><span class="p">,</span> <span class="n">StatisticsTableComponent</span><span class="p">,</span> <span class="n">GraficoRCEComponent</span>
+
+
+<span class="c1">#backend</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">controllers.Utils</span><span class="w"> </span><span class="kn">import</span> <span class="n">Controller</span><span class="p">,</span><span class="n">FOLDER_NAME</span><span class="p">,</span> <span class="n">Utils</span><span class="p">,</span> <span class="n">PARAMETROS_JSON</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
+
+<span class="c1"># Frontend</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">streamlit</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">st</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">pandas</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">pd</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">json</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">time</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">threading</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">pathlib</span>
+
+
+
+<span class="c1"># Configuração da barra lateral</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">DrawerSideBar</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Classe para gerenciar a barra lateral do aplicativo.&quot;&quot;&quot;</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Inicializa a barra lateral.&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">st</span> <span class="o">=</span> <span class="n">st</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">render</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Renderiza a barra lateral.&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">st</span><span class="o">.</span><span class="n">sidebar</span><span class="o">.</span><span class="n">title</span><span class="p">(</span><span class="s2">&quot;Seleção da Execução com Algoritmo Evolutivo&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">st</span><span class="o">.</span><span class="n">button</span><span class="p">(</span><span class="s2">&quot;Atualizar Estado&quot;</span><span class="p">):</span>
+            <span class="n">st</span><span class="o">.</span><span class="n">session_state</span><span class="p">[</span><span class="s2">&quot;selected_execution&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
+            <span class="n">st</span><span class="o">.</span><span class="n">experimental_rerun</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">st</span><span class="o">.</span><span class="n">sidebar</span><span class="o">.</span><span class="n">markdown</span><span class="p">(</span><span class="s2">&quot;---&quot;</span><span class="p">)</span>  <span class="c1"># Separador visual</span>
+
+
+<span class="c1">## Controlador de Gerenciamento de Estado</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">UseState</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Classe para gerenciar o estado do Streamlit.&quot;&quot;&quot;</span>
+
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">initialize_state</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">default_value</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Inicializa uma chave no session_state com um valor padrão.&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">key</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">st</span><span class="o">.</span><span class="n">session_state</span><span class="p">:</span>
+            <span class="n">st</span><span class="o">.</span><span class="n">session_state</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">default_value</span>
+
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_state</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">default_value</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Obtém o valor de uma chave no session_state.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">st</span><span class="o">.</span><span class="n">session_state</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">default_value</span><span class="p">)</span>
+
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">set_state</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Define o valor de uma chave no session_state.&quot;&quot;&quot;</span>
+        <span class="n">st</span><span class="o">.</span><span class="n">session_state</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">value</span>
+        <span class="c1">#print(&quot;State atualizado:&quot;, key, &quot;=&quot;, value)  </span>
+
+
+<span class="c1"># --- Classe Principal do Aplicativo ---</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">FrameworkRCEDashboard</span><span class="p">:</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">options</span> <span class="o">=</span> <span class="kc">None</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">controller</span> <span class="o">=</span> <span class="n">Controller</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">utils</span> <span class="o">=</span> <span class="n">Utils</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">execution_numbers</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">controller</span><span class="o">.</span><span class="n">execution_numbers</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">menu_lateral</span> <span class="o">=</span> <span class="n">DrawerSideBar</span><span class="p">()</span>
+  
+        <span class="c1"># Initialize options from parameter or use default</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">options</span> <span class="o">=</span> <span class="n">options</span> 
+        <span class="bp">self</span><span class="o">.</span><span class="n">init_css</span><span class="p">()</span>
+
+
+        <span class="c1"># Inicializa os estados necessários</span>
+        <span class="n">UseState</span><span class="o">.</span><span class="n">initialize_state</span><span class="p">(</span><span class="s2">&quot;selected_execution&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+        <span class="n">UseState</span><span class="o">.</span><span class="n">initialize_state</span><span class="p">(</span><span class="s2">&quot;active_tab&quot;</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+        <span class="n">UseState</span><span class="o">.</span><span class="n">initialize_state</span><span class="p">(</span><span class="s2">&quot;saved_configurations&quot;</span><span class="p">,</span> <span class="p">{})</span>
+        <span class="k">if</span> <span class="s1">&#39;user_config&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">st</span><span class="o">.</span><span class="n">session_state</span><span class="p">:</span>
+            <span class="c1"># Usa uma cópia da configuração padrão para o estado da sessão</span>
+            <span class="n">st</span><span class="o">.</span><span class="n">session_state</span><span class="o">.</span><span class="n">user_config</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">options</span>
+
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">handle_tab_change</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">tab_index</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">execution_number</span><span class="p">:</span> <span class="nb">int</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Gerencia mudanças de aba e atualiza o estado.&quot;&quot;&quot;</span>
+        <span class="n">UseState</span><span class="o">.</span><span class="n">set_state</span><span class="p">(</span><span class="s2">&quot;active_tab&quot;</span><span class="p">,</span> <span class="n">tab_index</span><span class="p">)</span>
+        <span class="n">UseState</span><span class="o">.</span><span class="n">set_state</span><span class="p">(</span><span class="s2">&quot;selected_execution&quot;</span><span class="p">,</span> <span class="n">execution_number</span><span class="p">)</span>
+
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">init_css</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">st</span><span class="o">.</span><span class="n">markdown</span><span class="p">(</span><span class="s2">&quot;&quot;&quot;</span>
+<span class="s2">        &lt;style&gt;</span>
+<span class="s2">            .st-emotion-cache-j7qwjs.e1c29vlm3 {</span>
+<span class="s2">                display: none;</span>
+<span class="s2">            }</span>
+<span class="s2">            </span>
+<span class="s2">            .st-emotion-cache-vz9k5h.e1c29vlm19 {</span>
+<span class="s2">                display: none;</span>
+<span class="s2">            }</span>
+<span class="s2">            </span>
+<span class="s2">            .st-emotion-cache-1s1exd7.e1c29vlm19 {</span>
+<span class="s2">                display: none;</span>
+<span class="s2">            }</span>
+<span class="s2">            </span>
+<span class="s2">            .st-emotion-cache-14lrqrc.e1c29vlm19 {</span>
+<span class="s2">                display: none;</span>
+<span class="s2">            }</span>
+<span class="s2">            </span>
+<span class="s2">            .st-emotion-cache-1tuwfdi.e1c29vlm19 {</span>
+<span class="s2">                display: none;</span>
+<span class="s2">            }</span>
+<span class="s2">            </span>
+<span class="s2">            .st-emotion-cache-1gczx66.edtmxes2 {</span>
+<span class="s2">                display: none;</span>
+<span class="s2">            }</span>
+<span class="s2">            </span>
+<span class="s2">            .st-emotion-cache-1s1exd7.edtmxes19 {</span>
+<span class="s2">                display: none;</span>
+<span class="s2">            }</span>
+<span class="s2">            </span>
+<span class="s2">            .st-emotion-cache-1gczx66.edtmxes2 {</span>
+<span class="s2">                display: none;</span>
+<span class="s2">            }</span>
+<span class="s2">            .st-emotion-cache-1s1exd7.edtmxes19 {</span>
+<span class="s2">                display: none;</span>
+<span class="s2">            }</span>
+
+<span class="s2">            .st-emotion-cache-1s1exd7.edtmxes19 {</span>
+<span class="s2">                display: none;</span>
+<span class="s2">            }</span>
+<span class="s2">            </span>
+<span class="s2">            .st-emotion-cache-1gczx66.edtmxes2 {</span>
+<span class="s2">                display: none;</span>
+<span class="s2">            }</span>
+<span class="s2">        &lt;/style&gt;</span>
+<span class="s2">    &quot;&quot;&quot;</span><span class="p">,</span> <span class="n">unsafe_allow_html</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+    
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">run</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="c1"># Carrega os dados da execução ativa</span>
+            <span class="n">active_tab</span> <span class="o">=</span> <span class="n">UseState</span><span class="o">.</span><span class="n">get_state</span><span class="p">(</span><span class="s2">&quot;active_tab&quot;</span><span class="p">)</span>
+            <span class="n">dados</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">utils</span><span class="o">.</span><span class="n">load_execution_data</span><span class="p">(</span><span class="n">active_tab</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="n">debug</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+                    
+            <span class="c1"># Sempre renderiza a configuração do app e do AG</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">ConfigWebApp</span><span class="p">()</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">Config_AG_Json</span><span class="p">()</span>
+
+            <span class="c1"># Cabeçalho</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">header</span><span class="p">()</span>
+
+            <span class="k">if</span> <span class="n">dados</span><span class="p">:</span>
+                <span class="c1"># Renderiza os resultados consolidados</span>
+                <span class="n">ConsolidatedResultsComponent</span><span class="o">.</span><span class="n">render</span><span class="p">()</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="c1"># Renderiza componente default para &quot;sem execução&quot;</span>
+                <span class="n">st</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Nenhum dado encontrado ainda. Execute uma simulação para visualizar os resultados.&quot;</span><span class="p">)</span>
+                <span class="c1"># Você pode adicionar mais componentes ou instruções aqui se quiser</span>
+
+            <span class="c1">#! TEMPLATE USANDO TABS com Seleção de execução com tabs para cada execução controlado pelo UseState</span>
+            <span class="k">with</span> <span class="n">st</span><span class="o">.</span><span class="n">container</span><span class="p">():</span>
+                <span class="n">st</span><span class="o">.</span><span class="n">subheader</span><span class="p">(</span><span class="s2">&quot;🔄 Seleção da Execução&quot;</span><span class="p">)</span>
+                
+                <span class="c1"># Cria abas</span>
+                <span class="n">tabs</span> <span class="o">=</span> <span class="n">st</span><span class="o">.</span><span class="n">tabs</span><span class="p">([</span><span class="sa">f</span><span class="s2">&quot;Execução </span><span class="si">{</span><span class="n">num</span><span class="si">}</span><span class="s2">&quot;</span> <span class="k">for</span> <span class="n">num</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">execution_numbers</span><span class="p">])</span>
+
+                <span class="c1"># Renderiza o conteúdo de cada aba</span>
+                <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="p">(</span><span class="n">tab</span><span class="p">,</span> <span class="n">exec_num</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">tabs</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">execution_numbers</span><span class="p">)):</span>
+                    <span class="k">with</span> <span class="n">tab</span><span class="p">:</span>
+                        <span class="c1"># Atualiza o estado da aba ativa</span>
+                        <span class="k">if</span> <span class="n">UseState</span><span class="o">.</span><span class="n">get_state</span><span class="p">(</span><span class="s2">&quot;active_tab&quot;</span><span class="p">)</span> <span class="o">!=</span> <span class="n">i</span><span class="p">:</span>
+                            <span class="bp">self</span><span class="o">.</span><span class="n">handle_tab_change</span><span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="n">exec_num</span><span class="p">)</span>
+
+                        <span class="c1"># Carrega os dados e o gráfico da execução CORRETOS para cada aba</span>
+                        <span class="n">dados_exec</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">utils</span><span class="o">.</span><span class="n">load_execution_data</span><span class="p">(</span><span class="n">exec_num</span><span class="p">,</span> <span class="n">debug</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+                        <span class="k">if</span> <span class="n">dados_exec</span><span class="p">:</span>
+                            <span class="k">try</span><span class="p">:</span>
+                                <span class="k">with</span> <span class="n">st</span><span class="o">.</span><span class="n">container</span><span class="p">():</span>
+                                    <span class="n">CardSolutions</span><span class="o">.</span><span class="n">render</span><span class="p">(</span><span class="n">dados_exec</span><span class="p">,</span> <span class="n">exec_num</span><span class="p">,</span> <span class="n">debug</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+                                <span class="k">with</span> <span class="n">st</span><span class="o">.</span><span class="n">container</span><span class="p">():</span>
+                                    <span class="n">GraficoRCEComponent</span><span class="o">.</span><span class="n">render</span><span class="p">(</span><span class="n">exec_num</span><span class="p">)</span>
+                                <span class="k">with</span> <span class="n">st</span><span class="o">.</span><span class="n">container</span><span class="p">():</span>
+                                    <span class="n">StatisticsTableComponent</span><span class="o">.</span><span class="n">render</span><span class="p">(</span><span class="n">dados_exec</span><span class="p">)</span>
+                                    <span class="n">st</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;Graficos e Tabelas&quot;</span><span class="p">)</span>
+                            <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+                                <span class="n">st</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Erro ao carregar os dados da execução </span><span class="si">{</span><span class="n">exec_num</span><span class="si">}</span><span class="s2">. </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+                        <span class="k">else</span><span class="p">:</span>
+                            <span class="n">st</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;Não foi encontrado nenhum conjunto de dados&quot;</span><span class="p">)</span>
+
+            <span class="bp">self</span><span class="o">.</span><span class="n">footer</span><span class="p">()</span>
+
+        <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">error</span><span class="p">:</span>
+            <span class="n">st</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Erro ao carregar pagina: </span><span class="si">{</span><span class="n">error</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+    
+    
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">Config_AG_Json</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+            <span class="c1"># Expandir para mostrar os parâmetros utilizados</span>
+            <span class="k">with</span> <span class="n">st</span><span class="o">.</span><span class="n">expander</span><span class="p">(</span><span class="s2">&quot;Parâmetros AG Utilizados em params.json&quot;</span><span class="p">,</span> <span class="n">expanded</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+                <span class="c1">#json_data_params = dados.get(&quot;params&quot;, {})</span>
+                <span class="n">json_data_params</span> <span class="o">=</span> <span class="n">PARAMETROS_JSON</span>
+                
+                <span class="k">if</span> <span class="n">json_data_params</span><span class="p">:</span>
+                    
+                    <span class="c1"># Separa os campos especiais</span>
+                    <span class="n">array_var</span> <span class="o">=</span> <span class="n">json_data_params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;ARRAY_VAR&quot;</span><span class="p">,</span> <span class="p">[</span><span class="mi">14</span><span class="p">,</span><span class="mi">15</span><span class="p">,</span><span class="mi">14</span><span class="p">,</span><span class="mi">18</span><span class="p">,</span><span class="mi">15</span><span class="p">])</span>
+                    <span class="n">limite_var</span> <span class="o">=</span> <span class="n">json_data_params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;LIMITE_VAR&quot;</span><span class="p">,</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">31</span><span class="p">])</span>
+
+                    <span class="c1"># Remove os campos especiais para edição no data_editor</span>
+                    <span class="n">json_table</span> <span class="o">=</span> <span class="p">{</span><span class="n">k</span><span class="p">:</span> <span class="n">v</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">json_data_params</span><span class="o">.</span><span class="n">items</span><span class="p">()</span> <span class="k">if</span> <span class="n">k</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;ARRAY_VAR&quot;</span><span class="p">,</span> <span class="s2">&quot;LIMITE_VAR&quot;</span><span class="p">]}</span>
+                    <span class="c1">#print(&quot;json_table&quot;, json_table)</span>
+
+
+                    <span class="n">st</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Usando Variáveis de Decisão do Problema e Limites de valores inteiros para o problema de agendamento de Redes Elétricas&quot;</span><span class="p">)</span>
+
+                    <span class="c1"># Edição simples do ARRAY_VAR</span>
+                    <span class="k">try</span><span class="p">:</span>
+                        <span class="n">array_str</span> <span class="o">=</span> <span class="n">st</span><span class="o">.</span><span class="n">text_input</span><span class="p">(</span>
+                            <span class="s2">&quot;Variáveis de Decisão do Problema (digite 5 valores separados por vírgula)&quot;</span><span class="p">,</span>
+                            <span class="n">value</span><span class="o">=</span><span class="s2">&quot;, &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">array_var</span><span class="p">),</span>
+                            <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Esses são os horários de agendamento para Rede Elétrica (ex: 14h, 15h, 14h, 18h, 15h)&quot;</span>
+                        <span class="p">)</span>
+                        <span class="n">array_var_edit</span> <span class="o">=</span> <span class="p">[</span><span class="nb">int</span><span class="p">(</span><span class="n">x</span><span class="o">.</span><span class="n">strip</span><span class="p">())</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">array_str</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;,&quot;</span><span class="p">)][:</span><span class="mi">5</span><span class="p">]</span>
+
+                        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">array_var_edit</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mi">5</span><span class="p">:</span>
+                            <span class="n">array_var_edit</span> <span class="o">+=</span> <span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">*</span> <span class="p">(</span><span class="mi">5</span> <span class="o">-</span> <span class="nb">len</span><span class="p">(</span><span class="n">array_var_edit</span><span class="p">))</span>
+
+                        <span class="c1"># Slider para LIMITE_VAR</span>
+                        <span class="k">else</span><span class="p">:</span>
+                            <span class="n">limite_var_value</span> <span class="o">=</span> <span class="n">limite_var</span>
+                            <span class="n">limite_var_value</span> <span class="o">=</span> <span class="n">st</span><span class="o">.</span><span class="n">slider</span><span class="p">(</span>
+                                <span class="s2">&quot;Selecione os limites dos valores da variável de decisão&quot;</span><span class="p">,</span>
+                                <span class="mi">0</span><span class="p">,</span> <span class="mi">50</span><span class="p">,</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">31</span><span class="p">),</span> <span class="n">step</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">key</span><span class="o">=</span><span class="s2">&quot;limite_var_slider&quot;</span>
+                            <span class="p">)</span>
+                            <span class="n">limite_var_edit</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">limite_var_value</span><span class="p">)</span>
+
+                    <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+                        <span class="n">st</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;ARRAY_VAR inválido. Use 5 números separados por vírgula.&quot;</span><span class="p">)</span>
+                        <span class="n">array_var_edit</span> <span class="o">=</span> <span class="n">array_var</span>
+
+
+
+                    <span class="c1"># Data editor para os demais parâmetros</span>
+                    <span class="n">df_params</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">json_table</span><span class="o">.</span><span class="n">items</span><span class="p">()),</span> <span class="n">columns</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;Parâmetro&quot;</span><span class="p">,</span> <span class="s2">&quot;Valor&quot;</span><span class="p">])</span>
+                    <span class="n">edited_df</span> <span class="o">=</span> <span class="n">st</span><span class="o">.</span><span class="n">data_editor</span><span class="p">(</span>
+                        <span class="n">df_params</span><span class="p">,</span>
+                        <span class="n">use_container_width</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+                        <span class="n">num_rows</span><span class="o">=</span><span class="s2">&quot;dynamic&quot;</span><span class="p">,</span>
+                        <span class="n">column_config</span><span class="o">=</span><span class="p">{</span>
+                            <span class="s2">&quot;Parâmetro&quot;</span><span class="p">:</span> <span class="n">st</span><span class="o">.</span><span class="n">column_config</span><span class="o">.</span><span class="n">Column</span><span class="p">(</span><span class="n">disabled</span><span class="o">=</span><span class="kc">True</span><span class="p">),</span>
+                            <span class="s2">&quot;Valor&quot;</span><span class="p">:</span> <span class="n">st</span><span class="o">.</span><span class="n">column_config</span><span class="o">.</span><span class="n">Column</span><span class="p">(</span><span class="n">disabled</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+                        <span class="p">}</span>
+                    <span class="p">)</span>
+
+                    <span class="c1"># Atualiza json_table com os valores editados</span>
+                    <span class="k">if</span> <span class="ow">not</span> <span class="n">edited_df</span><span class="o">.</span><span class="n">empty</span><span class="p">:</span>
+                        <span class="k">for</span> <span class="n">_</span><span class="p">,</span> <span class="n">row</span> <span class="ow">in</span> <span class="n">edited_df</span><span class="o">.</span><span class="n">iterrows</span><span class="p">():</span>
+                            <span class="n">param</span> <span class="o">=</span> <span class="n">row</span><span class="p">[</span><span class="s2">&quot;Parâmetro&quot;</span><span class="p">]</span>
+                            <span class="n">value</span> <span class="o">=</span> <span class="n">row</span><span class="p">[</span><span class="s2">&quot;Valor&quot;</span><span class="p">]</span>
+                            <span class="n">json_table</span><span class="p">[</span><span class="n">param</span><span class="p">]</span> <span class="o">=</span> <span class="n">value</span>
+
+                    <span class="n">st</span><span class="o">.</span><span class="n">markdown</span><span class="p">(</span><span class="s2">&quot;---&quot;</span><span class="p">)</span>
+
+                    <span class="c1"># Monta o dicionário final para exportação</span>
+                    <span class="n">json_atualizados</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">json_table</span><span class="p">)</span>
+                    <span class="n">json_atualizados</span><span class="p">[</span><span class="s2">&quot;ARRAY_VAR&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="nb">int</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">array_var_edit</span><span class="p">]</span>
+                    <span class="n">json_atualizados</span><span class="p">[</span><span class="s2">&quot;LIMITE_VAR&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="nb">int</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">limite_var_edit</span><span class="p">]</span>
+
+                    <span class="c1"># --- TRATAMENTO DE TIPOS ---</span>
+                    <span class="n">float_keys</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;MUTACAO&quot;</span><span class="p">,</span> <span class="s2">&quot;CROSSOVER&quot;</span><span class="p">,</span> <span class="s2">&quot;PORCENTAGEM&quot;</span><span class="p">}</span>
+                    <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">json_atualizados</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+                        <span class="k">if</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">float_keys</span><span class="p">:</span>
+                            <span class="k">try</span><span class="p">:</span>
+                                <span class="n">json_atualizados</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">v</span><span class="p">)</span>
+                            <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+                                <span class="n">st</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Valor inválido para </span><span class="si">{</span><span class="n">k</span><span class="si">}</span><span class="s2">. Deve ser um número flutuante.&quot;</span><span class="p">)</span>
+                        <span class="k">elif</span> <span class="n">k</span> <span class="ow">in</span> <span class="p">{</span><span class="s2">&quot;ARRAY_VAR&quot;</span><span class="p">,</span> <span class="s2">&quot;LIMITE_VAR&quot;</span><span class="p">}:</span>
+                            <span class="c1"># Garante que sejam listas de inteiros</span>
+                            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">v</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
+                                <span class="k">try</span><span class="p">:</span>
+                                    <span class="n">json_atualizados</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="nb">int</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">v</span><span class="p">]</span>
+                                <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+                                    <span class="n">st</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Valor inválido em </span><span class="si">{</span><span class="n">k</span><span class="si">}</span><span class="s2">. Todos os valores devem ser inteiros.&quot;</span><span class="p">)</span>
+                            <span class="k">else</span><span class="p">:</span>
+                                <span class="n">st</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">k</span><span class="si">}</span><span class="s2"> deve ser uma lista de inteiros.&quot;</span><span class="p">)</span>
+                        <span class="k">else</span><span class="p">:</span>
+                            <span class="k">try</span><span class="p">:</span>
+                                <span class="n">json_atualizados</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">v</span><span class="p">)</span>
+                            <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+                                <span class="n">st</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Valor inválido para </span><span class="si">{</span><span class="n">k</span><span class="si">}</span><span class="s2">. Deve ser um número inteiro.&quot;</span><span class="p">)</span>  <span class="c1"># Salva o arquivo atualizado em dois diretórios anteriores</span>
+                    
+                    
+                    <span class="n">current_dir</span> <span class="o">=</span> <span class="n">pathlib</span><span class="o">.</span><span class="n">Path</span><span class="p">(</span><span class="vm">__file__</span><span class="p">)</span><span class="o">.</span><span class="n">parent</span>
+                    <span class="n">target_path</span> <span class="o">=</span> <span class="n">current_dir</span><span class="o">.</span><span class="n">parent</span><span class="o">.</span><span class="n">parent</span><span class="o">.</span><span class="n">parent</span> <span class="o">/</span> <span class="s2">&quot;params.json&quot;</span>
+                    <span class="k">try</span><span class="p">:</span>
+                        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">target_path</span><span class="p">,</span> <span class="s2">&quot;w&quot;</span><span class="p">,</span> <span class="n">encoding</span><span class="o">=</span><span class="s2">&quot;utf-8&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+                            <span class="n">json</span><span class="o">.</span><span class="n">dump</span><span class="p">(</span><span class="n">json_atualizados</span><span class="p">,</span> <span class="n">f</span><span class="p">,</span> <span class="n">indent</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span> <span class="n">ensure_ascii</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+                        <span class="n">st</span><span class="o">.</span><span class="n">success</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Arquivo salvo em: </span><span class="si">{</span><span class="n">target_path</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+                    <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+                        <span class="n">st</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Erro ao salvar arquivo: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+                    <span class="c1"># Exporta os dados atualizados para um arquivo json com um botão de download</span>
+                    <span class="n">st</span><span class="o">.</span><span class="n">download_button</span><span class="p">(</span>
+                        <span class="n">label</span><span class="o">=</span><span class="s2">&quot;Salvar os Parâmetros AG Atualizados&quot;</span><span class="p">,</span>
+                        <span class="n">data</span><span class="o">=</span><span class="n">json</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="n">json_atualizados</span><span class="p">,</span> <span class="n">indent</span><span class="o">=</span><span class="mi">4</span><span class="p">),</span>
+                        <span class="n">file_name</span><span class="o">=</span><span class="s2">&quot;params.json&quot;</span><span class="p">,</span>
+                        <span class="n">mime</span><span class="o">=</span><span class="s2">&quot;application/json&quot;</span>
+                    <span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">ConfigWebApp</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        
+<span class="c1">#    !TODO GUI para interação com o usuário</span>
+
+<span class="c1">#    1 - 256 conjuntos de parametros (4⁴) </span>
+<span class="c1">#    2 - 10 ou 20 numero de execucoes</span>
+<span class="c1">#    3 - 4 parametros variando [Mutação, Crossover, Var DIFF, DELTA e restante fixo </span>
+<span class="c1">#    4 - 4 Caixas de texto fixas para esses parametros variando</span>
+<span class="c1">#    5 - Criar checkbox para o usuario desabilitar as demais caixas de texto, deixando um valor possivel para aquele parametro </span>
+<span class="c1">#    6 - butao Radio para selecionar a tabela a configuração das 256 conjuntos</span>
+<span class="c1">#    7 - Progress bar para cada geração em tempo de execução </span>
+
+
+        <span class="n">st</span><span class="o">.</span><span class="n">title</span><span class="p">(</span><span class="s2">&quot;🛠️ Configurador de Execuções do Framework&quot;</span><span class="p">)</span>
+        
+        <span class="k">with</span> <span class="n">st</span><span class="o">.</span><span class="n">expander</span><span class="p">(</span><span class="s2">&quot;Abra para configurar os parâmetros de execução&quot;</span><span class="p">,</span> <span class="n">expanded</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+            <span class="n">config</span> <span class="o">=</span> <span class="n">st</span><span class="o">.</span><span class="n">session_state</span><span class="o">.</span><span class="n">user_config</span>
+
+            <span class="c1"># --- Seção de Configurações Gerais ---</span>
+            <span class="n">st</span><span class="o">.</span><span class="n">subheader</span><span class="p">(</span><span class="s2">&quot;Configurações Gerais&quot;</span><span class="p">)</span>
+            <span class="n">config</span><span class="p">[</span><span class="s1">&#39;value&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">st</span><span class="o">.</span><span class="n">number_input</span><span class="p">(</span>
+                <span class="s2">&quot;Número de Execuções por Configuração&quot;</span><span class="p">,</span>
+                <span class="n">min_value</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+                <span class="n">value</span><span class="o">=</span><span class="n">config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;value&#39;</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span>
+                <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Quantas vezes cada combinação única de parâmetros será executada.&quot;</span>
+            <span class="p">)</span>
+            <span class="n">st</span><span class="o">.</span><span class="n">markdown</span><span class="p">(</span><span class="s2">&quot;---&quot;</span><span class="p">)</span>
+
+            <span class="c1"># --- Seção de Parâmetros Evolutivos ---</span>
+            <span class="n">st</span><span class="o">.</span><span class="n">subheader</span><span class="p">(</span><span class="s2">&quot;Parâmetros Evolutivos&quot;</span><span class="p">)</span>
+
+            <span class="k">def</span><span class="w"> </span><span class="nf">render_parameter_widget</span><span class="p">(</span><span class="n">param_name</span><span class="p">,</span> <span class="n">default_value_from_params</span><span class="p">):</span>
+                <span class="c1"># --- LÓGICA ROBUSTA PARA ENCONTRAR O PARÂMETRO E SEU ÍNDICE ---</span>
+                <span class="n">param_dict</span> <span class="o">=</span> <span class="kc">None</span>
+                <span class="n">param_index</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span>
+                <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">p_dict</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;parametros_opcionais&#39;</span><span class="p">,</span> <span class="p">[])):</span>
+                    <span class="k">if</span> <span class="n">param_name</span> <span class="ow">in</span> <span class="n">p_dict</span><span class="p">:</span>
+                        <span class="n">param_dict</span> <span class="o">=</span> <span class="n">p_dict</span>
+                        <span class="n">param_index</span> <span class="o">=</span> <span class="n">i</span>
+                        <span class="k">break</span>
+                
+                <span class="c1"># Se o parâmetro não for encontrado, exibe um erro e interrompe a renderização para este widget</span>
+                <span class="k">if</span> <span class="n">param_index</span> <span class="o">==</span> <span class="o">-</span><span class="mi">1</span><span class="p">:</span>
+                    <span class="n">st</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Parâmetro de configuração &#39;</span><span class="si">{</span><span class="n">param_name</span><span class="si">}</span><span class="s2">&#39; não encontrado no estado da sessão.&quot;</span><span class="p">)</span>
+                    <span class="k">return</span>
+                <span class="c1"># --- FIM DA LÓGICA ROBUSTA ---</span>
+
+                <span class="n">current_value</span> <span class="o">=</span> <span class="n">param_dict</span><span class="p">[</span><span class="n">param_name</span><span class="p">]</span>
+
+                <span class="c1"># Altera os nomes dos parametros para português e adiciona toggle</span>
+                <span class="n">toggle_label</span> <span class="o">=</span> <span class="p">{</span>
+                    <span class="s2">&quot;NUM_GENERATIONS&quot;</span><span class="p">:</span> <span class="s2">&quot;Configurar Número de Gerações?&quot;</span><span class="p">,</span>
+                    <span class="s2">&quot;POP_SIZE&quot;</span><span class="p">:</span> <span class="s2">&quot;Configurar Tamanho da População?&quot;</span><span class="p">,</span>
+                    <span class="s2">&quot;MUTACAO&quot;</span><span class="p">:</span> <span class="s2">&quot;Configurar Taxa de Mutação?&quot;</span><span class="p">,</span>
+                    <span class="s2">&quot;CROSSOVER&quot;</span><span class="p">:</span> <span class="s2">&quot;Configurar Taxa de Crossover?&quot;</span>
+                <span class="p">}</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">param_name</span><span class="p">,</span> <span class="sa">f</span><span class="s2">&quot;Configurar </span><span class="si">{</span><span class="n">param_name</span><span class="si">}</span><span class="s2">?&quot;</span><span class="p">)</span>
+
+                <span class="k">if</span> <span class="n">st</span><span class="o">.</span><span class="n">toggle</span><span class="p">(</span><span class="n">toggle_label</span><span class="p">,</span> <span class="n">key</span><span class="o">=</span><span class="sa">f</span><span class="s2">&quot;config_check_</span><span class="si">{</span><span class="n">param_index</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">):</span>
+
+
+                    <span class="n">mode</span> <span class="o">=</span> <span class="s2">&quot;Variável&quot;</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">current_value</span><span class="p">,</span> <span class="nb">list</span><span class="p">)</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">current_value</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span> <span class="k">else</span> <span class="s2">&quot;Fixo&quot;</span>
+                    <span class="n">choice</span> <span class="o">=</span> <span class="n">st</span><span class="o">.</span><span class="n">radio</span><span class="p">(</span>
+                        <span class="s2">&quot;Modo:&quot;</span><span class="p">,</span> <span class="p">(</span><span class="s2">&quot;Fixo&quot;</span><span class="p">,</span> <span class="s2">&quot;Variável&quot;</span><span class="p">),</span> <span class="n">index</span><span class="o">=</span><span class="mi">1</span> <span class="k">if</span> <span class="n">mode</span> <span class="o">==</span> <span class="s2">&quot;Variável&quot;</span> <span class="k">else</span> <span class="mi">0</span><span class="p">,</span>
+                        <span class="n">key</span><span class="o">=</span><span class="sa">f</span><span class="s2">&quot;radio_</span><span class="si">{</span><span class="n">param_index</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">horizontal</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">label_visibility</span><span class="o">=</span><span class="s2">&quot;collapsed&quot;</span>
+                    <span class="p">)</span>
+
+                    <span class="k">if</span> <span class="n">choice</span> <span class="o">==</span> <span class="s2">&quot;Variável&quot;</span><span class="p">:</span>
+                        <span class="n">st</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Valores para </span><span class="si">{</span><span class="n">param_name</span><span class="si">}</span><span class="s2">:&quot;</span><span class="p">)</span>
+                        <span class="n">cols</span> <span class="o">=</span> <span class="n">st</span><span class="o">.</span><span class="n">columns</span><span class="p">(</span><span class="mi">4</span><span class="p">)</span>
+                        <span class="n">new_values</span> <span class="o">=</span> <span class="p">[]</span>
+                        <span class="n">existing_values</span> <span class="o">=</span> <span class="n">current_value</span> <span class="k">if</span> <span class="n">mode</span> <span class="o">==</span> <span class="s2">&quot;Variável&quot;</span> <span class="k">else</span> <span class="p">[</span><span class="s2">&quot;&quot;</span><span class="p">]</span><span class="o">*</span><span class="mi">4</span>
+                        
+                        <span class="k">for</span> <span class="n">j</span><span class="p">,</span> <span class="n">col</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">cols</span><span class="p">):</span>
+                            <span class="k">with</span> <span class="n">col</span><span class="p">:</span>
+                                <span class="n">val_str</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">existing_values</span><span class="p">[</span><span class="n">j</span><span class="p">])</span> <span class="k">if</span> <span class="n">j</span> <span class="o">&lt;</span> <span class="nb">len</span><span class="p">(</span><span class="n">existing_values</span><span class="p">)</span> <span class="k">else</span> <span class="s2">&quot;&quot;</span>
+                                <span class="n">user_input</span> <span class="o">=</span> <span class="n">st</span><span class="o">.</span><span class="n">text_input</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;V </span><span class="si">{</span><span class="n">j</span><span class="o">+</span><span class="mi">1</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">val_str</span><span class="p">,</span> <span class="n">key</span><span class="o">=</span><span class="sa">f</span><span class="s2">&quot;input_</span><span class="si">{</span><span class="n">param_index</span><span class="si">}</span><span class="s2">_</span><span class="si">{</span><span class="n">j</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">label_visibility</span><span class="o">=</span><span class="s2">&quot;collapsed&quot;</span><span class="p">)</span>
+                                <span class="k">if</span> <span class="n">user_input</span><span class="p">:</span>
+                                    <span class="k">try</span><span class="p">:</span>
+                                        <span class="k">if</span> <span class="n">param_name</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;NUM_GENERATIONS&quot;</span><span class="p">,</span> <span class="s2">&quot;POP_SIZE&quot;</span><span class="p">]:</span>
+                                            <span class="n">new_values</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">user_input</span><span class="p">))</span>
+                                        <span class="k">else</span><span class="p">:</span>
+                                            <span class="n">new_values</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">round</span><span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="n">user_input</span><span class="p">),</span> <span class="mi">1</span><span class="p">))</span>
+                                    <span class="k">except</span> <span class="ne">ValueError</span><span class="p">:</span>
+                                        <span class="n">st</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;Valor inválido&quot;</span><span class="p">,</span> <span class="n">icon</span><span class="o">=</span><span class="s2">&quot;⚠️&quot;</span><span class="p">)</span>
+                        
+                        <span class="k">if</span> <span class="ow">not</span> <span class="n">new_values</span><span class="p">:</span>
+                            <span class="n">st</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Preencha ao menos um valor para &#39;</span><span class="si">{</span><span class="n">param_name</span><span class="si">}</span><span class="s2">&#39;.&quot;</span><span class="p">)</span>
+                        
+                        <span class="n">config</span><span class="p">[</span><span class="s1">&#39;parametros_opcionais&#39;</span><span class="p">][</span><span class="n">param_index</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span><span class="n">param_name</span><span class="p">:</span> <span class="n">new_values</span> <span class="ow">or</span> <span class="p">[</span><span class="n">default_value_from_params</span><span class="p">]}</span>
+
+                    <span class="k">else</span><span class="p">:</span> <span class="c1"># Fixo</span>
+                        <span class="n">default_value</span> <span class="o">=</span> <span class="n">current_value</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">current_value</span><span class="p">,</span> <span class="nb">list</span><span class="p">)</span> <span class="k">else</span> <span class="n">current_value</span>
+                        <span class="k">if</span> <span class="n">param_name</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;NUM_GENERATIONS&quot;</span><span class="p">,</span> <span class="s2">&quot;POP_SIZE&quot;</span><span class="p">]:</span>
+                            <span class="n">new_val</span> <span class="o">=</span> <span class="n">st</span><span class="o">.</span><span class="n">number_input</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Valor para </span><span class="si">{</span><span class="n">param_name</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">value</span><span class="o">=</span><span class="nb">int</span><span class="p">(</span><span class="n">default_value</span><span class="p">),</span> <span class="n">step</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">key</span><span class="o">=</span><span class="sa">f</span><span class="s2">&quot;s_</span><span class="si">{</span><span class="n">param_index</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span> <span class="nb">format</span><span class="o">=</span><span class="s2">&quot;</span><span class="si">%d</span><span class="s2">&quot;</span><span class="p">)</span>
+                        <span class="k">else</span><span class="p">:</span>
+                            <span class="n">new_val</span> <span class="o">=</span> <span class="n">st</span><span class="o">.</span><span class="n">number_input</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Valor para </span><span class="si">{</span><span class="n">param_name</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">value</span><span class="o">=</span><span class="nb">float</span><span class="p">(</span><span class="n">default_value</span><span class="p">),</span> <span class="n">step</span><span class="o">=</span><span class="mf">0.1</span><span class="p">,</span> <span class="n">key</span><span class="o">=</span><span class="sa">f</span><span class="s2">&quot;s_</span><span class="si">{</span><span class="n">param_index</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span> <span class="nb">format</span><span class="o">=</span><span class="s2">&quot;</span><span class="si">%.1f</span><span class="s2">&quot;</span><span class="p">)</span>
+                        <span class="n">config</span><span class="p">[</span><span class="s1">&#39;parametros_opcionais&#39;</span><span class="p">][</span><span class="n">param_index</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span><span class="n">param_name</span><span class="p">:</span> <span class="p">[</span><span class="n">new_val</span><span class="p">]}</span>
+
+
+                        
+                <span class="n">st</span><span class="o">.</span><span class="n">markdown</span><span class="p">(</span><span class="s2">&quot;---&quot;</span><span class="p">)</span>
+
+            <span class="n">col1</span><span class="p">,</span> <span class="n">col2</span> <span class="o">=</span> <span class="n">st</span><span class="o">.</span><span class="n">columns</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span>
+            <span class="k">with</span> <span class="n">col1</span><span class="p">:</span>
+                <span class="n">render_parameter_widget</span><span class="p">(</span><span class="s2">&quot;MUTACAO&quot;</span><span class="p">,</span> <span class="n">PARAMETROS_JSON</span><span class="p">[</span><span class="s2">&quot;MUTACAO&quot;</span><span class="p">])</span>
+                <span class="n">render_parameter_widget</span><span class="p">(</span><span class="s2">&quot;CROSSOVER&quot;</span><span class="p">,</span> <span class="n">PARAMETROS_JSON</span><span class="p">[</span><span class="s2">&quot;CROSSOVER&quot;</span><span class="p">])</span>
+            <span class="k">with</span> <span class="n">col2</span><span class="p">:</span>
+                <span class="n">render_parameter_widget</span><span class="p">(</span><span class="s2">&quot;NUM_GENERATIONS&quot;</span><span class="p">,</span> <span class="n">PARAMETROS_JSON</span><span class="p">[</span><span class="s2">&quot;NUM_GENERATIONS&quot;</span><span class="p">])</span>
+                <span class="n">render_parameter_widget</span><span class="p">(</span><span class="s2">&quot;POP_SIZE&quot;</span><span class="p">,</span> <span class="n">PARAMETROS_JSON</span><span class="p">[</span><span class="s2">&quot;POP_SIZE&quot;</span><span class="p">])</span>
+
+            <span class="c1"># --- Seção de Resumo ---</span>
+            <span class="n">st</span><span class="o">.</span><span class="n">subheader</span><span class="p">(</span><span class="s2">&quot;Quantidade de Execuções Configuradas&quot;</span><span class="p">)</span>
+            <span class="n">num_variations</span> <span class="o">=</span> <span class="p">[</span><span class="nb">len</span><span class="p">(</span><span class="n">v</span><span class="p">)</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">config</span><span class="p">[</span><span class="s1">&#39;parametros_opcionais&#39;</span><span class="p">]</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span><span class="n">v</span> <span class="ow">in</span> <span class="n">p</span><span class="o">.</span><span class="n">items</span><span class="p">()</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">v</span><span class="p">,</span> <span class="nb">list</span><span class="p">)</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">v</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span> <span class="ow">and</span> <span class="n">v</span><span class="p">]</span>
+            <span class="n">total_combinations</span> <span class="o">=</span> <span class="n">reduce</span><span class="p">(</span><span class="n">operator</span><span class="o">.</span><span class="n">mul</span><span class="p">,</span> <span class="n">num_variations</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span> <span class="k">if</span> <span class="n">num_variations</span> <span class="k">else</span> <span class="mi">1</span>
+            <span class="n">total_execucoes</span> <span class="o">=</span> <span class="n">total_combinations</span> <span class="o">*</span> <span class="n">config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;value&#39;</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+
+            <span class="n">metric_col1</span><span class="p">,</span> <span class="n">metric_col2</span> <span class="o">=</span> <span class="n">st</span><span class="o">.</span><span class="n">columns</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span>
+            <span class="k">with</span> <span class="n">metric_col1</span><span class="p">:</span>
+                <span class="n">st</span><span class="o">.</span><span class="n">metric</span><span class="p">(</span><span class="s2">&quot;Configurações Únicas&quot;</span><span class="p">,</span> <span class="n">total_combinations</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Número de combinações diferentes de parâmetros.&quot;</span><span class="p">)</span>
+            <span class="k">with</span> <span class="n">metric_col2</span><span class="p">:</span>
+                <span class="n">st</span><span class="o">.</span><span class="n">metric</span><span class="p">(</span><span class="s2">&quot;Total de Execuções&quot;</span><span class="p">,</span> <span class="n">total_execucoes</span><span class="p">)</span>
+
+            <span class="c1"># --- Botão para Salvar ---</span>
+            <span class="k">if</span> <span class="n">st</span><span class="o">.</span><span class="n">button</span><span class="p">(</span><span class="s2">&quot;Salvar e Executar&quot;</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="s2">&quot;primary&quot;</span><span class="p">):</span>
+                <span class="k">try</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">utils</span><span class="o">.</span><span class="n">apagar_arquivos</span><span class="p">()</span>
+
+                    <span class="n">final_config</span> <span class="o">=</span> <span class="p">{</span><span class="o">**</span><span class="n">PARAMETROS_JSON</span><span class="p">}</span>
+                    <span class="n">user_config</span> <span class="o">=</span> <span class="n">st</span><span class="o">.</span><span class="n">session_state</span><span class="o">.</span><span class="n">user_config</span>
+
+                    <span class="c1"># Pega os dados atualizados do usuario na tela</span>
+                    <span class="n">optional_params_dict</span> <span class="o">=</span> <span class="p">{</span><span class="n">k</span><span class="p">:</span> <span class="n">v</span> <span class="k">for</span> <span class="n">d</span> <span class="ow">in</span> <span class="n">user_config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;parametros_opcionais&#39;</span><span class="p">,</span> <span class="p">[])</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">d</span><span class="o">.</span><span class="n">items</span><span class="p">()}</span>
+                    <span class="n">final_config</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">optional_params_dict</span><span class="p">)</span>
+                    <span class="n">final_config</span><span class="p">[</span><span class="s1">&#39;repeticoes_por_config&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">user_config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;value&#39;</span><span class="p">)</span>
+                    <span class="n">final_config</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">user_config</span><span class="p">)</span>
+
+                    <span class="c1"># --- TRATAMENTO DE TIPOS ---</span>
+                    <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;NUM_GENERATIONS&quot;</span><span class="p">,</span> <span class="s2">&quot;POP_SIZE&quot;</span><span class="p">]:</span>
+                        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">final_config</span><span class="p">[</span><span class="n">k</span><span class="p">],</span> <span class="nb">list</span><span class="p">):</span>
+                            <span class="n">final_config</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="nb">int</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">final_config</span><span class="p">[</span><span class="n">k</span><span class="p">]]</span>
+                        <span class="k">else</span><span class="p">:</span>
+                            <span class="n">final_config</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">final_config</span><span class="p">[</span><span class="n">k</span><span class="p">])</span>
+                    <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;MUTACAO&quot;</span><span class="p">,</span> <span class="s2">&quot;CROSSOVER&quot;</span><span class="p">]:</span>
+                        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">final_config</span><span class="p">[</span><span class="n">k</span><span class="p">],</span> <span class="nb">list</span><span class="p">):</span>
+                            <span class="n">final_config</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="nb">float</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">final_config</span><span class="p">[</span><span class="n">k</span><span class="p">]]</span>
+                        <span class="k">else</span><span class="p">:</span>
+                            <span class="n">final_config</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">final_config</span><span class="p">[</span><span class="n">k</span><span class="p">])</span>
+                            
+                    <span class="c1"># remove os campos desnecessários</span>
+                    <span class="k">del</span> <span class="n">final_config</span><span class="p">[</span><span class="s1">&#39;parametros_opcionais&#39;</span><span class="p">]</span>
+                    <span class="k">del</span> <span class="n">final_config</span><span class="p">[</span><span class="s1">&#39;value&#39;</span><span class="p">]</span>
+                    
+
+                    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="s2">&quot;../options.json&quot;</span><span class="p">,</span> <span class="s2">&quot;w&quot;</span><span class="p">,</span> <span class="n">encoding</span><span class="o">=</span><span class="s2">&quot;utf-8&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+                            <span class="n">json</span><span class="o">.</span><span class="n">dump</span><span class="p">(</span><span class="n">final_config</span><span class="p">,</span> <span class="n">f</span><span class="p">,</span> <span class="n">indent</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span> <span class="n">ensure_ascii</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+                    <span class="n">st</span><span class="o">.</span><span class="n">success</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Configuração salva em **options.json**!&quot;</span><span class="p">)</span>
+
+                    <span class="c1"># Executa o script principal</span>
+                    <span class="n">script_path</span> <span class="o">=</span> <span class="n">FOLDER_NAME</span><span class="o">.</span><span class="n">parent</span> <span class="o">/</span> <span class="s2">&quot;run_framework.py&quot;</span>
+                    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Configurações o Usuario escolhida&quot;</span><span class="p">,</span> <span class="n">final_config</span><span class="p">)</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">run_script</span><span class="p">(</span><span class="n">script_path</span><span class="p">)</span>
+                    <span class="n">st</span><span class="o">.</span><span class="n">rerun</span><span class="p">()</span>
+
+                <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+                    <span class="n">st</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Ocorreu um erro ao salvar os options.json ou executar o script run_framework.py : </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">atualizar_pagina</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Atualiza a página.&quot;&quot;&quot;</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Atualizando a página...&quot;</span><span class="p">)</span>
+        <span class="n">st</span><span class="o">.</span><span class="n">rerun</span><span class="p">()</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">run_script</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">script_path</span><span class="p">):</span>
+<span class="w">            </span><span class="sd">&quot;&quot;&quot;Executa um script Python com barra de progresso baseado no número total de execuções configuradas.&quot;&quot;&quot;</span>
+            <span class="n">dialog_placeholder</span> <span class="o">=</span> <span class="n">st</span><span class="o">.</span><span class="n">empty</span><span class="p">()</span>
+            <span class="n">progress_placeholder</span> <span class="o">=</span> <span class="n">st</span><span class="o">.</span><span class="n">empty</span><span class="p">()</span>
+
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">img_gif_loading</span> <span class="o">=</span> <span class="n">FOLDER_NAME</span><span class="o">.</span><span class="n">parent</span> <span class="o">/</span> <span class="s2">&quot;assets&quot;</span> <span class="o">/</span> <span class="s2">&quot;humans_evolution.gif&quot;</span>
+
+                <span class="c1"># Obtém o total de steps a partir da configuração do usuário</span>
+                <span class="n">config</span> <span class="o">=</span> <span class="n">st</span><span class="o">.</span><span class="n">session_state</span><span class="o">.</span><span class="n">user_config</span>
+                <span class="n">total_steps</span> <span class="o">=</span> <span class="n">config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;value&#39;</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+
+                <span class="k">if</span> <span class="n">img_gif_loading</span><span class="o">.</span><span class="n">exists</span><span class="p">():</span>
+                    <span class="k">with</span> <span class="n">dialog_placeholder</span><span class="o">.</span><span class="n">container</span><span class="p">():</span>
+                        <span class="n">st</span><span class="o">.</span><span class="n">image</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">img_gif_loading</span><span class="p">),</span> <span class="n">width</span><span class="o">=</span><span class="mi">800</span><span class="p">)</span>
+                        <span class="n">st</span><span class="o">.</span><span class="n">subheader</span><span class="p">(</span><span class="s2">&quot;Executando o programa principal com Algoritmo Evolutivo RCE no mesmo terminal, por favor aguarde...&quot;</span><span class="p">)</span>
+
+                        <span class="c1"># Executa o script em thread separada para não travar a UI</span>
+                        <span class="k">def</span><span class="w"> </span><span class="nf">run_command</span><span class="p">():</span>
+                            <span class="n">command</span> <span class="o">=</span> <span class="sa">f</span><span class="s1">&#39;python &quot;</span><span class="si">{</span><span class="n">script_path</span><span class="si">}</span><span class="s1">&quot;&#39;</span>
+                            <span class="bp">self</span><span class="o">.</span><span class="n">_return_code</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">system</span><span class="p">(</span><span class="n">command</span><span class="p">)</span>
+
+                        <span class="bp">self</span><span class="o">.</span><span class="n">_return_code</span> <span class="o">=</span> <span class="kc">None</span>
+                        <span class="n">thread</span> <span class="o">=</span> <span class="n">threading</span><span class="o">.</span><span class="n">Thread</span><span class="p">(</span><span class="n">target</span><span class="o">=</span><span class="n">run_command</span><span class="p">)</span>
+                        <span class="n">thread</span><span class="o">.</span><span class="n">start</span><span class="p">()</span>
+
+                        <span class="k">while</span> <span class="n">thread</span><span class="o">.</span><span class="n">is_alive</span><span class="p">():</span>
+                            <span class="n">arquivos_atual</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">utils</span><span class="o">.</span><span class="n">get_html_content_from_folder</span><span class="p">(</span><span class="n">FOLDER_NAME</span><span class="p">))</span>
+                            <span class="n">progresso</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">arquivos_atual</span><span class="p">)</span>
+                            <span class="n">percent</span> <span class="o">=</span> <span class="nb">int</span><span class="p">((</span><span class="n">progresso</span> <span class="o">/</span> <span class="n">total_steps</span><span class="p">)</span> <span class="o">*</span> <span class="mi">100</span><span class="p">)</span> <span class="k">if</span> <span class="n">total_steps</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="k">else</span> <span class="mi">0</span>
+                            <span class="n">percent</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="n">percent</span><span class="p">,</span> <span class="mi">100</span><span class="p">)</span>  <span class="c1"># Garante que não passe de 100%</span>
+
+                            <span class="n">bar_html</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;&quot;&quot;</span>
+<span class="s2">                            &lt;div style=&quot;background-color:#e0e0e0; border-radius:10px; width:100%; height:30px;&quot;&gt;</span>
+<span class="s2">                                &lt;div style=&quot;background-color:#008000; width:</span><span class="si">{</span><span class="n">percent</span><span class="si">}</span><span class="s2">%; height:30px; border-radius:10px;&quot;&gt;&lt;/div&gt;</span>
+<span class="s2">                            &lt;/div&gt;</span>
+<span class="s2">                            &lt;p style=&quot;text-align:center;&quot;&gt;</span><span class="si">{</span><span class="n">percent</span><span class="si">}</span><span class="s2">%&lt;/p&gt;</span>
+<span class="s2">                            &quot;&quot;&quot;</span>
+                            <span class="n">progress_placeholder</span><span class="o">.</span><span class="n">markdown</span><span class="p">(</span><span class="n">bar_html</span><span class="p">,</span> <span class="n">unsafe_allow_html</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+                            <span class="n">time</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="mf">3.0</span><span class="p">)</span>  <span class="c1"># Atualiza a cada 2 segundos</span>
+
+                        <span class="c1"># Garante 100% ao finalizar</span>
+                        <span class="n">bar_html</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;&quot;&quot;</span>
+<span class="s2">                        &lt;div style=&quot;background-color:#e0e0e0; border-radius:10px; width:100%; height:30px;&quot;&gt;</span>
+<span class="s2">                            &lt;div style=&quot;background-color:#008000; width:100%; height:30px; border-radius:10px;&quot;&gt;&lt;/div&gt;</span>
+<span class="s2">                        &lt;/div&gt;</span>
+<span class="s2">                        &lt;p style=&quot;text-align:center;&quot;&gt;100%&lt;/p&gt;</span>
+<span class="s2">                        &quot;&quot;&quot;</span>
+                        <span class="n">progress_placeholder</span><span class="o">.</span><span class="n">markdown</span><span class="p">(</span><span class="n">bar_html</span><span class="p">,</span> <span class="n">unsafe_allow_html</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+                        <span class="n">time</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="mf">1.0</span><span class="p">)</span>  <span class="c1"># Espera um segundo para mostrar 100%</span>
+                        <span class="n">st</span><span class="o">.</span><span class="n">success</span><span class="p">(</span><span class="s2">&quot;Script executado com sucesso!&quot;</span><span class="p">)</span>
+
+                        <span class="n">thread</span><span class="o">.</span><span class="n">join</span><span class="p">()</span>
+                        <span class="n">return_code</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_return_code</span>
+
+
+
+                <span class="n">dialog_placeholder</span><span class="o">.</span><span class="n">empty</span><span class="p">()</span>
+                <span class="n">progress_placeholder</span><span class="o">.</span><span class="n">empty</span><span class="p">()</span>
+
+                <span class="k">if</span> <span class="n">return_code</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                    <span class="n">st</span><span class="o">.</span><span class="n">rerun</span><span class="p">()</span>
+
+            <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+                <span class="n">dialog_placeholder</span><span class="o">.</span><span class="n">empty</span><span class="p">()</span>
+                <span class="n">st</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Erro ao executar o script. Código de retorno: </span><span class="si">{</span><span class="nb">locals</span><span class="p">()</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;return_code&#39;</span><span class="p">,</span><span class="w"> </span><span class="s1">&#39;N/A&#39;</span><span class="p">)</span><span class="si">}</span><span class="s2"> e Erro: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+            <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">execution_numbers</span><span class="p">:</span>
+                <span class="n">st</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;Nenhum arquivo de resultado encontrado.&quot;</span><span class="p">)</span>
+                <span class="n">st</span><span class="o">.</span><span class="n">stop</span><span class="p">()</span>
+
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">header</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Cabeçalho do aplicativo.&quot;&quot;&quot;</span>
+        <span class="n">st</span><span class="o">.</span><span class="n">markdown</span><span class="p">(</span><span class="s2">&quot;---&quot;</span><span class="p">)</span>
+        <span class="n">st</span><span class="o">.</span><span class="n">title</span><span class="p">(</span><span class="s2">&quot;⚡ Framework Repopulation-With-Elite-Set RCE ⚡&quot;</span><span class="p">)</span>
+        <span class="n">st</span><span class="o">.</span><span class="n">subheader</span><span class="p">(</span><span class="s2">&quot;Version 11.1.5 - 24/06/2025&quot;</span><span class="p">)</span>
+        <span class="n">st</span><span class="o">.</span><span class="n">markdown</span><span class="p">(</span><span class="s2">&quot;---&quot;</span><span class="p">)</span>
+
+        <span class="c1"># Adiciona CSS personalizado para estilizar o botão</span>
+        <span class="n">st</span><span class="o">.</span><span class="n">markdown</span><span class="p">(</span>
+<span class="w">            </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">            &lt;style&gt;</span>
+<span class="sd">            div.stButton &gt; button {</span>
+<span class="sd">                background-color: #008000; /* Verde */</span>
+<span class="sd">                color: white; /* Cor do texto */</span>
+<span class="sd">                padding: 12px 20px;</span>
+<span class="sd">                text-align: center;</span>
+<span class="sd">                display: inline-block;</span>
+<span class="sd">                font-size: 25px;</span>
+<span class="sd">                margin: 2px 2px;</span>
+<span class="sd">                cursor: pointer;</span>
+<span class="sd">                border-radius: 8px;</span>
+<span class="sd">            }</span>
+<span class="sd">            div.stButton &gt; button:hover {</span>
+<span class="sd">                background-color: #45a049; /* Verde mais escuro ao passar o mouse */</span>
+<span class="sd">            }</span>
+<span class="sd">            &lt;/style&gt;</span>
+<span class="sd">            &quot;&quot;&quot;</span><span class="p">,</span>
+            <span class="n">unsafe_allow_html</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+        <span class="p">)</span>
+
+        <span class="c1"># Adiciona CSS personalizado para estilizar as abas</span>
+        <span class="n">st</span><span class="o">.</span><span class="n">markdown</span><span class="p">(</span>
+<span class="w">            </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">            &lt;style&gt;</span>
+<span class="sd">            /* Estiliza as abas */</span>
+<span class="sd">            div.streamlit-tabs div[data-baseweb=&quot;tab&quot;] {</span>
+<span class="sd">                font-size: 25px; /* Aumenta o tamanho da fonte */</span>
+<span class="sd">                padding: 10px 10px; /* Aumenta o espaçamento interno */</span>
+<span class="sd">            }</span>
+<span class="sd">            &lt;/style&gt;</span>
+<span class="sd">            &quot;&quot;&quot;</span><span class="p">,</span>
+            <span class="n">unsafe_allow_html</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+        <span class="p">)</span>
+
+
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">footer</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Rodapé do aplicativo.&quot;&quot;&quot;</span>
+        <span class="n">st</span><span class="o">.</span><span class="n">markdown</span><span class="p">(</span><span class="s2">&quot;---&quot;</span><span class="p">)</span>
+        <span class="n">st</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Desenvolvido por Pedro Victor Veras e Rainer Zanghi em um projeto PIBIC pela UFF - 2024/2025&quot;</span><span class="p">)</span>
+        <span class="n">st</span><span class="o">.</span><span class="n">link_button</span><span class="p">(</span>
+            <span class="n">url</span><span class="o">=</span><span class="s2">&quot;https://github.com/PedroVic12/Repopulation-With-Elite-Set&quot;</span><span class="p">,</span>
+            <span class="n">label</span><span class="o">=</span><span class="s2">&quot;Visite a Documentação do Projeto nesse link&quot;</span><span class="p">,</span>
+            <span class="nb">type</span><span class="o">=</span><span class="s2">&quot;primary&quot;</span><span class="p">,</span>
+            <span class="n">icon</span><span class="o">=</span><span class="s2">&quot;📖&quot;</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="n">st</span><span class="o">.</span><span class="n">markdown</span><span class="p">(</span><span class="s2">&quot;---&quot;</span><span class="p">)</span>
+
+</pre></div>
+</div>
+</section>
+
+
+                </article>
+              
+
+              
+              
+              
+              
+                <footer class="prev-next-footer d-print-none">
+                  
+<div class="prev-next-area">
+</div>
+                </footer>
+              
+            </div>
+            
+            
+              
+            
+          </div>
+          <footer class="bd-footer-content">
+            
+<div class="bd-footer-content__inner container">
+  
+  <div class="footer-item">
+    
+<p class="component-author">
+De Pedro
+</p>
+
+  </div>
+  
+  <div class="footer-item">
+    
+
+  <p class="copyright">
+    
+      © Copyright 2025, Pedro.
+      <br/>
+    
+  </p>
+
+  </div>
+  
+  <div class="footer-item">
+    
+  </div>
+  
+  <div class="footer-item">
+    
+  </div>
+  
+</div>
+          </footer>
+        
+
+      </main>
+    </div>
+  </div>
+  
+  <!-- Scripts loaded after <body> so the DOM is not blocked -->
+  <script src="_static/scripts/bootstrap.js?digest=dfe6caa3a7d634c4db9b"></script>
+<script src="_static/scripts/pydata-sphinx-theme.js?digest=dfe6caa3a7d634c4db9b"></script>
+
+  <footer class="bd-footer">
+  </footer>
+  </body>
+</html>

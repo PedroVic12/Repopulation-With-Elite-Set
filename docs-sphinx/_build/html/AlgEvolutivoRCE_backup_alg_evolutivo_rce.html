@@ -1,0 +1,897 @@
+
+<!DOCTYPE html>
+
+
+<html lang="pt-BR" data-content_root="./" >
+
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>alg_evolutivo_rce.py &#8212; Documentação Repopulation-With-Elite-Set 0.1</title>
+  
+  
+  
+  <script data-cfasync="false">
+    document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
+    document.documentElement.dataset.theme = localStorage.getItem("theme") || "";
+  </script>
+  
+  <!-- Loaded before other Sphinx assets -->
+  <link href="_static/styles/theme.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+<link href="_static/styles/bootstrap.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+<link href="_static/styles/pydata-sphinx-theme.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+
+  
+  <link href="_static/vendor/fontawesome/6.5.2/css/all.min.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+  <link rel="preload" as="font" type="font/woff2" crossorigin href="_static/vendor/fontawesome/6.5.2/webfonts/fa-solid-900.woff2" />
+<link rel="preload" as="font" type="font/woff2" crossorigin href="_static/vendor/fontawesome/6.5.2/webfonts/fa-brands-400.woff2" />
+<link rel="preload" as="font" type="font/woff2" crossorigin href="_static/vendor/fontawesome/6.5.2/webfonts/fa-regular-400.woff2" />
+
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=8f2a1f02" />
+    <link rel="stylesheet" type="text/css" href="_static/styles/sphinx-book-theme.css?v=eba8b062" />
+  
+  <!-- Pre-loaded scripts that we'll load fully later -->
+  <link rel="preload" as="script" href="_static/scripts/bootstrap.js?digest=dfe6caa3a7d634c4db9b" />
+<link rel="preload" as="script" href="_static/scripts/pydata-sphinx-theme.js?digest=dfe6caa3a7d634c4db9b" />
+  <script src="_static/vendor/fontawesome/6.5.2/js/all.min.js?digest=dfe6caa3a7d634c4db9b"></script>
+
+    <script src="_static/documentation_options.js?v=bf871653"></script>
+    <script src="_static/doctools.js?v=9bcbadda"></script>
+    <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="_static/scripts/sphinx-book-theme.js?v=887ef09a"></script>
+    <script src="_static/translations.js?v=71a39b36"></script>
+    <script>DOCUMENTATION_OPTIONS.pagename = 'AlgEvolutivoRCE_backup_alg_evolutivo_rce';</script>
+    <link rel="index" title="Índice" href="genindex.html" />
+    <link rel="search" title="Buscar" href="search.html" />
+    <link rel="next" title="Setup.py" href="AlgEvolutivoRCE_backup_Setup.html" />
+    <link rel="prev" title="instalador.py" href="instalador.html" />
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="docsearch:language" content="pt-BR"/>
+  </head>
+  
+  
+  <body data-bs-spy="scroll" data-bs-target=".bd-toc-nav" data-offset="180" data-bs-root-margin="0px 0px -60%" data-default-mode="">
+
+  
+  
+  <div id="pst-skip-link" class="skip-link d-print-none"><a href="#main-content">Skip to main content</a></div>
+  
+  <div id="pst-scroll-pixel-helper"></div>
+  
+  <button type="button" class="btn rounded-pill" id="pst-back-to-top">
+    <i class="fa-solid fa-arrow-up"></i>Back to top</button>
+
+  
+  <input type="checkbox"
+          class="sidebar-toggle"
+          id="pst-primary-sidebar-checkbox"/>
+  <label class="overlay overlay-primary" for="pst-primary-sidebar-checkbox"></label>
+  
+  <input type="checkbox"
+          class="sidebar-toggle"
+          id="pst-secondary-sidebar-checkbox"/>
+  <label class="overlay overlay-secondary" for="pst-secondary-sidebar-checkbox"></label>
+  
+  <div class="search-button__wrapper">
+    <div class="search-button__overlay"></div>
+    <div class="search-button__search-container">
+<form class="bd-search d-flex align-items-center"
+      action="search.html"
+      method="get">
+  <i class="fa-solid fa-magnifying-glass"></i>
+  <input type="search"
+         class="form-control"
+         name="q"
+         id="search-input"
+         placeholder="Search..."
+         aria-label="Search..."
+         autocomplete="off"
+         autocorrect="off"
+         autocapitalize="off"
+         spellcheck="false"/>
+  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
+</form></div>
+  </div>
+
+  <div class="pst-async-banner-revealer d-none">
+  <aside id="bd-header-version-warning" class="d-none d-print-none" aria-label="Version warning"></aside>
+</div>
+
+  
+    <header class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
+    </header>
+  
+
+  <div class="bd-container">
+    <div class="bd-container__inner bd-page-width">
+      
+      
+      
+      <div class="bd-sidebar-primary bd-sidebar">
+        
+
+  
+  <div class="sidebar-header-items sidebar-primary__section">
+    
+    
+    
+    
+  </div>
+  
+    <div class="sidebar-primary-items__start sidebar-primary__section">
+        <div class="sidebar-primary-item">
+
+  
+    
+  
+
+<a class="navbar-brand logo" href="index.html">
+  
+  
+  
+  
+  
+  
+    <p class="title logo__title">Repopulation-With-Elite-Set</p>
+  
+</a></div>
+        <div class="sidebar-primary-item">
+
+ <script>
+ document.write(`
+   <button class="btn search-button-field search-button__button" title="Buscar" aria-label="Buscar" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass"></i>
+    <span class="search-button__default-text">Buscar</span>
+    <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+   </button>
+ `);
+ </script></div>
+        <div class="sidebar-primary-item"><nav class="bd-links bd-docs-nav" aria-label="Main">
+    <div class="bd-toc-item navbar-nav active">
+        
+        <ul class="nav bd-sidenav bd-sidenav__home-link">
+            <li class="toctree-l1">
+                <a class="reference internal" href="index.html">
+                    Documentação do Projeto RCE
+                </a>
+            </li>
+        </ul>
+        <p aria-level="2" class="caption" role="heading"><span class="caption-text">Guia Geral</span></p>
+<ul class="nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="guia_documentacao.html">Guia para Desenvolvimento da Documentação com MkDocs</a></li>
+<li class="toctree-l1"><a class="reference internal" href="sphinx_vs_mkdocs.html">Sphinx vs. MkDocs: Uma Comparação</a></li>
+<li class="toctree-l1"><a class="reference internal" href="run.html">run.py</a></li>
+<li class="toctree-l1"><a class="reference internal" href="run_agendamento.html">run_agendamento.py</a></li>
+<li class="toctree-l1"><a class="reference internal" href="instalador.html">instalador.py</a></li>
+</ul>
+<p aria-level="2" class="caption" role="heading"><span class="caption-text">Algoritmo Evolutivo (RCE)</span></p>
+<ul class="current nav bd-sidenav">
+<li class="toctree-l1 current active"><a class="current reference internal" href="#">alg_evolutivo_rce.py</a></li>
+<li class="toctree-l1"><a class="reference internal" href="AlgEvolutivoRCE_backup_Setup.html">Setup.py</a></li>
+<li class="toctree-l1"><a class="reference internal" href="AlgEvolutivoRCE_backup_Dashboard.html">Dashboard.py</a></li>
+</ul>
+<p aria-level="2" class="caption" role="heading"><span class="caption-text">Dashboard App</span></p>
+<ul class="nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="DashboardApp_dashboard_RCE_APP.html">dashboard_RCE_APP.py</a></li>
+<li class="toctree-l1"><a class="reference internal" href="DashboardApp_views_Screens_DashboardRCEPage.html">DashboardRCEPage.py</a></li>
+<li class="toctree-l1"><a class="reference internal" href="DashboardApp_controllers_Utils.html">Utils.py</a></li>
+</ul>
+<p aria-level="2" class="caption" role="heading"><span class="caption-text">Modelo da Rede Elétrica</span></p>
+<ul class="nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="RedeEletrica_backup_rede_eletrica.html">rede_eletrica.py</a></li>
+<li class="toctree-l1"><a class="reference internal" href="RedeEletrica_backup_exemplos_getting_started_deap_pandapower_exemplo.html">getting_started_deap_pandapower_exemplo.py</a></li>
+<li class="toctree-l1"><a class="reference internal" href="RedeEletrica_backup_simulator_anarede_dataset.html">anarede_dataset.py</a></li>
+</ul>
+
+    </div>
+</nav></div>
+    </div>
+  
+  
+  <div class="sidebar-primary-items__end sidebar-primary__section">
+  </div>
+  
+  <div id="rtd-footer-container"></div>
+
+
+      </div>
+      
+      <main id="main-content" class="bd-main" role="main">
+        
+        
+
+<div class="sbt-scroll-pixel-helper"></div>
+
+          <div class="bd-content">
+            <div class="bd-article-container">
+              
+              <div class="bd-header-article d-print-none">
+<div class="header-article-items header-article__inner">
+  
+    <div class="header-article-items__start">
+      
+        <div class="header-article-item"><button class="sidebar-toggle primary-toggle btn btn-sm" title="Toggle primary sidebar" data-bs-placement="bottom" data-bs-toggle="tooltip">
+  <span class="fa-solid fa-bars"></span>
+</button></div>
+      
+    </div>
+  
+  
+    <div class="header-article-items__end">
+      
+        <div class="header-article-item">
+
+<div class="article-header-buttons">
+
+
+<a href="https://github.com/PedroVic12/Repopulation-With-Elite-Set" target="_blank"
+   class="btn btn-sm btn-source-repository-button"
+   title="Repositório fonte"
+   data-bs-placement="bottom" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fab fa-github"></i>
+  </span>
+
+</a>
+
+
+
+
+
+
+<div class="dropdown dropdown-download-buttons">
+  <button class="btn dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false" aria-label="Baixe esta página">
+    <i class="fas fa-download"></i>
+  </button>
+  <ul class="dropdown-menu">
+      
+      
+      
+      <li><a href="_sources/AlgEvolutivoRCE_backup_alg_evolutivo_rce.md" target="_blank"
+   class="btn btn-sm btn-download-source-button dropdown-item"
+   title="Baixar arquivo fonte"
+   data-bs-placement="left" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-file"></i>
+  </span>
+<span class="btn__text-container">.md</span>
+</a>
+</li>
+      
+      
+      
+      
+      <li>
+<button onclick="window.print()"
+  class="btn btn-sm btn-download-pdf-button dropdown-item"
+  title="Imprimir em PDF"
+  data-bs-placement="left" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-file-pdf"></i>
+  </span>
+<span class="btn__text-container">.pdf</span>
+</button>
+</li>
+      
+  </ul>
+</div>
+
+
+
+
+<button onclick="toggleFullScreen()"
+  class="btn btn-sm btn-fullscreen-button"
+  title="Modo tela cheia"
+  data-bs-placement="bottom" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-expand"></i>
+  </span>
+
+</button>
+
+
+
+<script>
+document.write(`
+  <button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button" title="light/dark" aria-label="light/dark" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="theme-switch fa-solid fa-sun fa-lg" data-mode="light"></i>
+    <i class="theme-switch fa-solid fa-moon fa-lg" data-mode="dark"></i>
+    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto"></i>
+  </button>
+`);
+</script>
+
+
+<script>
+document.write(`
+  <button class="btn btn-sm pst-navbar-icon search-button search-button__button" title="Buscar" aria-label="Buscar" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass fa-lg"></i>
+  </button>
+`);
+</script>
+
+</div></div>
+      
+    </div>
+  
+</div>
+</div>
+              
+              
+
+<div id="jb-print-docs-body" class="onlyprint">
+    <h1>alg_evolutivo_rce.py</h1>
+    <!-- Table of contents -->
+    <div id="print-main-content">
+        <div id="jb-print-toc">
+            
+        </div>
+    </div>
+</div>
+
+              
+                
+<div id="searchbox"></div>
+                <article class="bd-article">
+                  
+  <section id="alg-evolutivo-rce-py">
+<h1>alg_evolutivo_rce.py<a class="headerlink" href="#alg-evolutivo-rce-py" title="Link para este cabeçalho">#</a></h1>
+<p>Este código é o prnicipal da otimização…</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">deap</span><span class="w"> </span><span class="kn">import</span> <span class="n">base</span><span class="p">,</span> <span class="n">creator</span><span class="p">,</span> <span class="n">tools</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">random</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">pandas</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">pd</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">pathlib</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">.Dashboard</span><span class="w"> </span><span class="kn">import</span> <span class="n">DashboardApp</span>
+
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">get_folder_path</span><span class="p">():</span>
+    <span class="n">BASE_DIR</span> <span class="o">=</span> <span class="n">pathlib</span><span class="o">.</span><span class="n">Path</span><span class="p">(</span><span class="vm">__file__</span><span class="p">)</span><span class="o">.</span><span class="n">resolve</span><span class="p">()</span><span class="o">.</span><span class="n">parent</span><span class="o">.</span><span class="n">parent</span>
+
+    <span class="c1"># Define o caminho relativo para a pasta &quot;output&quot; dentro do projeto</span>
+    <span class="n">FOLDER_NAME</span> <span class="o">=</span> <span class="n">BASE_DIR</span> <span class="o">/</span> <span class="s2">&quot;output&quot;</span>
+
+    <span class="c1"># Cria a pasta &quot;output&quot; se ela não existir</span>
+    <span class="n">FOLDER_NAME</span><span class="o">.</span><span class="n">mkdir</span><span class="p">(</span><span class="n">parents</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">exist_ok</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">FOLDER_NAME</span>
+
+<span class="n">FOLDER_NAME</span> <span class="o">=</span> <span class="n">get_folder_path</span><span class="p">()</span>
+
+<span class="k">class</span><span class="w"> </span><span class="nc">AlgoritimoEvolutivoRCE</span><span class="p">:</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">setup</span><span class="p">,</span> <span class="n">DEBUG</span> <span class="o">=</span> <span class="kc">True</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">setup</span> <span class="o">=</span> <span class="n">setup</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">dashboard</span> <span class="o">=</span> <span class="n">DashboardApp</span><span class="p">(</span>
+            <span class="n">options</span><span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">setup</span><span class="o">.</span><span class="n">config</span>
+        <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">DEBUG</span> <span class="o">=</span> <span class="n">DEBUG</span>
+        
+        <span class="bp">self</span><span class="o">.</span><span class="n">stats</span> <span class="o">=</span> <span class="n">tools</span><span class="o">.</span><span class="n">Statistics</span><span class="p">(</span><span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">ind</span><span class="p">:</span> <span class="n">ind</span><span class="o">.</span><span class="n">fitness</span><span class="o">.</span><span class="n">values</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">stats</span><span class="o">.</span><span class="n">register</span><span class="p">(</span><span class="s2">&quot;avg&quot;</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">stats</span><span class="o">.</span><span class="n">register</span><span class="p">(</span><span class="s2">&quot;std&quot;</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">std</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">stats</span><span class="o">.</span><span class="n">register</span><span class="p">(</span><span class="s2">&quot;min&quot;</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">min</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">stats</span><span class="o">.</span><span class="n">register</span><span class="p">(</span><span class="s2">&quot;max&quot;</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">max</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">logbook</span> <span class="o">=</span> <span class="n">tools</span><span class="o">.</span><span class="n">Logbook</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">hof</span> <span class="o">=</span> <span class="n">tools</span><span class="o">.</span><span class="n">HallOfFame</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">POPULATION</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">setup</span><span class="o">.</span><span class="n">toolbox</span><span class="o">.</span><span class="n">population</span><span class="p">(</span><span class="n">n</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">setup</span><span class="o">.</span><span class="n">POP_SIZE</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">hof</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">POPULATION</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">pop_RCE</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">best_solutions_array</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">best_individual_array</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">allIndividualValuesArray</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">data</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">repopulation_counter</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">allFitnessValues</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">validateCounter</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">CONJUNTO_ELITE_RCE</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">decision_variables</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">fitness_function</span>  <span class="o">=</span> <span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="mi">0</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">registrarDados</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">generation</span><span class="p">):</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="c1"># Calculate statistics across the entire population</span>
+            <span class="n">fitness_values</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="k">for</span> <span class="n">ind</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">POPULATION</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">ind</span><span class="o">.</span><span class="n">fitness</span><span class="o">.</span><span class="n">valid</span> <span class="ow">and</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">ind</span><span class="o">.</span><span class="n">fitness</span><span class="p">,</span> <span class="s1">&#39;values&#39;</span><span class="p">)</span> <span class="ow">and</span> <span class="n">ind</span><span class="o">.</span><span class="n">fitness</span><span class="o">.</span><span class="n">values</span><span class="p">:</span>
+                    <span class="k">try</span><span class="p">:</span>
+                        <span class="n">fitness_values</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="n">ind</span><span class="o">.</span><span class="n">fitness</span><span class="o">.</span><span class="n">values</span><span class="p">[</span><span class="mi">0</span><span class="p">]))</span>
+                    <span class="k">except</span> <span class="p">(</span><span class="ne">ValueError</span><span class="p">,</span> <span class="ne">TypeError</span><span class="p">,</span> <span class="ne">IndexError</span><span class="p">)</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+                        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Warning: Could not get fitness value for individual </span><span class="si">{</span><span class="n">ind</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            
+            <span class="c1"># Calculate statistics</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">fitness_values</span><span class="p">:</span>  <span class="c1"># If no valid fitness values, use default values</span>
+                <span class="n">avg_fitness</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="s1">&#39;inf&#39;</span><span class="p">)</span>
+                <span class="n">std_dev</span> <span class="o">=</span> <span class="mf">0.0</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">avg_fitness</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">fitness_values</span><span class="p">)</span>
+                <span class="n">std_dev</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">std</span><span class="p">(</span><span class="n">fitness_values</span><span class="p">)</span> <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">fitness_values</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span> <span class="k">else</span> <span class="mf">0.0</span>
+            
+            <span class="c1"># Get the best individual from the Hall of Fame</span>
+            <span class="n">best_individual</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">hof</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">hof</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="k">else</span> <span class="kc">None</span>
+            
+            <span class="c1"># Prepare the data dictionary</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">data</span> <span class="o">=</span> <span class="p">{</span>
+                <span class="s2">&quot;Generations&quot;</span><span class="p">:</span> <span class="n">generation</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span>
+                <span class="s2">&quot;Variaveis de Decisão&quot;</span><span class="p">:</span> <span class="n">best_individual</span> <span class="k">if</span> <span class="n">best_individual</span> <span class="k">else</span> <span class="s2">&quot;N/A&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;Evaluations&quot;</span><span class="p">:</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">setup</span><span class="p">,</span> <span class="s1">&#39;evaluations&#39;</span><span class="p">,</span> <span class="mi">0</span><span class="p">),</span>
+                <span class="s2">&quot;Ind Valido&quot;</span><span class="p">:</span> <span class="n">best_individual</span><span class="o">.</span><span class="n">fitness</span><span class="o">.</span><span class="n">valid</span> <span class="k">if</span> <span class="n">best_individual</span> <span class="k">else</span> <span class="kc">False</span><span class="p">,</span>
+                <span class="s2">&quot;Best Fitness&quot;</span><span class="p">:</span> <span class="nb">float</span><span class="p">(</span><span class="n">best_individual</span><span class="o">.</span><span class="n">fitness</span><span class="o">.</span><span class="n">values</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="k">if</span> <span class="n">best_individual</span> <span class="ow">and</span> <span class="n">best_individual</span><span class="o">.</span><span class="n">fitness</span><span class="o">.</span><span class="n">valid</span> <span class="k">else</span> <span class="nb">float</span><span class="p">(</span><span class="s1">&#39;inf&#39;</span><span class="p">),</span>
+                <span class="s2">&quot;Media&quot;</span><span class="p">:</span> <span class="nb">float</span><span class="p">(</span><span class="n">avg_fitness</span><span class="p">),</span>
+                <span class="s2">&quot;Desvio Padrao&quot;</span><span class="p">:</span> <span class="nb">float</span><span class="p">(</span><span class="n">std_dev</span><span class="p">),</span>
+            <span class="p">}</span>
+
+            <span class="bp">self</span><span class="o">.</span><span class="n">best_individual_array</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">visualizarPopAtual</span><span class="p">(</span><span class="n">generation</span><span class="p">,</span> <span class="p">[</span><span class="n">avg_fitness</span><span class="p">,</span> <span class="n">std_dev</span><span class="p">])</span>
+            
+        <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Error in registrarDados: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="kn">import</span><span class="w"> </span><span class="nn">traceback</span>
+            <span class="n">traceback</span><span class="o">.</span><span class="n">print_exc</span><span class="p">()</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">checkClonesInPop</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ind</span><span class="p">,</span> <span class="n">new_pop</span><span class="p">):</span>
+        <span class="n">is_clone</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="k">for</span> <span class="n">other_ind</span> <span class="ow">in</span> <span class="n">new_pop</span><span class="p">:</span>
+            <span class="k">if</span> <span class="p">(</span>
+                <span class="n">ind</span> <span class="o">==</span> <span class="n">other_ind</span>
+                <span class="ow">and</span> <span class="nb">sum</span><span class="p">(</span><span class="n">ind</span><span class="p">)</span> <span class="o">==</span> <span class="nb">sum</span><span class="p">(</span><span class="n">other_ind</span><span class="p">)</span>
+                <span class="ow">and</span> <span class="n">ind</span><span class="o">.</span><span class="n">index</span> <span class="o">!=</span> <span class="n">other_ind</span><span class="o">.</span><span class="n">index</span>
+            <span class="p">):</span>
+                <span class="n">is_clone</span> <span class="o">=</span> <span class="kc">True</span>
+                <span class="k">break</span>
+        <span class="k">return</span> <span class="n">is_clone</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">criterios_RCE</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">population</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">CONJUNTO_ELITE_RCE</span><span class="o">.</span><span class="n">clear</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">pop_RCE</span> <span class="o">=</span> <span class="p">[]</span>
+
+        <span class="k">def</span><span class="w"> </span><span class="nf">criterio1_reduzido</span><span class="p">(</span><span class="n">population</span><span class="p">):</span>
+            <span class="c1">#! critério 1 e obtém os N melhores com 30% do valor do melhor fitness</span>
+
+            <span class="n">best_ind</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">elitismoSimples</span><span class="p">(</span><span class="n">population</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="n">best_fitness</span> <span class="o">=</span> <span class="n">best_ind</span><span class="o">.</span><span class="n">fitness</span><span class="o">.</span><span class="n">values</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="n">max_difference</span> <span class="o">=</span> <span class="p">(</span><span class="mi">1</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">setup</span><span class="o">.</span><span class="n">porcentagem</span><span class="p">)</span> <span class="o">*</span> <span class="n">best_fitness</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">DEBUG</span><span class="p">:</span>
+                <span class="nb">print</span><span class="p">(</span>
+                    <span class="sa">f</span><span class="s2">&quot;Fitness (</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">setup</span><span class="o">.</span><span class="n">porcentagem</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="mi">100</span><span class="si">}</span><span class="s2">)% = </span><span class="si">{</span><span class="nb">round</span><span class="p">(</span><span class="n">max_difference</span><span class="p">,</span><span class="mi">3</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span>
+                <span class="p">)</span>
+            <span class="k">return</span> <span class="n">max_difference</span><span class="p">,</span> <span class="n">best_ind</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">DEBUG</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">cout</span><span class="p">(</span>
+                <span class="s2">&quot;Criterio 1 - Pegando o valor máximo de Fitness para selecionar individuos&quot;</span>
+            <span class="p">)</span>
+        <span class="n">max_difference</span><span class="p">,</span> <span class="n">best_ind</span> <span class="o">=</span> <span class="n">criterio1_reduzido</span><span class="p">(</span><span class="n">population</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">pop_RCE</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">best_ind</span><span class="p">)</span>
+
+        <span class="k">def</span><span class="w"> </span><span class="nf">calculaDiff</span><span class="p">(</span><span class="n">ind</span><span class="p">,</span> <span class="n">lista</span><span class="p">):</span>
+<span class="w">            </span><span class="sd">&quot;&quot;&quot;Critério 2 - Subrotina para calcular a difenreça entre o ind selecionado e a população do RCE.&quot;&quot;&quot;</span>
+            <span class="n">count</span> <span class="o">=</span> <span class="mi">0</span>
+
+            <span class="c1"># calcula a diferença entre o ind selecionado e o pessoal do RCE</span>
+            <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">lista</span><span class="p">)):</span>
+                <span class="n">diff</span> <span class="o">=</span> <span class="nb">abs</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">ind</span><span class="p">)</span> <span class="o">-</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">lista</span><span class="p">[</span><span class="n">i</span><span class="p">]))</span>
+                <span class="n">array</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">diff</span><span class="p">)</span>
+
+                <span class="c1"># pegando quantos valores nao sao nulos  -&gt; caso tenha valor limite</span>
+                <span class="k">if</span> <span class="nb">sum</span><span class="p">(</span><span class="n">array</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mf">0.0</span><span class="p">:</span>
+                    <span class="k">for</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">array</span><span class="p">:</span>
+                        <span class="k">if</span> <span class="n">value</span> <span class="o">&gt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">setup</span><span class="o">.</span><span class="n">NUM_VAR_DIF</span><span class="p">:</span>
+                            <span class="n">count</span> <span class="o">+=</span> <span class="mi">1</span>
+
+                    <span class="c1"># se o contador for maior que delta</span>
+                    <span class="k">if</span> <span class="n">count</span> <span class="o">&gt;=</span> <span class="bp">self</span><span class="o">.</span><span class="n">setup</span><span class="o">.</span><span class="n">delta</span><span class="p">:</span>
+                        <span class="c1"># print(&quot;\nArray diferente&quot;)</span>
+
+                        <span class="c1"># print(&quot; diff&quot;, array)</span>
+
+                        <span class="c1"># print(&quot;Var decision diferentes = &quot;, count)</span>
+                        <span class="k">return</span> <span class="kc">True</span>
+
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="k">return</span> <span class="kc">False</span>  <span class="c1"># sem diversidade suficiente</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="k">return</span> <span class="kc">False</span>  <span class="c1"># clone: Variaveis iguais</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">DEBUG</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">cout</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;CRITÉRIO 2 - Comparar as variáveis de decisão de cada indivíduo e verificar se existem diferenças superiores a &#39;delta&#39; = </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">setup</span><span class="o">.</span><span class="n">delta</span><span class="si">}</span><span class="s2">.&quot;</span>
+            <span class="p">)</span>
+
+        <span class="k">for</span> <span class="n">ind</span> <span class="ow">in</span> <span class="n">population</span><span class="p">:</span>
+            <span class="c1"># criterio 1</span>
+            <span class="k">if</span> <span class="n">ind</span><span class="o">.</span><span class="n">fitness</span><span class="o">.</span><span class="n">values</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">&lt;=</span> <span class="n">max_difference</span><span class="p">:</span>
+                <span class="c1"># criterio 2</span>
+                <span class="n">diferente</span> <span class="o">=</span> <span class="n">calculaDiff</span><span class="p">(</span><span class="n">ind</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">pop_RCE</span><span class="p">)</span>  <span class="c1"># delta como valor limite</span>
+                <span class="k">if</span> <span class="n">diferente</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="n">ind</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">pop_RCE</span><span class="p">:</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">pop_RCE</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">ind</span><span class="p">)</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">CONJUNTO_ELITE_RCE</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="nb">tuple</span><span class="p">(</span><span class="n">ind</span><span class="p">))</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">DEBUG</span><span class="p">:</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">pop_RCE</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+                <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Nenhum indivíduo atende aos critérios. :( &quot;</span><span class="p">)</span>
+
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">Tamanho Elite = &quot;</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">pop_RCE</span><span class="p">))</span>
+            <span class="c1">#print(&quot;Tamanho Elite = &quot;, len(self.CONJUNTO_ELITE_RCE))</span>
+
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">pop_RCE</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">aplicar_RCE</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">generation</span><span class="p">,</span> <span class="n">current_population</span><span class="p">):</span>
+
+        <span class="c1">#! a - Cria uma pop aleatória (eliminando a pop aleatória criada na execução anterior do RCE)</span>
+        <span class="n">new_pop</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">setup</span><span class="o">.</span><span class="n">toolbox</span><span class="o">.</span><span class="n">population</span><span class="p">(</span>
+            <span class="n">n</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">setup</span><span class="o">.</span><span class="n">POP_SIZE</span>
+        <span class="p">)</span>  <span class="c1"># retorna uma pop com lista de individuos de var de decisão</span>
+
+        <span class="c1"># Avaliar o fitness da população atual</span>
+        <span class="c1">#?self.setup.avaliarFitnessIndividuos(current_population)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">calculateFitnessGeneration</span><span class="p">(</span><span class="n">current_population</span><span class="p">)</span>
+
+        <span class="c1">#! Critério 1 - Coloca o elite hof da pop anterior  no topo (0)</span>
+        <span class="n">pop</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">elitismoSimples</span><span class="p">(</span><span class="n">current_population</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">DEBUG</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;Elitismo HOF Index[</span><span class="si">{</span><span class="n">pop</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">index</span><span class="si">}</span><span class="s2">] </span><span class="si">{</span><span class="n">pop</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="si">}</span><span class="s2"> </span><span class="se">\n</span><span class="s2"> Fitness = </span><span class="si">{</span><span class="n">pop</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">fitness</span><span class="o">.</span><span class="n">values</span><span class="si">}</span><span class="s2"> | Diversidade = </span><span class="si">{</span><span class="nb">sum</span><span class="p">(</span><span class="n">pop</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span><span class="si">}</span><span class="s2">&quot;</span>
+            <span class="p">)</span>
+
+        <span class="n">new_pop</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">setup</span><span class="o">.</span><span class="n">toolbox</span><span class="o">.</span><span class="n">clone</span><span class="p">(</span><span class="n">pop</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="c1"># pop[0] é o melhor individuo HOF</span>
+
+        <span class="c1">#! Critério 1 e 2 usando este array e vai colocando os indivíduos selecionados pelo critério 2 na pop aleatória (passo a)</span>
+        <span class="n">ind_diferentes_var</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">criterios_RCE</span><span class="p">(</span>
+            <span class="n">current_population</span><span class="p">,</span>
+        <span class="p">)</span>
+
+        <span class="c1"># COLOCANDO ATRIBUTOS HOF na tabela</span>
+        <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">ind</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">ind_diferentes_var</span><span class="p">,</span> <span class="n">start</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
+            <span class="n">new_pop</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">rce</span> <span class="o">=</span> <span class="s2">&quot;HOF&quot;</span>
+            <span class="k">if</span> <span class="n">i</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="n">new_pop</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">setup</span><span class="o">.</span><span class="n">toolbox</span><span class="o">.</span><span class="n">clone</span><span class="p">(</span><span class="n">ind</span><span class="p">)</span>
+                <span class="n">new_pop</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">rce</span> <span class="o">=</span> <span class="s2">&quot;SIM&quot;</span>
+
+        <span class="c1">#! Criterio 3 retorna pop aleatória modificada (com hof + rce + Aleatorio)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">calculateFitnessGeneration</span><span class="p">(</span><span class="n">new_pop</span><span class="p">)</span>
+        <span class="n">conjunto_elite</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">generateInfoIndividual</span><span class="p">(</span><span class="n">new_pop</span><span class="p">,</span> <span class="n">generation</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">DEBUG</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">cout</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;CRITERIO 3 - População aleatória modificada [HOF,RCE,Aleatorio] &quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">new_pop</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">elitismoSimples</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">pop</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">hof</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">pop</span><span class="p">)</span>
+        <span class="n">pop</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">setup</span><span class="o">.</span><span class="n">toolbox</span><span class="o">.</span><span class="n">clone</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">hof</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+        <span class="k">return</span> <span class="n">pop</span>
+
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">calculateFitnessGeneration</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">new_pop</span><span class="p">):</span>
+        <span class="k">for</span> <span class="n">ind</span> <span class="ow">in</span> <span class="n">new_pop</span><span class="p">:</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">ind</span><span class="o">.</span><span class="n">fitness</span><span class="o">.</span><span class="n">valid</span><span class="p">:</span>
+                <span class="k">try</span><span class="p">:</span>
+                    <span class="c1"># Call the evaluate function with just the individual</span>
+                    <span class="n">fitness</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">setup</span><span class="o">.</span><span class="n">toolbox</span><span class="o">.</span><span class="n">evaluate</span><span class="p">(</span><span class="n">ind</span><span class="p">)</span>
+                    
+                    <span class="c1"># Ensure we have a tuple of numbers</span>
+                    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">fitness</span><span class="p">,</span> <span class="p">(</span><span class="nb">int</span><span class="p">,</span> <span class="nb">float</span><span class="p">)):</span>
+                        <span class="n">fitness</span> <span class="o">=</span> <span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="n">fitness</span><span class="p">),)</span>
+                    <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">fitness</span><span class="p">,</span> <span class="p">(</span><span class="nb">list</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">)):</span>
+                        <span class="n">fitness</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">fitness</span><span class="p">)</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="n">fitness</span> <span class="o">=</span> <span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="n">fitness</span><span class="p">),)</span>
+                        
+                    <span class="c1"># Assign the fitness value to the individual</span>
+                    <span class="n">ind</span><span class="o">.</span><span class="n">fitness</span><span class="o">.</span><span class="n">values</span> <span class="o">=</span> <span class="n">fitness</span>
+                <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+                    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Error evaluating individual in calculateFitnessGeneration: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+                    <span class="c1"># Assign a very bad fitness value to this individual</span>
+                    <span class="n">ind</span><span class="o">.</span><span class="n">fitness</span><span class="o">.</span><span class="n">values</span> <span class="o">=</span> <span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="s1">&#39;inf&#39;</span><span class="p">),)</span>
+
+    <span class="c1"># def _avaliarFitnessIndividuos(self, pop):</span>
+    <span class="c1">#     &quot;&quot;&quot;Avaliar o fitness dos indivíduos da população atual.&quot;&quot;&quot;</span>
+    <span class="c1">#     fitnesses = map(self.setup.toolbox.evaluate, pop)</span>
+    <span class="c1">#     for ind, fit in zip(pop, fitnesses):</span>
+    <span class="c1">#         if ind.fitness.values:</span>
+    <span class="c1">#             ind.fitness.values = [fit]</span>
+
+
+    <span class="c1">#! Main LOOP</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">run</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>  <span class="n">RCE</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">num_pop</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
+
+        <span class="n">population</span> <span class="o">=</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">POPULATION</span><span class="p">]</span>
+
+        <span class="c1">#! Loop principal através das gerações</span>
+        <span class="k">for</span> <span class="n">current_generation</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">setup</span><span class="o">.</span><span class="n">NGEN</span><span class="p">):</span>
+
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">DEBUG</span><span class="p">:</span>
+                <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">ALGORITIMO EVOLUTIVO COM AG COM DEAP. Geração atual = </span><span class="si">{</span><span class="n">current_generation</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="mi">1</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+
+            <span class="c1"># Selecionar os indivíduos para reprodução</span>
+            <span class="n">offspring</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">setup</span><span class="o">.</span><span class="n">toolbox</span><span class="o">.</span><span class="n">select</span><span class="p">(</span>
+                <span class="n">population</span><span class="p">[</span><span class="n">num_pop</span><span class="p">],</span> <span class="n">k</span><span class="o">=</span><span class="nb">len</span><span class="p">(</span><span class="n">population</span><span class="p">[</span><span class="n">num_pop</span><span class="p">])</span>
+            <span class="p">)</span>
+
+            <span class="c1"># Clone the selected individuals</span>
+            <span class="n">offspring</span> <span class="o">=</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">setup</span><span class="o">.</span><span class="n">toolbox</span><span class="o">.</span><span class="n">clone</span><span class="p">(</span><span class="n">ind</span><span class="p">)</span> <span class="k">for</span> <span class="n">ind</span> <span class="ow">in</span> <span class="n">offspring</span><span class="p">]</span>
+
+            <span class="c1"># Aplicar crossover</span>
+            <span class="k">for</span> <span class="n">child1</span><span class="p">,</span> <span class="n">child2</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">offspring</span><span class="p">[::</span><span class="mi">2</span><span class="p">],</span> <span class="n">offspring</span><span class="p">[</span><span class="mi">1</span><span class="p">::</span><span class="mi">2</span><span class="p">]):</span>
+                <span class="k">if</span> <span class="n">random</span><span class="o">.</span><span class="n">random</span><span class="p">()</span> <span class="o">&lt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">setup</span><span class="o">.</span><span class="n">CXPB</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">setup</span><span class="o">.</span><span class="n">toolbox</span><span class="o">.</span><span class="n">mate</span><span class="p">(</span><span class="n">child1</span><span class="p">,</span> <span class="n">child2</span><span class="p">)</span>
+                    <span class="k">del</span> <span class="n">child1</span><span class="o">.</span><span class="n">fitness</span><span class="o">.</span><span class="n">values</span>
+                    <span class="k">del</span> <span class="n">child2</span><span class="o">.</span><span class="n">fitness</span><span class="o">.</span><span class="n">values</span>
+
+            <span class="c1"># Aplicar mutação</span>
+            <span class="k">for</span> <span class="n">mutant</span> <span class="ow">in</span> <span class="n">offspring</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">random</span><span class="o">.</span><span class="n">random</span><span class="p">()</span> <span class="o">&lt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">setup</span><span class="o">.</span><span class="n">MUTPB</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">setup</span><span class="o">.</span><span class="n">toolbox</span><span class="o">.</span><span class="n">mutate</span><span class="p">(</span><span class="n">mutant</span><span class="p">)</span>
+                    <span class="k">del</span> <span class="n">mutant</span><span class="o">.</span><span class="n">fitness</span><span class="o">.</span><span class="n">values</span>
+
+            <span class="c1">#  Avaliar o fitness dos novos indivíduos</span>
+            <span class="n">invalid_ind</span> <span class="o">=</span> <span class="p">[</span><span class="n">ind</span> <span class="k">for</span> <span class="n">ind</span> <span class="ow">in</span> <span class="n">offspring</span> <span class="k">if</span> <span class="ow">not</span> <span class="n">ind</span><span class="o">.</span><span class="n">fitness</span><span class="o">.</span><span class="n">valid</span><span class="p">]</span>
+
+            <span class="c1">#! Evaluate each individual separately</span>
+            <span class="k">for</span> <span class="n">ind</span> <span class="ow">in</span> <span class="n">invalid_ind</span><span class="p">:</span>
+                <span class="k">try</span><span class="p">:</span>
+                    <span class="c1"># Call the evaluate function with just the individual</span>
+                    <span class="c1"># The setup parameter is already bound in the evaluate_wrapper</span>
+                    <span class="n">fitness</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">setup</span><span class="o">.</span><span class="n">toolbox</span><span class="o">.</span><span class="n">evaluate</span><span class="p">(</span><span class="n">ind</span><span class="p">)</span>
+                    
+                    <span class="c1"># Ensure we have a tuple of numbers</span>
+                    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">fitness</span><span class="p">,</span> <span class="p">(</span><span class="nb">int</span><span class="p">,</span> <span class="nb">float</span><span class="p">)):</span>
+                        <span class="n">fitness</span> <span class="o">=</span> <span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="n">fitness</span><span class="p">),)</span>
+                    <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">fitness</span><span class="p">,</span> <span class="p">(</span><span class="nb">list</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">)):</span>
+                        <span class="n">fitness</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">fitness</span><span class="p">)</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="n">fitness</span> <span class="o">=</span> <span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="n">fitness</span><span class="p">),)</span>
+                        
+                    <span class="c1"># Assign the fitness value to the individual</span>
+                    <span class="n">ind</span><span class="o">.</span><span class="n">fitness</span><span class="o">.</span><span class="n">values</span> <span class="o">=</span> <span class="n">fitness</span>
+                <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+                    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Error evaluating individual </span><span class="si">{</span><span class="n">ind</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+                    <span class="c1"># Assign a very bad fitness value to this individual</span>
+                    <span class="n">ind</span><span class="o">.</span><span class="n">fitness</span><span class="o">.</span><span class="n">values</span> <span class="o">=</span> <span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="s1">&#39;inf&#39;</span><span class="p">),)</span>
+
+            <span class="c1"># # faz um map dos valores de fitness de cada individuo</span>
+            <span class="c1"># fitnesses = map(self.setup.toolbox.evaluate, invalid_ind)</span>
+            <span class="c1"># for ind, fit in zip(invalid_ind, list(fitnesses)):</span>
+            <span class="c1">#     ind.fitness.values = [fit]</span>
+
+
+            <span class="c1">#! Aplicar RCE</span>
+            <span class="k">if</span> <span class="n">RCE</span> <span class="ow">and</span> <span class="p">((</span><span class="n">current_generation</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">setup</span><span class="o">.</span><span class="n">num_repopulation</span> <span class="o">==</span> <span class="mi">0</span><span class="p">):</span>
+                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">DEBUG</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">cout</span><span class="p">(</span>
+                        <span class="sa">f</span><span class="s2">&quot;RCE being applied! - Generation = </span><span class="si">{</span><span class="n">current_generation</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="mi">1</span><span class="si">}</span><span class="s2"> &quot;</span><span class="p">,</span>
+                    <span class="p">)</span>
+                <span class="c1">#!copia pop aleatória modificada retornada para pop atual</span>
+                <span class="n">new_population</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">aplicar_RCE</span><span class="p">(</span>
+                    <span class="n">current_generation</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="n">offspring</span>
+                <span class="p">)</span>
+
+                <span class="c1"># Retorna minha nova população com RCE</span>
+                <span class="n">population</span><span class="p">[</span><span class="n">num_pop</span><span class="p">][:]</span> <span class="o">=</span> <span class="n">new_population</span>
+
+                <span class="c1"># Gera o Excel com a pop com RCE em Excel</span>
+                <span class="n">conjunto_elite</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">generateInfoIndividual</span><span class="p">(</span><span class="n">population</span><span class="p">[</span><span class="n">num_pop</span><span class="p">][:],</span> <span class="n">current_generation</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">show_ind_df</span><span class="p">(</span><span class="n">conjunto_elite</span><span class="p">,</span> <span class="s2">&quot;Individuos da nova população aleatória com RCE (Conjunto Elite)&quot;</span><span class="p">)</span>
+
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">population</span><span class="p">[</span><span class="n">num_pop</span><span class="p">][:]</span> <span class="o">=</span> <span class="n">offspring</span>
+
+            <span class="c1"># Registrar estatísticas no logbook</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">elitismoSimples</span><span class="p">(</span><span class="n">population</span><span class="p">[</span><span class="n">num_pop</span><span class="p">])</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">registrarDados</span><span class="p">(</span><span class="n">current_generation</span><span class="p">)</span>
+
+            <span class="c1"># Compila os resultados do deap</span>
+            <span class="n">record</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">stats</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="n">population</span><span class="p">[</span><span class="n">num_pop</span><span class="p">])</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">logbook</span><span class="o">.</span><span class="n">record</span><span class="p">(</span><span class="n">gen</span><span class="o">=</span><span class="n">current_generation</span><span class="p">,</span> <span class="o">**</span><span class="n">record</span><span class="p">)</span>
+
+
+            
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">DEBUG</span><span class="p">:</span>
+                <span class="c1"># Log de progresso da geração</span>
+                <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;  - Geração </span><span class="si">{</span><span class="n">current_generation</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="mi">1</span><span class="si">:</span><span class="s2">3d</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">setup</span><span class="o">.</span><span class="n">NGEN</span><span class="si">:</span><span class="s2">3d</span><span class="si">}</span><span class="s2"> -&gt; &quot;</span>
+                  <span class="sa">f</span><span class="s2">&quot;Min: </span><span class="si">{</span><span class="n">record</span><span class="p">[</span><span class="s1">&#39;min&#39;</span><span class="p">]</span><span class="si">:</span><span class="s2">.3f</span><span class="si">}</span><span class="s2"> | &quot;</span>
+                  <span class="sa">f</span><span class="s2">&quot;Avg: </span><span class="si">{</span><span class="n">record</span><span class="p">[</span><span class="s1">&#39;avg&#39;</span><span class="p">]</span><span class="si">:</span><span class="s2">.3f</span><span class="si">}</span><span class="s2"> | &quot;</span>
+                  <span class="sa">f</span><span class="s2">&quot;Max: </span><span class="si">{</span><span class="n">record</span><span class="p">[</span><span class="s1">&#39;max&#39;</span><span class="p">]</span><span class="si">:</span><span class="s2">.3f</span><span class="si">}</span><span class="s2"> | &quot;</span>
+                  <span class="sa">f</span><span class="s2">&quot;Std: </span><span class="si">{</span><span class="n">record</span><span class="p">[</span><span class="s1">&#39;std&#39;</span><span class="p">]</span><span class="si">:</span><span class="s2">.3f</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+        <span class="c1"># Retornar população final, logbook e elite</span>
+        <span class="k">return</span> <span class="n">population</span><span class="p">[</span><span class="n">num_pop</span><span class="p">],</span> <span class="bp">self</span><span class="o">.</span><span class="n">logbook</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">hof</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="bp">self</span><span class="o">.</span><span class="n">allIndividualValuesArray</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">visualizarPopAtual</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">geracaoAtual</span><span class="p">,</span> <span class="n">stats</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Atualiza as informações de visualização da população atual.</span>
+<span class="sd">        </span>
+<span class="sd">        Args:</span>
+<span class="sd">            geracaoAtual (int): Número da geração atual</span>
+<span class="sd">            stats (tuple): Tupla contendo (média, desvio_padrao) dos valores de fitness</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">DEBUG</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="se">\n\n</span><span class="s2">Visualizando população atual da geração </span><span class="si">{</span><span class="n">geracaoAtual</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="mi">1</span><span class="si">}</span><span class="s2"> com </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">POPULATION</span><span class="p">)</span><span class="si">}</span><span class="s2"> indivíduos.&quot;</span><span class="p">)</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;TOP 3 Individuals in current population:&quot;</span><span class="p">)</span>
+
+        <span class="k">try</span><span class="p">:</span>
+
+            <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">ind</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">POPULATION</span><span class="p">):</span>
+                <span class="c1"># Get fitness value safely, default to infinity if not valid</span>
+                <span class="n">fitness_value</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="s1">&#39;inf&#39;</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">ind</span><span class="o">.</span><span class="n">fitness</span><span class="o">.</span><span class="n">valid</span> <span class="ow">and</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">ind</span><span class="o">.</span><span class="n">fitness</span><span class="p">,</span> <span class="s1">&#39;values&#39;</span><span class="p">)</span> <span class="ow">and</span> <span class="n">ind</span><span class="o">.</span><span class="n">fitness</span><span class="o">.</span><span class="n">values</span><span class="p">:</span>
+                    <span class="n">fitness_value</span> <span class="o">=</span> <span class="n">ind</span><span class="o">.</span><span class="n">fitness</span><span class="o">.</span><span class="n">values</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>  <span class="c1"># Get first fitness value (single-objective)</span>
+                
+                <span class="n">dataset_individual</span> <span class="o">=</span> <span class="p">{</span>
+                    <span class="s2">&quot;Generations&quot;</span><span class="p">:</span> <span class="n">geracaoAtual</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span>
+                    <span class="s2">&quot;index&quot;</span><span class="p">:</span> <span class="n">i</span><span class="p">,</span>
+                    <span class="s2">&quot;Variaveis de Decisão&quot;</span><span class="p">:</span> <span class="n">ind</span><span class="p">,</span>
+                    <span class="s2">&quot;Fitness&quot;</span><span class="p">:</span> <span class="n">fitness_value</span><span class="p">,</span>
+                    <span class="s2">&quot;Media&quot;</span><span class="p">:</span> <span class="n">stats</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="k">if</span> <span class="n">stats</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">stats</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="k">else</span> <span class="nb">float</span><span class="p">(</span><span class="s1">&#39;inf&#39;</span><span class="p">),</span>
+                    <span class="s2">&quot;Desvio Padrao&quot;</span><span class="p">:</span> <span class="n">stats</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="k">if</span> <span class="n">stats</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">stats</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span> <span class="k">else</span> <span class="mf">0.0</span><span class="p">,</span>
+                    <span class="s2">&quot;RCE&quot;</span><span class="p">:</span> <span class="s2">&quot; - &quot;</span><span class="p">,</span>
+                    <span class="s2">&quot;Valido&quot;</span><span class="p">:</span> <span class="n">ind</span><span class="o">.</span><span class="n">fitness</span><span class="o">.</span><span class="n">valid</span>
+                <span class="p">}</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">allIndividualValuesArray</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">dataset_individual</span><span class="p">)</span>
+                
+                <span class="c1"># Debug output for the first few individuals</span>
+                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">DEBUG</span> <span class="ow">and</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="mi">3</span><span class="p">:</span>  <span class="c1"># Only show first 3 for brevity</span>
+                    <span class="c1">#print(&quot;TOP 3 Individuals in current population:&quot;,self.POPULATION)</span>
+
+                    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Ind </span><span class="si">{</span><span class="n">i</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">ind</span><span class="si">}</span><span class="s2"> -&gt; Fitness: </span><span class="si">{</span><span class="n">fitness_value</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2"> (Valid: </span><span class="si">{</span><span class="n">ind</span><span class="o">.</span><span class="n">fitness</span><span class="o">.</span><span class="n">valid</span><span class="si">}</span><span class="s2">)&quot;</span><span class="p">)</span>
+                
+                    
+                    
+        <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Error in visualizarPopAtual: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="c1"># Log the error but don&#39;t crash the application</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">cout</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">msg</span><span class="p">):</span>
+        <span class="nb">print</span><span class="p">(</span>
+            <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">==========================================================================================================&quot;</span>
+        <span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\t</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">msg</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span>
+            <span class="s2">&quot;==========================================================================================================</span><span class="se">\n</span><span class="s2">&quot;</span>
+        <span class="p">)</span>
+    
+    <span class="k">def</span><span class="w"> </span><span class="nf">generateInfoIndividual</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">new_pop</span><span class="p">,</span> <span class="n">generation</span><span class="p">):</span>
+        <span class="n">ind_array</span> <span class="o">=</span> <span class="p">[]</span>
+
+        <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">ind</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">new_pop</span><span class="p">):</span>
+            <span class="c1"># print(f&quot;Index[{ind.index}] - ind_variables {ind} \n Fitness = {ind.fitness.values} &quot;)</span>
+
+            <span class="n">ind</span><span class="o">.</span><span class="n">index</span> <span class="o">=</span> <span class="n">i</span>
+
+            <span class="n">ind_info</span> <span class="o">=</span> <span class="p">{</span>
+                <span class="s2">&quot;Generations&quot;</span><span class="p">:</span> <span class="n">generation</span><span class="p">,</span>
+                <span class="s2">&quot;index&quot;</span><span class="p">:</span> <span class="n">ind</span><span class="o">.</span><span class="n">index</span><span class="p">,</span>
+                <span class="s2">&quot;Variaveis de Decisão&quot;</span><span class="p">:</span> <span class="n">ind</span><span class="p">,</span>
+                <span class="s2">&quot;Fitness&quot;</span><span class="p">:</span> <span class="n">ind</span><span class="o">.</span><span class="n">fitness</span><span class="o">.</span><span class="n">values</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span>
+                <span class="s2">&quot;RCE&quot;</span><span class="p">:</span> <span class="n">ind</span><span class="o">.</span><span class="n">rce</span><span class="p">,</span>
+                <span class="s2">&quot;Diversidade&quot;</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">ind</span><span class="p">),</span>
+            <span class="p">}</span>
+
+            <span class="c1"># Adicionar a informação de clone ao dicionário</span>
+            <span class="c1"># is_clone = self.checkClonesInPop(ind, new_pop)</span>
+            <span class="c1"># ind_info[&quot;CLONE&quot;] = &quot;SIM&quot; if is_clone else &quot;NAO&quot;</span>
+
+            <span class="n">ind_array</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">ind_info</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">ind_array</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">show_ind_df</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">array</span><span class="p">,</span> <span class="n">text</span><span class="p">,</span> <span class="n">save</span> <span class="o">=</span> <span class="kc">True</span><span class="p">):</span>
+        <span class="n">df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">array</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">save</span><span class="p">:</span>
+            <span class="n">df</span><span class="o">.</span><span class="n">to_excel</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">FOLDER_NAME</span><span class="si">}</span><span class="s2">/pop_final.xlsx&quot;</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">DEBUG</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="n">text</span><span class="p">)</span>
+            <span class="nb">print</span><span class="p">(</span><span class="n">df</span><span class="o">.</span><span class="n">head</span><span class="p">(</span><span class="mi">10</span><span class="p">))</span>
+
+        <span class="c1"># contar quantos SIM na coluna CLONE se a coluna RCE for SIM</span>
+        <span class="c1"># display(df[df[&quot;RCE&quot;] != &quot;&quot;].value_counts())</span>
+
+</pre></div>
+</div>
+</section>
+
+
+                </article>
+              
+
+              
+              
+              
+              
+                <footer class="prev-next-footer d-print-none">
+                  
+<div class="prev-next-area">
+    <a class="left-prev"
+       href="instalador.html"
+       title="previous page">
+      <i class="fa-solid fa-angle-left"></i>
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">anterior</p>
+        <p class="prev-next-title">instalador.py</p>
+      </div>
+    </a>
+    <a class="right-next"
+       href="AlgEvolutivoRCE_backup_Setup.html"
+       title="next page">
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">próximo</p>
+        <p class="prev-next-title">Setup.py</p>
+      </div>
+      <i class="fa-solid fa-angle-right"></i>
+    </a>
+</div>
+                </footer>
+              
+            </div>
+            
+            
+              
+            
+          </div>
+          <footer class="bd-footer-content">
+            
+<div class="bd-footer-content__inner container">
+  
+  <div class="footer-item">
+    
+<p class="component-author">
+De Pedro
+</p>
+
+  </div>
+  
+  <div class="footer-item">
+    
+
+  <p class="copyright">
+    
+      © Copyright 2025, Pedro.
+      <br/>
+    
+  </p>
+
+  </div>
+  
+  <div class="footer-item">
+    
+  </div>
+  
+  <div class="footer-item">
+    
+  </div>
+  
+</div>
+          </footer>
+        
+
+      </main>
+    </div>
+  </div>
+  
+  <!-- Scripts loaded after <body> so the DOM is not blocked -->
+  <script src="_static/scripts/bootstrap.js?digest=dfe6caa3a7d634c4db9b"></script>
+<script src="_static/scripts/pydata-sphinx-theme.js?digest=dfe6caa3a7d634c4db9b"></script>
+
+  <footer class="bd-footer">
+  </footer>
+  </body>
+</html>

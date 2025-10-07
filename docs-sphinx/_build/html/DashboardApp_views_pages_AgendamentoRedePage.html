@@ -1,0 +1,712 @@
+
+<!DOCTYPE html>
+
+
+<html lang="pt-BR" data-content_root="./" >
+
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>AgendamentoRedePage.py &#8212; Documentação Repopulation-With-Elite-Set 0.1</title>
+  
+  
+  
+  <script data-cfasync="false">
+    document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
+    document.documentElement.dataset.theme = localStorage.getItem("theme") || "";
+  </script>
+  
+  <!-- Loaded before other Sphinx assets -->
+  <link href="_static/styles/theme.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+<link href="_static/styles/bootstrap.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+<link href="_static/styles/pydata-sphinx-theme.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+
+  
+  <link href="_static/vendor/fontawesome/6.5.2/css/all.min.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+  <link rel="preload" as="font" type="font/woff2" crossorigin href="_static/vendor/fontawesome/6.5.2/webfonts/fa-solid-900.woff2" />
+<link rel="preload" as="font" type="font/woff2" crossorigin href="_static/vendor/fontawesome/6.5.2/webfonts/fa-brands-400.woff2" />
+<link rel="preload" as="font" type="font/woff2" crossorigin href="_static/vendor/fontawesome/6.5.2/webfonts/fa-regular-400.woff2" />
+
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=8f2a1f02" />
+    <link rel="stylesheet" type="text/css" href="_static/styles/sphinx-book-theme.css?v=eba8b062" />
+  
+  <!-- Pre-loaded scripts that we'll load fully later -->
+  <link rel="preload" as="script" href="_static/scripts/bootstrap.js?digest=dfe6caa3a7d634c4db9b" />
+<link rel="preload" as="script" href="_static/scripts/pydata-sphinx-theme.js?digest=dfe6caa3a7d634c4db9b" />
+  <script src="_static/vendor/fontawesome/6.5.2/js/all.min.js?digest=dfe6caa3a7d634c4db9b"></script>
+
+    <script src="_static/documentation_options.js?v=bf871653"></script>
+    <script src="_static/doctools.js?v=9bcbadda"></script>
+    <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="_static/scripts/sphinx-book-theme.js?v=887ef09a"></script>
+    <script src="_static/translations.js?v=71a39b36"></script>
+    <script>DOCUMENTATION_OPTIONS.pagename = 'DashboardApp_views_pages_AgendamentoRedePage';</script>
+    <link rel="index" title="Índice" href="genindex.html" />
+    <link rel="search" title="Buscar" href="search.html" />
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="docsearch:language" content="pt-BR"/>
+  </head>
+  
+  
+  <body data-bs-spy="scroll" data-bs-target=".bd-toc-nav" data-offset="180" data-bs-root-margin="0px 0px -60%" data-default-mode="">
+
+  
+  
+  <div id="pst-skip-link" class="skip-link d-print-none"><a href="#main-content">Skip to main content</a></div>
+  
+  <div id="pst-scroll-pixel-helper"></div>
+  
+  <button type="button" class="btn rounded-pill" id="pst-back-to-top">
+    <i class="fa-solid fa-arrow-up"></i>Back to top</button>
+
+  
+  <input type="checkbox"
+          class="sidebar-toggle"
+          id="pst-primary-sidebar-checkbox"/>
+  <label class="overlay overlay-primary" for="pst-primary-sidebar-checkbox"></label>
+  
+  <input type="checkbox"
+          class="sidebar-toggle"
+          id="pst-secondary-sidebar-checkbox"/>
+  <label class="overlay overlay-secondary" for="pst-secondary-sidebar-checkbox"></label>
+  
+  <div class="search-button__wrapper">
+    <div class="search-button__overlay"></div>
+    <div class="search-button__search-container">
+<form class="bd-search d-flex align-items-center"
+      action="search.html"
+      method="get">
+  <i class="fa-solid fa-magnifying-glass"></i>
+  <input type="search"
+         class="form-control"
+         name="q"
+         id="search-input"
+         placeholder="Search..."
+         aria-label="Search..."
+         autocomplete="off"
+         autocorrect="off"
+         autocapitalize="off"
+         spellcheck="false"/>
+  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
+</form></div>
+  </div>
+
+  <div class="pst-async-banner-revealer d-none">
+  <aside id="bd-header-version-warning" class="d-none d-print-none" aria-label="Version warning"></aside>
+</div>
+
+  
+    <header class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
+    </header>
+  
+
+  <div class="bd-container">
+    <div class="bd-container__inner bd-page-width">
+      
+      
+      
+        
+      
+      <div class="bd-sidebar-primary bd-sidebar">
+        
+
+  
+  <div class="sidebar-header-items sidebar-primary__section">
+    
+    
+    
+    
+  </div>
+  
+    <div class="sidebar-primary-items__start sidebar-primary__section">
+        <div class="sidebar-primary-item">
+
+  
+    
+  
+
+<a class="navbar-brand logo" href="index.html">
+  
+  
+  
+  
+  
+  
+    <p class="title logo__title">Repopulation-With-Elite-Set</p>
+  
+</a></div>
+        <div class="sidebar-primary-item">
+
+ <script>
+ document.write(`
+   <button class="btn search-button-field search-button__button" title="Buscar" aria-label="Buscar" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass"></i>
+    <span class="search-button__default-text">Buscar</span>
+    <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+   </button>
+ `);
+ </script></div>
+        <div class="sidebar-primary-item"><nav class="bd-links bd-docs-nav" aria-label="Main">
+    <div class="bd-toc-item navbar-nav active">
+        
+        <ul class="nav bd-sidenav bd-sidenav__home-link">
+            <li class="toctree-l1">
+                <a class="reference internal" href="index.html">
+                    Documentação do Projeto RCE
+                </a>
+            </li>
+        </ul>
+        <p aria-level="2" class="caption" role="heading"><span class="caption-text">Guia Geral</span></p>
+<ul class="nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="guia_documentacao.html">Guia para Desenvolvimento da Documentação com MkDocs</a></li>
+<li class="toctree-l1"><a class="reference internal" href="sphinx_vs_mkdocs.html">Sphinx vs. MkDocs: Uma Comparação</a></li>
+<li class="toctree-l1"><a class="reference internal" href="run.html">run.py</a></li>
+<li class="toctree-l1"><a class="reference internal" href="run_agendamento.html">run_agendamento.py</a></li>
+<li class="toctree-l1"><a class="reference internal" href="instalador.html">instalador.py</a></li>
+</ul>
+<p aria-level="2" class="caption" role="heading"><span class="caption-text">Algoritmo Evolutivo (RCE)</span></p>
+<ul class="nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="AlgEvolutivoRCE_backup_alg_evolutivo_rce.html">alg_evolutivo_rce.py</a></li>
+<li class="toctree-l1"><a class="reference internal" href="AlgEvolutivoRCE_backup_Setup.html">Setup.py</a></li>
+<li class="toctree-l1"><a class="reference internal" href="AlgEvolutivoRCE_backup_Dashboard.html">Dashboard.py</a></li>
+</ul>
+<p aria-level="2" class="caption" role="heading"><span class="caption-text">Dashboard App</span></p>
+<ul class="nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="DashboardApp_dashboard_RCE_APP.html">dashboard_RCE_APP.py</a></li>
+<li class="toctree-l1"><a class="reference internal" href="DashboardApp_views_Screens_DashboardRCEPage.html">DashboardRCEPage.py</a></li>
+<li class="toctree-l1"><a class="reference internal" href="DashboardApp_controllers_Utils.html">Utils.py</a></li>
+</ul>
+<p aria-level="2" class="caption" role="heading"><span class="caption-text">Modelo da Rede Elétrica</span></p>
+<ul class="nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="RedeEletrica_backup_rede_eletrica.html">rede_eletrica.py</a></li>
+<li class="toctree-l1"><a class="reference internal" href="RedeEletrica_backup_exemplos_getting_started_deap_pandapower_exemplo.html">getting_started_deap_pandapower_exemplo.py</a></li>
+<li class="toctree-l1"><a class="reference internal" href="RedeEletrica_backup_simulator_anarede_dataset.html">anarede_dataset.py</a></li>
+</ul>
+
+    </div>
+</nav></div>
+    </div>
+  
+  
+  <div class="sidebar-primary-items__end sidebar-primary__section">
+  </div>
+  
+  <div id="rtd-footer-container"></div>
+
+
+      </div>
+      
+      <main id="main-content" class="bd-main" role="main">
+        
+        
+
+<div class="sbt-scroll-pixel-helper"></div>
+
+          <div class="bd-content">
+            <div class="bd-article-container">
+              
+              <div class="bd-header-article d-print-none">
+<div class="header-article-items header-article__inner">
+  
+    <div class="header-article-items__start">
+      
+        <div class="header-article-item"><button class="sidebar-toggle primary-toggle btn btn-sm" title="Toggle primary sidebar" data-bs-placement="bottom" data-bs-toggle="tooltip">
+  <span class="fa-solid fa-bars"></span>
+</button></div>
+      
+    </div>
+  
+  
+    <div class="header-article-items__end">
+      
+        <div class="header-article-item">
+
+<div class="article-header-buttons">
+
+
+<a href="https://github.com/PedroVic12/Repopulation-With-Elite-Set" target="_blank"
+   class="btn btn-sm btn-source-repository-button"
+   title="Repositório fonte"
+   data-bs-placement="bottom" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fab fa-github"></i>
+  </span>
+
+</a>
+
+
+
+
+
+
+<div class="dropdown dropdown-download-buttons">
+  <button class="btn dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false" aria-label="Baixe esta página">
+    <i class="fas fa-download"></i>
+  </button>
+  <ul class="dropdown-menu">
+      
+      
+      
+      <li><a href="_sources/DashboardApp_views_pages_AgendamentoRedePage.md" target="_blank"
+   class="btn btn-sm btn-download-source-button dropdown-item"
+   title="Baixar arquivo fonte"
+   data-bs-placement="left" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-file"></i>
+  </span>
+<span class="btn__text-container">.md</span>
+</a>
+</li>
+      
+      
+      
+      
+      <li>
+<button onclick="window.print()"
+  class="btn btn-sm btn-download-pdf-button dropdown-item"
+  title="Imprimir em PDF"
+  data-bs-placement="left" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-file-pdf"></i>
+  </span>
+<span class="btn__text-container">.pdf</span>
+</button>
+</li>
+      
+  </ul>
+</div>
+
+
+
+
+<button onclick="toggleFullScreen()"
+  class="btn btn-sm btn-fullscreen-button"
+  title="Modo tela cheia"
+  data-bs-placement="bottom" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-expand"></i>
+  </span>
+
+</button>
+
+
+
+<script>
+document.write(`
+  <button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button" title="light/dark" aria-label="light/dark" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="theme-switch fa-solid fa-sun fa-lg" data-mode="light"></i>
+    <i class="theme-switch fa-solid fa-moon fa-lg" data-mode="dark"></i>
+    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto"></i>
+  </button>
+`);
+</script>
+
+
+<script>
+document.write(`
+  <button class="btn btn-sm pst-navbar-icon search-button search-button__button" title="Buscar" aria-label="Buscar" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass fa-lg"></i>
+  </button>
+`);
+</script>
+
+</div></div>
+      
+    </div>
+  
+</div>
+</div>
+              
+              
+
+<div id="jb-print-docs-body" class="onlyprint">
+    <h1>AgendamentoRedePage.py</h1>
+    <!-- Table of contents -->
+    <div id="print-main-content">
+        <div id="jb-print-toc">
+            
+        </div>
+    </div>
+</div>
+
+              
+                
+<div id="searchbox"></div>
+                <article class="bd-article">
+                  
+  <section id="agendamentoredepage-py">
+<h1>AgendamentoRedePage.py<a class="headerlink" href="#agendamentoredepage-py" title="Link para este cabeçalho">#</a></h1>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">streamlit</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">st</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">streamlit_timeline</span><span class="w"> </span><span class="kn">import</span> <span class="n">st_timeline</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">pandas</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">pd</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">pathlib</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+
+<span class="n">output_xlsx_file</span> <span class="o">=</span> <span class="n">pathlib</span><span class="o">.</span><span class="n">Path</span><span class="p">(</span><span class="vm">__file__</span><span class="p">)</span><span class="o">.</span><span class="n">resolve</span><span class="p">()</span><span class="o">.</span><span class="n">parent</span><span class="o">.</span><span class="n">parent</span><span class="o">.</span><span class="n">parent</span><span class="o">.</span><span class="n">parent</span> <span class="o">/</span>  <span class="s2">&quot;output&quot;</span> <span class="o">/</span> <span class="s2">&quot;results_consolidados.xlsx&quot;</span> <span class="c1"># Importando o caminho do diretório de configuração</span>
+<span class="n">pop_final_xlsx_file</span> <span class="o">=</span> <span class="n">pathlib</span><span class="o">.</span><span class="n">Path</span><span class="p">(</span><span class="vm">__file__</span><span class="p">)</span><span class="o">.</span><span class="n">resolve</span><span class="p">()</span><span class="o">.</span><span class="n">parent</span><span class="o">.</span><span class="n">parent</span><span class="o">.</span><span class="n">parent</span><span class="o">.</span><span class="n">parent</span> <span class="o">/</span>  <span class="s2">&quot;output&quot;</span> <span class="o">/</span> <span class="s2">&quot;pop_final.xlsx&quot;</span> <span class="c1"># Importando o caminho do diretório de configuração</span>
+
+
+<span class="c1"># Função para carregar os dados de agendamento e contingência</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">entrada_de_dados</span><span class="p">():</span>
+    <span class="n">agendamento_df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">([</span>
+        <span class="p">{</span><span class="s2">&quot;ramo&quot;</span><span class="p">:</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">4</span><span class="p">],</span> <span class="s2">&quot;inicio&quot;</span><span class="p">:</span> <span class="s2">&quot;14:00&quot;</span><span class="p">,</span> <span class="s2">&quot;duracao&quot;</span><span class="p">:</span> <span class="mi">6</span><span class="p">,</span> <span class="s2">&quot;prioridade&quot;</span><span class="p">:</span> <span class="mi">4</span><span class="p">},</span>
+        <span class="p">{</span><span class="s2">&quot;ramo&quot;</span><span class="p">:</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">3</span><span class="p">],</span> <span class="s2">&quot;inicio&quot;</span><span class="p">:</span> <span class="s2">&quot;15:00&quot;</span><span class="p">,</span> <span class="s2">&quot;duracao&quot;</span><span class="p">:</span> <span class="mi">5</span><span class="p">,</span> <span class="s2">&quot;prioridade&quot;</span><span class="p">:</span> <span class="mi">1</span><span class="p">},</span>
+        <span class="p">{</span><span class="s2">&quot;ramo&quot;</span><span class="p">:</span> <span class="p">[</span><span class="mi">3</span><span class="p">,</span> <span class="mi">6</span><span class="p">],</span> <span class="s2">&quot;inicio&quot;</span><span class="p">:</span> <span class="s2">&quot;14:00&quot;</span><span class="p">,</span> <span class="s2">&quot;duracao&quot;</span><span class="p">:</span> <span class="mi">6</span><span class="p">,</span> <span class="s2">&quot;prioridade&quot;</span><span class="p">:</span> <span class="mi">1</span><span class="p">},</span>
+        <span class="p">{</span><span class="s2">&quot;ramo&quot;</span><span class="p">:</span> <span class="p">[</span><span class="mi">11</span><span class="p">,</span> <span class="mi">12</span><span class="p">],</span> <span class="s2">&quot;inicio&quot;</span><span class="p">:</span> <span class="s2">&quot;18:00&quot;</span><span class="p">,</span> <span class="s2">&quot;duracao&quot;</span><span class="p">:</span> <span class="mi">6</span><span class="p">,</span> <span class="s2">&quot;prioridade&quot;</span><span class="p">:</span> <span class="mi">1</span><span class="p">},</span>
+        <span class="p">{</span><span class="s2">&quot;ramo&quot;</span><span class="p">:</span> <span class="p">[</span><span class="mi">9</span><span class="p">,</span> <span class="mi">10</span><span class="p">],</span> <span class="s2">&quot;inicio&quot;</span><span class="p">:</span> <span class="s2">&quot;15:00&quot;</span><span class="p">,</span> <span class="s2">&quot;duracao&quot;</span><span class="p">:</span> <span class="mi">4</span><span class="p">,</span> <span class="s2">&quot;prioridade&quot;</span><span class="p">:</span> <span class="mi">1</span><span class="p">}</span>
+    <span class="p">])</span>
+
+    <span class="n">contingencia_df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">([</span>
+        <span class="p">{</span><span class="s2">&quot;contingencia&quot;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span> <span class="s2">&quot;from&quot;</span><span class="p">:</span> <span class="mi">2</span><span class="p">,</span> <span class="s2">&quot;to&quot;</span><span class="p">:</span> <span class="mi">3</span><span class="p">},</span>
+        <span class="p">{</span><span class="s2">&quot;contingencia&quot;</span><span class="p">:</span> <span class="mi">2</span><span class="p">,</span> <span class="s2">&quot;from&quot;</span><span class="p">:</span> <span class="mi">5</span><span class="p">,</span> <span class="s2">&quot;to&quot;</span><span class="p">:</span> <span class="mi">12</span><span class="p">},</span>
+        <span class="p">{</span><span class="s2">&quot;contingencia&quot;</span><span class="p">:</span> <span class="mi">3</span><span class="p">,</span> <span class="s2">&quot;from&quot;</span><span class="p">:</span> <span class="mi">12</span><span class="p">,</span> <span class="s2">&quot;to&quot;</span><span class="p">:</span> <span class="mi">13</span><span class="p">},</span>
+    <span class="p">])</span>
+
+    <span class="k">return</span> <span class="n">agendamento_df</span><span class="p">,</span> <span class="n">contingencia_df</span>
+
+<span class="c1"># Função para carregar os dados de execução</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">carregar_dados_execucao</span><span class="p">():</span>
+    <span class="k">return</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">([</span>
+        <span class="p">{</span><span class="s2">&quot;execution&quot;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span> <span class="s2">&quot;solution_variables&quot;</span><span class="p">:</span> <span class="p">[</span><span class="mi">3</span><span class="p">,</span> <span class="mi">11</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">18</span><span class="p">,</span> <span class="mi">31</span><span class="p">],</span> <span class="s2">&quot;best_fitness&quot;</span><span class="p">:</span> <span class="mf">931.7123616</span><span class="p">,</span> <span class="s2">&quot;best_generations&quot;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span> <span class="s2">&quot;execution_time&quot;</span><span class="p">:</span> <span class="s2">&quot;15.06 segundos&quot;</span><span class="p">},</span>
+        <span class="p">{</span><span class="s2">&quot;execution&quot;</span><span class="p">:</span> <span class="mi">2</span><span class="p">,</span> <span class="s2">&quot;solution_variables&quot;</span><span class="p">:</span> <span class="p">[</span><span class="mi">30</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">14</span><span class="p">,</span> <span class="mi">30</span><span class="p">,</span> <span class="mi">9</span><span class="p">],</span> <span class="s2">&quot;best_fitness&quot;</span><span class="p">:</span> <span class="mf">649.9070763</span><span class="p">,</span> <span class="s2">&quot;best_generations&quot;</span><span class="p">:</span> <span class="mi">6</span><span class="p">,</span> <span class="s2">&quot;execution_time&quot;</span><span class="p">:</span> <span class="s2">&quot;6.46 segundos&quot;</span><span class="p">},</span>
+        <span class="p">{</span><span class="s2">&quot;execution&quot;</span><span class="p">:</span> <span class="mi">3</span><span class="p">,</span> <span class="s2">&quot;solution_variables&quot;</span><span class="p">:</span> <span class="p">[</span><span class="mi">30</span><span class="p">,</span> <span class="mi">17</span><span class="p">,</span> <span class="mi">30</span><span class="p">,</span> <span class="mi">30</span><span class="p">,</span> <span class="mi">9</span><span class="p">],</span> <span class="s2">&quot;best_fitness&quot;</span><span class="p">:</span> <span class="mf">570.334047</span><span class="p">,</span> <span class="s2">&quot;best_generations&quot;</span><span class="p">:</span> <span class="mi">11</span><span class="p">,</span> <span class="s2">&quot;execution_time&quot;</span><span class="p">:</span> <span class="s2">&quot;5.64 segundos&quot;</span><span class="p">},</span>
+        <span class="p">{</span><span class="s2">&quot;execution&quot;</span><span class="p">:</span> <span class="mi">4</span><span class="p">,</span> <span class="s2">&quot;solution_variables&quot;</span><span class="p">:</span> <span class="p">[</span><span class="mi">30</span><span class="p">,</span> <span class="mi">25</span><span class="p">,</span> <span class="mi">30</span><span class="p">,</span> <span class="mi">30</span><span class="p">,</span> <span class="mi">9</span><span class="p">],</span> <span class="s2">&quot;best_fitness&quot;</span><span class="p">:</span> <span class="mf">479.358067</span><span class="p">,</span> <span class="s2">&quot;best_generations&quot;</span><span class="p">:</span> <span class="mi">15</span><span class="p">,</span> <span class="s2">&quot;execution_time&quot;</span><span class="p">:</span> <span class="s2">&quot;6.23 segundos&quot;</span><span class="p">},</span>
+        <span class="p">{</span><span class="s2">&quot;execution&quot;</span><span class="p">:</span> <span class="mi">5</span><span class="p">,</span> <span class="s2">&quot;solution_variables&quot;</span><span class="p">:</span> <span class="p">[</span><span class="mi">30</span><span class="p">,</span> <span class="mi">25</span><span class="p">,</span> <span class="mi">30</span><span class="p">,</span> <span class="mi">30</span><span class="p">,</span> <span class="mi">9</span><span class="p">],</span> <span class="s2">&quot;best_fitness&quot;</span><span class="p">:</span> <span class="mf">479.358067</span><span class="p">,</span> <span class="s2">&quot;best_generations&quot;</span><span class="p">:</span> <span class="mi">15</span><span class="p">,</span> <span class="s2">&quot;execution_time&quot;</span><span class="p">:</span> <span class="s2">&quot;5.60 segundos&quot;</span><span class="p">},</span>
+    <span class="p">])</span>
+    
+    
+<span class="k">def</span><span class="w"> </span><span class="nf">time_line_from_solution_variables</span><span class="p">(</span><span class="n">agendamento_df</span><span class="p">,</span><span class="n">contingencia_df</span> <span class="p">,</span><span class="n">exec_data</span><span class="p">):</span>
+    <span class="c1"># Timeline para a execução selecionada</span>
+    <span class="n">st</span><span class="o">.</span><span class="n">subheader</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Timeline de Soluções para a Execução </span><span class="si">{</span><span class="n">exec_data</span><span class="p">[</span><span class="s1">&#39;execution&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="n">solution_variables</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">exec_data</span><span class="p">[</span><span class="s2">&quot;solution_variables&quot;</span><span class="p">])</span>  <span class="c1"># Ordenar os horários</span>
+    <span class="n">solution_timeline_items</span> <span class="o">=</span> <span class="p">[]</span>
+
+    <span class="c1"># Calcular os intervalos entre os horários</span>
+    <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">solution_variables</span><span class="p">)):</span>
+        <span class="n">start_hour</span> <span class="o">=</span> <span class="n">solution_variables</span><span class="p">[</span><span class="n">j</span><span class="p">]</span>
+        <span class="n">duration</span> <span class="o">=</span> <span class="n">agendamento_df</span><span class="o">.</span><span class="n">iloc</span><span class="p">[</span><span class="n">j</span><span class="p">][</span><span class="s2">&quot;duracao&quot;</span><span class="p">]</span>  <span class="c1"># pega a duração do agendamento correspondente</span>
+        <span class="n">end_hour</span> <span class="o">=</span> <span class="n">start_hour</span> <span class="o">+</span> <span class="n">duration</span>
+
+        <span class="c1"># Calcular o dia e horário</span>
+        <span class="n">day_offset_start</span> <span class="o">=</span> <span class="n">start_hour</span> <span class="o">//</span> <span class="mi">24</span>
+        <span class="n">hour_in_day_start</span> <span class="o">=</span> <span class="n">start_hour</span> <span class="o">%</span> <span class="mi">24</span>
+        <span class="n">day_offset_end</span> <span class="o">=</span> <span class="n">end_hour</span> <span class="o">//</span> <span class="mi">24</span>
+        <span class="n">hour_in_day_end</span> <span class="o">=</span> <span class="n">end_hour</span> <span class="o">%</span> <span class="mi">24</span>
+
+        <span class="c1"># Ajustar exibição para o dia seguinte, se necessário</span>
+        <span class="n">start_label</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">hour_in_day_start</span><span class="si">:</span><span class="s2">02d</span><span class="si">}</span><span class="s2">h&quot;</span>
+        <span class="n">end_label</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">hour_in_day_end</span><span class="si">:</span><span class="s2">02d</span><span class="si">}</span><span class="s2">h</span><span class="si">{</span><span class="s1">&#39;*&#39;</span><span class="w"> </span><span class="k">if</span><span class="w"> </span><span class="n">day_offset_end</span><span class="w"> </span><span class="o">&gt;</span><span class="w"> </span><span class="n">day_offset_start</span><span class="w"> </span><span class="k">else</span><span class="w"> </span><span class="s1">&#39;&#39;</span><span class="si">}</span><span class="s2">&quot;</span>
+
+        <span class="n">start_time</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;2025-06-</span><span class="si">{</span><span class="mi">18</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">day_offset_start</span><span class="si">}</span><span class="s2">T</span><span class="si">{</span><span class="n">hour_in_day_start</span><span class="si">:</span><span class="s2">02d</span><span class="si">}</span><span class="s2">:00:00&quot;</span>
+        <span class="n">end_time</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;2025-06-</span><span class="si">{</span><span class="mi">18</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">day_offset_end</span><span class="si">}</span><span class="s2">T</span><span class="si">{</span><span class="n">hour_in_day_end</span><span class="si">:</span><span class="s2">02d</span><span class="si">}</span><span class="s2">:00:00&quot;</span>
+
+        <span class="n">solution_timeline_items</span><span class="o">.</span><span class="n">append</span><span class="p">({</span>
+            <span class="s2">&quot;id&quot;</span><span class="p">:</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">exec_data</span><span class="p">[</span><span class="s1">&#39;execution&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">-</span><span class="si">{</span><span class="n">j</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;content&quot;</span><span class="p">:</span> <span class="sa">f</span><span class="s2">&quot;Horário: </span><span class="si">{</span><span class="n">start_label</span><span class="si">}</span><span class="s2"> - </span><span class="si">{</span><span class="n">end_label</span><span class="si">}</span><span class="s2"> (</span><span class="si">{</span><span class="n">duration</span><span class="si">}</span><span class="s2">h)&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;start&quot;</span><span class="p">:</span> <span class="n">start_time</span><span class="p">,</span>
+            <span class="s2">&quot;end&quot;</span><span class="p">:</span> <span class="n">end_time</span><span class="p">,</span>
+            <span class="s2">&quot;title&quot;</span><span class="p">:</span> <span class="sa">f</span><span class="s2">&quot;Intervalo: </span><span class="si">{</span><span class="n">start_label</span><span class="si">}</span><span class="s2"> - </span><span class="si">{</span><span class="n">end_label</span><span class="si">}</span><span class="s2"> (</span><span class="si">{</span><span class="n">duration</span><span class="si">}</span><span class="s2">h)&quot;</span>
+        <span class="p">})</span>
+        
+        
+    <span class="c1"># Adicionar o último horário como um evento único</span>
+    <span class="n">last_hour</span> <span class="o">=</span> <span class="n">solution_variables</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+    <span class="n">day_offset_last</span> <span class="o">=</span> <span class="n">last_hour</span> <span class="o">//</span> <span class="mi">24</span>
+    <span class="n">hour_in_day_last</span> <span class="o">=</span> <span class="n">last_hour</span> <span class="o">%</span> <span class="mi">24</span>
+    <span class="n">last_start_time</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;2025-06-</span><span class="si">{</span><span class="mi">18</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">day_offset_last</span><span class="si">}</span><span class="s2">T</span><span class="si">{</span><span class="n">hour_in_day_last</span><span class="si">:</span><span class="s2">02d</span><span class="si">}</span><span class="s2">:00:00&quot;</span>
+    <span class="n">last_end_time</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;2025-06-</span><span class="si">{</span><span class="mi">18</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">day_offset_last</span><span class="si">}</span><span class="s2">T</span><span class="si">{</span><span class="p">(</span><span class="n">hour_in_day_last</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="mi">1</span><span class="p">)</span><span class="w"> </span><span class="o">%</span><span class="w"> </span><span class="mi">24</span><span class="si">:</span><span class="s2">02d</span><span class="si">}</span><span class="s2">:00:00&quot;</span>
+
+    <span class="n">solution_timeline_items</span><span class="o">.</span><span class="n">append</span><span class="p">({</span>
+        <span class="s2">&quot;id&quot;</span><span class="p">:</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">exec_data</span><span class="p">[</span><span class="s1">&#39;execution&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">-last&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;content&quot;</span><span class="p">:</span> <span class="sa">f</span><span class="s2">&quot;Horário: </span><span class="si">{</span><span class="n">hour_in_day_last</span><span class="si">:</span><span class="s2">02d</span><span class="si">}</span><span class="s2">h&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;start&quot;</span><span class="p">:</span> <span class="n">last_start_time</span><span class="p">,</span>
+        <span class="s2">&quot;end&quot;</span><span class="p">:</span> <span class="n">last_end_time</span><span class="p">,</span>
+        <span class="s2">&quot;title&quot;</span><span class="p">:</span> <span class="sa">f</span><span class="s2">&quot;Horário: </span><span class="si">{</span><span class="n">hour_in_day_last</span><span class="si">:</span><span class="s2">02d</span><span class="si">}</span><span class="s2">h&quot;</span>
+    <span class="p">})</span>
+
+    <span class="n">timeline</span> <span class="o">=</span> <span class="n">st_timeline</span><span class="p">(</span>
+        <span class="n">solution_timeline_items</span><span class="p">,</span>
+        <span class="n">groups</span><span class="o">=</span><span class="p">[],</span>
+        <span class="n">options</span><span class="o">=</span><span class="p">{</span>
+            <span class="s2">&quot;selectable&quot;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span>
+            <span class="s2">&quot;multiselect&quot;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span>
+            <span class="s2">&quot;zoomable&quot;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span>
+            <span class="s2">&quot;verticalScroll&quot;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span>
+            <span class="s2">&quot;stack&quot;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span>
+            <span class="s2">&quot;height&quot;</span><span class="p">:</span> <span class="mi">300</span><span class="p">,</span>
+            <span class="s2">&quot;margin&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;axis&quot;</span><span class="p">:</span> <span class="mi">5</span><span class="p">},</span>
+            <span class="s2">&quot;groupHeightMode&quot;</span><span class="p">:</span> <span class="s2">&quot;auto&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;orientation&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;axis&quot;</span><span class="p">:</span> <span class="s2">&quot;top&quot;</span><span class="p">,</span> <span class="s2">&quot;item&quot;</span><span class="p">:</span> <span class="s2">&quot;top&quot;</span><span class="p">}</span>
+        <span class="p">},</span>
+        <span class="n">key</span><span class="o">=</span><span class="sa">f</span><span class="s2">&quot;execution_timeline_</span><span class="si">{</span><span class="n">exec_data</span><span class="p">[</span><span class="s1">&#39;execution&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span>
+    <span class="p">)</span>
+
+    <span class="c1"># Mostrar detalhes da execução ao clicar no timeline</span>
+    <span class="k">if</span> <span class="n">timeline</span><span class="p">:</span>
+        <span class="n">selected_id</span> <span class="o">=</span> <span class="n">timeline</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;id&quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;-&quot;</span><span class="p">)[</span><span class="mi">1</span><span class="p">]</span>  <span class="c1"># Obter o ID do item selecionado no timeline</span>
+        <span class="n">selected_index</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">selected_id</span><span class="p">)</span> <span class="k">if</span> <span class="n">selected_id</span><span class="o">.</span><span class="n">isdigit</span><span class="p">()</span> <span class="k">else</span> <span class="kc">None</span>
+
+        <span class="k">if</span> <span class="n">selected_index</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">selected_index</span> <span class="o">&lt;</span> <span class="nb">len</span><span class="p">(</span><span class="n">solution_variables</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="c1"># Dados do intervalo selecionado</span>
+            <span class="n">start_hour</span> <span class="o">=</span> <span class="n">solution_variables</span><span class="p">[</span><span class="n">selected_index</span><span class="p">]</span>
+            <span class="n">end_hour</span> <span class="o">=</span> <span class="n">solution_variables</span><span class="p">[</span><span class="n">selected_index</span> <span class="o">+</span> <span class="mi">1</span><span class="p">]</span>
+            <span class="n">duration</span> <span class="o">=</span> <span class="n">end_hour</span> <span class="o">-</span> <span class="n">start_hour</span>
+
+            <span class="c1"># Calcular o dia e horário</span>
+            <span class="n">day_offset_start</span> <span class="o">=</span> <span class="n">start_hour</span> <span class="o">//</span> <span class="mi">24</span>
+            <span class="n">hour_in_day_start</span> <span class="o">=</span> <span class="n">start_hour</span> <span class="o">%</span> <span class="mi">24</span>
+            <span class="n">day_offset_end</span> <span class="o">=</span> <span class="n">end_hour</span> <span class="o">//</span> <span class="mi">24</span>
+            <span class="n">hour_in_day_end</span> <span class="o">=</span> <span class="n">end_hour</span> <span class="o">%</span> <span class="mi">24</span>
+
+            <span class="n">start_label</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">hour_in_day_start</span><span class="si">:</span><span class="s2">02d</span><span class="si">}</span><span class="s2">h&quot;</span>
+            <span class="n">end_label</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">hour_in_day_end</span><span class="si">:</span><span class="s2">02d</span><span class="si">}</span><span class="s2">h</span><span class="si">{</span><span class="s1">&#39;*&#39;</span><span class="w"> </span><span class="k">if</span><span class="w"> </span><span class="n">day_offset_end</span><span class="w"> </span><span class="o">&gt;</span><span class="w"> </span><span class="n">day_offset_start</span><span class="w"> </span><span class="k">else</span><span class="w"> </span><span class="s1">&#39;&#39;</span><span class="si">}</span><span class="s2">&quot;</span>
+
+            <span class="c1"># Dados relacionados ao agendamento</span>
+            <span class="n">related_agendamentos</span> <span class="o">=</span> <span class="n">agendamento_df</span><span class="p">[</span>
+                <span class="p">(</span><span class="n">agendamento_df</span><span class="p">[</span><span class="s2">&quot;inicio&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">apply</span><span class="p">(</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="nb">int</span><span class="p">(</span><span class="n">x</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;:&quot;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]))</span> <span class="o">&lt;=</span> <span class="n">hour_in_day_start</span><span class="p">)</span> <span class="o">&amp;</span>
+                <span class="p">((</span><span class="n">agendamento_df</span><span class="p">[</span><span class="s2">&quot;inicio&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">apply</span><span class="p">(</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="nb">int</span><span class="p">(</span><span class="n">x</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;:&quot;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]))</span> <span class="o">+</span> <span class="n">agendamento_df</span><span class="p">[</span><span class="s2">&quot;duracao&quot;</span><span class="p">])</span> <span class="o">&gt;=</span> <span class="n">hour_in_day_end</span><span class="p">)</span>
+            <span class="p">]</span>
+
+            <span class="c1"># Dados relacionados às contingências</span>
+            <span class="n">related_contingencies</span> <span class="o">=</span> <span class="n">contingencia_df</span><span class="p">[</span>
+                <span class="p">(</span><span class="n">contingencia_df</span><span class="p">[</span><span class="s2">&quot;from&quot;</span><span class="p">]</span> <span class="o">&lt;=</span> <span class="n">start_hour</span><span class="p">)</span> <span class="o">&amp;</span> <span class="p">(</span><span class="n">contingencia_df</span><span class="p">[</span><span class="s2">&quot;to&quot;</span><span class="p">]</span> <span class="o">&gt;=</span> <span class="n">end_hour</span><span class="p">)</span>
+            <span class="p">]</span>
+
+            <span class="c1"># Exibir os detalhes</span>
+            <span class="n">st</span><span class="o">.</span><span class="n">subheader</span><span class="p">(</span><span class="s2">&quot;Detalhes do Intervalo Selecionado&quot;</span><span class="p">)</span>
+            <span class="n">st</span><span class="o">.</span><span class="n">json</span><span class="p">({</span>
+                <span class="s2">&quot;Intervalo&quot;</span><span class="p">:</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">start_label</span><span class="si">}</span><span class="s2"> - </span><span class="si">{</span><span class="n">end_label</span><span class="si">}</span><span class="s2"> (</span><span class="si">{</span><span class="n">duration</span><span class="si">}</span><span class="s2">h)&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;Agendamentos Relacionados&quot;</span><span class="p">:</span> <span class="n">related_agendamentos</span><span class="o">.</span><span class="n">to_dict</span><span class="p">(</span><span class="n">orient</span><span class="o">=</span><span class="s2">&quot;records&quot;</span><span class="p">),</span>
+                <span class="s2">&quot;Contingências Relacionadas&quot;</span><span class="p">:</span> <span class="n">related_contingencies</span><span class="o">.</span><span class="n">to_dict</span><span class="p">(</span><span class="n">orient</span><span class="o">=</span><span class="s2">&quot;records&quot;</span><span class="p">)</span>
+            <span class="p">})</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">st</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;Selecione um intervalo válido no timeline.&quot;</span><span class="p">)</span>
+
+
+<span class="c1"># Função para exibir a página de agendamento de rede elétrica</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">AgendamentoRedePage</span><span class="p">():</span>
+
+    <span class="n">st</span><span class="o">.</span><span class="n">title</span><span class="p">(</span><span class="s2">&quot;Agendamento de Rede Elétrica&quot;</span><span class="p">)</span>
+    <span class="n">st</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;Esta página exibe os agendamentos de rede elétrica e suas contingências, além de uma timeline interativa com as sugestões de agendamento.&quot;</span><span class="p">)</span>
+
+    <span class="c1"># Carregar dados</span>
+    <span class="n">agendamento_df</span><span class="p">,</span> <span class="n">contingencia_df</span> <span class="o">=</span> <span class="n">entrada_de_dados</span><span class="p">()</span>
+    
+    <span class="c1"># Tente carregar do Excel, se falhar, use os dados mockados</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">execution_df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_excel</span><span class="p">(</span><span class="n">output_xlsx_file</span><span class="p">)</span>
+        <span class="c1"># Converter a coluna &#39;solution_variables&#39; de string para lista, se necessário</span>
+        <span class="k">if</span> <span class="s1">&#39;solution_variables&#39;</span> <span class="ow">in</span> <span class="n">execution_df</span><span class="o">.</span><span class="n">columns</span> <span class="ow">and</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">execution_df</span><span class="p">[</span><span class="s1">&#39;solution_variables&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">iloc</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="nb">str</span><span class="p">):</span>
+            <span class="kn">import</span><span class="w"> </span><span class="nn">ast</span>
+            <span class="n">execution_df</span><span class="p">[</span><span class="s1">&#39;solution_variables&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">execution_df</span><span class="p">[</span><span class="s1">&#39;solution_variables&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">apply</span><span class="p">(</span><span class="n">ast</span><span class="o">.</span><span class="n">literal_eval</span><span class="p">)</span>
+    <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+        <span class="n">st</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Erro ao carregar do Excel: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">. Usando dados hardcoded com 5 execucões.&quot;</span><span class="p">)</span>
+        <span class="n">execution_df</span> <span class="o">=</span> <span class="n">carregar_dados_execucao</span><span class="p">()</span>
+
+    <span class="c1"># Exibir tabelas editáveis</span>
+    <span class="n">st</span><span class="o">.</span><span class="n">subheader</span><span class="p">(</span><span class="s2">&quot;Tabela de Agendamentos&quot;</span><span class="p">)</span>
+    <span class="n">edited_agendamento_df</span> <span class="o">=</span> <span class="n">st</span><span class="o">.</span><span class="n">data_editor</span><span class="p">(</span>
+        <span class="n">agendamento_df</span><span class="p">,</span>
+        <span class="n">use_container_width</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+        <span class="n">num_rows</span><span class="o">=</span><span class="s2">&quot;dynamic&quot;</span><span class="p">,</span>
+        <span class="n">column_config</span><span class="o">=</span><span class="p">{},</span>
+    <span class="p">)</span>
+
+    <span class="n">st</span><span class="o">.</span><span class="n">subheader</span><span class="p">(</span><span class="s2">&quot;Tabela de Contingências&quot;</span><span class="p">)</span>
+    <span class="n">edited_contingencia_df</span> <span class="o">=</span> <span class="n">st</span><span class="o">.</span><span class="n">data_editor</span><span class="p">(</span><span class="n">contingencia_df</span><span class="p">,</span> <span class="n">use_container_width</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">num_rows</span><span class="o">=</span><span class="s2">&quot;dynamic&quot;</span><span class="p">)</span>
+
+    <span class="c1"># Converter dados de execução para o formato de timeline</span>
+    <span class="n">timeline_items</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">index</span><span class="p">,</span> <span class="n">row</span> <span class="ow">in</span> <span class="n">agendamento_df</span><span class="o">.</span><span class="n">iterrows</span><span class="p">():</span>
+        <span class="n">start_time</span> <span class="o">=</span> <span class="n">row</span><span class="p">[</span><span class="s2">&quot;inicio&quot;</span><span class="p">]</span>
+        <span class="c1"># Corrigir para garantir que start_time seja uma string antes de usar split</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">start_time</span><span class="p">,</span> <span class="p">(</span><span class="nb">list</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">,</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">)):</span>
+            <span class="c1"># Se for array, pega o primeiro elemento (ou ajusta conforme necessário)</span>
+            <span class="n">start_time</span> <span class="o">=</span> <span class="n">start_time</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">start_time</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">start_time</span><span class="p">)</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">start_hour</span><span class="p">,</span> <span class="n">start_minute</span> <span class="o">=</span> <span class="nb">map</span><span class="p">(</span><span class="nb">int</span><span class="p">,</span> <span class="n">start_time</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;:&quot;</span><span class="p">))</span>
+        <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+            <span class="c1"># Caso o formato não seja esperado, define valores padrão ou pula</span>
+            <span class="n">start_hour</span><span class="p">,</span> <span class="n">start_minute</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span>
+        <span class="n">end_hour</span> <span class="o">=</span> <span class="n">start_hour</span> <span class="o">+</span> <span class="n">row</span><span class="p">[</span><span class="s2">&quot;duracao&quot;</span><span class="p">]</span>
+
+        <span class="n">mes</span> <span class="o">=</span> <span class="mi">6</span>  <span class="c1"># Mês fixo para o exemplo</span>
+        <span class="n">dia</span> <span class="o">=</span> <span class="mi">18</span>  <span class="c1"># Dia fixo para o exemplo</span>
+
+        <span class="n">timeline_items</span><span class="o">.</span><span class="n">append</span><span class="p">({</span>
+            <span class="s2">&quot;id&quot;</span><span class="p">:</span> <span class="sa">f</span><span class="s2">&quot;agendamento-</span><span class="si">{</span><span class="n">index</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;content&quot;</span><span class="p">:</span> <span class="sa">f</span><span class="s2">&quot;Ramo: </span><span class="si">{</span><span class="n">row</span><span class="p">[</span><span class="s1">&#39;ramo&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">&lt;br&gt;Prioridade: </span><span class="si">{</span><span class="n">row</span><span class="p">[</span><span class="s1">&#39;prioridade&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;start&quot;</span><span class="p">:</span> <span class="sa">f</span><span class="s2">&quot;2025-0</span><span class="si">{</span><span class="n">mes</span><span class="si">}</span><span class="s2">-</span><span class="si">{</span><span class="n">dia</span><span class="si">}</span><span class="s2">T</span><span class="si">{</span><span class="n">start_hour</span><span class="si">:</span><span class="s2">02d</span><span class="si">}</span><span class="s2">:</span><span class="si">{</span><span class="n">start_minute</span><span class="si">:</span><span class="s2">02d</span><span class="si">}</span><span class="s2">:00&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;end&quot;</span><span class="p">:</span> <span class="sa">f</span><span class="s2">&quot;2025-0</span><span class="si">{</span><span class="n">mes</span><span class="si">}</span><span class="s2">-</span><span class="si">{</span><span class="n">dia</span><span class="si">}</span><span class="s2">T</span><span class="si">{</span><span class="n">end_hour</span><span class="si">:</span><span class="s2">02d</span><span class="si">}</span><span class="s2">:</span><span class="si">{</span><span class="n">start_minute</span><span class="si">:</span><span class="s2">02d</span><span class="si">}</span><span class="s2">:00&quot;</span>
+        <span class="p">})</span>
+
+    <span class="c1">#!  Exibir timeline inicial de Proposta de Agendamento</span>
+    <span class="c1"># st.subheader(&quot;Sugestão inicial para o Agendamento de Rede Elétrica&quot;)</span>
+    <span class="c1"># st.write(&quot;Clique em um item para ver os detalhes da execução selecionada.&quot;)</span>
+    <span class="c1"># timeline = st_timeline(</span>
+    <span class="c1">#     timeline_items,</span>
+    <span class="c1">#     groups=[],</span>
+    <span class="c1">#     options={</span>
+    <span class="c1">#         &quot;selectable&quot;: True,</span>
+    <span class="c1">#         &quot;multiselect&quot;: True,</span>
+    <span class="c1">#         &quot;zoomable&quot;: True,</span>
+    <span class="c1">#         &quot;verticalScroll&quot;: True,</span>
+    <span class="c1">#         &quot;stack&quot;: True,</span>
+    <span class="c1">#         &quot;height&quot;: 500,</span>
+    <span class="c1">#         &quot;margin&quot;: {&quot;axis&quot;: 5},</span>
+    <span class="c1">#         &quot;groupHeightMode&quot;: &quot;auto&quot;,</span>
+    <span class="c1">#         &quot;orientation&quot;: {&quot;axis&quot;: &quot;top&quot;, &quot;item&quot;: &quot;top&quot;}</span>
+    <span class="c1">#     },</span>
+    <span class="c1"># )</span>
+
+    <span class="c1"># # Mostrar dados da execução selecionada</span>
+    <span class="c1"># if timeline:</span>
+    <span class="c1">#     selected_id = timeline.get(&quot;id&quot;, &quot;&quot;).split(&quot;-&quot;)[1]</span>
+    <span class="c1">#     selected_agendamento = agendamento_df.iloc[int(selected_id)]</span>
+    <span class="c1">#     st.json(selected_agendamento.to_dict())</span>
+
+    <span class="c1"># #! Tabs para cada execução</span>
+    <span class="c1"># st.subheader(&quot;Resultado de todas as Execuções&quot;)</span>
+    <span class="c1"># st.write(execution_df)</span>
+    <span class="c1"># st.info(&quot;Para melhor visualização vou tentar ter um checkbox no data_editor de cada execução e selecionar dentro da tabela (retira o tabs de execução), mas por enquanto vou deixar como está.&quot;)</span>
+    
+    
+    
+    <span class="k">def</span><span class="w"> </span><span class="nf">tabs_results_redeEletrica</span><span class="p">():</span>
+        <span class="n">st</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;Clique em uma aba para ver os detalhes da execução selecionada.&quot;</span><span class="p">)</span>
+        <span class="n">tabs</span> <span class="o">=</span> <span class="n">st</span><span class="o">.</span><span class="n">tabs</span><span class="p">([</span><span class="sa">f</span><span class="s2">&quot;Execução </span><span class="si">{</span><span class="n">row</span><span class="p">[</span><span class="s1">&#39;execution&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span> <span class="k">for</span> <span class="n">_</span><span class="p">,</span> <span class="n">row</span> <span class="ow">in</span> <span class="n">execution_df</span><span class="o">.</span><span class="n">iterrows</span><span class="p">()])</span>
+        <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">tab</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">tabs</span><span class="p">):</span>
+            <span class="k">with</span> <span class="n">tab</span><span class="p">:</span>
+                <span class="n">exec_data</span> <span class="o">=</span> <span class="n">execution_df</span><span class="o">.</span><span class="n">iloc</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+                <span class="k">with</span> <span class="n">st</span><span class="o">.</span><span class="n">container</span><span class="p">():</span>
+                    <span class="n">st</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Execução </span><span class="si">{</span><span class="n">exec_data</span><span class="p">[</span><span class="s1">&#39;execution&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+                    <span class="n">st</span><span class="o">.</span><span class="n">subheader</span><span class="p">(</span><span class="s2">&quot;Dados da Execução Selecionada&quot;</span><span class="p">)</span>
+
+                    
+                    <span class="c1"># Tabs dentro do container</span>
+                    <span class="n">inner_tabs</span> <span class="o">=</span> <span class="n">st</span><span class="o">.</span><span class="n">tabs</span><span class="p">([</span><span class="s2">&quot;Horários&quot;</span><span class="p">,</span> <span class="s2">&quot;Gráfico de Barras&quot;</span><span class="p">,</span> <span class="s2">&quot;Gráfico de Linhas&quot;</span><span class="p">,</span> <span class="s2">&quot;População Final&quot;</span><span class="p">])</span>
+                    <span class="k">with</span> <span class="n">inner_tabs</span><span class="p">[</span><span class="mi">0</span><span class="p">]:</span>
+                        <span class="n">st</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;Tabela de Horários de Agendamento&quot;</span><span class="p">)</span>
+                        <span class="n">sorted_vars</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">exec_data</span><span class="p">[</span><span class="s2">&quot;solution_variables&quot;</span><span class="p">])</span>
+                        <span class="n">st</span><span class="o">.</span><span class="n">dataframe</span><span class="p">(</span>
+                            <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">([</span><span class="n">sorted_vars</span><span class="p">],</span> <span class="n">columns</span><span class="o">=</span><span class="p">[</span><span class="sa">f</span><span class="s2">&quot;Horário </span><span class="si">{</span><span class="n">i</span><span class="o">+</span><span class="mi">1</span><span class="si">}</span><span class="s2">&quot;</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">sorted_vars</span><span class="p">))])</span>
+                        <span class="p">)</span>
+
+                    <span class="k">with</span> <span class="n">inner_tabs</span><span class="p">[</span><span class="mi">1</span><span class="p">]:</span>
+                        <span class="n">st</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;Gráfico de Barras&quot;</span><span class="p">)</span>
+                        <span class="n">st</span><span class="o">.</span><span class="n">bar_chart</span><span class="p">(</span><span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">({</span><span class="s2">&quot;Horários de Agendamento&quot;</span><span class="p">:</span> <span class="n">exec_data</span><span class="p">[</span><span class="s2">&quot;solution_variables&quot;</span><span class="p">]}))</span>
+
+                    <span class="k">with</span> <span class="n">inner_tabs</span><span class="p">[</span><span class="mi">2</span><span class="p">]:</span>
+                        <span class="n">st</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;Gráfico de Linhas&quot;</span><span class="p">)</span>
+                        <span class="n">st</span><span class="o">.</span><span class="n">line_chart</span><span class="p">(</span><span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">({</span><span class="s2">&quot;Horários de Agendamento&quot;</span><span class="p">:</span> <span class="n">exec_data</span><span class="p">[</span><span class="s2">&quot;solution_variables&quot;</span><span class="p">]}))</span>
+                        
+                    <span class="k">with</span> <span class="n">inner_tabs</span><span class="p">[</span><span class="mi">3</span><span class="p">]:</span>
+                        <span class="n">st</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;População Final&quot;</span><span class="p">)</span>
+                        <span class="k">try</span><span class="p">:</span>
+                            <span class="n">pop_final_df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_excel</span><span class="p">(</span><span class="n">pop_final_xlsx_file</span><span class="p">)</span>
+                            <span class="n">st</span><span class="o">.</span><span class="n">dataframe</span><span class="p">(</span><span class="n">pop_final_df</span><span class="p">)</span>
+                        <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+                            <span class="n">st</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Erro ao carregar a população final: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+                            <span class="n">st</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;População final não disponível.&quot;</span><span class="p">)</span>
+                            
+                            
+        
+
+    <span class="n">st</span><span class="o">.</span><span class="n">subheader</span><span class="p">(</span><span class="s2">&quot;Tabela de Horários de Agendamento&quot;</span><span class="p">)</span>
+
+    <span class="c1"># Mostra toda a tabela de execuções primeiro</span>
+    <span class="n">st</span><span class="o">.</span><span class="n">dataframe</span><span class="p">(</span><span class="n">execution_df</span><span class="p">)</span>
+
+    <span class="c1"># Cria abas para cada execução disponível em execution_df</span>
+    <span class="n">abas</span> <span class="o">=</span> <span class="n">st</span><span class="o">.</span><span class="n">tabs</span><span class="p">([</span><span class="sa">f</span><span class="s2">&quot;Execução </span><span class="si">{</span><span class="n">row</span><span class="p">[</span><span class="s1">&#39;execution&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span> <span class="k">for</span> <span class="n">_</span><span class="p">,</span> <span class="n">row</span> <span class="ow">in</span> <span class="n">execution_df</span><span class="o">.</span><span class="n">iterrows</span><span class="p">()])</span>
+    <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">aba</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">abas</span><span class="p">):</span>
+        <span class="k">with</span> <span class="n">aba</span><span class="p">:</span>
+            <span class="n">exec_data</span> <span class="o">=</span> <span class="n">execution_df</span><span class="o">.</span><span class="n">iloc</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+            <span class="n">st</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">exec_data</span><span class="p">)</span>
+            <span class="n">time_line_from_solution_variables</span><span class="p">(</span><span class="n">agendamento_df</span><span class="p">,</span> <span class="n">contingencia_df</span><span class="p">,</span> <span class="n">exec_data</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+
+
+                </article>
+              
+
+              
+              
+              
+              
+                <footer class="prev-next-footer d-print-none">
+                  
+<div class="prev-next-area">
+</div>
+                </footer>
+              
+            </div>
+            
+            
+              
+            
+          </div>
+          <footer class="bd-footer-content">
+            
+<div class="bd-footer-content__inner container">
+  
+  <div class="footer-item">
+    
+<p class="component-author">
+De Pedro
+</p>
+
+  </div>
+  
+  <div class="footer-item">
+    
+
+  <p class="copyright">
+    
+      © Copyright 2025, Pedro.
+      <br/>
+    
+  </p>
+
+  </div>
+  
+  <div class="footer-item">
+    
+  </div>
+  
+  <div class="footer-item">
+    
+  </div>
+  
+</div>
+          </footer>
+        
+
+      </main>
+    </div>
+  </div>
+  
+  <!-- Scripts loaded after <body> so the DOM is not blocked -->
+  <script src="_static/scripts/bootstrap.js?digest=dfe6caa3a7d634c4db9b"></script>
+<script src="_static/scripts/pydata-sphinx-theme.js?digest=dfe6caa3a7d634c4db9b"></script>
+
+  <footer class="bd-footer">
+  </footer>
+  </body>
+</html>
