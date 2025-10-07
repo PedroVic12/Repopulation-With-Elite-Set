@@ -14,3 +14,7 @@ src/run.py~
 timeline_solucoes_agendamento_jsonserver.py
 output/
 lib(refatorado)/
+
+#! Comandos para retirar o cache no github e manter os arquivos na maquina local
+#git rm -r --cached .
+#git add .
