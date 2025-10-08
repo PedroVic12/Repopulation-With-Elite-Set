@@ -18,25 +18,20 @@ Bem-vindo à documentação do framework Repopulation-With-Elite-Set (RCE).
    :maxdepth: 2
    :caption: Algoritmo Evolutivo (RCE)
 
-   guias/AlgEvolutivoRCE_backup_alg_evolutivo_rce
-   guias/AlgEvolutivoRCE_backup_Setup
-   guias/DashboardApp_dashboard_RCE_APP
-
-.. toctree::
-   :maxdepth: 2
-   :caption: Dashboard App
-
-   guias/DashboardApp_dashboard_RCE_APP
-   guias/DashboardApp_views_Screens_DashboardRCEPage
-   guias/DashboardApp_controllers_Utils
+   guias/alg_evolutivo_rce_doc
+   guias/setup_doc
 
 .. toctree::
    :maxdepth: 2
    :caption: Modelo da Rede Elétrica
 
-   guias/RedeEletrica_backup_rede_eletrica
-   guias/RedeEletrica_backup_exemplos_getting_started_deap_pandapower_exemplo
-   guias/RedeEletrica_backup_simulator_anarede_dataset
+   guias/rede_eletrica_doc
+
+.. toctree::
+   :maxdepth: 2
+   :caption: Função Objetivo
+
+   guias/function_IEEE_14_contigencias_doc
 
 .. toctree::
    :maxdepth: 2
