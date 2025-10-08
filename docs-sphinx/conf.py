@@ -14,9 +14,21 @@ release = '0.1'
 # -- General configuration ---------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#general-configuration
 
+import os
+import sys
+
+# Adiciona o diretório do projeto ao sys.path para o Sphinx encontrar os módulos
+sys.path.insert(0, os.path.abspath('..'))
+
 extensions = [
-    'myst_parser',
+    'sphinx.ext.autodoc', # Para gerar docs de docstrings
+    'myst_parser'         # Para usar arquivos Markdown
 ]
+
+source_suffix = {
+    '.rst': 'restructuredtext',
+    '.md': 'markdown'
+}
 
 templates_path = ['_templates']
 exclude_patterns = ['_build', 'Thumbs.db', '.DS_Store']

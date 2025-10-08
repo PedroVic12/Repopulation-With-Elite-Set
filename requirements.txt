@@ -4,7 +4,7 @@ deap
 streamlit
 pandapower
 PySide6
-mkdocs
+
 
 plotly
 matplotlib
@@ -22,15 +22,15 @@ igraph
 pyvis 
 networkx 
 
-
 fpdf2
 ipython
 google-generativeai
+
 sphinx
-myst-parser
 furo
+
 pydata-sphinx-theme
 sphinx-book-theme
-
-
+myst-parser
+mkdocs
 

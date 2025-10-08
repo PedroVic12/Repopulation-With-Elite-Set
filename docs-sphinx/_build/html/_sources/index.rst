@@ -10,32 +10,36 @@ Bem-vindo à documentação do framework Repopulation-With-Elite-Set (RCE).
    :maxdepth: 2
    :caption: Guia Geral
 
-   guia_documentacao
-   sphinx_vs_mkdocs
-   run
-   run_agendamento
-   instalador
+   guias/guia_documentacao
+   guias/sphinx_vs_mkdocs
+   guias/instalador
 
 .. toctree::
    :maxdepth: 2
    :caption: Algoritmo Evolutivo (RCE)
 
-   AlgEvolutivoRCE_backup_alg_evolutivo_rce
-   AlgEvolutivoRCE_backup_Setup
-   AlgEvolutivoRCE_backup_Dashboard
+   guias/AlgEvolutivoRCE_backup_alg_evolutivo_rce
+   guias/AlgEvolutivoRCE_backup_Setup
+   guias/DashboardApp_dashboard_RCE_APP
 
 .. toctree::
    :maxdepth: 2
    :caption: Dashboard App
 
-   DashboardApp_dashboard_RCE_APP
-   DashboardApp_views_Screens_DashboardRCEPage
-   DashboardApp_controllers_Utils
+   guias/DashboardApp_dashboard_RCE_APP
+   guias/DashboardApp_views_Screens_DashboardRCEPage
+   guias/DashboardApp_controllers_Utils
 
 .. toctree::
    :maxdepth: 2
    :caption: Modelo da Rede Elétrica
 
-   RedeEletrica_backup_rede_eletrica
-   RedeEletrica_backup_exemplos_getting_started_deap_pandapower_exemplo
-   RedeEletrica_backup_simulator_anarede_dataset
+   guias/RedeEletrica_backup_rede_eletrica
+   guias/RedeEletrica_backup_exemplos_getting_started_deap_pandapower_exemplo
+   guias/RedeEletrica_backup_simulator_anarede_dataset
+
+.. toctree::
+   :maxdepth: 2
+   :caption: API Reference
+
+   api/index
