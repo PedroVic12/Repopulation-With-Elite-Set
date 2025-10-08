@@ -18,5 +18,5 @@ docs-sphinx/_build/
 
 
 #! Comandos para retirar o cache no github e manter os arquivos na maquina local
-#git rm -r --cached .
-#git add .
+# git rm -r --cached .
+# git add .
