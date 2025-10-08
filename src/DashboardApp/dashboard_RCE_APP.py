@@ -1,7 +1,7 @@
 
 import streamlit as st
-from views.pages.themes import Theme
-from views.Screens.RCE_Framework_Page import FrameworkRCEDashboard
+from DashboardApp.views.pages.themes import Theme
+from DashboardApp.views.Screens.RCE_Framework_Page import FrameworkRCEDashboard
 
 import sys
 

@@ -86,41 +86,41 @@ def funcao_objetivo_ieee118_analise(individuo, setupobj, _debug=False):
     else:
         return 9999999.9,
 
-if __name__ == "__main__":
-    def run_simulate():
-        print("--- Iniciando Simulação de Teste para Análise de Contingência (IEEE 118) ---")
-        horarios_teste = [24,3,24,26,1,24,24,27,24,24]
-        params = {
-            "IND_SIZE": len(horarios_teste), "LIMITE_VAR": [0, 31],
-            "NUM_GENERATIONS": 5, "POP_SIZE": 4, "CROSSOVER": 0.9, "MUTACAO": 0.1,
-            "RCE_REPOPULATION_GENERATIONS": 5
-        }
-        setup_obj = Setup(params=params, fitness_function=funcao_objetivo_ieee118_analise, tamanho_hash=hashtablesize_ieee118())
+def run_simulate():
+    print("--- Iniciando Simulação de Teste para Análise de Contingência (IEEE 118) ---")
+    horarios_teste = [24,3,24,26,1,24,24,27,24,24]
+    params = {
+        "IND_SIZE": len(horarios_teste), "LIMITE_VAR": [0, 31],
+        "NUM_GENERATIONS": 5, "POP_SIZE": 4, "CROSSOVER": 0.9, "MUTACAO": 0.1,
+        "RCE_REPOPULATION_GENERATIONS": 5
+    }
+    setup_obj = Setup(params=params, fitness_function=funcao_objetivo_ieee118_analise, tamanho_hash=hashtablesize_ieee118())
+    
+    resultados_detalhados = calcular_fitness_detalhado_ieee118_analise(
+        individuo=horarios_teste,
+        setupobj=setup_obj,
+        _debug=False
+    )
+
+    if resultados_detalhados:
+        print("\n--- Resultados Detalhados da Simulação ---")
         
-        resultados_detalhados = calcular_fitness_detalhado_ieee118_analise(
-            individuo=horarios_teste,
-            setupobj=setup_obj,
-            _debug=False
-        )
+        print("\nFitness Final:")
+        print(resultados_detalhados["fitness"])
+        
+        print("\nVariáveis de Decisão (Indivíduo):")
+        print(resultados_detalhados["melhores_variaveis"])
+        
+        print("\nRamos Selecionados para Manutenção (Agendamento Otimizado):")
+        print(resultados_detalhados["ramos_selecionados"])
+        
+        print("\nContingências Avaliadas:")
+        print(resultados_detalhados["contingencias"])
 
-        if resultados_detalhados:
-            print("\n--- Resultados Detalhados da Simulação ---")
-            
-            print("\nFitness Final:")
-            print(resultados_detalhados["fitness"])
-            
-            print("\nVariáveis de Decisão (Indivíduo):")
-            print(resultados_detalhados["melhores_variaveis"])
-            
-            print("\nRamos Selecionados para Manutenção (Agendamento Otimizado):")
-            print(resultados_detalhados["ramos_selecionados"])
-            
-            print("\nContingências Avaliadas:")
-            print(resultados_detalhados["contingencias"])
+        fitness = resultados_detalhados["fitness"]["fitness_final"].iloc[0]
+        print(f"\nFitness calculado = {fitness}")
+    else:
+        print("A execução da função de fitness falhou.")
 
-            fitness = resultados_detalhados["fitness"]["fitness_final"].iloc[0]
-            print(f"\nFitness calculado = {fitness}")
-        else:
-            print("A execução da função de fitness falhou.")
-
-run_simulate()
+if __name__ == "__main__":
+    run_simulate()

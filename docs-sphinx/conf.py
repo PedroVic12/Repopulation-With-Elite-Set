@@ -18,6 +18,7 @@ import os
 import sys
 
 # Adiciona o diretório do projeto ao sys.path para o Sphinx encontrar os módulos
+sys.path.insert(0, os.path.abspath('../src'))
 sys.path.insert(0, os.path.abspath('..'))
 
 extensions = [
