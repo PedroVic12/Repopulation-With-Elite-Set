@@ -1,4 +1,3 @@
-
 import sys
 import os
 import json
@@ -250,7 +249,17 @@ class ConfigTab(QWidget):
 
         msg = f"{len(configurations)} Configurações únicas serão executadas {self.runs_per_config_spin.value()} vez(es) cada."
         QMessageBox.information(self, "Pronto para Iniciar", msg)
+        #self.execution_requested.emit(configurations, self.runs_per_config_spin.value())
+        # Emite o sinal (para compatibilidade) e também chama diretamente a aba de execução
         self.execution_requested.emit(configurations, self.runs_per_config_spin.value())
+        try:
+            main_win = self.window()
+            # Se a janela principal expuser a aba de execução, inicie diretamente
+            if hasattr(main_win, 'execution_tab') and hasattr(main_win, 'tab_widget'):
+                main_win.execution_tab.start_executions(configurations, self.runs_per_config_spin.value())
+                main_win.tab_widget.setCurrentWidget(main_win.execution_tab)
+        except Exception:
+            pass
 
 class ParamsAGTab(QWidget):
     """Aba para editar todos os parâmetros em tabela (UI Original mantida)."""
@@ -574,7 +583,17 @@ class LauncherWindow(QMainWindow):
 
         # Conectando sinais de gerenciamento de estado com Signal para trasmição de dados entre abas 
         #self.config_tab.execution_requested.connect(self.execution_tab.start_executions)
-        self.config_tab.execution_requested.connect(lambda: tab_widget.setCurrentWidget(self.execution_tab))
+
+        # também muda a aba quando a execução for solicitada (recebe configs, runs)
+        #self.config_tab.execution_requested.connect(lambda configs, runs: tab_widget.setCurrentWidget(self.execution_tab))
+
+        # Expor o widget de abas para permitir troca direta a partir de outras abas
+        self.tab_widget = tab_widget
+        
+        # Conecta apenas a troca de aba (start_executions será chamada diretamente pelo botão)
+        self.config_tab.execution_requested.connect(lambda configs, runs: self.tab_widget.setCurrentWidget(self.execution_tab))
+
+
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)
