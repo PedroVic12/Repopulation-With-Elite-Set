@@ -1,4 +1,4 @@
-# Algoritmo Evolutivo RCE (`alg_evolutivo_rce.py`)
+# Algoritmo Evolutivo RCE 
 
 O `alg_evolutivo_rce.py` é o coração do framework de otimização. Ele implementa o algoritmo genético com a estratégia de Repopulation-with-Elite-Set (RCE).
 

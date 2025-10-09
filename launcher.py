@@ -247,17 +247,23 @@ class ConfigTab(QWidget):
         combinations = [dict(zip(keys, v)) for v in product(*variable_arrays.values())] if keys else [{}]
         configurations = [dict(base_params, **combo) for combo in combinations]
 
+        # Mensagem para o usuário
         msg = f"{len(configurations)} Configurações únicas serão executadas {self.runs_per_config_spin.value()} vez(es) cada."
         QMessageBox.information(self, "Pronto para Iniciar", msg)
-        #self.execution_requested.emit(configurations, self.runs_per_config_spin.value())
+
         # Emite o sinal (para compatibilidade) e também chama diretamente a aba de execução
+        #! (isso já deveria ser suficiente)
         self.execution_requested.emit(configurations, self.runs_per_config_spin.value())
+
         try:
             main_win = self.window()
+
             # Se a janela principal expuser a aba de execução, inicie diretamente
             if hasattr(main_win, 'execution_tab') and hasattr(main_win, 'tab_widget'):
-                main_win.execution_tab.start_executions(configurations, self.runs_per_config_spin.value())
+                #! Retirando o start no tab
+                #main_win.execution_tab.start_executions(configurations, self.runs_per_Wconfig_spin.value())
                 main_win.tab_widget.setCurrentWidget(main_win.execution_tab)
+
         except Exception:
             pass
 
@@ -420,7 +426,12 @@ class ExecutionTab(QWidget):
             QMessageBox.critical(self, "Erro", f"Script não encontrado: {RUN_FRAMEWORK_SCRIPT}")
             return
 
-        # Variaveis contadores de execução com QThread
+        # Valida se há configurações
+        if not configs:
+            QMessageBox.warning(self, "Aviso", "Nenhuma configuração definida para executar.")
+            return
+
+        # Reinicia variáveis de controle
         self.configurations = configs
         self.runs_per_config = runs_per_config
         self.total_runs = len(self.configurations) * self.runs_per_config
@@ -428,45 +439,47 @@ class ExecutionTab(QWidget):
 
         self.log_text.clear()
         self.append_log(f"Iniciando bateria de testes com {self.total_runs} execuções totais.")
+        self.append_log(f"Configurações: {len(self.configurations)}, Repetições por config: {self.runs_per_config}")
 
         self.stop_btn.setEnabled(True)
         self.progress_bar.setVisible(True)
         self.progress_bar.setRange(0, self.total_runs)
         self.progress_bar.setValue(0)
         
+        
         self.run_next_configuration()
 
     def run_next_configuration(self):
-        #if self.current_run_number >= self.total_runs:
-        #    self.on_all_executions_finished(True, "Todas as execuções foram concluídas...")
-        #    return
-
         config_index = self.current_run_number // self.runs_per_config
         repetition = (self.current_run_number % self.runs_per_config) + 1
+        
+        # Verificação de segurança para evitar index out of range
+        if config_index >= len(self.configurations):
+            self.on_all_executions_finished(True, "Todas as execuções foram concluídas!")
+            return
+            
         current_config = self.configurations[config_index]
         
-        self.status_label.setText(f"\nExecutando {self.current_run_number + 1}/{self.total_runs} (Config: {config_index + 1}, Rep: {repetition})")
-        self.append_log("-" * 80)
-        self.append_log(f"Iniciando Config {config_index + 1}, Repetição {repetition}")
-        self.append_log("-" * 80)
+        self.status_label.setText(f"Executando {self.current_run_number + 1}/{self.total_runs} (Config: {config_index + 1}, Rep: {repetition})")
+        #self.append_log("-" * 80)
+        #self.append_log(f"Iniciando Config {config_index + 1}, Repetição {repetition}")
+        #self.append_log("-" * 80)
 
         if not self.db_controller.save_params(current_config):
-             self.append_log(f"❌ Erro ao salvar o arquivo de parâmetros.")
-             self.on_all_executions_finished(False, "Erro de arquivo.")
-             return
-
-        # Argumentos do itertools
+            self.append_log(f"❌ Erro ao salvar o arquivo de parâmetros.")
+            self.on_all_executions_finished(False, "Erro de arquivo.")
+            return
+            
+            # Prepara argumentos
         args = ["--config_num", str(config_index + 1), "--exec_num", str(repetition)]
         
-        # Inicia a thread de execução na tela GUI
+        # Inicia a thread de execução
         self.execution_thread = ExecutionThread(RUN_FRAMEWORK_SCRIPT, args)
         self.execution_thread.log_updated.connect(self.append_log)
         self.execution_thread.execution_finished.connect(self.on_single_execution_finished)
         
-        # Inicia a thread de execução do Subprocesso do arquivo run.py
         self.execution_thread.start()
-        
-        
+            
         
         
     def on_single_execution_finished(self, success, message):
@@ -475,23 +488,25 @@ class ExecutionTab(QWidget):
         if not success:
             self.append_log(f"❌ Erro na execução, pulando para a próxima.")
         
+        # Atualiza o progresso
         self.current_run_number += 1
         self.progress_bar.setValue(self.current_run_number)
         
-        # PVRV - 02/10 - Tentativa de corrigir bug de execução repetida, a principio retirar o Single Shot e funcionar mais limpo
-        QTimer.singleShot(100, self.run_next_configuration)
+        self.append_log(f"Progresso: {self.current_run_number}/{self.total_runs}")
         
-        self.append_log(f"Estou travado aqui - current_run_number: {self.current_run_number}, total_runs: {self.total_runs}")
-        
+        # Verifica se todas as execuções foram concluídas
         if self.current_run_number >= self.total_runs:
-            self.on_all_executions_finished(True, "Todas as execuções foram concluídas!!!")
-            return
+            self.on_all_executions_finished(True, "Todas as execuções foram concluídas!")
+        else:
+            # Executa a próxima configuração imediatamente, sem Timer
+            self.run_next_configuration()
+
 
     def stop_execution(self):
-        self.current_run_number = self.total_runs
+        self.append_log("Parando execução...")
         if self.execution_thread and self.execution_thread.isRunning():
             self.execution_thread.stop()
-            
+            self.execution_thread.wait(5000)  # Espera até 5 segundos
         self.on_all_executions_finished(False, "Interrompido pelo usuário.")
 
     def on_all_executions_finished(self, success, message):
@@ -589,7 +604,7 @@ class LauncherWindow(QMainWindow):
 
         # Expor o widget de abas para permitir troca direta a partir de outras abas
         self.tab_widget = tab_widget
-        
+
         # Conecta apenas a troca de aba (start_executions será chamada diretamente pelo botão)
         self.config_tab.execution_requested.connect(lambda configs, runs: self.tab_widget.setCurrentWidget(self.execution_tab))
 

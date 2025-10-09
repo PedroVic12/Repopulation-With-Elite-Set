@@ -19,6 +19,8 @@ O construtor da classe `Setup` recebe os parâmetros da simulação e a função
 -   **`fitness_function`**: A função objetivo que o algoritmo tentará minimizar.
 -   **`tamanho_hash`**: O tamanho da tabela hash para armazenar resultados de cenários já calculados.
 
+
+
 ### Funcionalidades
 
 -   **Criação de Indivíduos e População**: Define a estrutura de um "indivíduo" (uma lista de variáveis de decisão) e de uma "população" (uma coleção de indivíduos).
@@ -29,3 +31,4 @@ O construtor da classe `Setup` recebe os parâmetros da simulação e a função
     -   `toolbox.register("evaluate", ...)`: Registra a **função de avaliação** (fitness), que mede a qualidade de cada indivíduo.
 -   **Controle de Limites (`checkBounds`)**: Utiliza um decorador para garantir que as variáveis de decisão dos indivíduos permaneçam dentro dos limites definidos após as operações de crossover e mutação.
 -   **Tabela Hash**: Inicializa uma tabela hash (se `tamanho_hash > 0`) para armazenar os resultados de fitness de cenários já avaliados, evitando recálculos desnecessários.
+

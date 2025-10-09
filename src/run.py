@@ -181,7 +181,11 @@ def run_framework_many_executions(function_bechmarking=False):
             tamanho_hash_val = size_func()
 
         #! 5) Instancia Setup uma vez por configuração
-        print(f"\n\nIniciando configuração {config_num} com os params.json:\n{params}\n")
+        #print(f"\n\nIniciando configuração {config_num} com os params.json:\n{params}\n")
+        print("="*50)
+        print(f"Inicio da configuração: {config_num}")
+        print("="*50)
+
         setup = Setup(
             params,
             fitness_function=fitness_func,
@@ -296,7 +300,7 @@ def run_framework_many_executions(function_bechmarking=False):
         try:
             hash_df = pd.DataFrame(data=setup.tabela_hash, columns=['Fitness'])
             hash_df.to_excel(HASH_TABLE_PATH, index=False)
-            print(f"Salvando tabela hash em {HASH_TABLE_PATH}... com tamanho de {len(setup.tabela_hash)} posições!")
+            #print(f"Salvando tabela hash em {HASH_TABLE_PATH}... com tamanho de {len(setup.tabela_hash)} posições!")
 
         except Exception as e:
             print(f"ERRO ao salvar a tabela hash: {e}")
