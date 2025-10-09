@@ -14,7 +14,7 @@ Bem-vindo à documentação do framework Repopulation-With-Elite-Set (RCE).
    guias/sphinx_vs_mkdocs
    guias/instalador
    guias/run
-   guias/run_agendamento
+..   guias/run_agendamento
    guias/config_backup
    guias/database_controller
    guias/getting_started
@@ -25,9 +25,9 @@ Bem-vindo à documentação do framework Repopulation-With-Elite-Set (RCE).
 
    guias/alg_evolutivo_rce_doc
    guias/setup_doc
-   guias/AlgEvolutivoRCE_backup_alg_evolutivo_rce
-   guias/AlgEvolutivoRCE_backup_Setup
    guias/AlgEvolutivoRCE_backup_run_AG_exemplo
+..   guias/AlgEvolutivoRCE_backup_alg_evolutivo_rce
+   guias/AlgEvolutivoRCE_backup_Setup
 
 .. toctree::
    :maxdepth: 2
@@ -36,7 +36,7 @@ Bem-vindo à documentação do framework Repopulation-With-Elite-Set (RCE).
    guias/Dashboard
    guias/DashboardApp_dashboard_RCE_APP
    guias/DashboardApp_views_Screens_RCE_Framework_Page
-   guias/DashboardApp_views_Screens_components_AgendamentoRedePage
+..   guias/DashboardApp_views_Screens_components_AgendamentoRedePage
    guias/DashboardApp_views_Screens_components_dash_rce_components
 
 .. toctree::
@@ -45,24 +45,21 @@ Bem-vindo à documentação do framework Repopulation-With-Elite-Set (RCE).
 
    guias/rede_eletrica_doc
    guias/RedeEletrica_backup_rede_eletrica
-   guias/RedeEletrica_backup_basic_network
    guias/RedeEletrica_backup_exemplos_getting_started_deap_pandapower_exemplo
-   guias/RedeEletrica_backup_exemplos_scripts_rede_16_barras_anaREDE
-   guias/RedeEletrica_backup_exemplos_scripts_sistema_canarinho_16barras
-   guias/SIN_45_SIMULATOR_ANAREDE
+..   guias/SIN_45_SIMULATOR_ANAREDE
 
 .. toctree::
    :maxdepth: 2
    :caption: Funções de Fitness e Otimização
 
    guias/function_IEEE_14_contigencias_doc
+   guias/utils_functions_fitness_functions_benchmarking
    guias/utils_functions_fitness_analise_contigencias_SEP_SIN_45_AG_otimization_example
    guias/utils_functions_fitness_func_objetivo_SIN_45_otimizado_AG_ONS
-   guias/utils_functions_fitness_function_IEEE_118_otimizacao
    guias/utils_functions_fitness_function_IEEE_14_contigencias
    guias/utils_functions_fitness_function_IEEE_30_otimizacao
    guias/utils_functions_fitness_function_IEEE_57_otimizacao
-   guias/utils_functions_fitness_functions_benchmarking
+   guias/utils_functions_fitness_function_IEEE_118_otimizacao
    guias/utils_functions_fitness_test_function_SIN_45_otimizacao
 
 .. toctree::

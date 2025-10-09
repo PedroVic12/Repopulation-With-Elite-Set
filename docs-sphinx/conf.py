@@ -7,9 +7,9 @@
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#project-information
 
 project = 'Repopulation-With-Elite-Set'
-copyright = '2025, Pedro'
-author = 'Pedro'
-release = '0.1'
+copyright = '2025, Pedro Victor'
+author = 'Pedro Victor Veras'
+release = '1.2'
 
 # -- General configuration ---------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#general-configuration

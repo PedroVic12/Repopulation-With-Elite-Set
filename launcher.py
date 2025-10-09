@@ -573,7 +573,7 @@ class LauncherWindow(QMainWindow):
         layout.addWidget(tab_widget)
 
         # Conectando sinais de gerenciamento de estado com Signal para trasmição de dados entre abas 
-        self.config_tab.execution_requested.connect(self.execution_tab.start_executions)
+        #self.config_tab.execution_requested.connect(self.execution_tab.start_executions)
         self.config_tab.execution_requested.connect(lambda: tab_widget.setCurrentWidget(self.execution_tab))
 
 if __name__ == "__main__":
