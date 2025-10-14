@@ -50,14 +50,14 @@ Bem-vindo à documentação do framework Repopulation-With-Elite-Set (RCE), feit
    :caption: Funções de Fitness e Otimização
 
    guias/function_IEEE_14_contigencias_doc
-   guias/utils_functions_fitness_functions_benchmarking
-   guias/utils_functions_fitness_analise_contigencias_SEP_SIN_45_AG_otimization_example
-   guias/utils_functions_fitness_func_objetivo_SIN_45_otimizado_AG_ONS
    guias/utils_functions_fitness_function_IEEE_14_contigencias
+..    guias/utils_functions_fitness_functions_benchmarking
+   guias/utils_functions_fitness_analise_contigencias_SEP_SIN_45_AG_otimization_example
+   guias/utils_functions_fitness_test_function_SIN_45_otimizacao
+   guias/utils_functions_fitness_func_objetivo_SIN_45_otimizado_AG_ONS
    guias/utils_functions_fitness_function_IEEE_30_otimizacao
    guias/utils_functions_fitness_function_IEEE_57_otimizacao
    guias/utils_functions_fitness_function_IEEE_118_otimizacao
-   guias/utils_functions_fitness_test_function_SIN_45_otimizacao
 
 .. toctree::
    :maxdepth: 2
