@@ -41,7 +41,7 @@ FRAMEWORK DESENVOLVIDO PARA FINS ACADÊMICOS USANDO ALGORITMOS GENÉTICOS PARA R
    :caption: Modelo da Rede Elétrica
 
    guias/rede_eletrica_doc
-   guias/RedeEletrica_backup_rede_eletrica
+..   guias/RedeEletrica_backup_rede_eletrica
    guias/RedeEletrica_backup_exemplos_getting_started_deap_pandapower_exemplo
 ..   guias/SIN_45_SIMULATOR_ANAREDE
 
