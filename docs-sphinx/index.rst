@@ -1,10 +1,10 @@
 .. Repopulation-With-Elite-Set documentation master file, created by
    sphinx-quickstart on Tue Oct  7 09:55:26 2025.
 
-FRAMEWORK DESENVOLVIDO PARA FINS ACADÊMICOS USANDO ALGORITMOS GENÉTICOS PARA RESOLVER PROBLEMAS DE OTIMIZAÇÃO EM REDES ELÉTRICAS, FINANCIADO POR BOLSA DE INICIAÇÃO CIENTÍFICA PELA UNIVERSIDADE FEDERAL FLUMINENSE (UFF)
+Bem-vindo à documentação do framework Repopulation-With-Elite-Set (RCE), feito apenas usando Python.
 ================================
 
-Bem-vindo à documentação do framework Repopulation-With-Elite-Set (RCE), feito apenas usando Python.
+FRAMEWORK DESENVOLVIDO PARA FINS ACADÊMICOS USANDO ALGORITMOS GENÉTICOS PARA RESOLVER PROBLEMAS DE OTIMIZAÇÃO EM REDES ELÉTRICAS, FINANCIADO POR BOLSA DE INICIAÇÃO CIENTÍFICA PELA UNIVERSIDADE FEDERAL FLUMINENSE (UFF)
 
 .. toctree::
    :maxdepth: 2
