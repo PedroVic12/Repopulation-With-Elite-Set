@@ -1,22 +1,20 @@
 .. Repopulation-With-Elite-Set documentation master file, created by
    sphinx-quickstart on Tue Oct  7 09:55:26 2025.
 
-Documentação do Projeto RCE
+FRAMEWORK DESENVOLVIDO PARA FINS ACADÊMICOS USANDO ALGORITMOS GENÉTICOS PARA RESOLVER PROBLEMAS DE OTIMIZAÇÃO EM REDES ELÉTRICAS, FINANCIADO POR BOLSA DE INICIAÇÃO CIENTÍFICA PELA UNIVERSIDADE FEDERAL FLUMINENSE (UFF)
 ================================
 
-Bem-vindo à documentação do framework Repopulation-With-Elite-Set (RCE).
+Bem-vindo à documentação do framework Repopulation-With-Elite-Set (RCE), feito apenas usando Python.
 
 .. toctree::
    :maxdepth: 2
-   :caption: Guia Geral
+   :caption: Guia Documentação
 
    guias/guia_documentacao
-   guias/sphinx_vs_mkdocs
-   guias/instalador
+..   guias/sphinx_vs_mkdocs
+..   guias/instalador
    guias/run
 ..   guias/run_agendamento
-   guias/config_backup
-   guias/database_controller
    guias/getting_started
 
 .. toctree::
@@ -26,7 +24,6 @@ Bem-vindo à documentação do framework Repopulation-With-Elite-Set (RCE).
    guias/alg_evolutivo_rce_doc
    guias/setup_doc
    guias/AlgEvolutivoRCE_backup_run_AG_exemplo
-..   guias/AlgEvolutivoRCE_backup_alg_evolutivo_rce
    guias/AlgEvolutivoRCE_backup_Setup
 
 .. toctree::
@@ -37,7 +34,7 @@ Bem-vindo à documentação do framework Repopulation-With-Elite-Set (RCE).
    guias/DashboardApp_dashboard_RCE_APP
    guias/DashboardApp_views_Screens_RCE_Framework_Page
 ..   guias/DashboardApp_views_Screens_components_AgendamentoRedePage
-   guias/DashboardApp_views_Screens_components_dash_rce_components
+..   guias/DashboardApp_views_Screens_components_dash_rce_components
 
 .. toctree::
    :maxdepth: 2
