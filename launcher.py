@@ -416,6 +416,8 @@ class ExecutionTab(QWidget):
         self.total_runs = len(self.configurations) * self.runs_per_config
         self.current_run_number = 0
 
+        # marca execução em andamento
+        self._executions_running = True
         self.log_text.clear()
         self.append_log(f"Iniciando bateria de testes com {self.total_runs} execuções totais.")
 
@@ -425,13 +427,16 @@ class ExecutionTab(QWidget):
         self.progress_bar.setValue(0)
         
         self.run_next_configuration()
+        
 
     def run_next_configuration(self):
         # Proteção: se já atingimos o total, finaliza e não tenta acessar índices fora do range
-        if hasattr(self, 'total_runs') and self.total_runs is not None and self.current_run_number >= self.total_runs:
-            # Garante que finalização seja feita apenas uma vez
-            self.on_all_executions_finished(True, "Todas as execuções foram concluídas...")
+        if not getattr(self, '_executions_running', False):
             return
+        if hasattr(self, 'total_runs') and self.total_runs is not None and self.current_run_number >= self.total_runs:
+             # Garante que finalização seja feita apenas uma vez
+             self.on_all_executions_finished(True, "Todas as execuções foram concluídas...")
+             return
 
         config_index = self.current_run_number // self.runs_per_config
         repetition = (self.current_run_number % self.runs_per_config) + 1
@@ -462,11 +467,30 @@ class ExecutionTab(QWidget):
         
         
     def on_single_execution_finished(self, success, message):
+        # Ignora callbacks tardios se a bateria já foi finalizada
+        if not getattr(self, '_executions_running', False):
+            return
+
         self.append_log(f"Finalizada execução. Sucesso: {success}. {message}")
         
         if not success:
             self.append_log(f"❌ Erro na execução, pulando para a próxima.")
         
+        # Disconnect signals and clear thread reference
+        try:
+            if self.execution_thread:
+                try:
+                    self.execution_thread.log_updated.disconnect(self.append_log)
+                except Exception:
+                    pass
+                try:
+                    self.execution_thread.execution_finished.disconnect(self.on_single_execution_finished)
+                except Exception:
+                    pass
+        except Exception:
+            pass
+        self.execution_thread = None
+
         # Incrementa contador e atualiza progresso
         self.current_run_number += 1
         self.progress_bar.setValue(self.current_run_number)
@@ -489,6 +513,8 @@ class ExecutionTab(QWidget):
         self.on_all_executions_finished(False, "Interrompido pelo usuário.")
 
     def on_all_executions_finished(self, success, message):
+        # Marca fim das execuções para ignorar callbacks posteriores
+        self._executions_running = False
         self.stop_btn.setEnabled(False)
         self.progress_bar.setValue(self.progress_bar.maximum())
         self.status_label.setText(f"Finalizado! {message}")
