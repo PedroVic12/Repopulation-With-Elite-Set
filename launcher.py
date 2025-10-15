@@ -5,6 +5,7 @@ import subprocess
 import time
 from pathlib import Path
 from itertools import product
+from collections import deque
 
 from PySide6.QtWidgets import (
     QApplication, QMainWindow, QPushButton, QVBoxLayout, QWidget, QLabel,
@@ -361,6 +362,9 @@ class ExecutionTab(QWidget):
         self.execution_thread = None
         self.configurations = []
         self.init_ui()
+        # Flags para controlar lifecycle e proteger contra callbacks tardios
+        self._executions_running = False
+        self._finished_called = False
 
     def init_ui(self):
         layout = QVBoxLayout(self)
@@ -413,11 +417,21 @@ class ExecutionTab(QWidget):
         # Variaveis contadores de execução com QThread
         self.configurations = configs
         self.runs_per_config = runs_per_config
-        self.total_runs = len(self.configurations) * self.runs_per_config
+        # Constrói fila explícita de (config_index, repetition) para evitar cálculos por índice e races
+        self._pending_runs = deque()
+        for cfg_idx in range(len(self.configurations)):
+            for rep in range(1, self.runs_per_config + 1):
+                self._pending_runs.append((cfg_idx, rep))
+        self.total_runs = len(self._pending_runs)
+        # número de execuções finalizadas
         self.current_run_number = 0
+        # referência para a execução atual ({'cfg_idx', 'rep'})
+        self._current_run_info = None
 
         # marca execução em andamento
         self._executions_running = True
+        # marca que não finalizamos ainda (usado para ignorar callbacks tardios)
+        self._finished_called = False
         self.log_text.clear()
         self.append_log(f"Iniciando bateria de testes com {self.total_runs} execuções totais.")
 
@@ -433,13 +447,13 @@ class ExecutionTab(QWidget):
         # Proteção: se já atingimos o total, finaliza e não tenta acessar índices fora do range
         if not getattr(self, '_executions_running', False):
             return
-        if hasattr(self, 'total_runs') and self.total_runs is not None and self.current_run_number >= self.total_runs:
-             # Garante que finalização seja feita apenas uma vez
-             self.on_all_executions_finished(True, "Todas as execuções foram concluídas...")
-             return
+        if not hasattr(self, '_pending_runs') or len(self._pending_runs) == 0:
+            # nada pendente -> finalizar
+            self.on_all_executions_finished(True, "Todas as execuções foram concluídas...")
+            return
 
-        config_index = self.current_run_number // self.runs_per_config
-        repetition = (self.current_run_number % self.runs_per_config) + 1
+        # Pop próximo par (config_index, repetition)
+        config_index, repetition = self._pending_runs.popleft()
         current_config = self.configurations[config_index]
         
         self.status_label.setText(f"\nExecutando {self.current_run_number + 1}/{self.total_runs} (Config: {config_index + 1}, Rep: {repetition})")
@@ -455,20 +469,31 @@ class ExecutionTab(QWidget):
         # Argumentos do itertools
         args = ["--config_num", str(config_index + 1), "--exec_num", str(repetition)]
         
-        # Inicia a thread de execução na tela GUI
-        self.execution_thread = ExecutionThread(RUN_FRAMEWORK_SCRIPT, args)
-        self.execution_thread.log_updated.connect(self.append_log)
-        self.execution_thread.execution_finished.connect(self.on_single_execution_finished)
+        # Cria e inicia thread para esta execução
+        thread = ExecutionThread(RUN_FRAMEWORK_SCRIPT, args)
+        thread.log_updated.connect(self.append_log)
+        thread.execution_finished.connect(lambda success, message, th=thread: self.on_single_execution_finished(success, message, th))
+
+        # Guarda referência da execução atual para validação de callbacks
+        self.execution_thread = thread
+        self._current_run_info = {'config_index': config_index, 'repetition': repetition}
+
+        thread.start()
         
-        # Inicia a thread de execução do Subprocesso do arquivo run.py
-        self.execution_thread.start()
         
         
         
-        
-    def on_single_execution_finished(self, success, message):
+    def on_single_execution_finished(self, success, message, thread_obj):
         # Ignora callbacks tardios se a bateria já foi finalizada
         if not getattr(self, '_executions_running', False):
+            return
+        # Proteção adicional: se já marcamos finalização, ignora qualquer callback seguinte
+        if getattr(self, '_finished_called', False):
+            return
+
+        # Só processa o callback se for da thread corrente (evita que callbacks tardios avancem o contador)
+        if thread_obj is not self.execution_thread:
+            self.append_log(f"Callback de thread antiga ignorado (thread_obj != execution_thread). current_run_number={self.current_run_number}")
             return
 
         self.append_log(f"Finalizada execução. Sucesso: {success}. {message}")
@@ -476,34 +501,25 @@ class ExecutionTab(QWidget):
         if not success:
             self.append_log(f"❌ Erro na execução, pulando para a próxima.")
         
-        # Disconnect signals and clear thread reference
+        # Limpa referência para a thread atual (sinais já entregues serão ignorados pelo run_id)
         try:
-            if self.execution_thread:
-                try:
-                    self.execution_thread.log_updated.disconnect(self.append_log)
-                except Exception:
-                    pass
-                try:
-                    self.execution_thread.execution_finished.disconnect(self.on_single_execution_finished)
-                except Exception:
-                    pass
+            self.execution_thread = None
         except Exception:
             pass
-        self.execution_thread = None
 
         # Incrementa contador e atualiza progresso
         self.current_run_number += 1
         self.progress_bar.setValue(self.current_run_number)
 
-        # Se já concluímos todas as execuções, finaliza agora (evita agendamento de próximo run)
-        if hasattr(self, 'total_runs') and self.current_run_number >= self.total_runs:
-            self.append_log(f"Execuções concluídas: {self.current_run_number}/{self.total_runs}")
-            self.on_all_executions_finished(True, "Todas as execuções foram concluídas!!!")
-            return
-
-        # Agenda a próxima execução com pequeno delay
-        QTimer.singleShot(100, self.run_next_configuration)
-        self.append_log(f"Agendado próximo run - current_run_number: {self.current_run_number}, total_runs: {self.total_runs}")
+        # Se ainda houver runs pendentes, agenda próxima; caso contrário finalize
+        if getattr(self, '_executions_running', False) and len(getattr(self, '_pending_runs', [])) > 0:
+            QTimer.singleShot(100, self.run_next_configuration)
+            self.append_log(f"Agendado próximo run - current_run_number: {self.current_run_number}, total_runs: {self.total_runs}")
+        else:
+            # Sem pendências: chamamos finalização (se ainda não chamada)
+            if not getattr(self, '_finished_called', False):
+                self._finished_called = True
+                self.on_all_executions_finished(True, "Todas as execuções foram concluídas!!!")
 
     def stop_execution(self):
         self.current_run_number = self.total_runs
@@ -514,6 +530,7 @@ class ExecutionTab(QWidget):
 
     def on_all_executions_finished(self, success, message):
         # Marca fim das execuções para ignorar callbacks posteriores
+        self._finished_called = True
         self._executions_running = False
         self.stop_btn.setEnabled(False)
         self.progress_bar.setValue(self.progress_bar.maximum())
@@ -612,8 +629,9 @@ if __name__ == "__main__":
     window.showMaximized()
     sys.exit(app.exec())
 
-# FIXED_BUG (2025-10-14):
+# FIXED_BUG (2025-10-15):
 # - Corrigido IndexError em ExecutionTab.run_next_configuration adicionando guarda para total_runs
 # - Corrigido fluxo para evitar chamadas concorrentes que geravam current_run_number fora de sincronia
-# - Agendamento de próxima execução feito via QTimer.singleShot somente quando ainda houver runs pendentes
-# - Mantive seus comentários e históricos; este bloco documenta somente as alterações de correção aplicadas
+# - Adicionada flag `_finished_called` para bloquear callbacks tardios e evitar re-agendamento após finalização
+# - Agendamento de próxima execução feito via QTimer.singleShot somente quando ainda houver runs pendentes e não estivermos finalizando
+# - Mantive seus comentários e históricos; este bloco documenta as alterações de correção aplicadas

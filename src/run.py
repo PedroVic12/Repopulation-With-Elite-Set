@@ -181,10 +181,7 @@ def run_framework_many_executions(function_bechmarking=False):
             tamanho_hash_val = size_func()
 
         #! 5) Instancia Setup uma vez por configuração
-        #print(f"\n\nIniciando configuração {config_num} com os params.json:\n{params}\n")
-        print("="*50)
-        print(f"Inicio da configuração: {config_num}")
-        print("="*50)
+        #print(f"\n\nIniciando configuração {config_num}:\nusando os params.json:\n{params}\n")
 
         setup = Setup(
             params,
