@@ -5,11 +5,11 @@ PVRV - 20/08/2025
 """
 
 # Imports principais do framework
-from AlgEvolutivoRCE_backup.Setup import Setup
-from AlgEvolutivoRCE_backup.alg_evolutivo_rce import AlgoritimoEvolutivoRCE
+from AlgEvolutivoRCE.Setup import Setup
+from AlgEvolutivoRCE.alg_evolutivo_rce import AlgoritimoEvolutivoRCE
 
 # Utils - Trazer esses codigos para esse unico arquivo
-from config_backup import FOLDER_NAME, format_elapsed_time
+from config import FOLDER_NAME, format_elapsed_time
 
 #! Importando a minha função objetivo dentro do projeto
 from utils.functions_fitness.functions_benchmarking import rastrigin
@@ -21,7 +21,8 @@ from utils.functions_fitness.function_IEEE_57_otimizacao import funcao_objetivo_
 #from utils.functions_fitness.function_SIN_45_otimizacao import funcao_objetivo_SIN45, hashtablesize_sin45
 from utils.functions_fitness.func_objetivo_SIN_45_otimizado_AG_ONS import funcao_objetivo_SIN45, hashtablesize_sin45
 
-from database_controller import run_consolidar_resultados
+# from database_controller import run_consolidar_resultados
+import argparse
 
 # Bibliotecas padrão
 import json
@@ -120,7 +121,7 @@ def convert_values_to_int(params):
     return params
 
 # Função principal para executar o framework com múltiplas execuções
-def run_framework_many_executions(function_bechmarking=False):
+def run_framework_many_executions(function_bechmarking=False, config_num_arg=None, exec_num_arg=None):
 
 
     if function_bechmarking:
@@ -142,6 +143,16 @@ def run_framework_many_executions(function_bechmarking=False):
     # 3. Gera todas as combinações de parâmetros
     from itertools import product
     combinations = [dict(zip(varying_keys, vals)) for vals in product(*varying_values)] if varying_keys else [{}]
+    
+    # If caller requested a single configuration/execution via CLI args, restrict accordingly
+    if config_num_arg is not None:
+        # config_num_arg is 1-based coming from launcher
+        idx = int(config_num_arg) - 1
+        if idx < 0 or idx >= len(combinations):
+            print(f"Índice de configuração inválido: {config_num_arg}")
+            return
+        combinations = [combinations[idx]]
+        # If exec_num_arg provided, we'll run only that exec (handled below)
     
     #! Inicia o contador de tempo de execução
     start = datetime.now()
@@ -327,4 +338,8 @@ def run_framework_many_executions(function_bechmarking=False):
 
 
 if __name__ == "__main__":
-    run_framework_many_executions(function_bechmarking=BECHMARKING_MODE)
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--config_num", type=int, help="(Opcional) número da configuração (1-based) para executar apenas essa configuração")
+    parser.add_argument("--exec_num", type=int, help="(Opcional) número da repetição para executar apenas essa repetição")
+    args = parser.parse_args()
+    run_framework_many_executions(function_bechmarking=BECHMARKING_MODE, config_num_arg=args.config_num, exec_num_arg=args.exec_num)

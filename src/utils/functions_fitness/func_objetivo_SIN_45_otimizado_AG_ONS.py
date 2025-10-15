@@ -9,9 +9,9 @@ from datetime import datetime
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..')))
 
-from RedeEletrica_backup.rede_eletrica import RedeEletricaPandaPower
-from AlgEvolutivoRCE_backup.Setup import Setup
-from AlgEvolutivoRCE_backup.alg_evolutivo_rce import AlgoritimoEvolutivoRCE
+from RedeEletrica.rede_eletrica import RedeEletricaPandaPower
+from AlgEvolutivoRCE.Setup import Setup
+from AlgEvolutivoRCE.alg_evolutivo_rce import AlgoritimoEvolutivoRCE
 
 
 
