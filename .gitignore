@@ -15,7 +15,8 @@ timeline_solucoes_agendamento_jsonserver.py
 output/
 lib(refatorado)/
 docs-sphinx/_build/
-.mkdocs.yml
+launcher_summary.md
+apresentacao_SEMENDE.md
 
 #! Comandos para retirar o cache no github e manter os arquivos na maquina local
 # git rm -r --cached .
