@@ -109,6 +109,7 @@ class AlgoritimoEvolutivoRCE:
         self.CONJUNTO_ELITE_RCE.clear()
         self.pop_RCE = []
 
+        # Função Critério 1
         def criterio1_reduzido(population):
             #! critério 1 e obtém os N melhores com 30% do valor do melhor fitness
 
@@ -128,6 +129,7 @@ class AlgoritimoEvolutivoRCE:
         max_difference, best_ind = criterio1_reduzido(population)
         self.pop_RCE.append(best_ind)
 
+        # função do Critério 2
         def calculaDiff(ind, lista):
             """Critério 2 - Subrotina para calcular a difenreça entre o ind selecionado e a população do RCE."""
             count = 0
@@ -163,12 +165,14 @@ class AlgoritimoEvolutivoRCE:
             )
 
         for ind in population:
-            # criterio 1
+            # criterio 1 - 0btém os N melhores com 30% do valor do melhor fitness
             if ind.fitness.values[0] <= max_difference:
-                # criterio 2
+                # criterio 2 - Diferença entre o valor Delta
                 diferente = calculaDiff(ind, self.pop_RCE)  # delta como valor limite
                 if diferente:
                     if ind not in self.pop_RCE:
+
+                        # Critério 3 - Adiciona ao conjunto elite apenas os melhores resultados
                         self.pop_RCE.append(ind)
                         self.CONJUNTO_ELITE_RCE.add(tuple(ind))
 
@@ -177,6 +181,7 @@ class AlgoritimoEvolutivoRCE:
                 print("Nenhum indivíduo atende aos critérios. :( ")
 
             print("\nTamanho Elite = ", len(self.pop_RCE))
+            # Cuidado com diferenças entre Tuplas e Listas no Python... PVRV
             #print("Tamanho Elite = ", len(self.CONJUNTO_ELITE_RCE))
 
         return self.pop_RCE
@@ -189,6 +194,8 @@ class AlgoritimoEvolutivoRCE:
         )  # retorna uma pop com lista de individuos de var de decisão
 
         # Avaliar o fitness da população atual
+
+        #bugs fix - 08/25
         #?self.setup.avaliarFitnessIndividuos(current_population)
         self.calculateFitnessGeneration(current_population)
 
@@ -220,6 +227,8 @@ class AlgoritimoEvolutivoRCE:
 
         if self.DEBUG:
             self.cout(f"CRITERIO 3 - População aleatória modificada [HOF,RCE,Aleatorio] ")
+
+        # Retorna a população final com os 3 critérios do RCE 
         return new_pop
 
     def elitismoSimples(self, pop):
