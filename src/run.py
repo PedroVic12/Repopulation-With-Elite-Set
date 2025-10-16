@@ -181,6 +181,8 @@ def run_framework_many_executions(function_bechmarking=False, config_num_arg=Non
         params.update(combo)
         params = convert_values_to_int(params)
 
+        print(f"\n[INFO] Executando com a seguinte combinação de parâmetros: {combo}")
+
         #! 4) Define função objetivo
         fitness_func = ARRAY_FITNESS_FUNCTIONS[NUMERO] if not function_bechmarking else rastrigin
 
@@ -231,6 +233,7 @@ def run_framework_many_executions(function_bechmarking=False, config_num_arg=Non
 
         # Define o range de execuções a serem rodadas
         if exec_num_arg is not None:
+            
             # Se uma execução específica foi passada como argumento, roda apenas ela
             execution_range = range(exec_num_arg, exec_num_arg + 1)
         else:

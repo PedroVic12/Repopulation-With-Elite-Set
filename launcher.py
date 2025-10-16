@@ -12,9 +12,9 @@ from PySide6.QtWidgets import (
     QHBoxLayout, QTextEdit, QProgressBar, QTabWidget, QGroupBox, QSpinBox,
     QLineEdit,  QMessageBox, QRadioButton,
     QButtonGroup, QGridLayout, QTableWidget, QTableWidgetItem, QPlainTextEdit,
-    QScrollArea, QFrame, QGraphicsDropShadowEffect, QSizePolicy, QHeaderView, QAbstractItemView
+    QScrollArea, QFrame, QGraphicsDropShadowEffect, QSizePolicy, QHeaderView, QAbstractItemView, 
 )
-from PySide6.QtCore import Qt, QThread, Signal, QTimer, Slot
+from PySide6.QtCore import Qt, QThread, Signal, QTimer, Slot, QObject
 from PySide6.QtGui import QFont, QIcon, QIntValidator, QDoubleValidator, QColor
 
 
@@ -31,7 +31,7 @@ DASHBOARD_SCRIPT = SRC_DIR / "DashboardApp" / "dashboard_RCE_APP.py"
 # Modo de teste agressivo: quando True, para cada configuração salva o launcher
 # sobrescreve options.json apenas com 'repeticoes_por_config' e chama
 # run.py com --config_num 1 e --exec_num N repetidamente.
-TEST_DEBUG = True
+TEST_DEBUG = False
 
 # Parâmetros que podem variar via options.json (arrays)
 VARYING_KEYS = {"MUTACAO", "CROSSOVER", "NUM_GENERATIONS", "POP_SIZE"}
@@ -58,18 +58,22 @@ class ConfigManager:
             self.options = cleaned
             self.db_controller.save_options(self.options)
 
-class ExecutionThread(QThread):
-    """Executa o framework em subprocesso dentro de uma QThread."""
+class ScriptWorker(QObject):
+    """Worker object that runs the script in a subprocess."""
+    started = Signal()
     log_updated = Signal(str)
-    execution_finished = Signal(bool, str)
+    finished = Signal(int)
+    error = Signal(str)
 
-    def __init__(self, script_path, args=None):
+    def __init__(self, script_path, args):
         super().__init__()
         self.script_path = script_path
-        self.args = args or []
+        self.args = args
         self.process = None
 
-    def run(self):
+    @Slot()
+    def run_script(self):
+        self.started.emit()
         try:
             cmd = [sys.executable, str(self.script_path)] + self.args
             self.log_updated.emit(f"Executando: {' '.join(cmd)}")
@@ -78,20 +82,19 @@ class ExecutionThread(QThread):
                 cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
                 universal_newlines=True, cwd=SRC_DIR, encoding='utf-8', errors='replace'
             )
-                        
+            
             for line in iter(self.process.stdout.readline, ''):
                 if line:
                     self.log_updated.emit(line.strip())
-                    
+            
             return_code = self.process.wait()
-            self.execution_finished.emit(return_code == 0, f"Código de retorno: {return_code}")
+            self.finished.emit(return_code)
             
         except Exception as e:
-            self.log_updated.emit(f"Erro na execução: {e}")
-            self.execution_finished.emit(False, str(e))
+            self.error.emit(f"Erro na execução: {e}")
 
     def stop(self):
-        if self.process:
+        if self.process and self.process.poll() is None:
             self.process.terminate()
             self.log_updated.emit("Processo de execução terminado pelo usuário.")
 
@@ -368,12 +371,9 @@ class ExecutionTab(QWidget):
         super().__init__()
         self.config_manager = config_manager
         self.db_controller = self.config_manager.db_controller
-        self.execution_thread = None
-        self.configurations = []
+        self.thread = None
+        self.worker = None
         self.init_ui()
-        # Flags para controlar lifecycle e proteger contra callbacks tardios
-        self._executions_running = False
-        self._finished_called = False
 
     def init_ui(self):
         layout = QVBoxLayout(self)
@@ -424,30 +424,20 @@ class ExecutionTab(QWidget):
             QMessageBox.critical(self, "Erro", f"Script não encontrado: {RUN_FRAMEWORK_SCRIPT}")
             return
 
-        # Ignora tentativas de iniciar nova bateria se já estivermos executando
-        if getattr(self, '_executions_running', False):
+        if self.thread and self.thread.isRunning():
             self.append_log("Já existe uma bateria em execução — ignorando nova solicitação.")
             return
 
-        # Variaveis contadores de execução com QThread
         self.configurations = configs
         self.runs_per_config = runs_per_config
-        # Constrói fila explícita de (config_index, repetition) para evitar cálculos por índice e races
         self._pending_runs = deque()
         for cfg_idx in range(len(self.configurations)):
             for rep in range(1, self.runs_per_config + 1):
                 self._pending_runs.append((cfg_idx, rep))
+        
         self.total_runs = len(self._pending_runs)
-        # número de execuções finalizadas
         self.current_run_number = 0
-        # referência para a execução atual ({'cfg_idx', 'rep'})
-        self._current_run_info = None
 
-        # marca execução em andamento
-        self._executions_running = True
-        # marca que não finalizamos ainda (usado para ignorar callbacks tardios)
-        self._finished_called = False
-        self.append_log(f"[DEBUG] start_executions: total_runs={self.total_runs}")
         self.log_text.clear()
         self.append_log(f"Iniciando bateria de testes com {self.total_runs} execuções totais.")
 
@@ -457,157 +447,104 @@ class ExecutionTab(QWidget):
         self.progress_bar.setValue(0)
         
         self.run_next_configuration()
-        
 
     def run_next_configuration(self):
-        # Proteção: se já atingimos o total, finaliza e não tenta acessar índices fora do range
-        if not getattr(self, '_executions_running', False) or getattr(self, '_finished_called', False):
-            return
-        if not hasattr(self, '_pending_runs') or len(self._pending_runs) == 0:
-            # nada pendente -> finalizar
+        if not self._pending_runs:
             self.on_all_executions_finished(True, "Todas as execuções foram concluídas...")
             return
 
-        # Pop próximo par (config_index, repetition)
         config_index, repetition = self._pending_runs.popleft()
         current_config = self.configurations[config_index]
         
         self.status_label.setText(f"\nExecutando {self.current_run_number + 1}/{self.total_runs} (Config: {config_index + 1}, Rep: {repetition})")
         self.append_log("-" * 80)
         self.append_log(f"Iniciando Config {config_index + 1}, Repetição {repetition}")
-        self.append_log("-" * 80)
-        self.append_log(f"[DEBUG] run_next_configuration: pending_left={len(self._pending_runs)}")
 
         if not self.db_controller.save_params(current_config):
              self.append_log(f"❌ Erro ao salvar o arquivo de parâmetros.")
              self.on_all_executions_finished(False, "Erro de arquivo.")
              return
-        # sempre config_num=1 e salvamos um options.json mínimo para que
-        # run.py trate params.json como a única configuração.
-        if TEST_DEBUG:
-            try:
-                self.db_controller.save_options({'repeticoes_por_config': self.runs_per_config})
-                self.append_log("[TEST_DEBUG] Salvo options mínimo com apenas 'repeticoes_por_config'")
-            except Exception as e:
-                self.append_log(f"[TEST_DEBUG] Falha ao salvar options minimal: {e}")
-            args = ["--config_num", "1", "--exec_num", str(repetition)]
-        else:
-            args = ["--config_num", str(config_index + 1), "--exec_num", str(repetition)]
-        
-        # Cria e inicia thread para esta execução
-        thread = ExecutionThread(RUN_FRAMEWORK_SCRIPT, args)
-        thread.log_updated.connect(self.append_log)
-        thread.execution_finished.connect(lambda success, message, th=thread: self.on_single_execution_finished(success, message, th))
 
-        # Guarda referência da execução atual para validação de callbacks
-        self.execution_thread = thread
-        self._current_run_info = {'config_index': config_index, 'repetition': repetition}
+        args = ["--config_num", str(config_index + 1), "--exec_num", str(repetition)]
+        
+        self.thread = QThread()
+        self.worker = ScriptWorker(RUN_FRAMEWORK_SCRIPT, args)
+        self.worker.moveToThread(self.thread)
 
-        thread.start()
-        
-        
-        
-        
-    @Slot(bool, str, object)
-    def on_single_execution_finished(self, success, message, thread_obj):
-        # Ignora callbacks tardios se a bateria já foi finalizada
-        if not getattr(self, '_executions_running', False):
-            return
-        # Proteção adicional: se já marcamos finalização, ignora qualquer callback seguinte
-        if getattr(self, '_finished_called', False):
-            return
+        self.thread.started.connect(self.worker.run_script)
+        self.worker.finished.connect(self.thread.quit)
+        self.worker.finished.connect(self.worker.deleteLater)
+        self.thread.finished.connect(self.thread.deleteLater)
 
-        # Só processa o callback se for da thread corrente (evita que callbacks tardios avancem o contador)
-        if thread_obj is not self.execution_thread:
-            self.append_log(f"Callback de thread antiga ignorado (thread_obj != execution_thread). current_run_number={self.current_run_number}")
-            return
+        self.worker.log_updated.connect(self.append_log)
+        self.worker.error.connect(self.handle_error)
+        self.worker.finished.connect(self.on_single_execution_finished)
 
-        self.append_log(f"Finalizada execução. Sucesso: {success}. {message}")
-        self.append_log(f"[DEBUG] on_single_execution_finished: current_run_number={self.current_run_number}, pending={len(getattr(self, '_pending_runs', []))}")
+        self.thread.start()
+
+    @Slot(int)
+    def on_single_execution_finished(self, return_code):
+        success = return_code == 0
+        self.append_log(f"Finalizada execução. Sucesso: {success}. Código de retorno: {return_code}")
         
         if not success:
             self.append_log(f"❌ Erro na execução, pulando para a próxima.")
         
-        # Limpa referência para a thread atual (sinais já entregues serão ignorados pelo run_id)
-        try:
-            self.execution_thread = None
-        except Exception:
-            pass
-
-        # Incrementa contador e atualiza progresso
         self.current_run_number += 1
         self.progress_bar.setValue(self.current_run_number)
 
-        # Se ainda houver runs pendentes, agenda próxima; caso contrário finalize
-        if getattr(self, '_executions_running', False) and len(getattr(self, '_pending_runs', [])) > 0:
+        if self._pending_runs:
             QTimer.singleShot(100, self.run_next_configuration)
-            self.append_log(f"Agendado próximo run - current_run_number: {self.current_run_number}, total_runs: {self.total_runs}")
         else:
-            # Sem pendências: chamamos finalização (se ainda não chamada)
-            if not getattr(self, '_finished_called', False):
-                self._finished_called = True
-                self.on_all_executions_finished(True, "Todas as execuções foram concluídas!!!")
+            self.on_all_executions_finished(True, "Todas as execuções foram concluídas!!!")
+
+    @Slot(str)
+    def handle_error(self, message):
+        self.append_log(f"[ERRO FATAL] {message}")
+        self.stop_execution()
 
     def stop_execution(self):
-        self.current_run_number = self.total_runs
-        if self.execution_thread and self.execution_thread.isRunning():
-            self.execution_thread.stop()
-            
+        if self.worker:
+            self.worker.stop()
+        if self.thread and self.thread.isRunning():
+            self.thread.quit()
+            self.thread.wait()
+        self._pending_runs.clear()
         self.on_all_executions_finished(False, "Interrompido pelo usuário.")
 
-    @Slot(bool, str)
     def on_all_executions_finished(self, success, message):
-        # Marca fim das execuções para ignorar callbacks posteriores
-        self._finished_called = True
-        self._executions_running = False
-        # Esvazia fila pendente para evitar qualquer re-agendamento residual
-        try:
-            self._pending_runs = deque()
-        except Exception:
-            pass
-        self.append_log(f"[DEBUG] on_all_executions_finished: cleared pending runs and set flags")
         self.stop_btn.setEnabled(False)
         self.progress_bar.setValue(self.progress_bar.maximum())
         self.status_label.setText(f"Finalizado! {message}")
         self.append_log(f"✅ {message}")
-        # Reativa botão de execução na aba de configuração
+        
+        self.thread = None
+        self.worker = None
+
         try:
-            # Acesso via ConfigTab (se disponível)
-            parent = self.parent()
-            # Busca o botão na hierarquia de widgets - fallback simples
-            if hasattr(parent, 'parent'):
-                # Não confiamos na hierarquia; apenas tenta acessar diretamente pela janela principal
-                main_win = self.window()
-                cfg_tab = getattr(main_win, 'config_tab', None)
-                if cfg_tab and hasattr(cfg_tab, 'run_button'):
-                    cfg_tab.run_button.setEnabled(True)
-        except Exception:
-            pass
-        QMessageBox.information(self, "Bateria de Testes Concluída! Abra o Dashboard para ver os resultados!", message)
+            main_win = self.window()
+            if hasattr(main_win, 'config_tab') and hasattr(main_win.config_tab, 'run_button'):
+                main_win.config_tab.run_button.setEnabled(True)
+        except Exception as e:
+            self.append_log(f"Não foi possível reativar o botão de execução: {e}")
+
+        if success:
+            QMessageBox.information(self, "Bateria de Testes Concluída!", "Abra o Dashboard para ver os resultados!")
 
     def consolidate_results(self):
-        self.append_log("\nIniciando consolidação de resultados via chamada de script...")
+        self.append_log("\nIniciando consolidação de resultados...")
         try:
-            
-            #! Alteração na arquitetura do projeto com MVC  + Observer + Controller
             self.db_controller.consolidate_results()
-            self.append_log("Consolidação com Desgin Pattern DatabaseController!")
-            self.append_log("Verifique o terminal para ver quantos arquivos foram resultados da simulação!")
+            self.append_log("Resultados consolidados com sucesso!")
             QMessageBox.information(self, "Sucesso", "Resultados consolidados com sucesso!")
-            
         except Exception as e:
             self.append_log(f"Erro durante a consolidação: {e}")
             QMessageBox.critical(self, "Erro", f"Falha ao consolidar resultados: {e}")
 
     def run_dashboard(self):
-
         PORTA=8501
-
         try:
-            #os.system("ls -l && echo 'Comandos executados com sucesso!'") 
             os.system(f"streamlit run {DASHBOARD_SCRIPT} --server.port {PORTA} &")
-            #! Tirando subprocess para tirar logs desnecessários
-            #subprocess.Popen(["streamlit", "run", str(DASHBOARD_SCRIPT), "--server.port", "8501"], cwd=BASE_DIR)
             self.append_log(f"\nDashboard iniciado em http://localhost:{PORTA}")
         except Exception as e:
             self.append_log(f"Erro ao iniciar dashboard: {e}")

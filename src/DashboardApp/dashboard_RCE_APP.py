@@ -1,14 +1,14 @@
 
 import streamlit as st
-from DashboardApp.views.pages.themes import Theme
-from DashboardApp.views.Screens.RCE_Framework_Page import FrameworkRCEDashboard
+from views.pages.themes import Theme
+from views.Screens.RCE_Framework_Page import FrameworkRCEDashboard
 
 import sys
 
 import os
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
-from config_backup import options_main_file
+from config import options_main_file
 
 
 def DrawerSideBar():
