@@ -1,5 +1,4 @@
 # Guia para Desenvolvimento da Documentação com Sphinx e Markdown
----
 
 Este guia fornece as instruções básicas para compilar e visualizar a documentação do projeto.
 

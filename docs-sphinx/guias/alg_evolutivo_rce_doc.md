@@ -1,35 +1,41 @@
-# Algoritmo Evolutivo RCE 
+# Algoritmo Evolutivo RCE: O Coração do Framework
 
-O `alg_evolutivo_rce.py` é o coração do framework de otimização. Ele implementa o algoritmo genético com a estratégia de Repopulation-with-Elite-Set (RCE).
+O arquivo `alg_evolutivo_rce.py` representa o núcleo do framework de otimização. Ele implementa um Algoritmo Genético (AG) robusto, potencializado pela estratégia de **Repopulation-with-Elite-Set (RCE)**. Do ponto de vista da Programação Orientada a Objetos (POO), este módulo é um exemplo claro de encapsulamento e orquestração.
 
 ## Classe `AlgoritimoEvolutivoRCE`
 
-Esta classe encapsula toda a lógica do algoritmo evolutivo.
+Esta classe é a peça central que encapsula toda a lógica, estado e comportamento do algoritmo evolutivo. Ela funciona como o "motor" que impulsiona a evolução de uma população de soluções.
 
 ### `__init__(self, setup, DEBUG=True)`
 
-O construtor inicializa o algoritmo com as configurações fornecidas pelo objeto `Setup`.
+O construtor é o ponto de entrada para a criação de uma instância do algoritmo. Ele demonstra um princípio fundamental de POO: a **Injeção de Dependência**.
 
--   **`setup`**: Uma instância da classe `Setup` que contém todos os parâmetros para a execução do algoritmo.
--   **`DEBUG`**: Um booleano para ativar ou desativar mensagens de depuração.
+-   **`setup` (Injeção de Dependência)**: Em vez de criar suas próprias configurações, o algoritmo recebe um objeto `Setup` já configurado. Isso torna a classe `AlgoritimoEvolutivoRCE` altamente desacoplada e modular. Ela não precisa saber *como* os parâmetros foram criados, apenas que o objeto `setup` fornecerá tudo o que ela precisa (tamanho da população, taxa de mutação, etc.).
+-   **`DEBUG`**: Um simples booleano para controlar o estado interno de logging, permitindo uma depuração mais fácil sem poluir a saída em produção.
 
-### Principais Métodos
+### Principais Métodos: Orquestrando a Evolução
 
--   **`run(self, RCE=False, num_pop=0)`**: O método principal que executa o loop do algoritmo genético por um número de gerações definido no `setup`.
-    -   **`RCE`**: Booleano que ativa a estratégia de Repopulation-with-Elite-Set.
--   **`aplicar_RCE(self, generation, current_population)`**: Aplica a estratégia RCE, que consiste em substituir uma parte da população por indivíduos de uma "elite" e indivíduos aleatórios para aumentar a diversidade.
--   **`criterios_RCE(self, population)`**: Seleciona os indivíduos que farão parte do conjunto de elite com base em critérios de fitness e diversidade.
--   **`elitismoSimples(self, pop)`**: Garante que o melhor indivíduo de uma geração seja mantido na próxima.
--   **`registrarDados(self, generation)`**: Coleta e armazena estatísticas sobre a população em cada geração, como fitness mínimo, máximo e médio.
+Os métodos desta classe trabalham juntos para executar o processo evolutivo de forma organizada.
 
-## Como Funciona
+-   **`run(self, RCE=False, num_pop=0)`**: Este é o método principal, o orquestrador da classe. Ele executa o loop evolutivo completo, geração por geração. A partir de um único chamado a `run()`, todo o processo de seleção, cruzamento, mutação e avaliação é disparado em sequência.
+    -   **`RCE`**: Um parâmetro booleano que atua como um "interruptor" de estratégia, permitindo que o mesmo método `run` execute o algoritmo com ou sem a lógica de Repopulation-with-Elite-Set, mostrando a flexibilidade do design.
 
-1.  **Inicialização**: A população inicial é criada com base nos parâmetros definidos no objeto `Setup`.
-2.  **Loop Evolutivo**: Para cada geração:
-    1.  **Seleção**: Indivíduos são selecionados para reprodução (torneio).
-    2.  **Crossover**: Os indivíduos selecionados são cruzados para gerar novos descendentes.
-    3.  **Mutação**: Uma pequena alteração aleatória é aplicada aos descendentes.
-    4.  **Avaliação**: O fitness de cada novo indivíduo é calculado usando a função objetivo.
-    5.  **RCE (se ativado)**: Em gerações específicas, a população é parcialmente substituída para introduzir diversidade e evitar a convergência prematura.
-    6.  **Elitismo**: O melhor indivíduo é preservado.
-3.  **Finalização**: Ao final de todas as gerações, o algoritmo retorna a população final, o logbook com as estatísticas e o melhor indivíduo encontrado.
+-   **`aplicar_RCE(self, generation, current_population)`**: Este método encapsula a lógica específica da estratégia RCE. Ele modifica o estado da população (`current_population`), substituindo uma porção dela por indivíduos de elite e novos indivíduos aleatórios. Em POO, este é um método de "comportamento" que altera o "estado" do objeto.
+
+-   **`criterios_RCE(self, population)`**: Um método de "política" ou "estratégia". Sua única responsabilidade é avaliar a população e selecionar quais indivíduos são dignos de pertencer ao conjunto de elite. Ele abstrai as regras de seleção da elite do processo principal de RCE.
+
+-   **`elitismoSimples(self, pop)`**: Outro método de política que implementa a estratégia de elitismo, garantindo que o melhor indivíduo de uma geração (o "elite") sobreviva para a próxima. Isso preserva a melhor solução encontrada até o momento.
+
+-   **`registrarDados(self, generation)`**: Este método atua como um "observador" (Observer). A cada geração, ele é chamado para coletar e armazenar estatísticas (fitness mínimo, máximo, médio) no `logbook`. Ele não interfere na lógica principal da evolução, apenas a observa e registra, demonstrando uma clara separação de responsabilidades.
+
+## Como Funciona: O Fluxo em POO
+
+1.  **Inicialização (Construtor)**: Um objeto `AlgoritimoEvolutivoRCE` é criado, recebendo suas dependências (o objeto `Setup`). Uma população inicial de "objetos-indivíduo" é gerada.
+2.  **Execução (`run`)**: O método `run` inicia o loop evolutivo. A cada iteração (geração), ele orquestra as seguintes ações:
+    1.  **Seleção**: Invoca um método (ex: torneio) que seleciona objetos-indivíduo da população para reprodução.
+    2.  **Crossover & Mutação**: Gera novos objetos-indivíduo (descendentes) a partir dos pais selecionados.
+    3.  **Avaliação**: Calcula o fitness de cada novo indivíduo, atualizando seu estado interno.
+    4.  **RCE (se ativado)**: Chama `aplicar_RCE` em intervalos específicos para injetar diversidade na população.
+    5.  **Elitismo**: Utiliza `elitismoSimples` para garantir a sobrevivência do melhor indivíduo.
+    6.  **Registro**: Chama `registrarDados` para salvar o progresso da geração.
+3.  **Finalização**: Ao término do loop, o método `run` retorna os resultados finais: a população de objetos-indivíduo, o `logbook` de estatísticas e o melhor objeto-indivíduo encontrado.

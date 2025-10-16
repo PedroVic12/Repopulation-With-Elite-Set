@@ -1,4 +1,99 @@
-# analise_contigencias_SEP_SIN_45_AG_otimization_example.py
+# Otimização do Agendamento de Manutenção em Sistemas Elétricos de Potência usando Algoritmos Genéticos com Análise de Contingências
+
+**Autor**: Pedro Victor Veras
+
+**Resumo**: Este documento detalha a aplicação de um Algoritmo Genético (AG), combinado com a estratégia de *Repopulation-with-Elite-Set* (RCE), para resolver o problema de otimização do agendamento de manutenção de linhas de transmissão em um sistema elétrico de potência. O estudo de caso utiliza um modelo do Sistema Interligado Nacional (SIN) de 45 barras. A metodologia proposta avalia a segurança do sistema sob múltiplas contingências (critério N-1) para cada janela de manutenção, buscando uma programação que minimize as violações operacionais, como sobrecargas em linhas e limites de tensão.
+
+---
+
+## 1. Introdução
+
+O agendamento de manutenção de equipamentos em Sistemas Elétricos de Potência (SEP) é uma tarefa complexa e crucial para a operação segura e confiável da rede. Desligar uma linha de transmissão para manutenção, embora necessário, altera a topologia do sistema e pode sobrecarregar outros componentes, elevando o risco de blecautes em cascata caso ocorra uma segunda falha inesperada (contingência).
+
+Este trabalho aborda o problema do agendamento de múltiplas manutenções, buscando determinar os horários ótimos para o início de cada serviço. O objetivo é encontrar uma programação que mantenha a rede segura, mesmo na ocorrência de contingências pré-definidas. Para isso, foi empregado um Algoritmo Genético, uma meta-heurística poderosa para problemas de otimização complexos e não-lineares.
+
+## 2. Modelagem do Problema
+
+A transformação do problema real em um modelo computacional é feita através de três pilares: a representação da solução, a função para avaliar sua qualidade e a simulação das condições operacionais.
+
+### 2.1 Representação do Indivíduo (Cromossomo)
+
+No contexto do Algoritmo Genético, cada **indivíduo** (ou cromossomo) representa uma solução completa para o problema. Neste caso, um indivíduo é um vetor (array) de números inteiros, onde cada número (gene) corresponde ao **horário de início da manutenção** de uma linha de transmissão específica.
+
+-   **Exemplo**: Se temos 10 manutenções para agendar, o indivíduo será um array de 10 posições. `[15, 15, 10, 21, 20, 12, 15, 8, 19, 23]` é um exemplo de indivíduo, representando uma possível solução para o agendamento.
+
+### 2.2 Função Objetivo (`funcao_objetivo_SIN45`)
+
+A **função objetivo** (ou função de fitness) é o coração da otimização. Sua responsabilidade é atribuir uma nota a cada indivíduo, quantificando quão "boa" ou "ruim" é aquela solução. Neste problema, o objetivo é **minimizar as violações operacionais**.
+
+A função `funcao_objetivo_SIN45` recebe um indivíduo (o agendamento) e calcula seu fitness da seguinte forma:
+1.  **Cria Cenários**: Com base nos horários de manutenção, ela gera uma `matriz_cenarios`. Cada linha dessa matriz representa um "retrato" do sistema em um determinado momento, considerando quais linhas estão em manutenção e o nível de carga da rede (leve, média ou pesada).
+2.  **Análise de Contingências**: Para cada cenário, ela chama a função `analise_contigencias_SEP`, que simula a falha de outras linhas (contingências N-1) e calcula as penalidades (violações de tensão e carregamento).
+3.  **Fitness Final**: O fitness do indivíduo é a **soma de todas as penalidades** em todos os cenários e todas as contingências. Um fitness menor indica um agendamento mais seguro e robusto.
+
+### 2.3 Análise de Contingências (`analise_contigencias_SEP`)
+
+Esta função é o núcleo da avaliação de segurança. Para um determinado estado do sistema (definido por um cenário da `matriz_cenarios`), ela executa os seguintes passos:
+1.  Ajusta o modelo da rede para aquele cenário (desliga linhas em manutenção e ajusta cargas).
+2.  Itera sobre uma lista de contingências críticas (ex: desligamento da linha 4-5).
+3.  Para cada contingência, executa um **fluxo de potência** para calcular as tensões e fluxos de potência na rede.
+4.  Calcula o fitness (penalidade) para aquela contingência específica, que é a soma das violações de tensão e carregamento.
+5.  Soma os fitness de todas as contingências para obter a penalidade total daquele cenário.
+
+## 3. Metodologia e Implementação em POO
+
+A implementação do problema foi estruturada utilizando princípios de Programação Orientada a Objetos para garantir modularidade e clareza.
+
+### 3.1 O Modelo do Sistema Elétrico (`SmartGridSin45`)
+
+A classe `SmartGridSin45` é um exemplo de **encapsulamento**. Ela agrupa todos os dados e comportamentos relacionados ao modelo da rede elétrica, abstraindo a complexidade do `pandapower`.
+-   **Responsabilidades**:
+    -   Carregar os dados da rede a partir de um arquivo Excel (`load_data_from_excel`).
+    -   Construir o objeto de rede do `pandapower` (`create_network_from_dataframes`).
+    -   Executar o fluxo de potência (`run_power_flow`).
+    -   Gerar visualizações e gráficos dos resultados (`plot_network`, `plot_voltage_profile`).
+-   **Vantagem**: O resto do código não precisa interagir diretamente com o `pandapower`. Ele apenas utiliza os métodos fornecidos pela classe `SmartGridSin45`, tornando o código mais limpo e fácil de manter.
+
+### 3.2 O Algoritmo Genético (`AlgoritimoEvolutivoRCE`)
+
+O script utiliza o framework `AlgoritimoEvolutivoRCE` (discutido em outra seção da documentação). A função `run_simulate_SIN45` instancia e executa o algoritmo, passando a `funcao_objetivo_SIN45` como o critério de avaliação, demonstrando a flexibilidade do framework.
+
+### 3.3 Otimização com Tabela Hash (Memoization)
+
+Um dos maiores desafios computacionais deste problema é o número de simulações de fluxo de potência. Muitas configurações de agendamento podem levar à avaliação do mesmo estado do sistema (mesmo perfil de carga, mesmas linhas desligadas).
+
+Para evitar re-cálculos desnecessários, foi implementada uma **tabela hash** (um dicionário em Python), que funciona como um cache (técnica de *memoization*).
+-   **Como funciona**: Antes de rodar um fluxo de potência, o sistema gera uma chave única (`hash_key`) para o estado atual da rede.
+-   Ele verifica se essa chave já existe na `tabela_hash`.
+    -   **Se sim**: O resultado (fitness) é lido diretamente da tabela, economizando um tempo de cálculo imenso. O contador `hashtablereads` é incrementado.
+    -   **Se não**: O fluxo de potência é executado, o fitness é calculado, e o par `(chave, fitness)` é armazenado na tabela para uso futuro. O contador `objectiveruns` é incrementado.
+-   **Impacto**: Essa técnica reduz drasticamente o tempo de execução da otimização, viabilizando a análise de um espaço de busca tão grande.
+
+## 4. Simulação e Resultados
+
+### 4.1 Configuração e Execução (`run_simulate_SIN45`)
+
+A função `run_simulate_SIN45` orquestra todo o processo:
+1.  **Instancia `Setup`**: Cria um objeto de configuração com os parâmetros do AG (`params_json_teste`) e a função objetivo.
+2.  **Instancia `AlgoritimoEvolutivoRCE`**: Cria o objeto do algoritmo, injetando o objeto `setup`.
+3.  **Executa o AG**: Chama o método `alg.run()`, que inicia a evolução.
+4.  **Coleta e Exibe Resultados**: Após a conclusão, chama `get_resultados_agendamento_otimo` para processar e exibir os dados da melhor solução encontrada.
+
+### 4.2 Análise dos Resultados (`get_resultados_agendamento_otimo`)
+
+Esta função recebe a melhor solução e os dados coletados e apresenta um relatório final, que inclui:
+-   Os horários ótimos de agendamento.
+-   A geração em que a melhor solução foi encontrada.
+-   As contingências que foram avaliadas.
+-   Uma chamada ao método `SmartGrid_SIN45.plot_network()` para gerar um relatório visual completo em HTML, contendo o diagrama da rede, perfis de tensão, carregamento das linhas e o gráfico de convergência do próprio algoritmo genético.
+
+## 5. Conclusão
+
+Este trabalho demonstrou com sucesso a viabilidade de utilizar Algoritmos Genéticos para otimizar o complexo problema do agendamento de manutenção em sistemas de potência com análise de segurança N-1. A arquitetura orientada a objetos permitiu uma separação clara entre o modelo do sistema elétrico e o algoritmo de otimização, enquanto técnicas como a memoization com tabela hash foram cruciais para garantir um desempenho computacional adequado. Os resultados visuais gerados permitem uma análise completa e intuitiva da qualidade da solução encontrada.
+
+---
+
+## Código-Fonte
 
 ```python
 import os
@@ -32,7 +127,9 @@ contigencias_selecionadas = {
         "contingencia": []
         }
     
-# --- DADOS DE AGENDAMENTO E CONTINGÊNCIA (Retirado da tese de RZ na pagina 132-133) ---
+# ---
+
+# DADOS DE AGENDAMENTO E CONTINGÊNCIA (Retirado da tese de RZ na pagina 132-133) ---
 agendamento_df = pd.DataFrame([
     {"ramo": [8, 11],"inicio": "08:00",  "duracao": 4, "prioridade": 4},   # IVAIPORA -> LONDRINA
     {"ramo": [43, 44],"inicio": "10:00", "duracao": 5, "prioridade": 1},   # P.FUNDO -> XANXERE
@@ -279,7 +376,7 @@ class SmartGridSin45:
         if not self.dataframes:
             raise ValueError("Nenhum dado carregado para criar a rede.")
 
-        self.net = pp.create_empty_network()
+        self.net = pp.create_empty_network() #
         
         df_bus = self.dataframes.get('bus')
         df_load_gen = self.dataframes.get('load_gen')
@@ -610,6 +707,5 @@ def run_simulate_SIN45(plot = False):
 
 
 run_simulate_SIN45(plot = True)
-
 
 ```

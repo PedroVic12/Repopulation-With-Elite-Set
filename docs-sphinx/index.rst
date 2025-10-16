@@ -2,7 +2,7 @@
    sphinx-quickstart on Tue Oct  7 09:55:26 2025.
 
 Bem-vindo à documentação do framework Repopulation-With-Elite-Set (RCE), feito apenas usando Python.
-================================
+======================================================================================================
 
 FRAMEWORK DESENVOLVIDO PARA FINS ACADÊMICOS USANDO ALGORITMOS GENÉTICOS PARA RESOLVER PROBLEMAS DE OTIMIZAÇÃO EM REDES ELÉTRICAS, FINANCIADO POR BOLSA DE INICIAÇÃO CIENTÍFICA PELA UNIVERSIDADE FEDERAL FLUMINENSE (UFF)
 
@@ -19,7 +19,7 @@ FRAMEWORK DESENVOLVIDO PARA FINS ACADÊMICOS USANDO ALGORITMOS GENÉTICOS PARA R
 
 .. toctree::
    :maxdepth: 2
-   :caption: Algoritmo Evolutivo (RCE)
+   :caption: Algoritmo Evolutivo (RCE) usando DEAP
 
    guias/alg_evolutivo_rce_doc
    guias/setup_doc
@@ -28,7 +28,7 @@ FRAMEWORK DESENVOLVIDO PARA FINS ACADÊMICOS USANDO ALGORITMOS GENÉTICOS PARA R
 
 .. toctree::
    :maxdepth: 2
-   :caption: Dashboard App
+   :caption: Dashboard App com Streamlit
 
    guias/DashboardApp_views_Screens_RCE_Framework_Page
 ..   guias/Dashboard
@@ -38,7 +38,7 @@ FRAMEWORK DESENVOLVIDO PARA FINS ACADÊMICOS USANDO ALGORITMOS GENÉTICOS PARA R
 
 .. toctree::
    :maxdepth: 2
-   :caption: Modelo da Rede Elétrica
+   :caption: Rede Elétrica usando PandaPower
 
    guias/rede_eletrica_doc
 ..   guias/RedeEletrica_backup_rede_eletrica
@@ -47,12 +47,12 @@ FRAMEWORK DESENVOLVIDO PARA FINS ACADÊMICOS USANDO ALGORITMOS GENÉTICOS PARA R
 
 .. toctree::
    :maxdepth: 2
-   :caption: Funções de Fitness e Otimização
+   :caption: Funções de Aptidão para Otimização
 
    guias/function_IEEE_14_contigencias_doc
-   guias/utils_functions_fitness_function_IEEE_14_contigencias
-..    guias/utils_functions_fitness_functions_benchmarking
    guias/utils_functions_fitness_analise_contigencias_SEP_SIN_45_AG_otimization_example
+.. guias/utils_functions_fitness_function_IEEE_14_contigencias
+.. guias/utils_functions_fitness_functions_benchmarking
    guias/utils_functions_fitness_test_function_SIN_45_otimizacao
    guias/utils_functions_fitness_func_objetivo_SIN_45_otimizado_AG_ONS
    guias/utils_functions_fitness_function_IEEE_30_otimizacao

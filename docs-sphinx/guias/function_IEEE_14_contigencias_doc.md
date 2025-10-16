@@ -1,43 +1,87 @@
-# Função Objetivo para o Caso IEEE 14 (`function_IEEE_14_contigencias.py`)
+# Estrutura da Função de Aptidão para Análise de Contingências
 
-Este arquivo define a função objetivo específica para o problema de otimização de agendamento de manutenções no sistema IEEE 14 barras, considerando contingências.
+Este documento descreve o padrão e a estrutura de uma **função de aptidão (ou função objetivo)**, usando o arquivo `function_IEEE_14_contigencias.py` como exemplo. O objetivo é que este guia sirva como um template para a criação de novas funções de aptidão para outros sistemas elétricos (como IEEE 30, 57 ou 118), destacando as partes do código que são genéricas e as que precisam de customização.
 
-## Função `funcao_objetivo_IEEE14`
+## O Papel da Função de Aptidão
 
-Esta é a função que o algoritmo genético tentará minimizar. Ela recebe um `individuo` (que representa uma solução candidata, ou seja, um conjunto de horários de início para as manutenções) e um objeto `setupobj`.
+A função de aptidão é o componente que avalia a qualidade de uma solução (indivíduo) proposta pelo Algoritmo Genético. No contexto deste projeto, ela recebe um **agendamento de manutenções** e retorna um **valor de fitness**, que representa o quão segura ou arriscada é aquela programação. O objetivo do algoritmo é minimizar este valor.
 
-### Como Usar
+## Estrutura Genérica da Função
 
-Para utilizar esta função, você deve passá-la como argumento para a classe `Setup` ao inicializar o seu problema de otimização.
+Toda função de aptidão neste framework segue um fluxo de execução padrão:
+
+1.  **Recebe um Indivíduo**: A função aceita um `individuo` (uma lista de horários de início) e o objeto `setupobj` (que contém a tabela hash e outros parâmetros).
+2.  **Cria o Modelo da Rede**: Instancia um objeto `RedeEletricaPandaPower` para o sistema elétrico em questão.
+3.  **Define o Agendamento**: Atualiza a tabela de agendamentos com os horários do `individuo`.
+4.  **Avalia Cenários e Contingências**: Gera uma matriz de cenários (combinações de carga e manutenções) e, para cada um, simula uma lista de contingências (falhas N-1).
+5.  **Calcula o Fitness**: Executa o fluxo de potência para cada contingência, calcula as violações (tensão, carregamento) e soma tudo para obter o fitness final.
+6.  **Usa Tabela Hash**: Otimiza o processo verificando se um cenário já foi calculado antes de executar uma nova simulação.
+
+## Como Adaptar para um Novo Sistema Elétrico (Ex: IEEE 30)
+
+Para criar uma função de aptidão para um novo sistema, você não precisa reescrever a lógica principal. Basta focar em três áreas de customização, que são os **pontos de entrada de dados específicos do problema**.
+
+### 1. Modelo da Rede Elétrica
+
+A primeira etapa é carregar o modelo da rede correto. A linha que faz isso é:
 
 ```python
-from AlgEvolutivoRCE_backup.Setup import Setup
-from utils.functions_fitness.function_IEEE_14_contigencias import funcao_objetivo_IEEE14, get_hash_table_size
-
-# Carregue seus parâmetros
-params = {...}
-
-# Crie o objeto Setup
-setup = Setup(
-    params,
-    fitness_function=funcao_objetivo_IEEE14,
-    tamanho_hash=get_hash_table_size()
-)
-
-# Agora, o objeto 'setup' está pronto para ser usado pelo AlgoritimoEvolutivoRCE
+# No caso IEEE 14:
+rede = RedeEletricaPandaPower("14", debug=False)
 ```
 
-### O que a Função Faz?
+-   **Ação para um novo sistema**: Para o IEEE 30, por exemplo, você precisaria garantir que a classe `RedeEletricaPandaPower` consegue carregar este novo sistema. A chamada seria algo como `rede = RedeEletricaPandaPower("30", debug=False)`.
 
-1.  **Recebe um Indivíduo**: O `individuo` é uma lista de números que representam os horários de início para cada tarefa de manutenção agendada.
-2.  **Cria o Modelo da Rede**: Instancia a `RedeEletricaPandaPower` para o caso IEEE 14.
-3.  **Define o Agendamento**: Atualiza o DataFrame de agendamento com os horários do `individuo`.
-4.  **Avalia Cenários**:
-    -   Gera uma matriz de cenários que combina diferentes perfis de carga (leve, médio, pesado) com os estados de desligamento dos ramos da rede em cada hora.
-    -   Para cada cenário, simula uma lista de contingências (desligamento de outros ramos).
-5.  **Calcula o Fitness**:
-    -   Para cada combinação de cenário e contingência, executa um fluxo de potência.
-    -   Calcula as violações de tensão e carregamento.
-    -   Soma todas as violações (ponderadas) para obter o valor de fitness total do agendamento.
-6.  **Usa Tabela Hash**: Antes de calcular o fitness de um cenário, verifica se ele já foi calculado e está na tabela hash (fornecida pelo `setupobj`). Se sim, reutiliza o resultado; se não, calcula e armazena o resultado na tabela.
-7.  **Retorna o Fitness**: O valor final, que é a soma das violações de todos os cenários, é retornado. O objetivo do algoritmo é encontrar um `individuo` que minimize este valor.
+### 2. Dados do Problema: Agendamentos e Contingências
+
+Esta é a principal área de customização. Os DataFrames `agendamento_df` e `contingencia_df` definem o escopo do problema de otimização para um sistema específico.
+
+```python
+# Exemplo para o IEEE 14
+agendamento_df = pd.DataFrame([
+    {"ramo": [1, 4], "inicio": "14:00", "duracao": 6 ,"prioridade": 4},
+    # ... outras manutenções
+])
+
+contingencia_df = pd.DataFrame([
+    {"contingencia":1,  "from":2 , "to": 3},
+    # ... outras contingências
+])
+```
+
+-   **Ação para um novo sistema**: Para o IEEE 30, você deve criar novos DataFrames que contenham:
+    -   `agendamento_df`: A lista de ramos (linhas de transmissão) que precisam de manutenção, com suas durações e prioridades, específicas para o estudo do caso IEEE 30.
+    -   `contingencia_df`: A lista de falhas N-1 (ramos que serão desligados para simular contingências) que são consideradas críticas para a segurança do sistema IEEE 30.
+
+### 3. Limites Operacionais (Pesos)
+
+Os pesos e limites definem o que é considerado uma violação. Embora possam ser padronizados, eles podem variar dependendo das características de cada sistema.
+
+```python
+# Exemplo para o IEEE 14
+rede.pesos["tensao"] = {"min": 100, "max": 100}
+rede.pesos["loading_linhas"] = 100
+```
+
+-   **Ação para um novo sistema**: Verifique se os limites de tensão (geralmente entre 0.95 e 1.05 p.u.) e o carregamento máximo das linhas (geralmente 100%) são adequados para o novo sistema em estudo. Ajuste os valores em `rede.pesos` se necessário.
+
+## Exemplo de Uso (Genérico)
+
+A forma de usar a nova função de aptidão com o framework permanece a mesma, o que demonstra a modularidade do design. Você apenas precisa importar a função correta.
+
+```python
+# Supondo que você criou uma nova função para o IEEE 30
+from utils.functions_fitness.function_IEEE_30_contigencias import funcao_objetivo_IEEE30, get_hash_table_size_30
+
+# Carregue os parâmetros do AG
+params = {...}
+
+# Crie o objeto Setup, injetando a nova função de aptidão
+setup = Setup(
+    params,
+    fitness_function=funcao_objetivo_IEEE30,
+    tamanho_hash=get_hash_table_size_30()
+)
+
+# O objeto 'setup' está pronto para ser usado pelo AlgoritimoEvolutivoRCE
+```

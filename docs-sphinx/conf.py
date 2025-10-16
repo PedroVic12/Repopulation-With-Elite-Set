@@ -26,6 +26,8 @@ extensions = [
     'myst_parser'         # Para usar arquivos Markdown
 ]
 
+autodoc_mock_imports = ['test_rastrigin', 'config', 'AlgEvolutivoRCE']
+
 source_suffix = {
     '.rst': 'restructuredtext',
     '.md': 'markdown'
