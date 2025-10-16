@@ -1,6 +1,13 @@
-# Guia para Desenvolvimento da Documentação com Sphinx e Markdown
+# Guia de Documentação com Sphinx e Markdown em Projetos Python
 
 Este guia fornece as instruções básicas para compilar e visualizar a documentação do projeto.
+
+## Temas disponíveis (Aceitando sugestões)
+
+![Sphinx templates docs](image.png)
+
+
+
 
 ## Comandos Principais
 
