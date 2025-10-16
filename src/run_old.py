@@ -229,16 +229,8 @@ def run_framework_many_executions(function_bechmarking=False, config_num_arg=Non
         #!PVRV - Retirando e colocando no inicio de cada funcao objetivo
         consultaHashTable()
 
-        # Define o range de execuções a serem rodadas
-        if exec_num_arg is not None:
-            # Se uma execução específica foi passada como argumento, roda apenas ela
-            execution_range = range(exec_num_arg, exec_num_arg + 1)
-        else:
-            # Caso contrário, roda todas as repetições configuradas
-            execution_range = range(1, repeticoes + 1)
-
-        # O loop de repetições agora usa o range determinado
-        for exec_num in execution_range:
+        # O loop de repetições agora mede o tempo individualmente
+        for exec_num in range(1, repeticoes + 1):
             print(f"\n--- Iniciando execução {exec_num}/{repeticoes} ---")
 
             # Inicia o cronômetro para esta execução específica
