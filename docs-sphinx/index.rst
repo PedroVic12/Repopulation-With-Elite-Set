@@ -24,15 +24,15 @@ FRAMEWORK DESENVOLVIDO PARA FINS ACADÊMICOS USANDO ALGORITMOS GENÉTICOS PARA R
    guias/alg_evolutivo_rce_doc
    guias/setup_doc
    guias/AlgEvolutivoRCE_backup_run_AG_exemplo
-   guias/AlgEvolutivoRCE_backup_Setup
+.. guias/AlgEvolutivoRCE_backup_Setup
 
 .. toctree::
    :maxdepth: 2
    :caption: Dashboard App
 
-   guias/Dashboard
-   guias/DashboardApp_dashboard_RCE_APP
    guias/DashboardApp_views_Screens_RCE_Framework_Page
+..   guias/Dashboard
+..   guias/DashboardApp_dashboard_RCE_APP
 ..   guias/DashboardApp_views_Screens_components_AgendamentoRedePage
 ..   guias/DashboardApp_views_Screens_components_dash_rce_components
 
