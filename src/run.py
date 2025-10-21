@@ -55,7 +55,7 @@ BASE_DIR = pathlib.Path(__file__).resolve().parent
 CLI = False
 
 #! Debug Mode para AG e logs.txt para o SEP
-DEBUG_MODE = True
+DEBUG_MODE = False
 BECHMARKING_MODE = False
 SHOW_SETTINGS = False
 NUMERO = 1 # 0 1 3 4
