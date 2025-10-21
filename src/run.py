@@ -2,6 +2,7 @@
 """
 Execução do framework RCE com configuração de várias execuções e variações de parâmetros.
 PVRV - 20/08/2025
+RZ - 16/10/2025 - resolvendo chamada a diversas funções objetivo
 """
 
 # Imports principais do framework
@@ -14,12 +15,12 @@ from config import FOLDER_NAME, format_elapsed_time
 #! Importando a minha função objetivo dentro do projeto
 from utils.functions_fitness.functions_benchmarking import rastrigin
 
-from utils.functions_fitness.function_IEEE_14_contigencias import funcao_objetivo_IEEE14, HASH_TABLE_PATH
-from utils.functions_fitness.function_IEEE_118_otimizacao import funcao_objetivo_IEEE118, HASH_TABLE_PATH, hashtablesize_IEEE118
-from utils.functions_fitness.function_IEEE_30_otimizacao import funcao_objetivo_IEEE30, HASH_TABLE_PATH, hashtablesize
-from utils.functions_fitness.function_IEEE_57_otimizacao import funcao_objetivo_IEEE57, HASH_TABLE_PATH
+from utils.functions_fitness.function_IEEE_14_contigencias import funcao_objetivo_IEEE14, HASH_TABLE_PATH as HASH_TABLE_PATH_IEEE14, hashtablesize as hashtablesize_IEEE14
+from utils.functions_fitness.function_IEEE_30_otimizacao import funcao_objetivo_IEEE30, HASH_TABLE_PATH as HASH_TABLE_PATH_IEEE30, hashtablesize as hashtablesize_IEEE30
+from utils.functions_fitness.function_IEEE_57_otimizacao import funcao_objetivo_IEEE57, HASH_TABLE_PATH as HASH_TABLE_PATH_IEEE57, hashtablesize as hashtablesize_IEEE57
 #from utils.functions_fitness.function_SIN_45_otimizacao import funcao_objetivo_SIN45, hashtablesize_sin45
-from utils.functions_fitness.func_objetivo_SIN_45_otimizado_AG_ONS import funcao_objetivo_SIN45, hashtablesize_sin45
+from utils.functions_fitness.func_objetivo_SIN_45_otimizado_AG_ONS import funcao_objetivo_SIN45, HASH_TABLE_PATH as HASH_TABLE_PATH_SIN45, hashtablesize as hashtablesize_SIN45
+from utils.functions_fitness.function_IEEE_118_otimizacao import funcao_objetivo_IEEE118, HASH_TABLE_PATH as HASH_TABLE_PATH_IEEE118, hashtablesize as hashtablesize_IEEE118
 
 # from database_controller import run_consolidar_resultados
 import argparse
@@ -38,17 +39,23 @@ from datetime import datetime
 # VARIAVEIS GLOBAIS
 ARRAY_FITNESS_FUNCTIONS = [funcao_objetivo_IEEE14,funcao_objetivo_IEEE30, funcao_objetivo_IEEE57, funcao_objetivo_IEEE118, funcao_objetivo_SIN45]
 
+HASH_TABLE_PATH = [ HASH_TABLE_PATH_IEEE14, HASH_TABLE_PATH_IEEE30, HASH_TABLE_PATH_IEEE57, HASH_TABLE_PATH_IEEE118, HASH_TABLE_PATH_SIN45 ]
+
 HASHTABLE_SIZE_FUNCS = {
-    "funcao_objetivo_IEEE30": hashtablesize,
-    "funcao_objetivo_SIN45": hashtablesize_sin45,
+    "funcao_objetivo_IEEE14": hashtablesize_IEEE14,
+    "funcao_objetivo_IEEE30": hashtablesize_IEEE30,
+    "funcao_objetivo_IEEE57": hashtablesize_IEEE57,
     "funcao_objetivo_IEEE118": hashtablesize_IEEE118,
+    "funcao_objetivo_SIN45": hashtablesize_SIN45,
 }
 
 BASE_DIR = pathlib.Path(__file__).resolve().parent
 
 # variaveis de controle
 CLI = False
-DEBUG_MODE = False
+
+#! Debug Mode para AG e logs.txt para o SEP
+DEBUG_MODE = True
 BECHMARKING_MODE = False
 SHOW_SETTINGS = False
 NUMERO = 1 # 0 1 3 4
@@ -206,11 +213,11 @@ def run_framework_many_executions(function_bechmarking=False, config_num_arg=Non
 
         def consultaHashTable():
             # Consulta hash_table se existir (sub rotina)
-            if os.path.exists(HASH_TABLE_PATH):
+            if os.path.exists(HASH_TABLE_PATH[NUMERO]):
                 try:
                     
                     # Read from Excel, using the first column as the index (our hash key)
-                    hash_excel = pd.read_excel(HASH_TABLE_PATH, index_col=0)
+                    hash_excel = pd.read_excel(HASH_TABLE_PATH[NUMERO], index_col=0)
                     if not hash_excel.empty:
                         
                         # Update the list-based hash table from the loaded dictionary
@@ -225,7 +232,7 @@ def run_framework_many_executions(function_bechmarking=False, config_num_arg=Non
             else:
                 # If the file doesn't exist, create it from the initial hash table
                 hash_df = pd.DataFrame(data=setup.tabela_hash, columns=['Fitness'])
-                hash_df.to_excel(HASH_TABLE_PATH, index=False)
+                hash_df.to_excel(HASH_TABLE_PATH[NUMERO], index=False)
                 print(f"Tabela hash INICIAL com {len(setup.tabela_hash)} posições não existia e foi criada! - PVRV")
 
         #!PVRV - Retirando e colocando no inicio de cada funcao objetivo
@@ -318,8 +325,8 @@ def run_framework_many_executions(function_bechmarking=False, config_num_arg=Non
 
         try:
             hash_df = pd.DataFrame(data=setup.tabela_hash, columns=['Fitness'])
-            hash_df.to_excel(HASH_TABLE_PATH, index=False)
-            #print(f"Salvando tabela hash em {HASH_TABLE_PATH}... com tamanho de {len(setup.tabela_hash)} posições!")
+            hash_df.to_excel(HASH_TABLE_PATH[NUMERO], index=False)
+            #print(f"Salvando tabela hash em {HASH_TABLE_PATH[NUMERO]}... com tamanho de {len(setup.tabela_hash)} posições!")
 
         except Exception as e:
             print(f"ERRO ao salvar a tabela hash: {e}")
