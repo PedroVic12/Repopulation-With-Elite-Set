@@ -225,3 +225,29 @@ O processo resume-se a:
 4.  **Simulação:** Para cada cenário, o fluxo de carga é executado com `executar_fluxo_de_carga`. As cargas são ajustadas e os elementos da rede são desligados/religados conforme o cenário.
 5.  **Cálculo de Fitness:** As violações são calculadas com `calcular_violacoes_fitness`, e o fitness do cenário é determinado com base nos pesos atribuídos.
 6.  **Agregação de Resultados:** Os valores de fitness de todos os cenários são somados para obter o fitness final do agendamento.
+
+
+## 👨‍💻 Desenvolvedor
+
+**Pedro Victor Rodrigues Veras**
+
+## 📄 Licença
+
+Projeto educacional desenvolvido para UFF e PIBIC.
+
+## 📚 Recursos Adicionais
+
+- [Next.js Documentation](https://nextjs.org/docs)
+
+
+---
+
+**Data de Criação**: 20 de Outubro de 2025
+**Versão**: 5.1.2
+**Ultimas atualizações**:
+- RCE Lancher
+- Pyintaller com instalar.bat
+- AG - Análise de Contigencaias + FLuxPlot com Pandapower e Pyside6
+- Dashboard Streamlit com pastas /outputs com correções no lancher
+  
+
