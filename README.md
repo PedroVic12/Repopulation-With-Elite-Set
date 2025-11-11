@@ -16,19 +16,6 @@
 </table>
 
 
-
-
-\<table\>
-  \<tr\>
-    \<td\>
-    \<img src="[https://github.com/user-attachments/assets/21e2218a-3df3-4757-8234-eb59c91490c3](https://github.com/user-attachments/assets/21e2218a-3df3-4757-8234-eb59c91490c3)" alt="Logo PIBIC"\>
-    \</td\>
-    \<td\>
-    \<img src="[https://github.com/user-attachments/assets/5e46cfe2-c669-42ef-9dd5-4f526a82753b](https://github.com/user-attachments/assets/5e46cfe2-c669-42ef-9dd5-4f526a82753b)" alt="Logo UFF"\>
-\</td\>
-  \</tr\>
-\</table\>
-
 **Um framework acadêmico completo para otimização de problemas em Redes Elétricas de Potência usando Algoritmos Genéticos (AG) e a estratégia de diversificação RCE.**
 
 -----
@@ -51,6 +38,18 @@ A principal inovação é o uso da estratégia **RCE (Repopulação Conjunto Eli
   * **Simulação de Redes Elétricas:** Utiliza **Pandapower** para modelar as redes (IEEE 14, 30, 118 e SIN 45) e calcular o fluxo de potência, que serve como a "função objetivo" (fitness) do AG.
   * **Interface Gráfica (Desktop):** Um *Launcher* completo em **PySide6 (Qt)** para configurar todos os parâmetros do AG, definir múltiplas execuções e acompanhar os logs em tempo real.
   * **Dashboard Web Interativo:** Um painel de análise de resultados em **Streamlit** para visualizar graficamente a convergência do algoritmo, comparar execuções e explorar as soluções finais.
+
+## EXEMPLO DE USO COM O SIN DE 45 BARRAS (ONS) - REGIÃO RJ/SP
+---
+
+Uso com 20 gerações, mutação e crossover de 80%, com demandas de contingências leve, média e pesada.
+
+<img width="1133" height="621" alt="image" src="https://github.com/user-attachments/assets/c055622a-88ca-4e12-b9bd-bf815c577b22" />
+
+Este script utiliza um Algoritmo Genético para otimizar o agendamento de manutenções em linhas de transmissão de um sistema elétrico de potência (o SIN 45, um modelo com 45 barras).
+
+---
+
 
 ## 📸 Galeria
 
@@ -195,21 +194,48 @@ Para usar o framework para o *teu* problema, só precisas de te focar em duas co
     }
     ```
 
-2.  **A tua Função Objetivo (Fitness):**
-    No `run.py`, vais passar a tua própria função de avaliação para o `Setup`. O framework foi desenhado para aceitar qualquer função que receba um "indivíduo" (lista de valores) e retorne um "fitness" (um número).
+2.  **Código 1: Exemplo de indivíduo e função objetivo**
+```python
+ind1 = [1,2,3,4,5,6,7,8,9,10]  # Exemplo de indivíduo de tamanho 10
 
-    **Exemplo (Código 1 do `README.md` original):**
+def evaluate(individual):
+	"""Função objetivo do problema."""
+	a = sum(individual)
+	b = len(individual)
+	return a / b
+```
 
-    ```python
-    def evaluate(individual):
-        """Função objetivo de exemplo."""
-        a = sum(individual)
-        b = len(individual)
-        return a / b,  # DEAP espera uma tupla
+3.  O **Código 2** ilustra o funcionamento ao instanciar os objetos do framework. Neste exemplo, são utilizados o indivíduo `ind1` e a função `evaluate`. Ao executar a função `run`, o utilizador escolhe se deseja usar a estratégia RCE. A função retorna a população final, o melhor indivíduo e gera um gráfico com os resultados.
 
-    # ... no teu main ...
-    # setup = Setup(params, fitness_function=evaluate) 
-    ```
+**Código 2: Código `main` para execução do framework**
+
+```python
+# Import RCE Framework
+from AlgEvolutivoRCE.Setup import Setup, params
+from AlgEvolutivoRCE.alg_evolutivo_rce import AlgoritimoEvolutivoRCE
+from AlgEvolutivoRCE.Dashboard import DashboardApp
+
+# Import functions benchmark
+from utils.functions_fitness.functions_benchmarking import rosenbrock_benchmark
+
+if __name__ == "__main__":
+
+    # Instanciando os Objetos
+    setup = Setup(params, fitness_function=funcao_objetivo_IEEE14)
+    alg = AlgoritimoEvolutivoRCE(setup, DEBUG=False)
+
+    # Loop do Algoritmo Evolutivo
+    pop_with_repopulation, logbook_with_repopulation, best_variables = alg.run(
+        RCE=False,
+    )
+
+    print("\n\nEvolução concluída - 100%")
+
+    # Resultados
+    x, y, z, fig = alg.dashboard.visualize(
+        logbook_with_repopulation, pop_with_repopulation,
+    )
+```
 
 ## 💡 Dicas de Otimização (Estratégia RCE)
 
@@ -219,9 +245,42 @@ Para usar o framework para o *teu* problema, só precisas de te focar em duas co
 
 ***Com valores altos de Mutação, Crossover e Porcentagem, é mais provável que atinja valores próximos do ótimo global.***
 
-## 📚 Documentação: `RedeEletricaPandaPower`
+---
+
+# 📚 Documentação: `RedeEletricaPandaPower`
+
+![image](https://github.com/user-attachments/assets/1291f753-d5c8-44b5-8cc2-460b1a6bd5ca)
+
+**Simulador de Redes Elétricas: Um software para simular o comportamento da rede em diferentes cenários, prevendo falhas e otimizando o fluxo de energia.**
+
+Esta classe representa uma rede elétrica usando a biblioteca Pandapower. Ela fornece funcionalidades para carregar redes padrão, validar dados de agendamento e contingência, calcular violações de fitness, ajustar cargas, desligar/religar elementos da rede e executar o fluxo de carga.
+
+**Exemplo de simulação da Rede Elétrica IEEE 14 barras com PandaPower**
+<table>
+  <tr>
+    <td>
+	<img src="https://github.com/PedroVic12/Repopulation-With-Elite-Set/blob/main/src/assets/newplot.png" />
+    </td>
+    <td>
+	  <img src="https://icseg.iti.illinois.edu/files/2013/10/WSCC14.png" />
+  </tr>
+</table>
+
 
 Esta é a classe central que interage com o Pandapower.
+
+## Casos de Uso na `funcao_objetivo_IEEE14` como função Objetivo
+
+A função `funcao_objetivo_IEEE14` usa a classe `RedeEletricaPandaPower` para simular e avaliar o desempenho de um agendamento de desligamentos na rede IEEE 14 barras.
+
+O processo resume-se a:
+
+1.  **Inicialização:** É criada uma instância da classe `RedeEletricaPandaPower`, carregando a rede IEEE 14 barras.
+2.  **Configuração:** São definidos os pesos para as violações de fitness e carregados os dados de agendamento e contingência.
+3.  **Avaliação de Cenários:** A função `avalia_cenarios` é utilizada para gerar uma matriz de cenários, considerando os horários de início e duração dos desligamentos e os perfis de carregamento.
+4.  **Simulação:** Para cada cenário, o fluxo de carga é executado com `executar_fluxo_de_carga`. As cargas são ajustadas e os elementos da rede são desligados/religados conforme o cenário.
+5.  **Cálculo de Fitness:** As violações são calculadas com `calcular_violacoes_fitness`, e o fitness do cenário é determinado com base nos pesos atribuídos.
+6.  **Agregação de Resultados:** Os valores de fitness de todos os cenários são somados para obter o fitness final do agendamento.
 
 #### Por que o fluxo de potência "não converge"?
 
@@ -264,7 +323,6 @@ Projeto educacional desenvolvido para UFF e PIBIC.
 ## 📚 Recursos Adicionais
 
 - [Next.js Documentation](https://nextjs.org/docs)
-
 
 ---
 
