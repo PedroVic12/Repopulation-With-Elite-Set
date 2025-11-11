@@ -49,6 +49,9 @@ Uso com 20 gerações, mutação e crossover de 80%, com demandas de contingênc
 
 Este script utiliza um Algoritmo Genético para otimizar o agendamento de manutenções em linhas de transmissão de um sistema elétrico de potência (o SIN 45, um modelo com 45 barras).
 
+---
+
+
 Na pasta partilhada, existem três ficheiros Jupyter Notebook que podem ser abertos diretamente no Google Colab. Para isso, o utilizador deverá seguir os seguintes passos:
 
 1.  Crie um ficheiro chamado `params.json` para configurar os parâmetros do AG:
