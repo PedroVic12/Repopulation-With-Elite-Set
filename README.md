@@ -259,7 +259,7 @@ Esta classe representa uma rede elétrica usando a biblioteca Pandapower. Ela fo
 <table>
   <tr>
     <td>
-	<img src="https://github.com/PedroVic12/Repopulation-With-Elite-Set/blob/main/src/assets/newplot.png" />
+	<img src="https://github.com/PedroVic12/Repopulation-With-Elite-Set/blob/main/src/assets/plot_ieee14_100_generations.png" />
     </td>
     <td>
 	  <img src="https://icseg.iti.illinois.edu/files/2013/10/WSCC14.png" />
