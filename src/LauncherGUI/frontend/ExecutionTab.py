@@ -30,6 +30,29 @@ sys.path.append(str(parent_directory))
 from backend.script_worker_controller import ScriptWorker
 
 
+class ConfigManager:
+    """Gerencia a lógica de configuração, usando o DatabaseController para I/O."""
+    def __init__(self):
+        self.db_controller = DatabaseController(SRC_DIR)
+        self.params = self.db_controller.get_params()
+        self.options = self.db_controller.get_options()
+        self.clean_options()
+
+    def clean_options(self):
+        """Mantém apenas arrays para chaves permitidas e deduplica valores."""
+        current = self.options
+        cleaned = {}
+        if 'repeticoes_por_config' in current:
+            cleaned['repeticoes_por_config'] = current['repeticoes_por_config']
+        for k in VARYING_KEYS:
+            if k in current and isinstance(current[k], list):
+                cleaned[k] = list(dict.fromkeys(current[k]))
+        
+        if cleaned != current:
+            self.options = cleaned
+            self.db_controller.save_options(self.options)
+
+
 #! Update 21/11/25 - Refatoração de classes e uso do app desktop template
 #! --- CONFIGURAÇÃO --- (ajustar caminho de cada script da raiz do projeto)
 BASE_DIR = Path(__file__).parent
