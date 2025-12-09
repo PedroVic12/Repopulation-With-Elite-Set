@@ -12,7 +12,7 @@ from style import STYLESHEET
 
 # --- CONFIGURAÇÃO ---
 BASE_DIR = Path(__file__).parent
-SRC_DIR = BASE_DIR / "src"
+SRC_DIR = BASE_DIR / "frontend"
 RUN_FRAMEWORK_SCRIPT = SRC_DIR / "run.py"
 DASHBOARD_SCRIPT = SRC_DIR / "DashboardApp" / "dashboard_RCE_APP.py"
 

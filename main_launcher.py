@@ -649,4 +649,4 @@ class ExecutionTab(QWidget):
         current_config = self.configurations[config_index]
 
         self.status_label.setText(f"\nExecutando {self.current_run_number + 1}/{self.total_runs} (Config: {config_index + 1}, Rep: {repetition})")
-        self.append_log("-
+        self.append_log("-" * 80)
