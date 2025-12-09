@@ -1,0 +1,17 @@
+[project]
+name = "gesture-presentation"
+version = "0.1.0"
+description = "Controle de apresentações por gestos usando MediaPipe"
+requires-python = ">=3.9,<3.12"
+dependencies = [
+    "opencv-python>=4.8.0",
+    "mediapipe>=0.10.21",
+    "PyMuPDF>=1.23.0",
+    "Pillow>=10.0.0",
+    "python-pptx>=0.6.21",
+    "fitz",
+    "PySide6",
+]
+
+[tool.uv]
+dev-dependencies = []

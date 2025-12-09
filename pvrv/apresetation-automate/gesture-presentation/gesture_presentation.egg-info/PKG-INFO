@@ -1,0 +1,12 @@
+Metadata-Version: 2.4
+Name: gesture-presentation
+Version: 0.1.0
+Summary: Controle de apresentações por gestos usando MediaPipe
+Requires-Python: <3.12,>=3.9
+Requires-Dist: opencv-python>=4.8.0
+Requires-Dist: mediapipe>=0.10.21
+Requires-Dist: PyMuPDF>=1.23.0
+Requires-Dist: Pillow>=10.0.0
+Requires-Dist: python-pptx>=0.6.21
+Requires-Dist: fitz
+Requires-Dist: PySide6
