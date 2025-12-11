@@ -86,37 +86,94 @@ for i in range(len(ARRAY_FITNESS_FUNCTIONS)):
 print("--------------------------------\n")
 
 
+
+
+
+
+
+
+
+
+
 if CLI:
+
+
+
     print("Responda no terminal onde o seu laucher.py esta sendo executado")
+
+
+
+    # choice = input("Digite o número da função objetivo: ")
+
+
+
+    # NUMERO = int(choice)
+
+
+
+    # print("\n")
+
+
+
     choice_benchmarking = input("Deseja usar o modo benchmarking? (S/N): default (N) ")
+
+
 
     BECHMARKING_MODE = True if choice_benchmarking.lower() == "s" else False
 
+
+
     print("\n")
 
+
+
     debug_mode = input("Deseja usar o modo debug? (S/N): default (N) ")
+
+
 
     DEBUG_MODE = True if debug_mode.lower() == "s" else False
 
 
 
+
+
+
+
 #! https://budavariam.github.io/asciiart-text/
+
+
 
 MSG_TERMINAL ="""
 
+
+
  __       _______ .___________. __      _______.   .______        ______     ______  __  ___  __  
+
+
 
 |  |     |   ____||           |(_ )    /       |   |   _  \      /  __  \   /      ||  |/  / |  | 
 
+
+
 |  |     |  |__   `---|  |----` |/    |   (----`   |  |_)  |    |  |  |  | |  ,----'|  '  /  |  | 
+
+
 
 |  |     |   __|      |  |             \   \       |      /     |  |  |  | |  |     |    <   |  | 
 
+
+
 |  `----.|  |____     |  |         .----)   |      |  |\  \----.|  `--'  | |  `----.|  .  \  |__| 
+
+
 
 |_______||_______|    |__|         |_______/       | _| `._____| \______/   \______||__|'__\ (__) 
 
+
+
                                                                                                   
+
+
 
 """
 

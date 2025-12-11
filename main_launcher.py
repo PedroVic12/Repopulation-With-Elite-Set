@@ -43,7 +43,7 @@ from PySide6.QtWidgets import (
     QStackedLayout, QSplitter, QFileDialog
 )
 from PySide6.QtCore import Qt, QThread, Signal, QTimer, Slot, QObject, QPropertyAnimation, QEasingCurve
-from PySide6.QtGui import QIntValidator, QDoubleValidator, QFont, QColor
+from PySide6.QtGui import QIntValidator, QDoubleValidator, QFont, QColor, QTextCursor
 
 # --- Checagem de dependências opcionais ---
 try:
@@ -71,6 +71,7 @@ SRC_DIR = BASE_DIR / "src"
 RUN_FRAMEWORK_SCRIPT = SRC_DIR / "run.py"
 RUN_AGENDAMENTO_SCRIPT = SRC_DIR / "run_agendamento.py"
 RUN_SIMULATOR_SCRIPT = SRC_DIR / "SimulatorSIN45/SIN_45_SIMULATOR_ANAREDE.py"
+CLI_SCRIPT_PATH = SRC_DIR / "CLI.py"
 VARYING_KEYS = {"MUTACAO", "CROSSOVER", "NUM_GENERATIONS", "POP_SIZE"}
 
 OBJECTIVE_FUNCTIONS = [
@@ -109,6 +110,27 @@ ANALYSIS_CASES = {
 # =====================================================================================
 #  MODEL - CAMADA DE DADOS E LÓGICA
 # =====================================================================================
+
+class ProcessOutputReader(QObject):
+    """Worker que lê o output de um processo em uma thread."""
+    output_ready = Signal(str)
+    finished = Signal()
+
+    def __init__(self, process):
+        super().__init__()
+        self.process = process
+
+    @Slot()
+    def run(self):
+        try:
+            for line in iter(self.process.stdout.readline, ''):
+                if line:
+                    self.output_ready.emit(line)
+            self.process.stdout.close()
+        except Exception as e:
+            print(f"Erro ao ler output do processo: {e}")
+        finally:
+            self.finished.emit()
 
 class ConfigManager:
     """Model - Gerencia o acesso aos arquivos de configuração JSON."""
@@ -553,6 +575,96 @@ class PowerSystemAnalysisView(QWidget):
         for i, row in enumerate(df.itertuples(index=False)):
             for j, val in enumerate(row): table.setItem(i, j, QTableWidgetItem(str(val)))
 
+
+class TerminalTab(QWidget):
+    """Widget que emula um terminal para rodar scripts interativos."""
+    def __init__(self, script_path):
+        super().__init__()
+        self.process = None
+        self.thread = None
+        self.reader = None
+        self.script_path = script_path
+        self._init_ui()
+        self._start_process()
+
+    def _init_ui(self):
+        layout = QVBoxLayout(self)
+        self.log_text = QTextEdit()
+        self.log_text.setReadOnly(True)
+        self.log_text.setFont(QFont("Monospace", 10))
+        self.input_line = QLineEdit()
+        self.input_line.setFont(QFont("Monospace", 10))
+        self.input_line.returnPressed.connect(self.send_command)
+        layout.addWidget(self.log_text)
+        layout.addWidget(self.input_line)
+
+    def _start_process(self):
+        python_executable = BASE_DIR / ".venv/bin/python3"
+        if not python_executable.exists():
+            python_executable = sys.executable
+        
+        cmd = [str(python_executable), str(self.script_path)]
+        
+        try:
+            self.process = subprocess.Popen(
+                cmd,
+                stdin=subprocess.PIPE,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.STDOUT,
+                universal_newlines=True,
+                cwd=SRC_DIR,
+                encoding='utf-8',
+                errors='replace',
+                bufsize=1  # Line-buffered
+            )
+            
+            self.thread = QThread()
+            self.reader = ProcessOutputReader(self.process)
+            self.reader.moveToThread(self.thread)
+            self.reader.output_ready.connect(self._on_output)
+            self.reader.finished.connect(self._on_process_finished)
+            self.thread.started.connect(self.reader.run)
+            self.thread.start()
+            self.input_line.setFocus()
+            
+        except Exception as e:
+            self.log_text.append(f"Erro ao iniciar o processo: {e}")
+            self.input_line.setEnabled(False)
+
+    @Slot(str)
+    def _on_output(self, text):
+        self.log_text.moveCursor(QTextCursor.End)
+        self.log_text.insertPlainText(text)
+        self.log_text.ensureCursorVisible()
+
+    @Slot()
+    def _on_process_finished(self):
+        self.input_line.setEnabled(False)
+        self.input_line.setText("--- PROCESSO FINALIZADO ---")
+        if self.thread:
+            self.thread.quit()
+            self.thread.wait()
+
+    @Slot()
+    def send_command(self):
+        command = self.input_line.text() + '\n'
+        if self.process and self.process.poll() is None:
+            try:
+                self.process.stdin.write(command)
+                self.process.stdin.flush()
+                self._on_output(command) # Echo input
+            except (IOError, ValueError) as e:
+                self._on_process_finished()
+        self.input_line.clear()
+
+    def stop_process(self):
+        if self.thread and self.thread.isRunning():
+            self.thread.quit()
+            self.thread.wait()
+        if self.process and self.process.poll() is None:
+            self.process.terminate()
+            self.process.wait()
+
 class MainAnalysisTab(QWidget):
     def __init__(self, cases, main_controller):
         super().__init__(); self.main_controller = main_controller; self.stack = QStackedLayout(self)
@@ -695,24 +807,7 @@ class MainController(QObject):
         self.view.nav_menu.set_active_button(tab_name)
     @Slot()
     def open_cli_tab(self):
-        try:
-            python_executable = BASE_DIR / ".venv/bin/python3"
-            if not python_executable.exists():
-                python_executable = sys.executable
-
-            # Use an absolute path for the script
-            script_path = SRC_DIR / "CLI.py"
-            
-            # Command to keep terminal open after script execution
-            command = f'{python_executable} \\"{script_path}\\"; exec bash'
-
-            # Open terminal and run the command
-            subprocess.Popen(
-                ['x-terminal-emulator', '-e', f'bash -c "{command}"'],
-                cwd=BASE_DIR  # Run from the project root directory
-            )
-        except Exception as e:
-            QMessageBox.critical(self.view, "Erro", f"Não foi possível abrir o terminal.\\nCertifique-se de que 'x-terminal-emulator' está instalado.\\n{e}")
+        self.open_or_focus_tab("cli_terminal", "💻 Console", TerminalTab, CLI_SCRIPT_PATH)
 
     @Slot()
     def open_config_tab(self): self.open_or_focus_tab("config_ag", "⚙️ Configurar AG", ConfigTab, self.config_manager)
@@ -744,6 +839,8 @@ class MainController(QObject):
     def close_tab(self, index):
         widget = self.view.tabs.widget(index)
         if widget:
+            if isinstance(widget, TerminalTab):
+                widget.stop_process()
             tab_name = next((name for name, w in self.open_tabs.items() if w == widget), None)
             if tab_name:
                 if tab_name in self.analysis_controllers: del self.analysis_controllers[tab_name]
