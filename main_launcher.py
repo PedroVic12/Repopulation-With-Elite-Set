@@ -358,8 +358,8 @@ class NavigationMenu(QWidget):
         self._add_nav_button("params_ag", "⌨️ Parâmetros AG", self.params_ag_requested.emit)
         self._add_nav_button("run_ag", "▶️ Executar RCE AG", self.run_ag_requested.emit)
         self._add_nav_button("run_agendamento", "📅 Executar Agendamento", self.run_agendamento_requested.emit)
-        self._add_nav_button("power_system_analysis", "🔬 Análise de SEP", self.power_system_analysis_requested.emit)
-        self._add_nav_button("run_sin45_simulator", "⚡️ Simular SIN 45", self.run_sin45_simulator_requested.emit)
+        #self._add_nav_button("power_system_analysis", "🔬 Análise de SEP", self.power_system_analysis_requested.emit)
+        #self._add_nav_button("run_sin45_simulator", "⚡️ Simular SIN 45", self.run_sin45_simulator_requested.emit)
         self._add_nav_button("cli_terminal", "💻 Console", self.cli_requested.emit)
         
         # Botões dinâmicos de script
@@ -824,9 +824,9 @@ class MainController(QObject):
     def connect_signals(self):
         nav = self.view.nav_menu
         nav.config_ag_requested.connect(self.open_config_tab); nav.params_ag_requested.connect(self.open_params_tab)
-        nav.run_ag_requested.connect(self.open_run_ag_tab); nav.run_agendamento_requested.connect(self.open_run_agendamento_tab)
-        nav.power_system_analysis_requested.connect(self.open_power_system_analysis_tab)
-        nav.run_sin45_simulator_requested.connect(self.open_sin45_simulator_tab)
+        #nav.run_ag_requested.connect(self.open_run_ag_tab); nav.run_agendamento_requested.connect(self.open_run_agendamento_tab)
+        #nav.power_system_analysis_requested.connect(self.open_power_system_analysis_tab)
+        #nav.run_sin45_simulator_requested.connect(self.open_sin45_simulator_tab)
         nav.cli_requested.connect(self.open_cli_tab)
         nav.dynamic_script_requested.connect(self.run_dynamic_script)
         
@@ -903,13 +903,14 @@ class MainController(QObject):
     def open_params_tab(self): self.open_or_focus_tab("params_ag", "⌨️ Parâmetros AG", ParamsAGTab, self.config_manager)
     @Slot()
     def open_run_ag_tab(self): self.open_or_focus_tab("run_ag", "▶️ Executar AG", ScriptExecutionTab, "Bateria AG", is_queue_runner=True)
-    @Slot()
-    def open_run_agendamento_tab(self): self.open_or_focus_tab("run_agendamento", "📅 Executar Agendamento", ScriptExecutionTab, "Agendamento", script_path=RUN_AGENDAMENTO_SCRIPT)
     
-    @Slot()
-    def open_power_system_analysis_tab(self): self.open_or_focus_tab("power_system_analysis", "🔬 Análise de SEP", MainAnalysisTab, ANALYSIS_CASES, self)
-    @Slot()
-    def open_sin45_simulator_tab(self): self.open_or_focus_tab("run_sin45_simulator", "⚡️ Simular SIN 45", ScriptExecutionTab, "Simulador SIN 45", script_path=RUN_SIMULATOR_SCRIPT)
+    #@Slot()
+    #def open_run_agendamento_tab(self): self.open_or_focus_tab("run_agendamento", "📅 Executar Agendamento", ScriptExecutionTab, "Agendamento", script_path=RUN_AGENDAMENTO_SCRIPT)
+    #@Slot()
+    #def open_power_system_analysis_tab(self): self.open_or_focus_tab("power_system_analysis", "🔬 Análise de SEP", MainAnalysisTab, ANALYSIS_CASES, self)
+    #@Slot()
+    #def open_sin45_simulator_tab(self): self.open_or_focus_tab("run_sin45_simulator", "⚡️ Simular SIN 45", ScriptExecutionTab, "Simulador SIN 45", script_path=RUN_SIMULATOR_SCRIPT)
+    
     @Slot(str)
     def load_analysis_case(self, case_id):
         main_tab_widget = self.open_tabs.get("power_system_analysis")
@@ -998,10 +999,14 @@ class MainController(QObject):
 #  PONTO DE ENTRADA DA APLICAÇÃO
 # =====================================================================================
 if __name__ == "__main__":
-    plt.ioff()
+    plt.ioff()# inicia aplicativo desktop 
     app = QApplication(sys.argv)
+    
+    # Colocando o Icon do app
     icon_path = BASE_DIR / "src/assets/IconRCELancher.png"
     app.setWindowIcon(QIcon(str(icon_path)))
+    
+    # Colocando o CSS
     app.setStyleSheet(STYLESHEET)
     if not PLOTLY_AVAILABLE:
         QMessageBox.warning(None, "Dependência Opcional Faltando", "O pacote 'PySide6-WebEngine' não foi encontrado. Os gráficos interativos podem não funcionar.")

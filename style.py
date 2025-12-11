@@ -16,7 +16,8 @@ QWidget {
     font-family: "Segoe UI", Arial, sans-serif;
     font-size: 12px;
 }
-QMainWindow { background-color: #1e1e1e; }
+/* Aplica o fundo ao widget central, e não à janela principal, para evitar problemas com a moldura */
+QWidget#central_widget { background-color: #1e1e1e; }
 
 /* Títulos */
 QLabel#title { font-size: 24px; font-weight: bold; color: #00d4ff; padding: 10px; }
