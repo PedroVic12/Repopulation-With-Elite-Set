@@ -294,6 +294,8 @@ class NavigationMenu(QWidget):
     run_agendamento_requested = Signal()
     power_system_analysis_requested = Signal()
     run_sin45_simulator_requested = Signal()
+    cli_requested = Signal()
+    run_custom_script_requested = Signal()
 
     def __init__(self):
         super().__init__()
@@ -307,6 +309,8 @@ class NavigationMenu(QWidget):
         self._add_nav_button("run_agendamento", "📅 Executar Agendamento", self.run_agendamento_requested)
         self._add_nav_button("power_system_analysis", "🔬 Análise de SEP", self.power_system_analysis_requested)
         self._add_nav_button("run_sin45_simulator", "⚡️ Simular SIN 45", self.run_sin45_simulator_requested)
+        self._add_nav_button("cli_terminal", "💻 Terminal CLI", self.cli_requested)
+        self._add_nav_button("custom_script", "🚀 Executar Script...", self.run_custom_script_requested)
         self.layout.addStretch()
     def _add_nav_button(self, name, text, signal):
         btn = QPushButton(text); btn.setCheckable(True); btn.setProperty("class", "nav-button")
@@ -645,10 +649,37 @@ class MainController(QObject):
         nav.run_ag_requested.connect(self.open_run_ag_tab); nav.run_agendamento_requested.connect(self.open_run_agendamento_tab)
         nav.power_system_analysis_requested.connect(self.open_power_system_analysis_tab)
         nav.run_sin45_simulator_requested.connect(self.open_sin45_simulator_tab)
+        nav.cli_requested.connect(self.open_cli_tab)
+        nav.run_custom_script_requested.connect(self.run_custom_script)
         self.view.tabs.tabCloseRequested.connect(self.close_tab); self.view.tabs.currentChanged.connect(self.on_tab_changed)
         model = self.execution_model
         model.log_updated.connect(self.update_log_on_active_tab); model.all_executions_finished.connect(self.on_queue_finished)
         model.execution_started.connect(self.on_queue_started); model.execution_progress.connect(self.on_queue_progress)
+
+    @Slot()
+    def run_custom_script(self):
+        file_path, _ = QFileDialog.getOpenFileName(
+            self.view,
+            "Selecionar Script Python",
+            str(BASE_DIR),
+            "Python Scripts (*.py)"
+        )
+        if file_path:
+            script_path = Path(file_path)
+            tab_name = f"script_runner_{script_path.name}"
+            if tab_name in self.open_tabs:
+                self.view.set_current_tab(self.open_tabs[tab_name])
+                return
+
+            widget = ScriptExecutionTab(f"▶️ {script_path.name}", script_path=script_path)
+            widget.start_stop_btn.clicked.connect(partial(self.toggle_single_script, widget))
+            if hasattr(widget, 'consolidate_btn'):
+                widget.consolidate_btn.setVisible(False)
+
+            self.view.add_tab(widget, f"▶️ {script_path.name}")
+            self.view.tabs.setCurrentWidget(widget)
+            self.open_tabs[tab_name] = widget
+            
     def open_or_focus_tab(self, tab_name, title, widget_class, *args, **kwargs):
         if tab_name in self.open_tabs: self.view.set_current_tab(self.open_tabs[tab_name]); return
         widget = widget_class(*args, **kwargs)
@@ -662,6 +693,27 @@ class MainController(QObject):
         if hasattr(widget, 'consolidate_btn'):
             widget.consolidate_btn.clicked.connect(self.config_manager.consolidate_results)
         self.view.nav_menu.set_active_button(tab_name)
+    @Slot()
+    def open_cli_tab(self):
+        try:
+            python_executable = BASE_DIR / ".venv/bin/python3"
+            if not python_executable.exists():
+                python_executable = sys.executable
+
+            # Use an absolute path for the script
+            script_path = SRC_DIR / "CLI.py"
+            
+            # Command to keep terminal open after script execution
+            command = f'{python_executable} \\"{script_path}\\"; exec bash'
+
+            # Open terminal and run the command
+            subprocess.Popen(
+                ['x-terminal-emulator', '-e', f'bash -c "{command}"'],
+                cwd=BASE_DIR  # Run from the project root directory
+            )
+        except Exception as e:
+            QMessageBox.critical(self.view, "Erro", f"Não foi possível abrir o terminal.\\nCertifique-se de que 'x-terminal-emulator' está instalado.\\n{e}")
+
     @Slot()
     def open_config_tab(self): self.open_or_focus_tab("config_ag", "⚙️ Configurar AG", ConfigTab, self.config_manager)
     @Slot()

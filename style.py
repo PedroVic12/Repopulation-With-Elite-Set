@@ -42,6 +42,27 @@ QPushButton#run_button { background-color: #28a745; }
 QPushButton#run_button:hover { background-color: #218838; }
 QTabWidget::tab:selected { background-color: #007acc; }
 
+/* Botões de Navegação Lateral */
+QPushButton[class="nav-button"] {
+    background-color: transparent;
+    text-align: left;
+    color: #ffffff;
+    border: none;
+    padding: 15px 20px;
+    border-radius: 0;
+    font-weight: normal;
+}
+
+QPushButton[class="nav-button"]:hover {
+    background-color: #007acc; /* Fundo azul */
+    color: white;             /* Texto branco */
+}
+
+QPushButton[class="nav-button"]:checked {
+    background-color: #005a9e;
+    font-weight: bold;
+}
+
 /* ========================================
    RadioButtons
    ======================================== */

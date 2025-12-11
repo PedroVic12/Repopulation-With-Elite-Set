@@ -42,9 +42,15 @@ except ImportError as e:
 #     "requirements": Path to requirements.txt (relative to work_dir, or None if not needed)
 # }
 
-PROJECTS_ROOT = Path(os.getenv("PROJECTS_ROOT", Path(__file__).parent))
+PROJECTS_ROOT = Path(os.getenv("PROJECTS_ROOT", Path(__file__).parent.parent))
 
 PROGRAMS: Dict[str, Dict[str, str]] = {
+    "run_rce_framework": {
+        "name": "Executar RCE Framework (Otimização)",
+        "script": "run.py",
+        "work_dir": "src",
+        "requirements": None,
+    },
     "desktop_dashboard": {
         "name": "Desktop Dashboard (SP Atividades)",
         "script": "desktop_Dashboard_app.py",

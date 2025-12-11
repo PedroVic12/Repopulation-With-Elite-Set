@@ -16,10 +16,13 @@ from functools import partial
 from qt_core import *
 
 # IMPORT STYLES
-from styles import DARK_STYLE, LIGHT_STYLE
+from core.styles import DARK_STYLE, LIGHT_STYLE
 
 # IMPORT MODEL
-from settings_model import SettingsModel
+from core.settings_model import SettingsModel
+
+# Adiciona o diretório 'src' ao path do Python
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
 # IMPORT MAIN WINDOW
 from gui.windows.main_window.ui_main_window import UI_MainWindow

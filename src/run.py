@@ -53,7 +53,7 @@ BASE_DIR = pathlib.Path(__file__).resolve().parent
 
 # variaveis de controle
 
-CLI = False
+CLI = True
 
 
 
@@ -86,19 +86,8 @@ for i in range(len(ARRAY_FITNESS_FUNCTIONS)):
 print("--------------------------------\n")
 
 
-
-
-
 if CLI:
-
     print("Responda no terminal onde o seu laucher.py esta sendo executado")
-
-    # choice = input("Digite o número da função objetivo: ")
-
-    # NUMERO = int(choice)
-
-    # print("\n")
-
     choice_benchmarking = input("Deseja usar o modo benchmarking? (S/N): default (N) ")
 
     BECHMARKING_MODE = True if choice_benchmarking.lower() == "s" else False
