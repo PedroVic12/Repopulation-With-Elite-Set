@@ -46,35 +46,31 @@ PROJECTS_ROOT = Path(os.getenv("PROJECTS_ROOT", Path(__file__).parent.parent))
 
 PROGRAMS: Dict[str, Dict[str, str]] = {
     "run_rce_framework": {
-        "name": "Executar RCE Framework (Otimização)",
+        "name": "Executar RCE Framework (Console)",
         "script": "run.py",
         "work_dir": "src",
         "requirements": None,
     },
-    "desktop_dashboard": {
-        "name": "Desktop Dashboard (SP Atividades)",
-        "script": "desktop_Dashboard_app.py",
-        "work_dir": "src/ScrapperPDF",
-        "requirements": "requirements.txt",
-    },
-    "palkia_gui": {
-        "name": "Palkia PDF Extractor GUI",
-        "script": "Palkia_GUI.py",
-        "work_dir": "src/ScrapperPDF",
-        "requirements": "requirements.txt",
-    },
-    "moderno_template": {
-        "name": "Moderno Desktop UI Template",
-        "script": "app_template_desktop.py",
-        "work_dir": "src/NexusPy/Pyside6 - Desktop/pyside6_tab_app",
-        "requirements": None,  # no requirements.txt needed
-    },
-    "organizador": {
-        "name": "File Organizer",
-        "script": "organizador_arquivos.py",
-        "work_dir": ".",
+    "IEEE_CASES": {
+        "name": "▶️ Executar Electrical-Power-System",
+        "script": "SYSTEM_ELECTRICAL_PANDAPOWER.py" ,
+        "work_dir": "src/LauncherGUI/frontend/Electrical-System-pandapower/",
         "requirements": None,
     },
+    "PandaPowerCaseManager":{
+        "name": "▶️ Executar PandaPower Case Manager",
+        "script":  "PandaPowerCaseManager.py",
+        "work_dir": "src/RedeEletrica/SimulatorSIN45/",
+        "requirements": None,
+        
+    },
+    "SmartGridSimulator":{
+        
+        "name": "▶️ Executar Smart Grid Simulator",
+        "script": "SmartGridSimulator.py",
+        "work_dir": "src/RedeEletrica/SimulatorSIN45/",
+        "requirements": None,
+    }   
 }
 
 

@@ -27,6 +27,8 @@ from functools import partial
 # Adiciona 'src' ao path para permitir imports de módulos customizados
 from src.LauncherGUI.gui.widgets.py_push_button import PyPushButton
 
+import shutil
+
 # --- Imports para Análise de SEP ---
 import pandas as pd
 import pandapower as pp
@@ -73,7 +75,7 @@ BASE_DIR = Path(__file__).parent
 SRC_DIR = BASE_DIR / "src"
 RUN_FRAMEWORK_SCRIPT = SRC_DIR / "run.py"
 RUN_AGENDAMENTO_SCRIPT = SRC_DIR / "run_agendamento.py"
-RUN_SIMULATOR_SCRIPT = SRC_DIR / "SimulatorSIN45/SIN_45_SIMULATOR_ANAREDE.py"
+RUN_SIMULATOR_SCRIPT = SRC_DIR / "RedeEletrica/SimulatorSIN45/PandaPowerCaseManager.py"
 CLI_SCRIPT_PATH = SRC_DIR / "CLI.py"
 VARYING_KEYS = {"MUTACAO", "CROSSOVER", "NUM_GENERATIONS", "POP_SIZE"}
 
@@ -848,21 +850,29 @@ class MainController(QObject):
         if not script_path.exists():
             QMessageBox.warning(self.view, "Erro", f"Caminho do script não encontrado para '{script_id}':\\n{script_path}")
             return
+        
+        try:
+            # 1. Encontrar um terminal disponível
+            terminals = ['gnome-terminal', 'konsole', 'xfce4-terminal', 'terminator', 'xterm']
+            terminal_cmd = None
+            for t in terminals:
+                if shutil.which(t):
+                    terminal_cmd = t
+                    break
             
-        tab_name = f"script_runner_{script_id}"
-        if tab_name in self.open_tabs:
-            self.view.set_current_tab(self.open_tabs[tab_name])
-            return
+            if not terminal_cmd:
+                QMessageBox.critical(self.view, "Erro de Terminal", "Nenhum emulador de terminal compatível (gnome-terminal, konsole, etc.) foi encontrado.")
+                return
 
-        widget = ScriptExecutionTab(f"▶️ {script_info['name']}", script_path=script_path)
-        widget.start_stop_btn.clicked.connect(partial(self.toggle_single_script, widget))
-        if hasattr(widget, 'consolidate_btn'):
-            widget.consolidate_btn.setVisible(False)
+            # 2. Construir o comando para o terminal executar
+            script_command = f'{sys.executable} \\"{script_path}\\"; exec bash'
 
-        self.view.add_tab(widget, script_info['name'])
-        self.view.tabs.setCurrentWidget(widget)
-        self.open_tabs[tab_name] = widget
-            
+            # 3. Usar subprocess.Popen com uma lista de argumentos (mais seguro)
+            subprocess.Popen([terminal_cmd, "-e", "bash", "-c", script_command])
+
+        except Exception as e:
+            QMessageBox.critical(self.view, "Erro ao abrir terminal", f"Ocorreu um erro: {e}")
+
     def open_or_focus_tab(self, tab_name, title, widget_class, *args, **kwargs):
         if tab_name in self.open_tabs: self.view.set_current_tab(self.open_tabs[tab_name]); return
         widget = widget_class(*args, **kwargs)
@@ -982,12 +992,18 @@ class MainController(QObject):
 if __name__ == "__main__":
     plt.ioff()
     app = QApplication(sys.argv)
-    icon_path = BASE_DIR / "src/assets/imagem.png"
+    icon_path = BASE_DIR / "src/assets/IconRCELancher.png"
     app.setWindowIcon(QIcon(str(icon_path)))
     app.setStyleSheet(STYLESHEET)
     if not PLOTLY_AVAILABLE:
         QMessageBox.warning(None, "Dependência Opcional Faltando", "O pacote 'PySide6-WebEngine' não foi encontrado. Os gráficos interativos podem não funcionar.")
     
     controller = MainController(app)
+
+    # Forçar janela maximizada manualmente
+    screen = app.primaryScreen()
+    geometry = screen.availableGeometry()
+    controller.view.setGeometry(geometry)
+
     controller.show()
     sys.exit(app.exec())

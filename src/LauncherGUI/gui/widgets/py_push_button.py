@@ -130,6 +130,10 @@ class PyPushButton(QPushButton):
         qp.end()
 
     def draw_icon(self, qp, image, rect, color):
+        # Return if image is empty
+        if not image:
+            return
+
         # Get file path
         py_file = os.path.realpath(__file__)
         py_dir = os.path.dirname(py_file)
