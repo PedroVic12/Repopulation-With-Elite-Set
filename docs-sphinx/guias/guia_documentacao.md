@@ -7,8 +7,6 @@ Este guia fornece as instruções básicas para compilar e visualizar a document
 ![Sphinx templates docs](image.png)
 
 
-
-
 ## Comandos Principais
 
 | Comando | Finalidade |

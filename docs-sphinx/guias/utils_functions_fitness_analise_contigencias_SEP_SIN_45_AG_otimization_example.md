@@ -2,19 +2,28 @@
 
 **Autor**: Pedro Victor Veras
 
-**Resumo**: Este documento detalha a aplicação de um Algoritmo Genético (AG), combinado com a estratégia de *Repopulation-with-Elite-Set* (RCE), para resolver o problema de otimização do agendamento de manutenção de linhas de transmissão em um sistema elétrico de potência. O estudo de caso utiliza um modelo do Sistema Interligado Nacional (SIN) de 45 barras. A metodologia proposta avalia a segurança do sistema sob múltiplas contingências (critério N-1) para cada janela de manutenção, buscando uma programação que minimize as violações operacionais, como sobrecargas em linhas e limites de tensão.
+**Resumo**: Este documento detalha a aplicação de um Algoritmo Genético (AG), combinado com a estratégia de *Repopulation-with-Elite-Set* (RCE), para resolver o problema de otimização do agendamento de manutenção e intervenção de __Linhas de transmissão em um Sistema Elétrico de Potência (SEP)__. O estudo de caso utiliza um modelo do Sistema Interligado Nacional (SIN) de 45 barras. A metodologia proposta avalia a segurança do sistema sob múltiplas contingências (critério N-1) para cada janela de manutenção, buscando uma programação que minimize as violações operacionais, como sobrecargas em linhas e limites de tensão.
+
+Neste trabalho é apresentada uma nova implementação em Python para o problema abordado no [Artigo Doutorado Rainer Zanghi](https://sbia.org.br/wp-content/uploads/2016/01/cbic2015_submission_34.pdf), utilizando a mesma metodologia como referência, com algumas adaptações.
+
+O artigo científico publicado em 2025 com está nova ferramenta em Python esta disponivel em: [Aplicando estratégias de diversificação em algoritimos evolutimos para problemas de Otimização em Engenharia Elétrica](<../relatorio_final_PIBIC_2025 - PVRV.pdf>)
+
 
 ---
 
 ## 1. Introdução
 
-O agendamento de manutenção de equipamentos em Sistemas Elétricos de Potência (SEP) é uma tarefa complexa e crucial para a operação segura e confiável da rede. Desligar uma linha de transmissão para manutenção, embora necessário, altera a topologia do sistema e pode sobrecarregar outros componentes, elevando o risco de blecautes em cascata caso ocorra uma segunda falha inesperada (contingência).
+O agendamento de manutenção de equipamentos em Sistemas Elétricos de Potência (SEP) é uma tarefa complexa para a operação segura e confiável da rede. Desligar uma linha de transmissão para manutenção ou intervenção, embora necessário, altera a topologia do sistema e pode sobrecarregar outros componentes, elevando o risco de blecautes em cascata caso ocorra uma segunda falha inesperada (contingência).
 
 Este trabalho aborda o problema do agendamento de múltiplas manutenções, buscando determinar os horários ótimos para o início de cada serviço. O objetivo é encontrar uma programação que mantenha a rede segura, mesmo na ocorrência de contingências pré-definidas. Para isso, foi empregado um Algoritmo Genético, uma meta-heurística poderosa para problemas de otimização complexos e não-lineares.
 
 ## 2. Modelagem do Problema
 
-A transformação do problema real em um modelo computacional é feita através de três pilares: a representação da solução, a função para avaliar sua qualidade e a simulação das condições operacionais.
+A transformação do problema real em um modelo computacional é feita através de três pilares: 
+
+1) A representação da solução
+2) A função aptidão para avaliar sua qualidade 
+3) Simulação e otimização da Rede Elétrica nas condições operacionais.
 
 ### 2.1 Representação do Indivíduo (Cromossomo)
 
@@ -24,16 +33,18 @@ No contexto do Algoritmo Genético, cada **indivíduo** (ou cromossomo) represen
 
 ### 2.2 Função Objetivo (`funcao_objetivo_SIN45`)
 
-A **função objetivo** (ou função de fitness) é o coração da otimização. Sua responsabilidade é atribuir uma nota a cada indivíduo, quantificando quão "boa" ou "ruim" é aquela solução. Neste problema, o objetivo é **minimizar as violações operacionais**.
+A **função objetivo** (ou função de fitness) possui a responsabilidade de atribuir uma nota a cada indivíduo, quantificando quão "boa" ou "ruim" é aquela solução. Neste problema, o objetivo é **minimizar as violações operacionais**, ou seja, um problema de __Otimização com Minimização.__
 
 A função `funcao_objetivo_SIN45` recebe um indivíduo (o agendamento) e calcula seu fitness da seguinte forma:
+
 1.  **Cria Cenários**: Com base nos horários de manutenção, ela gera uma `matriz_cenarios`. Cada linha dessa matriz representa um "retrato" do sistema em um determinado momento, considerando quais linhas estão em manutenção e o nível de carga da rede (leve, média ou pesada).
 2.  **Análise de Contingências**: Para cada cenário, ela chama a função `analise_contigencias_SEP`, que simula a falha de outras linhas (contingências N-1) e calcula as penalidades (violações de tensão e carregamento).
 3.  **Fitness Final**: O fitness do indivíduo é a **soma de todas as penalidades** em todos os cenários e todas as contingências. Um fitness menor indica um agendamento mais seguro e robusto.
 
 ### 2.3 Análise de Contingências (`analise_contigencias_SEP`)
 
-Esta função é o núcleo da avaliação de segurança. Para um determinado estado do sistema (definido por um cenário da `matriz_cenarios`), ela executa os seguintes passos:
+Para um determinado estado do sistema (definido por um cenário da `matriz_cenarios`), ela executa os seguintes passos:
+
 1.  Ajusta o modelo da rede para aquele cenário (desliga linhas em manutenção e ajusta cargas).
 2.  Itera sobre uma lista de contingências críticas (ex: desligamento da linha 4-5).
 3.  Para cada contingência, executa um **fluxo de potência** para calcular as tensões e fluxos de potência na rede.
@@ -91,9 +102,22 @@ Esta função recebe a melhor solução e os dados coletados e apresenta um rela
 
 Este trabalho demonstrou com sucesso a viabilidade de utilizar Algoritmos Genéticos para otimizar o complexo problema do agendamento de manutenção em sistemas de potência com análise de segurança N-1. A arquitetura orientada a objetos permitiu uma separação clara entre o modelo do sistema elétrico e o algoritmo de otimização, enquanto técnicas como a memoization com tabela hash foram cruciais para garantir um desempenho computacional adequado. Os resultados visuais gerados permitem uma análise completa e intuitiva da qualidade da solução encontrada.
 
+
+
 ---
 
 ## Código-Fonte
+
+
+```sh
+
+git clone https://github.com/PedroVic12/Repopulation-With-Elite-Set
+
+cd src/
+
+```
+
+Use esse código para testar o caso do SIN 45 
 
 ```python
 import os
@@ -105,13 +129,11 @@ from datetime import datetime
 from plotly.subplots import make_subplots
 import plotly.graph_objects as go
 
-
-
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..')))
 
-from RedeEletrica_backup.rede_eletrica import RedeEletricaPandaPower
-from AlgEvolutivoRCE_backup.Setup import Setup
-from AlgEvolutivoRCE_backup.alg_evolutivo_rce import AlgoritimoEvolutivoRCE
+from RedeEletrica.rede_eletrica import RedeEletricaPandaPower
+from AlgEvolutivoRCE.Setup import Setup
+from AlgEvolutivoRCE.alg_evolutivo_rce import AlgoritimoEvolutivoRCE
 
 
 from IPython.display import display, HTML

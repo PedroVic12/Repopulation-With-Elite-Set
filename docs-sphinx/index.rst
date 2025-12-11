@@ -2,9 +2,7 @@
    sphinx-quickstart on Tue Oct  7 09:55:26 2025.
 
 HOME
-
 ======================================================================================================
-
 FRAMEWORK DESENVOLVIDO PARA FINS ACADÊMICOS USANDO ALGORITMOS GENÉTICOS PARA RESOLVER PROBLEMAS DE OTIMIZAÇÃO EM REDES ELÉTRICAS, FINANCIADO POR BOLSA DE INICIAÇÃO CIENTÍFICA PELA UNIVERSIDADE FEDERAL FLUMINENSE (UFF)
 
 .. toctree::
@@ -14,9 +12,7 @@ FRAMEWORK DESENVOLVIDO PARA FINS ACADÊMICOS USANDO ALGORITMOS GENÉTICOS PARA R
    guias/guia_documentacao
 ..   guias/sphinx_vs_mkdocs
 ..   guias/instalador
-   guias/run
 ..   guias/run_agendamento
-   guias/getting_started
 
 .. toctree::
    :maxdepth: 2
