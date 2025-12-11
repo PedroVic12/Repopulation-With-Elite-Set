@@ -363,9 +363,9 @@ class NavigationMenu(QWidget):
         self._add_nav_button("cli_terminal", "💻 Console", self.cli_requested.emit)
         
         # Botões dinâmicos de script
-        for script_id, script_info in CUSTOM_SCRIPTS.items():
-            handler = partial(self.dynamic_script_requested.emit, script_id)
-            self._add_nav_button(f"script_{script_id}", script_info["name"], handler)
+        #for script_id, script_info in CUSTOM_SCRIPTS.items():
+        #    handler = partial(self.dynamic_script_requested.emit, script_id)
+        #    self._add_nav_button(f"script_{script_id}", script_info["name"], handler)
 
         self.layout.addStretch()
 
@@ -824,11 +824,11 @@ class MainController(QObject):
     def connect_signals(self):
         nav = self.view.nav_menu
         nav.config_ag_requested.connect(self.open_config_tab); nav.params_ag_requested.connect(self.open_params_tab)
-        #nav.run_ag_requested.connect(self.open_run_ag_tab); nav.run_agendamento_requested.connect(self.open_run_agendamento_tab)
+        nav.run_ag_requested.connect(self.open_run_ag_tab); nav.run_agendamento_requested.connect(self.open_run_agendamento_tab)
         #nav.power_system_analysis_requested.connect(self.open_power_system_analysis_tab)
         #nav.run_sin45_simulator_requested.connect(self.open_sin45_simulator_tab)
         nav.cli_requested.connect(self.open_cli_tab)
-        nav.dynamic_script_requested.connect(self.run_dynamic_script)
+        #nav.dynamic_script_requested.connect(self.run_dynamic_script)
         
         self.view.closing.connect(self.cleanup_on_exit)
         self.view.tabs.tabCloseRequested.connect(self.close_tab); self.view.tabs.currentChanged.connect(self.on_tab_changed)
@@ -904,8 +904,10 @@ class MainController(QObject):
     @Slot()
     def open_run_ag_tab(self): self.open_or_focus_tab("run_ag", "▶️ Executar AG", ScriptExecutionTab, "Bateria AG", is_queue_runner=True)
     
-    #@Slot()
-    #def open_run_agendamento_tab(self): self.open_or_focus_tab("run_agendamento", "📅 Executar Agendamento", ScriptExecutionTab, "Agendamento", script_path=RUN_AGENDAMENTO_SCRIPT)
+    @Slot()
+    def open_run_agendamento_tab(self): self.open_or_focus_tab("run_agendamento", "📅 Executar Agendamento", ScriptExecutionTab, "Agendamento", script_path=RUN_AGENDAMENTO_SCRIPT)
+    
+    
     #@Slot()
     #def open_power_system_analysis_tab(self): self.open_or_focus_tab("power_system_analysis", "🔬 Análise de SEP", MainAnalysisTab, ANALYSIS_CASES, self)
     #@Slot()
@@ -1007,7 +1009,7 @@ if __name__ == "__main__":
     app.setWindowIcon(QIcon(str(icon_path)))
     
     # Colocando o CSS
-    #app.setStyleSheet(STYLESHEET)
+    app.setStyleSheet(STYLESHEET)
     if not PLOTLY_AVAILABLE:
         QMessageBox.warning(None, "Dependência Opcional Faltando", "O pacote 'PySide6-WebEngine' não foi encontrado. Os gráficos interativos podem não funcionar.")
     
