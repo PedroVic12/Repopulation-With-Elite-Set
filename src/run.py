@@ -200,9 +200,6 @@ def convert_values_to_int(params):
 # Função principal para executar o framework com múltiplas execuções
 
 def run_framework_many_executions(function_bechmarking=False, config_num_arg=None, exec_num_arg=None, objective_function_index=0):
-
-
-
     numero = objective_function_index
 
     if function_bechmarking:
@@ -213,38 +210,19 @@ def run_framework_many_executions(function_bechmarking=False, config_num_arg=Non
 
         print(f"Função objetivo selecionada: {ARRAY_FITNESS_FUNCTIONS[numero]}")
 
-
-
-
-
     # 1. Carrega parâmetros base e opções
-
     params_base = load_params(f"{BASE_DIR}/params.json")
-
     options = load_params(f"{BASE_DIR}/options.json")
-
     params_base = convert_values_to_int(params_base)
 
-
-
     # 2. Descobre variações e número de execuções
-
     varying_keys = [k for k in options if isinstance(options[k], list) and len(options[k]) > 0]
-
     varying_values = [options[k] for k in varying_keys]
-
     repeticoes = options.get('repeticoes_por_config', 1)
 
-
-
     # 3. Gera todas as combinações de parâmetros
-
     from itertools import product
-
     combinations = [dict(zip(varying_keys, vals)) for vals in product(*varying_values)] if varying_keys else [{}]
-
-    
-
     # If caller requested a single configuration/execution via CLI args, restrict accordingly
 
     if config_num_arg is not None:
@@ -263,51 +241,22 @@ def run_framework_many_executions(function_bechmarking=False, config_num_arg=Non
 
         # If exec_num_arg provided, we'll run only that exec (handled below)
 
-    
-
     #! Inicia o contador de tempo de execução
-
     start = datetime.now()
-
-
-
     # Exibe informações das configurações
-
     print(f"\nTotal de configurações únicas: {len(combinations)}")
-
     print(f"Execuções por configuração: {repeticoes}")
 
-
-
     # Cria um diretório de saída com timestamp para evitar sobreposições
-
     timestamp = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
-
     main_output_dir = BASE_DIR / "output" / f"run_{timestamp}"
-
     os.makedirs(main_output_dir, exist_ok=True)
-
-    #print(f"\nSalvando resultados em: {main_output_dir}")
-
-
-
-
-
-
-
     config_num = 1
 
     for combo in combinations:
-
-
-
         # Cria um diretório específico para a configuração
-
         config_dir = main_output_dir / f"config_{config_num}"
-
         os.makedirs(config_dir, exist_ok=True)
-
-
 
         # Monta params para esta configuração
 
