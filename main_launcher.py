@@ -728,8 +728,8 @@ class LauncherWindow(QMainWindow):
 
     def __init__(self):
         super().__init__(); self.setWindowTitle("RCE Framework Launcher MVC")
-        self.setWindowFlags(Qt.Window) # Garante que seja uma janela padrão com moldura e botões
         central_widget = QWidget(); self.setCentralWidget(central_widget)
+        central_widget.setObjectName("central_widget") # Nome para o QSS
         self.main_layout = QHBoxLayout(central_widget); self.main_layout.setContentsMargins(0,0,0,0); self.main_layout.setSpacing(0)
         self.left_menu = QFrame(); self.left_menu.setFixedWidth(240); self.left_menu.setStyleSheet("background-color: #1a1a1a;")
         left_menu_layout = QVBoxLayout(self.left_menu); left_menu_layout.setContentsMargins(0,0,0,0)
@@ -809,7 +809,6 @@ class MainController(QObject):
         super().__init__(); self.app = app; self.view = LauncherWindow(); self.config_manager = ConfigManager()
         self.execution_model = ExecutionModel(); self.open_tabs = {}; self.analysis_controllers = {}
         self.connect_signals(); self.open_config_tab()
-    def show(self): self.view.showMaximized()
     
     @Slot()
     def cleanup_on_exit(self):
@@ -1015,5 +1014,5 @@ if __name__ == "__main__":
         QMessageBox.warning(None, "Dependência Opcional Faltando", "O pacote 'PySide6-WebEngine' não foi encontrado. Os gráficos interativos podem não funcionar.")
     
     controller = MainController(app)
-    controller.view.window().showMaximized()
+    controller.view.showMaximized()
     sys.exit(app.exec())

@@ -13,7 +13,7 @@ STYLESHEET = """
 /* Aplica os estilos base APENAS ao widget central e seus filhos,
    para não interferir com a moldura/título da janela principal. */
 QWidget#central_widget {
-    background-color: #1e1e1e;
+    background-color: #9b9b9b;
     color: #ffffff;
     font-family: "Segoe UI", Arial, sans-serif;
     font-size: 12px;
@@ -57,7 +57,7 @@ QGroupBox {
     font-weight: bold;
     border: 2px solid #404040;
     border-radius: 8px;
-    margin-top: 10px;
+    /* margin-top: 10px; */ /* REMOVIDO: ESTE ERA O CULPADO */
     padding: 20px 10px 10px 10px;
     font-size: 14px;
 }
