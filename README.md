@@ -20,11 +20,6 @@
 
 -----
 
-## ⚠️ Status do Projeto
-
-  * O projeto está a ser refatorado para a pasta `/lib` com arquitetura MVC para facilitar a manutenção do código.
-  * A versão estável encontra-se na pasta `/src`.
-
 ## 🎯 Contexto
 
 Este framework foi desenvolvido como parte de um projeto de Iniciação Científica (PIBIC) na Universidade Federal Fluminense (UFF). O seu objetivo é aplicar **Algoritmos Genéticos (AG)** para resolver problemas complexos de otimização em Engenharia Elétrica, especificamente o **Agendamento Ótimo de Intervenções (manutenções) em Redes Elétricas**.
@@ -49,7 +44,6 @@ Uso com 20 gerações, mutação e crossover de 80%, com demandas de contingênc
 Este script utiliza um Algoritmo Genético para otimizar o agendamento de manutenções em linhas de transmissão de um sistema elétrico de potência (o SIN 45, um modelo com 45 barras).
 
 ---
-
 
 ## 📸 Galeria
 
