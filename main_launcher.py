@@ -38,7 +38,7 @@ from matplotlib.figure import Figure
 from PySide6.QtWidgets import (
     QApplication, QMainWindow, QPushButton, QVBoxLayout, QWidget, QLabel,
     QHBoxLayout, QTextEdit, QProgressBar, QTabWidget, QGroupBox, QSpinBox,
-    QLineEdit, QMessageBox, QRadioButton, QButtonGroup, QGridLayout,
+    QLineEdit, QComboBox, QMessageBox, QRadioButton, QButtonGroup, QGridLayout,
     QTableWidget, QTableWidgetItem, QFrame, QHeaderView, QListWidget, QListWidgetItem,
     QStackedLayout, QSplitter, QFileDialog
 )
@@ -137,6 +137,14 @@ RUN_FRAMEWORK_SCRIPT = SRC_DIR / "run.py"
 RUN_AGENDAMENTO_SCRIPT = SRC_DIR / "run_agendamento.py"
 VARYING_KEYS = {"MUTACAO", "CROSSOVER", "NUM_GENERATIONS", "POP_SIZE"}
 
+OBJECTIVE_FUNCTIONS = [
+    "funcao_objetivo_IEEE14",
+    "funcao_objetivo_IEEE30",
+    "funcao_objetivo_IEEE57",
+    "funcao_objetivo_IEEE118",
+    "funcao_objetivo_SIN45",
+]
+
 ANALYSIS_CASES = {
     "case_ieee14": {
         "name": "Análise de Contingência - IEEE 14",
@@ -226,12 +234,14 @@ class ExecutionModel(QObject):
         self.thread, self.worker = None, None
         self._pending_runs = deque()
         self.configurations, self.total_runs, self.current_run_number = [], 0, 0
+        self.objective_function_index = 0
 
-    def start_execution_queue(self, configs, runs_per_config, config_manager):
+    def start_execution_queue(self, configs, runs_per_config, config_manager, objective_function_index):
         if self.thread and self.thread.isRunning():
             self.log_updated.emit("Bateria de testes em execução.")
             return
         self.configurations = configs
+        self.objective_function_index = objective_function_index
         self._pending_runs = deque([(ci, r) for ci in range(len(configs)) for r in range(1, runs_per_config + 1)])
         self.total_runs = len(self._pending_runs)
         self.current_run_number = 0
@@ -251,7 +261,7 @@ class ExecutionModel(QObject):
             self.log_updated.emit("Erro ao salvar parâmetros, abortando.")
             self.all_executions_finished.emit(False, "Erro ao salvar arquivo de parâmetros.")
             return
-        args = ["--config_num", str(cfg_idx + 1), "--exec_num", str(rep)]
+        args = ["--config_num", str(cfg_idx + 1), "--exec_num", str(rep), "--objective_function_index", str(self.objective_function_index)]
         self.worker = ScriptWorker(RUN_FRAMEWORK_SCRIPT, args)
         self.thread = QThread()
         self.worker.moveToThread(self.thread)
@@ -364,14 +374,26 @@ class NavigationMenu(QWidget):
         if name in self.buttons: self.buttons[name].setChecked(True)
 
 class ConfigTab(QWidget):
-    execution_requested = Signal(list, int)
+    execution_requested = Signal(list, int, int)
     def __init__(self, config_manager):
         super().__init__()
         self.config_manager, self.param_widgets = config_manager, {}
         self.init_ui(); self.update_summary()
     def init_ui(self):
-        layout = QVBoxLayout(self); self.create_general_settings(layout); self.create_ag_params(layout)
+        layout = QVBoxLayout(self)
+        self.create_general_settings(layout)
+        self.create_objective_function_settings(layout)
+        self.create_ag_params(layout)
         self.create_summary(layout); self.create_run_button(layout); layout.addStretch()
+    
+    def create_objective_function_settings(self, layout):
+        group = QGroupBox("Função Objetivo")
+        oblayout = QVBoxLayout(group)
+        self.objective_function_combo = QComboBox()
+        self.objective_function_combo.addItems(OBJECTIVE_FUNCTIONS)
+        oblayout.addWidget(self.objective_function_combo)
+        layout.addWidget(group)
+
     def create_general_settings(self, layout):
         group = QGroupBox("Configurações Gerais"); glayout = QVBoxLayout(group)
         self.runs_per_config_spin = QSpinBox(); self.runs_per_config_spin.setRange(1, 100)
@@ -437,7 +459,8 @@ class ConfigTab(QWidget):
         self.config_manager.save_params(params); self.config_manager.save_options(opts)
         keys = list(var_arrays.keys())
         combos = [dict(zip(keys, v)) for v in product(*var_arrays.values())] if keys else [{}]
-        self.execution_requested.emit([dict(params, **c) for c in combos], self.runs_per_config_spin.value())
+        objective_function_index = self.objective_function_combo.currentIndex()
+        self.execution_requested.emit([dict(params, **c) for c in combos], self.runs_per_config_spin.value(), objective_function_index)
 
 class ParamsAGTab(QWidget):
     EXCLUDED_PARAMS = {"MUTACAO", "CROSSOVER", "NUM_GENERATIONS", "POP_SIZE"}
@@ -680,12 +703,18 @@ class MainController(QObject):
         model = self.execution_model
         model.log_updated.connect(self.update_log_on_active_tab); model.all_executions_finished.connect(self.on_queue_finished)
         model.execution_started.connect(self.on_queue_started); model.execution_progress.connect(self.on_queue_progress)
-    def open_or_focus_tab(self, tab_name, title, widget_class, *args):
+    def open_or_focus_tab(self, tab_name, title, widget_class, *args, **kwargs):
         if tab_name in self.open_tabs: self.view.set_current_tab(self.open_tabs[tab_name]); return
-        widget = widget_class(*args); self.view.add_tab(widget, title); self.view.tabs.setCurrentWidget(widget); self.open_tabs[tab_name] = widget
-        if isinstance(widget, ConfigTab): widget.execution_requested.connect(self.start_ag_execution_queue)
-        elif isinstance(widget, ScriptExecutionTab): widget.start_stop_btn.clicked.connect(partial(self.toggle_single_script, widget))
-        if hasattr(widget, 'consolidate_btn'): widget.consolidate_btn.clicked.connect(self.config_manager.consolidate_results)
+        widget = widget_class(*args, **kwargs)
+        self.view.add_tab(widget, title)
+        self.view.tabs.setCurrentWidget(widget)
+        self.open_tabs[tab_name] = widget
+        if isinstance(widget, ConfigTab):
+            widget.execution_requested.connect(self.start_ag_execution_queue)
+        elif isinstance(widget, ScriptExecutionTab):
+            widget.start_stop_btn.clicked.connect(partial(self.toggle_single_script, widget))
+        if hasattr(widget, 'consolidate_btn'):
+            widget.consolidate_btn.clicked.connect(self.config_manager.consolidate_results)
         self.view.nav_menu.set_active_button(tab_name)
     @Slot()
     def open_config_tab(self): self.open_or_focus_tab("config_ag", "⚙️ Configurar AG", ConfigTab, self.config_manager)
@@ -726,9 +755,10 @@ class MainController(QObject):
         widget = self.view.tabs.widget(index)
         tab_name = next((name for name, w in self.open_tabs.items() if w == widget), None)
         if tab_name: self.view.nav_menu.set_active_button(tab_name)
-    @Slot(list, int)
-    def start_ag_execution_queue(self, configs, runs_per_config):
-        self.open_run_ag_tab(); QTimer.singleShot(100, lambda: self.execution_model.start_execution_queue(configs, runs_per_config, self.config_manager))
+    @Slot(list, int, int)
+    def start_ag_execution_queue(self, configs, runs_per_config, objective_function_index):
+        self.open_run_ag_tab()
+        QTimer.singleShot(100, lambda: self.execution_model.start_execution_queue(configs, runs_per_config, self.config_manager, objective_function_index))
     @Slot(int)
     def on_queue_started(self, total_runs):
         tab = self.open_tabs.get("run_ag")
