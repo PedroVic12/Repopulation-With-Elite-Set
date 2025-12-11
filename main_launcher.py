@@ -24,6 +24,10 @@ from itertools import product
 from collections import deque
 from functools import partial
 
+# Adiciona 'src' ao path para permitir imports de módulos customizados
+sys.path.insert(0, str(Path(__file__).resolve().parent / "src"))
+from gui.widgets.py_push_button import PyPushButton
+
 # --- Imports para Análise de SEP ---
 import pandas as pd
 import pandapower as pp
@@ -157,9 +161,7 @@ class ScriptWorker(QObject):
     @Slot()
     def run(self):
         try:
-            python_executable = BASE_DIR / ".venv/bin/python3"
-            if not python_executable.exists():
-                python_executable = sys.executable
+            python_executable = sys.executable
 
             cmd = [str(python_executable)] + [str(p) for p in [self.script_path] + self.args]
             self.log_updated.emit(f"Executando: {' '.join(cmd)}")
@@ -323,23 +325,36 @@ class NavigationMenu(QWidget):
         super().__init__()
         self.layout = QVBoxLayout(self)
         self.layout.setContentsMargins(0,0,0,0); self.layout.setSpacing(0)
-        self.buttons, self.button_group = {}, QButtonGroup(self)
-        self.button_group.setExclusive(True)
+        self.buttons = {}
+        
         self._add_nav_button("config_ag", "⚙️ Configurar AG", self.config_ag_requested)
         self._add_nav_button("params_ag", "⌨️ Parâmetros AG", self.params_ag_requested)
         self._add_nav_button("run_ag", "▶️ Executar AG", self.run_ag_requested)
         self._add_nav_button("run_agendamento", "📅 Executar Agendamento", self.run_agendamento_requested)
         self._add_nav_button("power_system_analysis", "🔬 Análise de SEP", self.power_system_analysis_requested)
         self._add_nav_button("run_sin45_simulator", "⚡️ Simular SIN 45", self.run_sin45_simulator_requested)
-        self._add_nav_button("cli_terminal", "💻 Terminal CLI", self.cli_requested)
+        self._add_nav_button("cli_terminal", "💻 Console", self.cli_requested)
         self._add_nav_button("custom_script", "🚀 Executar Script...", self.run_custom_script_requested)
         self.layout.addStretch()
+
     def _add_nav_button(self, name, text, signal):
-        btn = QPushButton(text); btn.setCheckable(True); btn.setProperty("class", "nav-button")
-        btn.clicked.connect(signal.emit); self.layout.addWidget(btn); self.buttons[name] = btn
-        self.button_group.addButton(btn)
+        btn = PyPushButton(
+            text=text,
+            btn_color="#1a1a1a", # Cor de fundo do menu
+            btn_hover="#007acc", # Cor de hover solicitada
+            btn_pressed="#005a9e", # Cor quando pressionado/ativo
+            text_color="#ffffff",
+            text_padding=20,
+            height=50,
+            minimum_width=240
+        )
+        btn.clicked.connect(signal.emit)
+        self.layout.addWidget(btn)
+        self.buttons[name] = btn
+
     def set_active_button(self, name):
-        if name in self.buttons: self.buttons[name].setChecked(True)
+        for btn_name, btn_widget in self.buttons.items():
+            btn_widget.set_active(btn_name == name)
 
 class ConfigTab(QWidget):
     execution_requested = Signal(list, int, int)
@@ -599,9 +614,7 @@ class TerminalTab(QWidget):
         layout.addWidget(self.input_line)
 
     def _start_process(self):
-        python_executable = BASE_DIR / ".venv/bin/python3"
-        if not python_executable.exists():
-            python_executable = sys.executable
+        python_executable = sys.executable
         
         cmd = [str(python_executable), str(self.script_path)]
         
