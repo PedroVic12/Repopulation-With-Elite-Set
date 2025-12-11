@@ -10,7 +10,8 @@ STYLESHEET = """
 /* ========================================
    Base/Tipografia/Janela
    ======================================== */
-/* Aplica o fundo ao widget central, e não à janela principal, para evitar problemas com a moldura */
+/* Aplica os estilos base APENAS ao widget central e seus filhos,
+   para não interferir com a moldura/título da janela principal. */
 QWidget#central_widget {
     background-color: #1e1e1e;
     color: #ffffff;
