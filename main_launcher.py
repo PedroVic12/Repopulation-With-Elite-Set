@@ -1007,7 +1007,7 @@ if __name__ == "__main__":
     app.setWindowIcon(QIcon(str(icon_path)))
     
     # Colocando o CSS
-    app.setStyleSheet(STYLESHEET)
+    #app.setStyleSheet(STYLESHEET)
     if not PLOTLY_AVAILABLE:
         QMessageBox.warning(None, "Dependência Opcional Faltando", "O pacote 'PySide6-WebEngine' não foi encontrado. Os gráficos interativos podem não funcionar.")
     
