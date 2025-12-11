@@ -1,4 +1,4 @@
-# Guia de Documentação com Sphinx e Markdown em Projetos Python
+# Como usar Sphinx e Markdown para documentação em Projetos Python
 
 Este guia fornece as instruções básicas para compilar e visualizar a documentação do projeto.
 

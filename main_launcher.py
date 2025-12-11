@@ -728,7 +728,7 @@ class LauncherWindow(QMainWindow):
 
     def __init__(self):
         super().__init__(); self.setWindowTitle("RCE Framework Launcher MVC")
-        self.setWindowState(Qt.WindowMaximized)
+        self.resize(1368, 768) # Define o tamanho fixo da janela
         central_widget = QWidget(); self.setCentralWidget(central_widget)
         self.main_layout = QHBoxLayout(central_widget); self.main_layout.setContentsMargins(0,0,0,0); self.main_layout.setSpacing(0)
         self.left_menu = QFrame(); self.left_menu.setFixedWidth(240); self.left_menu.setStyleSheet("background-color: #1a1a1a;")
@@ -867,8 +867,16 @@ class MainController(QObject):
             # 2. Construir o comando para o terminal executar
             script_command = f'{sys.executable} \\"{script_path}\\"; exec bash'
 
-            # 3. Usar subprocess.Popen com uma lista de argumentos (mais seguro)
-            subprocess.Popen([terminal_cmd, "-e", "bash", "-c", script_command])
+            # 3. Construir lista de argumentos corretamente para cada terminal
+            args_for_terminal = [terminal_cmd]
+            if terminal_cmd == 'gnome-terminal':
+                # Gnome-terminal requer "--" para separar suas opções do comando
+                args_for_terminal.extend(['--', 'bash', '-c', script_command])
+            else:
+                # Outros terminais geralmente usam -e
+                args_for_terminal.extend(['-e', f'bash -c "{script_command}"'])
+
+            subprocess.Popen(args_for_terminal)
 
         except Exception as e:
             QMessageBox.critical(self.view, "Erro ao abrir terminal", f"Ocorreu um erro: {e}")
@@ -999,11 +1007,5 @@ if __name__ == "__main__":
         QMessageBox.warning(None, "Dependência Opcional Faltando", "O pacote 'PySide6-WebEngine' não foi encontrado. Os gráficos interativos podem não funcionar.")
     
     controller = MainController(app)
-
-    # Forçar janela maximizada manualmente
-    screen = app.primaryScreen()
-    geometry = screen.availableGeometry()
-    controller.view.setGeometry(geometry)
-
     controller.show()
     sys.exit(app.exec())
