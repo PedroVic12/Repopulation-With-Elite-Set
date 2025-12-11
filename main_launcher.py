@@ -70,6 +70,7 @@ BASE_DIR = Path(__file__).parent
 SRC_DIR = BASE_DIR / "src"
 RUN_FRAMEWORK_SCRIPT = SRC_DIR / "run.py"
 RUN_AGENDAMENTO_SCRIPT = SRC_DIR / "run_agendamento.py"
+RUN_SIMULATOR_SCRIPT = SRC_DIR / "SimulatorSIN45/SIN_45_SIMULATOR_ANAREDE.py"
 VARYING_KEYS = {"MUTACAO", "CROSSOVER", "NUM_GENERATIONS", "POP_SIZE"}
 
 OBJECTIVE_FUNCTIONS = [
@@ -287,8 +288,13 @@ class ResultsRepository:
 
 class NavigationMenu(QWidget):
     """View - Menu de navegação lateral."""
-    config_ag_requested = Signal(); params_ag_requested = Signal(); run_ag_requested = Signal()
-    run_agendamento_requested = Signal(); power_system_analysis_requested = Signal()
+    config_ag_requested = Signal()
+    params_ag_requested = Signal()
+    run_ag_requested = Signal()
+    run_agendamento_requested = Signal()
+    power_system_analysis_requested = Signal()
+    run_sin45_simulator_requested = Signal()
+
     def __init__(self):
         super().__init__()
         self.layout = QVBoxLayout(self)
@@ -300,6 +306,7 @@ class NavigationMenu(QWidget):
         self._add_nav_button("run_ag", "▶️ Executar AG", self.run_ag_requested)
         self._add_nav_button("run_agendamento", "📅 Executar Agendamento", self.run_agendamento_requested)
         self._add_nav_button("power_system_analysis", "🔬 Análise de SEP", self.power_system_analysis_requested)
+        self._add_nav_button("run_sin45_simulator", "⚡️ Simular SIN 45", self.run_sin45_simulator_requested)
         self.layout.addStretch()
     def _add_nav_button(self, name, text, signal):
         btn = QPushButton(text); btn.setCheckable(True); btn.setProperty("class", "nav-button")
@@ -430,8 +437,11 @@ class ParamsAGTab(QWidget):
         else: QMessageBox.critical(self, "Erro", "Falha ao salvar parâmetros.")
 
 class ScriptExecutionTab(QWidget):
-    def __init__(self, tab_title, is_queue_runner=False):
-        super().__init__(); self.tab_title = tab_title; self.is_queue_runner = is_queue_runner
+    def __init__(self, tab_title, is_queue_runner=False, script_path=None):
+        super().__init__()
+        self.tab_title = tab_title
+        self.is_queue_runner = is_queue_runner
+        self.script_path = script_path
         self.init_ui()
     def init_ui(self):
         layout = QVBoxLayout(self); self.status_label = QLabel("Aguardando início...")
@@ -634,6 +644,7 @@ class MainController(QObject):
         nav.config_ag_requested.connect(self.open_config_tab); nav.params_ag_requested.connect(self.open_params_tab)
         nav.run_ag_requested.connect(self.open_run_ag_tab); nav.run_agendamento_requested.connect(self.open_run_agendamento_tab)
         nav.power_system_analysis_requested.connect(self.open_power_system_analysis_tab)
+        nav.run_sin45_simulator_requested.connect(self.open_sin45_simulator_tab)
         self.view.tabs.tabCloseRequested.connect(self.close_tab); self.view.tabs.currentChanged.connect(self.on_tab_changed)
         model = self.execution_model
         model.log_updated.connect(self.update_log_on_active_tab); model.all_executions_finished.connect(self.on_queue_finished)
@@ -646,7 +657,7 @@ class MainController(QObject):
         self.open_tabs[tab_name] = widget
         if isinstance(widget, ConfigTab):
             widget.execution_requested.connect(self.start_ag_execution_queue)
-        elif isinstance(widget, ScriptExecutionTab):
+        elif isinstance(widget, ScriptExecutionTab) and not widget.is_queue_runner:
             widget.start_stop_btn.clicked.connect(partial(self.toggle_single_script, widget))
         if hasattr(widget, 'consolidate_btn'):
             widget.consolidate_btn.clicked.connect(self.config_manager.consolidate_results)
@@ -658,9 +669,11 @@ class MainController(QObject):
     @Slot()
     def open_run_ag_tab(self): self.open_or_focus_tab("run_ag", "▶️ Executar AG", ScriptExecutionTab, "Bateria AG", is_queue_runner=True)
     @Slot()
-    def open_run_agendamento_tab(self): self.open_or_focus_tab("run_agendamento", "📅 Executar Agendamento", ScriptExecutionTab, "Agendamento")
+    def open_run_agendamento_tab(self): self.open_or_focus_tab("run_agendamento", "📅 Executar Agendamento", ScriptExecutionTab, "Agendamento", script_path=RUN_AGENDAMENTO_SCRIPT)
     @Slot()
     def open_power_system_analysis_tab(self): self.open_or_focus_tab("power_system_analysis", "🔬 Análise de SEP", MainAnalysisTab, ANALYSIS_CASES, self)
+    @Slot()
+    def open_sin45_simulator_tab(self): self.open_or_focus_tab("run_sin45_simulator", "⚡️ Simular SIN 45", ScriptExecutionTab, "Simulador SIN 45", script_path=RUN_SIMULATOR_SCRIPT)
     @Slot(str)
     def load_analysis_case(self, case_id):
         main_tab_widget = self.open_tabs.get("power_system_analysis")
@@ -714,7 +727,11 @@ class MainController(QObject):
             tab.on_execution_finished(success, message)
             try: tab.start_stop_btn.clicked.disconnect()
             except RuntimeError: pass
+            # Re-connect to toggle_single_script, but it needs a script_path.
+            # For now, let's assume the user might want to run a single default run.
+            tab.script_path = RUN_FRAMEWORK_SCRIPT
             tab.start_stop_btn.clicked.connect(partial(self.toggle_single_script, tab))
+
     @Slot(str)
     def update_log_on_active_tab(self, message):
         widget = self.view.tabs.currentWidget()
@@ -723,7 +740,11 @@ class MainController(QObject):
         if tab.property("thread") and tab.property("thread").isRunning():
             if tab.property("worker"): tab.property("worker").stop()
         else:
-            script_path = RUN_AGENDAMENTO_SCRIPT if tab.tab_title == "Agendamento" else RUN_FRAMEWORK_SCRIPT
+            script_path = tab.script_path
+            if not script_path:
+                QMessageBox.warning(self.view, "Erro", f"Nenhum script associado a esta aba: {tab.tab_title}")
+                return
+
             worker = ScriptWorker(script_path); thread = QThread()
             tab.setProperty("worker", worker); tab.setProperty("thread", thread)
             worker.moveToThread(thread); worker.log_updated.connect(tab.append_log)

@@ -12,6 +12,7 @@ class NavigationMenu(QFrame):
     checklist_requested = Signal()
     settings_requested = Signal()
     perdas_duplas_requested = Signal() # Novo sinal para Perdas Duplas ETL
+    reserva_requested = Signal()  # Novo sinal para Reserva Automática
 
     _NAVIGATION_ITEMS = [
         {"text": "Dashboard", "icon_path": "icon_home.svg", "signal": "dashboard_requested"},
@@ -19,6 +20,7 @@ class NavigationMenu(QFrame):
         {"text": "Checklist", "icon_path": "icon_widgets.svg", "signal": "checklist_requested"},
         {"text": "Configurações", "icon_path": "icon_settings.svg", "signal": "settings_requested"},
         {"text": "🤖 Perdas Duplas ETL", "icon_path": "icon_rpa.svg", "signal": "perdas_duplas_requested"},
+        {"text": "🛎️ Modal de Buttons", "icon_path": "icon_reserva.svg", "signal": "reserva_requested"},
     ]
 
     def __init__(self):

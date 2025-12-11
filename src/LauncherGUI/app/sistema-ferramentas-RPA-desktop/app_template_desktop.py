@@ -1,13 +1,14 @@
 # ///////////////////////////////////////////////////////////////
 #
-# BY: Pedro Victor Rodrigues Veras 
-# PROJECT MADE WITH: Qt Designer and PySide6 for a app template Pyside6 with IFrames, Widgets, Dark/Light Mode, Settings and more!
-# VERSÃO: 3.1.4
+# BY: Pedro Victor Rodrigues Veras (based on Wanderson M. Pimenta)
+# PROJECT MADE WITH: Qt Designer and PySide6
+# V: 10.0.0 (Final Architecture)
 #
 # ///////////////////////////////////////////////////////////////
 
 # IMPORT MODULES
 import sys
+import os 
 import webbrowser
 from functools import partial
 
@@ -17,36 +18,26 @@ from qt_core import *
 # IMPORT STYLES
 from styles import DARK_STYLE, LIGHT_STYLE
 
+
 # IMPORT MODEL
 from app.models.settings_model import SettingsModel
 
-# IMPORT UI
+# IMPORT MAIN WINDOW
 from gui.windows.main_window.ui_main_window import UI_MainWindow
 
-# IMPORT IFRAME WIDGETS (pagina separadas para cada TAB)
+# IMPORT IFRAME WIDGETS
 from gui.iframes.dashboard_widget import DashboardWidget
+from gui.iframes.pomodoro_widget import PomodoroWidget
 from gui.iframes.checklist_widget import ChecklistWidget
 from gui.iframes.settings_widget import SettingsWidget
-
-# IMPORT IFRAME WIDGETS (pagina separadas para cada TAB)
-from gui.iframes.perdas_duplas_widget import PerdasDuplasWidget 
-from gui.iframes.ReservaWidget import ReservaWidget
 
 # IMPORT SIDE MENU WIDGETS
 from gui.side_menus.navigation_menu import NavigationMenu
 from gui.side_menus.checklist_sidemenu import ChecklistSideMenu
 from gui.side_menus.default_sidemenu import DefaultSideMenu
 
-
 # IMPORT CUSTOM WIDGETS
 from gui.widgets.py_text_button import PyTextButton
-
-
-#! PVRV - DOCS
-#1) Crie o sginal no NavigationMenu (navigation_menu.py)
-#2) Crie a função open_<nome>_tab no MainWindow (main.py)
-# 3) Conecte o sinal à função no connect_signals (main.py)
-#4) Crie novas Paginas de IFrames com Widgets da aba (gui/iframes/<nome>_widget.py)
 
 # MAIN WINDOW
 class MainWindow(QMainWindow):
@@ -72,8 +63,6 @@ class MainWindow(QMainWindow):
         self.navigation_menu = NavigationMenu()
         self.ui.left_menu_layout.insertWidget(0, self.navigation_menu)
 
-
-        # import default widgets
         self.side_menu_stack = QStackedWidget()
         self.default_side_menu = DefaultSideMenu()
         self.side_menus['default'] = self.default_side_menu
@@ -91,52 +80,22 @@ class MainWindow(QMainWindow):
         # --- SHOW APP ---
         self.show()
 
-    #! helpers.py FUNCTIONS    
-
-    #! NAVIGATION HANDLERS TABS FUNCTIONS
-    # ///////////////////////////////////////////////////////////////
-    def open_dashboard_tab(self): self.open_or_focus_tab("Dashboard", DashboardWidget)
-    #def open_pomodoro_tab(self): self.open_or_focus_tab("Pomodoro", PomodoroWidget)
-    def open_checklist_tab(self): self.open_or_focus_tab("Checklist", ChecklistWidget, ChecklistSideMenu)
-    def open_settings_tab(self): self.open_or_focus_tab("Configurações", SettingsWidget)
-    def open_perdas_duplas_tab(self): """Abre a aba da ferramenta de Perdas Duplas ETL.""" ; self.open_or_focus_tab("Perdas Duplas ETL", PerdasDuplasWidget)
-    
-    # [NEW] Função para abrir a aba
-    def open_reserva_tab(self):
-        # Aqui passamos 'None' como menu lateral, usando o padrão
-        self.open_or_focus_tab("Reserva Automática", ReservaWidget)
-
-
-    #! CONNECT SIGNALS
     def connect_signals(self):
         # Main Navigation
         self.navigation_menu.dashboard_requested.connect(self.open_dashboard_tab)
-        #self.navigation_menu.pomodoro_requested.connect(self.open_pomodoro_tab)
+        self.navigation_menu.pomodoro_requested.connect(self.open_pomodoro_tab)
         self.navigation_menu.checklist_requested.connect(self.open_checklist_tab)
         self.navigation_menu.settings_requested.connect(self.open_settings_tab)
-        self.navigation_menu.perdas_duplas_requested.connect(self.open_perdas_duplas_tab) # Conecta o sinal do NavigationMenu
         
-
-        # [NEW] Conectar sinal do menu (Você precisará criar esse sinal no NavigationMenu)
-        # Se o sinal ainda não existe no NavigationMenu, comente a linha abaixo por enquanto
-        #if hasattr(self.navigation_menu, 'reserva_requested'):
-        self.navigation_menu.reserva_requested.connect(self.open_reserva_tab)
-
         # Other UI
         self.ui.toggle_button.clicked.connect(self.toggle_button)
         self.ui.tabs.currentChanged.connect(self.on_tab_changed)
         self.ui.tabs.tabCloseRequested.connect(self.close_tab)
 
-
-
-    # CORE UI LOGIC
-    # ///////////////////////////////////////////////////////////////
     def _setup_appbar_links(self):
         links = {
             "🌍 GitHub": "https://github.com/PedroVic12",
-            "Pyside6 web": "https://doc.qt.io/qtforpython-6/PySide6/QtWebEngineWidgets/QWebEngineView.html#PySide6.QtWebEngineWidgets.QWebEngineView",
-            "PySide6 QtWidgets": "https://doc.qt.io/qtforpython-6/PySide6/QtWidgets/QApplication.html#PySide6.QtWidgets.QApplication",
-            "📚 Dashboard Atividades SP": "https://dashboard-ons.onrender.com/",
+            "⚽ Probabilidades": "https://www.mat.ufmg.br/futebol/classificacao-para-libertadores_seriea/",
             "📚 Habit Tracker": "https://gohann-treinamentos-web-app-one.vercel.app",
             "⚡ SEP para Leigos": "https://electrical-system-simulator.vercel.app/"
         }
@@ -146,6 +105,8 @@ class MainWindow(QMainWindow):
             btn.clicked.connect(partial(webbrowser.open, url))
             self.ui.top_bar_layout.addWidget(btn)
 
+    # CORE UI LOGIC
+    # ///////////////////////////////////////////////////////////////
     def open_or_focus_tab(self, tab_name, main_widget_class, side_menu_class=None):
         if tab_name in self.open_tabs:
             self.ui.tabs.setCurrentWidget(self.open_tabs[tab_name])
@@ -168,8 +129,6 @@ class MainWindow(QMainWindow):
         
         self.navigation_menu.set_active_button(tab_name)
 
-    #! SETTINGS FUNCTIONS
-    # ///////////////////////////////////////////////////////////////
     @Slot(int)
     def on_tab_changed(self, index):
         current_tab_widget = self.ui.tabs.widget(index)
@@ -194,6 +153,15 @@ class MainWindow(QMainWindow):
             widget.deleteLater()
             self.ui.tabs.removeTab(index)
 
+    # NAVIGATION HANDLERS
+    # ///////////////////////////////////////////////////////////////
+    def open_dashboard_tab(self): self.open_or_focus_tab("Dashboard", DashboardWidget)
+    def open_pomodoro_tab(self): self.open_or_focus_tab("Pomodoro", PomodoroWidget)
+    def open_checklist_tab(self): self.open_or_focus_tab("Checklist", ChecklistWidget, ChecklistSideMenu)
+    def open_settings_tab(self): self.open_or_focus_tab("Configurações", SettingsWidget)
+
+    # SETTINGS
+    # ///////////////////////////////////////////////////////////////
     @Slot()
     def apply_settings_from_model(self):
         theme = self.settings_model.get("theme")
