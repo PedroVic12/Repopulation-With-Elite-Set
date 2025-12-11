@@ -728,7 +728,6 @@ class LauncherWindow(QMainWindow):
 
     def __init__(self):
         super().__init__(); self.setWindowTitle("RCE Framework Launcher MVC")
-        self.resize(1368, 768) # Define o tamanho fixo da janela
         central_widget = QWidget(); self.setCentralWidget(central_widget)
         self.main_layout = QHBoxLayout(central_widget); self.main_layout.setContentsMargins(0,0,0,0); self.main_layout.setSpacing(0)
         self.left_menu = QFrame(); self.left_menu.setFixedWidth(240); self.left_menu.setStyleSheet("background-color: #1a1a1a;")
@@ -906,6 +905,7 @@ class MainController(QObject):
     def open_run_ag_tab(self): self.open_or_focus_tab("run_ag", "▶️ Executar AG", ScriptExecutionTab, "Bateria AG", is_queue_runner=True)
     @Slot()
     def open_run_agendamento_tab(self): self.open_or_focus_tab("run_agendamento", "📅 Executar Agendamento", ScriptExecutionTab, "Agendamento", script_path=RUN_AGENDAMENTO_SCRIPT)
+    
     @Slot()
     def open_power_system_analysis_tab(self): self.open_or_focus_tab("power_system_analysis", "🔬 Análise de SEP", MainAnalysisTab, ANALYSIS_CASES, self)
     @Slot()
@@ -1007,5 +1007,5 @@ if __name__ == "__main__":
         QMessageBox.warning(None, "Dependência Opcional Faltando", "O pacote 'PySide6-WebEngine' não foi encontrado. Os gráficos interativos podem não funcionar.")
     
     controller = MainController(app)
-    controller.show()
+    controller.view.showMaximized()
     sys.exit(app.exec())
