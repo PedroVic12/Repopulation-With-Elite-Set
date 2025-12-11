@@ -1,22 +1,14 @@
 __pycache__/
 **/__pycache__/
 *.pyc
+
 src/DashboardApp/logs.txt
-lib/
-opniao_gemini_tabela_hash.md
-resultados - Artigo PIBIC/
-app_desktop.py
-notas_artigo.md 
-launcher.py~
-src/run_execution.py 
-src/test_rastrigin.py
-src/run.py~
-timeline_solucoes_agendamento_jsonserver.py
+src/run_agendamentos.py 
+
+pvrv/
 output/
-lib(refatorado)/
 docs-sphinx/_build/
-launcher_summary.md
-apresentacao_SEMENDE.md
+
 
 #! Comandos para retirar o cache no github e manter os arquivos na maquina local
 # git rm -r --cached .

@@ -25,8 +25,7 @@ from collections import deque
 from functools import partial
 
 # Adiciona 'src' ao path para permitir imports de módulos customizados
-sys.path.insert(0, str(Path(__file__).resolve().parent / "src"))
-from gui.widgets.py_push_button import PyPushButton
+from src.LauncherGUI.gui.widgets.py_push_button import PyPushButton
 
 # --- Imports para Análise de SEP ---
 import pandas as pd
@@ -47,7 +46,7 @@ from PySide6.QtWidgets import (
     QStackedLayout, QSplitter, QFileDialog
 )
 from PySide6.QtCore import Qt, QThread, Signal, QTimer, Slot, QObject, QPropertyAnimation, QEasingCurve
-from PySide6.QtGui import QIntValidator, QDoubleValidator, QFont, QColor, QTextCursor
+from PySide6.QtGui import QIntValidator, QDoubleValidator, QFont, QColor, QTextCursor, QIcon
 
 # --- Checagem de dependências opcionais ---
 try:
@@ -108,6 +107,31 @@ ANALYSIS_CASES = {
         "contingencia_df_name": "contingencia_df_ieee118",
         "network_name": "case118"
     }
+}
+
+# =====================================================================================
+#  DICIONÁRIO DE SCRIPTS CUSTOMIZADOS
+# =====================================================================================
+# Adicione novas entradas aqui para criar botões de script no menu lateral.
+# O 'path' deve ser o caminho completo para o seu script.
+CUSTOM_SCRIPTS = {
+    "IEEE_CASES": {
+        "name": "▶️ Executar Electrical-Power-System",
+        "path": SRC_DIR / "LauncherGUI/frontend/Electrical-System-pandapower/SYSTEM_ELECTRICAL_PANDAPOWER.py"  
+    },
+    "PandaPowerCaseManager":{
+        "name": "▶️ Executar PandaPower Case Manager",
+        "path": SRC_DIR / "RedeEletrica/SimulatorSIN45/PandaPowerCaseManager.py"
+    },
+    "SmartGridSimulator":{
+        
+        "name": "▶️ Executar Smart Grid Simulator",
+        "path": SRC_DIR / "RedeEletrica/SimulatorSIN45/SmartGridSimulator.py"
+    }
+    # "outro_script": {
+    #     "name": "▶️ Outro Script",
+    #     "path": SRC_DIR / "caminho/para/outro_script.py"
+    # },
 }
 
 
@@ -319,7 +343,7 @@ class NavigationMenu(QWidget):
     power_system_analysis_requested = Signal()
     run_sin45_simulator_requested = Signal()
     cli_requested = Signal()
-    run_custom_script_requested = Signal()
+    dynamic_script_requested = Signal(str)
 
     def __init__(self):
         super().__init__()
@@ -327,34 +351,42 @@ class NavigationMenu(QWidget):
         self.layout.setContentsMargins(0,0,0,0); self.layout.setSpacing(0)
         self.buttons = {}
         
-        self._add_nav_button("config_ag", "⚙️ Configurar AG", self.config_ag_requested)
-        self._add_nav_button("params_ag", "⌨️ Parâmetros AG", self.params_ag_requested)
-        self._add_nav_button("run_ag", "▶️ Executar AG", self.run_ag_requested)
-        self._add_nav_button("run_agendamento", "📅 Executar Agendamento", self.run_agendamento_requested)
-        self._add_nav_button("power_system_analysis", "🔬 Análise de SEP", self.power_system_analysis_requested)
-        self._add_nav_button("run_sin45_simulator", "⚡️ Simular SIN 45", self.run_sin45_simulator_requested)
-        self._add_nav_button("cli_terminal", "💻 Console", self.cli_requested)
-        self._add_nav_button("custom_script", "🚀 Executar Script...", self.run_custom_script_requested)
+        # Botões padrão
+        self._add_nav_button("config_ag", "⚙️ Setup", self.config_ag_requested.emit)
+        self._add_nav_button("params_ag", "⌨️ Parâmetros AG", self.params_ag_requested.emit)
+        self._add_nav_button("run_ag", "▶️ Executar RCE AG", self.run_ag_requested.emit)
+        self._add_nav_button("run_agendamento", "📅 Executar Agendamento", self.run_agendamento_requested.emit)
+        self._add_nav_button("power_system_analysis", "🔬 Análise de SEP", self.power_system_analysis_requested.emit)
+        self._add_nav_button("run_sin45_simulator", "⚡️ Simular SIN 45", self.run_sin45_simulator_requested.emit)
+        self._add_nav_button("cli_terminal", "💻 Console", self.cli_requested.emit)
+        
+        # Botões dinâmicos de script
+        for script_id, script_info in CUSTOM_SCRIPTS.items():
+            handler = partial(self.dynamic_script_requested.emit, script_id)
+            self._add_nav_button(f"script_{script_id}", script_info["name"], handler)
+
         self.layout.addStretch()
 
-    def _add_nav_button(self, name, text, signal):
+    def _add_nav_button(self, name, text, signal_handler):
         btn = PyPushButton(
             text=text,
-            btn_color="#1a1a1a", # Cor de fundo do menu
-            btn_hover="#007acc", # Cor de hover solicitada
-            btn_pressed="#005a9e", # Cor quando pressionado/ativo
+            btn_color="#1a1a1a",
+            btn_hover="#007acc",
+            btn_pressed="#005a9e",
             text_color="#ffffff",
             text_padding=20,
             height=50,
             minimum_width=240
         )
-        btn.clicked.connect(signal.emit)
+        btn.clicked.connect(signal_handler)
         self.layout.addWidget(btn)
         self.buttons[name] = btn
 
     def set_active_button(self, name):
+        # Desativa todos os botões que não são de script dinâmico
         for btn_name, btn_widget in self.buttons.items():
-            btn_widget.set_active(btn_name == name)
+             if not btn_name.startswith("script_"):
+                btn_widget.set_active(btn_name == name)
 
 class ConfigTab(QWidget):
     execution_requested = Signal(list, int, int)
@@ -690,8 +722,11 @@ class MainAnalysisTab(QWidget):
         self.stack.addWidget(analysis_widget); self.stack.setCurrentWidget(analysis_widget)
 
 class LauncherWindow(QMainWindow):
+    closing = Signal()
+
     def __init__(self):
-        super().__init__(); self.setWindowTitle("RCE Framework Launcher MVC"); self.resize(1400, 800)
+        super().__init__(); self.setWindowTitle("RCE Framework Launcher MVC")
+        self.setWindowState(Qt.WindowMaximized)
         central_widget = QWidget(); self.setCentralWidget(central_widget)
         self.main_layout = QHBoxLayout(central_widget); self.main_layout.setContentsMargins(0,0,0,0); self.main_layout.setSpacing(0)
         self.left_menu = QFrame(); self.left_menu.setFixedWidth(240); self.left_menu.setStyleSheet("background-color: #1a1a1a;")
@@ -700,6 +735,11 @@ class LauncherWindow(QMainWindow):
         self.nav_menu = NavigationMenu(); left_menu_layout.addWidget(self.toggle_button); left_menu_layout.addWidget(self.nav_menu)
         self.main_layout.addWidget(self.left_menu); self.tabs = QTabWidget(); self.tabs.setTabsClosable(True)
         self.main_layout.addWidget(self.tabs)
+
+    def closeEvent(self, event):
+        self.closing.emit()
+        super().closeEvent(event)
+        
     def add_tab(self, widget, name): return self.tabs.addTab(widget, name)
     def set_current_tab(self, widget): self.tabs.setCurrentWidget(widget)
     def close_tab(self, index): self.tabs.removeTab(index)
@@ -768,6 +808,18 @@ class MainController(QObject):
         self.execution_model = ExecutionModel(); self.open_tabs = {}; self.analysis_controllers = {}
         self.connect_signals(); self.open_config_tab()
     def show(self): self.view.show()
+    
+    @Slot()
+    def cleanup_on_exit(self):
+        self.execution_model.stop_all()
+        for widget in self.open_tabs.values():
+            if isinstance(widget, TerminalTab):
+                widget.stop_process()
+            elif isinstance(widget, ScriptExecutionTab):
+                if widget.property("thread") and widget.property("thread").isRunning():
+                    if widget.property("worker"):
+                        widget.property("worker").stop()
+
     def connect_signals(self):
         nav = self.view.nav_menu
         nav.config_ag_requested.connect(self.open_config_tab); nav.params_ag_requested.connect(self.open_params_tab)
@@ -775,35 +827,41 @@ class MainController(QObject):
         nav.power_system_analysis_requested.connect(self.open_power_system_analysis_tab)
         nav.run_sin45_simulator_requested.connect(self.open_sin45_simulator_tab)
         nav.cli_requested.connect(self.open_cli_tab)
-        nav.run_custom_script_requested.connect(self.run_custom_script)
+        nav.dynamic_script_requested.connect(self.run_dynamic_script)
+        
+        self.view.closing.connect(self.cleanup_on_exit)
         self.view.tabs.tabCloseRequested.connect(self.close_tab); self.view.tabs.currentChanged.connect(self.on_tab_changed)
+        
         model = self.execution_model
         model.log_updated.connect(self.update_log_on_active_tab); model.all_executions_finished.connect(self.on_queue_finished)
         model.execution_started.connect(self.on_queue_started); model.execution_progress.connect(self.on_queue_progress)
 
-    @Slot()
-    def run_custom_script(self):
-        file_path, _ = QFileDialog.getOpenFileName(
-            self.view,
-            "Selecionar Script Python",
-            str(BASE_DIR),
-            "Python Scripts (*.py)"
-        )
-        if file_path:
-            script_path = Path(file_path)
-            tab_name = f"script_runner_{script_path.name}"
-            if tab_name in self.open_tabs:
-                self.view.set_current_tab(self.open_tabs[tab_name])
-                return
+    @Slot(str)
+    def run_dynamic_script(self, script_id):
+        if script_id not in CUSTOM_SCRIPTS:
+            QMessageBox.warning(self.view, "Erro", f"Script com ID '{script_id}' não encontrado.")
+            return
 
-            widget = ScriptExecutionTab(f"▶️ {script_path.name}", script_path=script_path)
-            widget.start_stop_btn.clicked.connect(partial(self.toggle_single_script, widget))
-            if hasattr(widget, 'consolidate_btn'):
-                widget.consolidate_btn.setVisible(False)
+        script_info = CUSTOM_SCRIPTS[script_id]
+        script_path = script_info["path"]
+        
+        if not script_path.exists():
+            QMessageBox.warning(self.view, "Erro", f"Caminho do script não encontrado para '{script_id}':\\n{script_path}")
+            return
+            
+        tab_name = f"script_runner_{script_id}"
+        if tab_name in self.open_tabs:
+            self.view.set_current_tab(self.open_tabs[tab_name])
+            return
 
-            self.view.add_tab(widget, f"▶️ {script_path.name}")
-            self.view.tabs.setCurrentWidget(widget)
-            self.open_tabs[tab_name] = widget
+        widget = ScriptExecutionTab(f"▶️ {script_info['name']}", script_path=script_path)
+        widget.start_stop_btn.clicked.connect(partial(self.toggle_single_script, widget))
+        if hasattr(widget, 'consolidate_btn'):
+            widget.consolidate_btn.setVisible(False)
+
+        self.view.add_tab(widget, script_info['name'])
+        self.view.tabs.setCurrentWidget(widget)
+        self.open_tabs[tab_name] = widget
             
     def open_or_focus_tab(self, tab_name, title, widget_class, *args, **kwargs):
         if tab_name in self.open_tabs: self.view.set_current_tab(self.open_tabs[tab_name]); return
@@ -924,6 +982,8 @@ class MainController(QObject):
 if __name__ == "__main__":
     plt.ioff()
     app = QApplication(sys.argv)
+    icon_path = BASE_DIR / "src/assets/imagem.png"
+    app.setWindowIcon(QIcon(str(icon_path)))
     app.setStyleSheet(STYLESHEET)
     if not PLOTLY_AVAILABLE:
         QMessageBox.warning(None, "Dependência Opcional Faltando", "O pacote 'PySide6-WebEngine' não foi encontrado. Os gráficos interativos podem não funcionar.")

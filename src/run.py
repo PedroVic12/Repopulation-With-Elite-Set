@@ -52,96 +52,34 @@ HASHTABLE_SIZE_FUNCS = {
 BASE_DIR = pathlib.Path(__file__).resolve().parent
 
 # variaveis de controle
-
-CLI = True
-
-
-
+CLI = False
 #! Debug Mode para AG e logs.txt para o SEP
-
 DEBUG_MODE = False
-
 BECHMARKING_MODE = False
-
 SHOW_SETTINGS = False
 
-
-
-
-
 # Entrada de dados do usuario
-
 print("\n--------------------------------")
-
 print("No arquivo:", BASE_DIR / "utils" / "functions_fitness")
-
 print("\nSELECIONE O SEU CASO DE SIMULAÇÃO DE AGENDAMENTO DE DESLIGAMENTOS DE CONTINGENCIAS E OTIMIZAÇÃO PARA REDES ELÉTRICAS")
-
 print("\n--------------------------------")
-
 for i in range(len(ARRAY_FITNESS_FUNCTIONS)):
-
     print(f"{i} - {ARRAY_FITNESS_FUNCTIONS[i].__name__}")
-
 print("--------------------------------\n")
 
 
-
-
-
-
-
-
-
-
-
 if CLI:
-
-
-
     print("Responda no terminal onde o seu laucher.py esta sendo executado")
-
-
-
     # choice = input("Digite o número da função objetivo: ")
-
-
-
     # NUMERO = int(choice)
-
-
-
     # print("\n")
-
-
-
     choice_benchmarking = input("Deseja usar o modo benchmarking? (S/N): default (N) ")
-
-
-
     BECHMARKING_MODE = True if choice_benchmarking.lower() == "s" else False
-
-
-
     print("\n")
-
-
-
     debug_mode = input("Deseja usar o modo debug? (S/N): default (N) ")
-
-
-
     DEBUG_MODE = True if debug_mode.lower() == "s" else False
 
-
-
-
-
-
-
 #! https://budavariam.github.io/asciiart-text/
-
-
 
 MSG_TERMINAL ="""
 

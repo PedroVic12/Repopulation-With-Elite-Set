@@ -98,10 +98,10 @@ Isso resultará em uma aplicação robusta e modular, onde o "launcher" atua com
     -   A `LauncherWindow` e as abas (`*Tab`) não contêm mais lógica de negócio, apenas emitem sinais.
     -   O `MainController` gerencia a criação e exibição das abas e inicia as execuções.
     -   A lógica de execução (fila, worker) está encapsulada no `ExecutionModel`.
--   [ ] **Adição de Nova Funcionalidade**:
+-   [x] **Adição de Nova Funcionalidade**:
     -   Um novo botão "Executar Agendamento" foi adicionado ao `NavigationMenu`.
     -   Clicar no novo botão abre uma nova aba (`ScriptExecutionTab`) configurada para rodar `src/run_agendamento.py`.
     -   A execução do script de agendamento funciona e exibe logs na sua própria aba.
--   [ ] **Modularidade**: A nova `ScriptExecutionTab` é genérica o suficiente para ser reutilizada para rodar outros scripts no futuro com poucas modificações.
--   [ ] **Funcionalidade Preservada**: Todas as funcionalidades originais (Configuração, Parâmetros, Execução do `run.py`) continuam funcionando como antes.
--   [ ] **Código Limpo e Documentado**: O novo código está mais legível, e o arquivo `refatoracao_mvc.md` serve como documentação da nova arquitetura.
+-   [x] **Modularidade**: A nova `ScriptExecutionTab` é genérica o suficiente para ser reutilizada para rodar outros scripts no futuro com poucas modificações.
+-   [x] **Funcionalidade Preservada**: Todas as funcionalidades originais (Configuração, Parâmetros, Execução do `run.py`) continuam funcionando como antes.
+-   [x] **Código Limpo e Documentado**: O novo código está mais legível, e o arquivo `refatoracao_mvc.md` serve como documentação da nova arquitetura.
