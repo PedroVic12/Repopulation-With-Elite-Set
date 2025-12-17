@@ -24,7 +24,6 @@ from itertools import product
 from collections import deque
 from functools import partial
 
-# Adiciona 'src' ao path para permitir imports de módulos customizados
 from src.LauncherGUI.gui.widgets.py_push_button import PyPushButton
 
 import shutil

@@ -24,7 +24,7 @@ from typing import Dict
 
 # Import UI components from run/CLI_MENU_UI.py
 try:
-    from CLI_MENU_UI import CLIMenu
+    from LauncherGUI.app.views.CLI_MENU_UI import CLIMenu
 
 except ImportError as e:
     print(f"Erro: Não foi possível importar CLI_MENU_UI.py: {e}")
