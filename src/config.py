@@ -6,7 +6,7 @@ from datetime import datetime
 from DashboardApp.controllers.Utils import FOLDER_NAME, PARAMETROS_JSON
 
 # 4 parametros variando [Mutação, Crossover, Var DIFF, DELTA e restante fixo 
-
+print("rodou! config.py")
 configuracoes_execucoes = {
         "key": True,
         "value": 7,
@@ -19,6 +19,26 @@ configuracoes_execucoes = {
 }
 
 options_main_file = configuracoes_execucoes
+
+# --- CONFIGURAÇÃO do Launcher Estável ---
+BASE_DIR = Path(__file__).parent
+SRC_DIR = BASE_DIR / "src"
+RUN_FRAMEWORK_SCRIPT = SRC_DIR / "run.py"
+DASHBOARD_SCRIPT = SRC_DIR / "DashboardApp" / "dashboard_RCE_APP.py"
+
+# Modo de teste agressivo: quando True, para cada configuração salva o launcher
+# sobrescreve options.json apenas com 'repeticoes_por_config' e chama
+# run.py com --config_num 1 e --exec_num N repetidamente.
+TEST_DEBUG = False
+
+# Parâmetros que podem variar via options.json (arrays)
+VARYING_KEYS = {"MUTACAO", "CROSSOVER", "NUM_GENERATIONS", "POP_SIZE"}
+
+
+
+
+
+####################################
 
 # Função para simular a entrada de dados, como se fosse a leitura de um arquivo JSON ou Excel
 def entrada_de_dados():
@@ -79,7 +99,7 @@ def get_folder_path(debug = False):
 
 FOLDER_NAME = get_folder_path() # nome da pasta output resolvendo problemas de caminho
 
-
+###############################################
 
 def format_elapsed_time(elapsed_time):
     """Formats the elapsed time into a human-readable string.

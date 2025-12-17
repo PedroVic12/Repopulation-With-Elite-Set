@@ -28,20 +28,8 @@ from PySide6.QtGui import QFont, QIcon, QIntValidator, QDoubleValidator, QColor
 # --- IMPORTS DO PROJETO ---
 from style import STYLESHEET
 from src.database_controller import DatabaseController
+from src.config import BASE_DIR, SRC_DIR, RUN_FRAMEWORK_SCRIPT, DASHBOARD_SCRIPT, VARYING_KEYS, TEST_DEBUG
 
-# --- CONFIGURAÇÃO ---
-BASE_DIR = Path(__file__).parent
-SRC_DIR = BASE_DIR / "src"
-RUN_FRAMEWORK_SCRIPT = SRC_DIR / "run.py"
-DASHBOARD_SCRIPT = SRC_DIR / "DashboardApp" / "dashboard_RCE_APP.py"
-
-# Modo de teste agressivo: quando True, para cada configuração salva o launcher
-# sobrescreve options.json apenas com 'repeticoes_por_config' e chama
-# run.py com --config_num 1 e --exec_num N repetidamente.
-TEST_DEBUG = False
-
-# Parâmetros que podem variar via options.json (arrays)
-VARYING_KEYS = {"MUTACAO", "CROSSOVER", "NUM_GENERATIONS", "POP_SIZE"}
 
 class ConfigManager:
     """Gerencia a lógica de configuração, usando o DatabaseController para I/O."""
