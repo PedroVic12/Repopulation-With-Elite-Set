@@ -83,8 +83,6 @@ if CLI:
 
 MSG_TERMINAL ="""
 
-
-
  __       _______ .___________. __      _______.   .______        ______     ______  __  ___  __  
 
 
@@ -108,28 +106,16 @@ MSG_TERMINAL ="""
 |_______||_______|    |__|         |_______/       | _| `._____| \______/   \______||__|'__\ (__) 
 
 
-
-                                                                                                  
-
-
-
 """
 
 print(f"\n{MSG_TERMINAL}\n")
 
 
-
 # Funções auxiliares
-
 def load_params(file_path):
-
     """Carrega parâmetros de um arquivo JSON."""
-
     with open(file_path, "r") as file:
-
         return json.load(file)
-
-
 
 
 
