@@ -1,3 +1,7 @@
 {
-    "repeticoes_por_config": 7
+    "repeticoes_por_config": 7,
+    "MUTACAO": [
+        0.9,
+        0.1
+    ]
 }

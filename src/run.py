@@ -3,6 +3,8 @@
 Execução do framework RCE com configuração de várias execuções e variações de parâmetros.
 PVRV - 20/08/2025
 RZ - 16/10/2025 - resolvendo chamada a diversas funções objetivo
+PVRV - 10/12/2025 - Adicionando passagem de argumentos via linha de comando para configuração e execução específicas
+PVRV - 17/12/2025 - Correções gerais após artigo PIBIC e criação do .exe do projeto
 """
 
 # Imports principais do framework
@@ -22,7 +24,7 @@ from utils.functions_fitness.function_IEEE_57_otimizacao import funcao_objetivo_
 from utils.functions_fitness.func_objetivo_SIN_45_otimizado_AG_ONS import funcao_objetivo_SIN45, HASH_TABLE_PATH as HASH_TABLE_PATH_SIN45, hashtablesize as hashtablesize_SIN45
 from utils.functions_fitness.function_IEEE_118_otimizacao import funcao_objetivo_IEEE118, HASH_TABLE_PATH as HASH_TABLE_PATH_IEEE118, hashtablesize as hashtablesize_IEEE118
 
-# from database_controller import run_consolidar_resultados
+from database_controller import run_consolidar_resultados
 import argparse
 
 # Bibliotecas padrão
@@ -32,8 +34,6 @@ import pandas as pd
 import numpy as np
 import os
 from datetime import datetime
-
-
 
 
 # VARIAVEIS GLOBAIS
@@ -559,10 +559,7 @@ def run_framework_many_executions(function_bechmarking=False, config_num_arg=Non
 
         print(f" Erro ao iniciar o subprocesso de consolidação: {e}")
 
-
-
-
-
+#! Rodando o framework se for o arquivo principal
 if __name__ == "__main__":
 
     parser = argparse.ArgumentParser()
@@ -576,7 +573,7 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
 
-
+    # Define o número da função objetivo a partir dos argumentos ou padrão
     numero_selecionado = args.objective_function_index
 
     if CLI:
@@ -586,8 +583,6 @@ if __name__ == "__main__":
         if choice:
 
             numero_selecionado = int(choice)
-
-
 
     run_framework_many_executions(
 

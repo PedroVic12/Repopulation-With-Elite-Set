@@ -341,7 +341,6 @@ class NavigationMenu(QWidget):
     config_ag_requested = Signal()
     params_ag_requested = Signal()
     run_ag_requested = Signal()
-    run_agendamento_requested = Signal()
     power_system_analysis_requested = Signal()
     run_sin45_simulator_requested = Signal()
     cli_requested = Signal()
@@ -357,7 +356,6 @@ class NavigationMenu(QWidget):
         self._add_nav_button("config_ag", "⚙️ Setup", self.config_ag_requested.emit)
         self._add_nav_button("params_ag", "⌨️ Parâmetros AG", self.params_ag_requested.emit)
         self._add_nav_button("run_ag", "▶️ Executar RCE AG", self.run_ag_requested.emit)
-        self._add_nav_button("run_agendamento", "📅 Executar Agendamento", self.run_agendamento_requested.emit)
         #self._add_nav_button("power_system_analysis", "🔬 Análise de SEP", self.power_system_analysis_requested.emit)
         #self._add_nav_button("run_sin45_simulator", "⚡️ Simular SIN 45", self.run_sin45_simulator_requested.emit)
         self._add_nav_button("cli_terminal", "💻 Console", self.cli_requested.emit)
@@ -824,7 +822,6 @@ class MainController(QObject):
     def connect_signals(self):
         nav = self.view.nav_menu
         nav.config_ag_requested.connect(self.open_config_tab); nav.params_ag_requested.connect(self.open_params_tab)
-        nav.run_ag_requested.connect(self.open_run_ag_tab); nav.run_agendamento_requested.connect(self.open_run_agendamento_tab)
         #nav.power_system_analysis_requested.connect(self.open_power_system_analysis_tab)
         #nav.run_sin45_simulator_requested.connect(self.open_sin45_simulator_tab)
         nav.cli_requested.connect(self.open_cli_tab)
@@ -903,10 +900,6 @@ class MainController(QObject):
     def open_params_tab(self): self.open_or_focus_tab("params_ag", "⌨️ Parâmetros AG", ParamsAGTab, self.config_manager)
     @Slot()
     def open_run_ag_tab(self): self.open_or_focus_tab("run_ag", "▶️ Executar AG", ScriptExecutionTab, "Bateria AG", is_queue_runner=True)
-    
-    @Slot()
-    def open_run_agendamento_tab(self): self.open_or_focus_tab("run_agendamento", "📅 Executar Agendamento", ScriptExecutionTab, "Agendamento", script_path=RUN_AGENDAMENTO_SCRIPT)
-    
     
     #@Slot()
     #def open_power_system_analysis_tab(self): self.open_or_focus_tab("power_system_analysis", "🔬 Análise de SEP", MainAnalysisTab, ANALYSIS_CASES, self)

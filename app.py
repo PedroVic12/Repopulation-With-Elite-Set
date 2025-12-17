@@ -18,6 +18,13 @@ from PySide6.QtCore import Qt, QThread, Signal, QTimer, Slot, QObject
 from PySide6.QtGui import QFont, QIcon, QIntValidator, QDoubleValidator, QColor
 
 
+#! FIXED_BUG (2025-10-15):
+# - Corrigido IndexError em ExecutionTab.run_next_configuration adicionando guarda para total_runs
+# - Corrigido fluxo para evitar chamadas concorrentes que geravam current_run_number fora de sincronia
+# - Agendamento de próxima execução feito via QTimer.singleShot somente quando ainda houver runs pendentes e não estivermos finalizando
+# - Mantive seus comentários e históricos; este bloco documenta as alterações de correção aplicadas
+
+
 # --- IMPORTS DO PROJETO ---
 from style import STYLESHEET
 from src.database_controller import DatabaseController
@@ -613,9 +620,3 @@ if __name__ == "__main__":
     window.showMaximized()
     sys.exit(app.exec())
 
-# FIXED_BUG (2025-10-15):
-# - Corrigido IndexError em ExecutionTab.run_next_configuration adicionando guarda para total_runs
-# - Corrigido fluxo para evitar chamadas concorrentes que geravam current_run_number fora de sincronia
-# - Adicionada flag `_finished_called` para bloquear callbacks tardios e evitar re-agendamento após finalização
-# - Agendamento de próxima execução feito via QTimer.singleShot somente quando ainda houver runs pendentes e não estivermos finalizando
-# - Mantive seus comentários e históricos; este bloco documenta as alterações de correção aplicadas
