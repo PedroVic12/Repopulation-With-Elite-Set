@@ -24,7 +24,6 @@ from typing import Dict
 
 # Import UI components from run/CLI_MENU_UI.py
 try:
-    #sys.path.insert(0, str(Path(__file__).parent / "run"))
     from CLI_MENU_UI import CLIMenu
 
 except ImportError as e:

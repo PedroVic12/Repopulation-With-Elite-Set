@@ -388,6 +388,8 @@ class NavigationMenu(QWidget):
              if not btn_name.startswith("script_"):
                 btn_widget.set_active(btn_name == name)
 
+
+# Tabs (Iframes separados)
 class ConfigTab(QWidget):
     execution_requested = Signal(list, int, int)
     def __init__(self, config_manager):
@@ -537,6 +539,7 @@ class ScriptExecutionTab(QWidget):
         self.start_stop_btn.setText(f"▶️ Iniciar {self.tab_title}"); self.start_stop_btn.setEnabled(True)
         if success: QMessageBox.information(self, "Concluído", message)
 
+# Widgets
 class AnalysisSelectionWidget(QWidget):
     analysis_selected = Signal(str)
     def __init__(self, cases):
@@ -802,6 +805,8 @@ class PowerSystemController(QObject):
         self.view.update_table(self.view.voltage_table, pd.DataFrame()); self.view.update_table(self.view.line_loading_table, pd.DataFrame())
         self.view.voltage_plot.clear(); self.view.line_loading_plot.clear()
 
+
+#! Janela Principal do app desktop
 class MainController(QObject):
     def __init__(self, app):
         super().__init__(); self.app = app; self.view = LauncherWindow(); self.config_manager = ConfigManager()
