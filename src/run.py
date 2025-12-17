@@ -195,21 +195,22 @@ def run_framework_many_executions(function_bechmarking=False, config_num_arg=Non
     combinations = [dict(zip(varying_keys, vals)) for vals in product(*varying_values)] if varying_keys else [{}]
     # If caller requested a single configuration/execution via CLI args, restrict accordingly
 
+    # Determina o número da configuração inicial e filtra as combinações se um
+    # argumento específico for passado.
     if config_num_arg is not None:
-
-        # config_num_arg is 1-based coming from launcher
-
+        # Quando um número de configuração específico é passado (pelo launcher),
+        # filtramos a lista de combinações para conter apenas essa.
+        # O config_num_arg é 1-based, então ajustamos para o índice 0-based.
         idx = int(config_num_arg) - 1
-
         if idx < 0 or idx >= len(combinations):
-
             print(f"Índice de configuração inválido: {config_num_arg}")
-
             return
-
         combinations = [combinations[idx]]
-
-        # If exec_num_arg provided, we'll run only that exec (handled below)
+        # Define o número inicial da configuração para o que foi fornecido.
+        config_num_start = config_num_arg
+    else:
+        # Se nenhum argumento for passado, inicia a partir da primeira configuração.
+        config_num_start = 1
 
     #! Inicia o contador de tempo de execução
     start = datetime.now()
@@ -221,7 +222,7 @@ def run_framework_many_executions(function_bechmarking=False, config_num_arg=Non
     timestamp = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
     main_output_dir = BASE_DIR / "output" / f"run_{timestamp}"
     os.makedirs(main_output_dir, exist_ok=True)
-    config_num = 1
+    config_num = config_num_start
 
     for combo in combinations:
         # Cria um diretório específico para a configuração
