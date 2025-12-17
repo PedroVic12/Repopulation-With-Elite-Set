@@ -191,9 +191,16 @@ class ScriptWorker(QObject):
 
             cmd = [str(python_executable)] + [str(p) for p in [self.script_path] + self.args]
             self.log_updated.emit(f"Executando: {' '.join(cmd)}")
+
+            # Configura o ambiente para forçar UTF-8 no processo filho,
+            # o que ajuda a evitar erros de encoding, especialmente no Windows.
+            env = os.environ.copy()
+            env['PYTHONIOENCODING'] = 'utf-8'
+
             self.process = subprocess.Popen(
                 cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
-                universal_newlines=True, cwd=SRC_DIR, encoding='utf-8', errors='replace'
+                universal_newlines=True, cwd=SRC_DIR, encoding='utf-8',
+                errors='replace', env=env
             )
             for line in iter(self.process.stdout.readline, ''):
                 if line: self.log_updated.emit(line.strip())
@@ -514,6 +521,11 @@ class TerminalTab(QWidget):
         cmd = [str(python_executable), str(self.script_path)]
         
         try:
+            # Configura o ambiente para forçar UTF-8 no processo filho,
+            # o que ajuda a evitar erros de encoding, especialmente no Windows.
+            env = os.environ.copy()
+            env['PYTHONIOENCODING'] = 'utf-8'
+            
             self.process = subprocess.Popen(
                 cmd,
                 stdin=subprocess.PIPE,
@@ -523,7 +535,8 @@ class TerminalTab(QWidget):
                 cwd=SRC_DIR,
                 encoding='utf-8',
                 errors='replace',
-                bufsize=1  # Line-buffered
+                bufsize=1,  # Line-buffered
+                env=env
             )
             
             self.thread = QThread()

@@ -36,6 +36,8 @@ import os
 from datetime import datetime
 
 
+
+#! Passar tudo aqui para o config.py depois
 # VARIAVEIS GLOBAIS
 ARRAY_FITNESS_FUNCTIONS = [funcao_objetivo_IEEE14,funcao_objetivo_IEEE30, funcao_objetivo_IEEE57, funcao_objetivo_IEEE118, funcao_objetivo_SIN45]
 
