@@ -5,17 +5,14 @@ import pathlib
 import pandapower as pp
 from datetime import datetime
 
-
-
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..')))
 
-from RedeEletrica_backup.rede_eletrica import RedeEletricaPandaPower
-from AlgEvolutivoRCE_backup.Setup import Setup
-from AlgEvolutivoRCE_backup.alg_evolutivo_rce import AlgoritimoEvolutivoRCE
+from RedeEletrica.rede_eletrica import RedeEletricaPandaPower
+from AlgEvolutivoRCE.Setup import Setup
+from AlgEvolutivoRCE.alg_evolutivo_rce import AlgoritimoEvolutivoRCE
 
-
-
-
+BASE_DIR = pathlib.Path(__file__).resolve().parent
+HASH_TABLE_PATH = BASE_DIR.parent.parent / "output" / "hash_table.xlsx"
 
 def analise_contigencias_SEP(rede, setupobj, matriz_cenarios , agendamento_df, contingencia_df):
     """
@@ -243,21 +240,27 @@ class SmartGridSin45:
 
 
 
-
-# --- DADOS DE AGENDAMENTO E CONTINGÊNCIA (EXEMPLO) ---
-# IMPORTANTE: Estes são dados de exemplo e devem ser ajustados para o caso real.
+# --- DADOS DE AGENDAMENTO E CONTINGÊNCIA (Retirado da tese de RZ na pagina 132-133) ---
+#! Dados reduzidos para IND_SIZE = 5 para resultado rápido para o artigo
 agendamento_df = pd.DataFrame([
-    {"ramo": [1, 2], "duracao": 5, "prioridade": 1},   # IVAIPORA -> LONDRINA
-    {"ramo": [7, 8], "duracao": 4, "prioridade": 2},   # P.FUNDO -> XANXERE
-    {"ramo": [20, 21], "duracao": 6, "prioridade": 1}, # CURITIBA -> CUR.NORTE
-    {"ramo": [24, 37], "duracao": 3, "prioridade": 3}, # GRAVATAI -> GRAVATAI.230
-    {"ramo": [41, 42], "duracao": 5, "prioridade": 1}  # APUCARANA -> LONDRINA.230
+    {"ramo": [8, 11],"inicio": "08:00",  "duracao": 4, "prioridade": 4},   # IVAIPORA -> LONDRINA
+    {"ramo": [43, 44],"inicio": "10:00", "duracao": 5, "prioridade": 1},   # P.FUNDO -> XANXERE
+    {"ramo": [4, 33], "inicio": "14:00", "duracao": 4, "prioridade": 1}, # CURITIBA -> CUR.NORTE
+    {"ramo": [7, 39], "inicio": "18:00", "duracao": 6 ,"prioridade": 1},
+    {"ramo": [41, 44], "inicio": "15:00", "duracao": 4, "prioridade": 1},
+    
+    # {"ramo": [20, 21], "inicio": "08:00", "duracao": 4, "prioridade": 1},
+    # {"ramo": [39, 40], "inicio": "10:00", "duracao": 5, "prioridade": 1},
+    # {"ramo": [42, 43], "inicio": "14:00", "duracao": 4, "prioridade": 1},
+    # {"ramo": [4, 45], "inicio": "18:00", "duracao": 6, "prioridade": 1},
+    # {"ramo": [5, 7], "inicio": "15:00", "duracao": 4, "prioridade": 1},
+
 ])
 
 contingencia_df = pd.DataFrame([
-    {"contingencia": 1, "from": 1, "to": 19},  # IVAIPORA -> AREIA.525
-    {"contingencia": 2, "from": 24, "to": 26}, # GRAVATAI -> PINHEIRO
-    {"contingencia": 3, "from": 35, "to": 28}  # SEGREDO -> S.SANTIAG525
+    {"contingencia": 1, "from": 4, "to": 5},  
+    {"contingencia": 2, "from": 9, "to": 11}, 
+    {"contingencia": 3, "from": 19, "to": 23}  
 ])
 
 
@@ -266,10 +269,19 @@ resultados = {
 
 }
 
+def hashtablesize():
+    contingencias = contingencia_df['contingencia'].to_list()
+    num_carregamentos = 3
+    num_contingencias = len(contingencias) # 3
+    num_desligamentos = len(agendamento_df) # 10
+    
+    size = num_contingencias* num_carregamentos*(2**num_desligamentos)
+    #print("Hash table INICIAL criada de tamanho = ", size)
+    return size
 
 
-def hashtablesize_sin45():
-    return len(contingencia_df) * 3 * (2**len(agendamento_df))
+                          
+                                                              
 
 def funcao_objetivo_SIN45(individuo, setupobj, _debug=False):
 
@@ -285,8 +297,7 @@ def funcao_objetivo_SIN45(individuo, setupobj, _debug=False):
         rede.net = pp_network_SIN
         
         print("\n\nAnalisando o Sistema elétrico: ", nome_rede)
-        print("\n")
-        print(rede.net)
+        #print(rede.net)
         print("\n\n")
 
 
@@ -353,9 +364,9 @@ HORARIOS_COND_INICIAL = [15, 15, 10, 21, 20]
 
 # Dicionário de parâmetros para a função de teste
 params_json_teste = {
-    "NUM_GENERATIONS": 300,
+    "NUM_GENERATIONS": 10,
     "CROSSOVER": 0.9,
-    "MUTACAO": 0.5,
+    "MUTACAO": 0.77,
     "POP_SIZE": 50,
     "IND_SIZE": 5,
     "RCE_REPOPULATION_GENERATIONS": 50,
@@ -367,13 +378,17 @@ params_json_teste = {
 }
     
 def run_simulate_SIN45():
-    tabela_hash = hashtablesize_sin45()
+    tabela_hash = hashtablesize()
 
     setup = Setup(
         params= params_json_teste,
         fitness_function= funcao_objetivo_SIN45,
         tamanho_hash= tabela_hash,
     )
+    
+    numgenerations = params_json_teste["NUM_GENERATIONS"]
+    
+    print(f"\n\nRodando a otimização de Agendamento de Intervençoões no SEP com SIN 45 em {numgenerations} Gerações com AG with Repopulation With Elite Set" )
 
     fitness  = funcao_objetivo_SIN45(
         individuo= HORARIOS_COND_INICIAL,
@@ -394,18 +409,19 @@ def run_simulate_SIN45():
     start_exec = datetime.now()
 
     #! 6) Executa algoritmo
-    alg = AlgoritimoEvolutivoRCE(setup, DEBUG=True)
+    alg = AlgoritimoEvolutivoRCE(setup, DEBUG=False)
     print(f"Algoritmo Evolutivo iniciado")
-    pop_with_repopulation, logbook_with_repopulation, best_individual, all_individual_values = alg.run(RCE=True)
+    pop_with_repopulation, logbook_with_repopulation, best_individual, all_individual_values = alg.run(RCE=False)
     best_variables = list(best_individual)
 
 
+
+    print("\nEvolução concluída  - 100%")
     # Finaliza o cronômetro e calcula a duração desta execução
     end_exec = datetime.now()
     elapsed_exec = end_exec - start_exec
-
+    
     #! 7) Visualize os Resultados
-    print("\nEvolução concluída  - 100%")
     best_solution_generation, _, _, _ = alg.dashboard.visualize(
         logbook_with_repopulation,
         pop_with_repopulation,

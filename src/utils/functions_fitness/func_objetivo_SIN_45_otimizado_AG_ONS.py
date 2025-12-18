@@ -297,8 +297,7 @@ def funcao_objetivo_SIN45(individuo, setupobj, _debug=False):
         rede.net = pp_network_SIN
         
         print("\n\nAnalisando o Sistema elétrico: ", nome_rede)
-        print("\n")
-        print(rede.net)
+        #print(rede.net)
         print("\n\n")
 
 
@@ -306,7 +305,7 @@ def funcao_objetivo_SIN45(individuo, setupobj, _debug=False):
         rede.pesos["tensao"] = {"min": 0.95, "max": 1.05}
         rede.pesos["loading_linhas"] = 100
         rede.pesos["loading_trafos"] = 100
-        rede.pesos["demanda"] = 9999
+        rede.pesos["demanda"] = 99
 
         # Set voltage limits on buses
         rede.net.bus['min_vm_pu'] = rede.pesos["tensao"]["min"]
@@ -440,5 +439,5 @@ def run_simulate_SIN45():
 
     print(f"\nMelhores hórarios de agendamento de operação do SEP: SIN 45: {best_variables}")
 
-#run_simulate_SIN45()
+run_simulate_SIN45()
 

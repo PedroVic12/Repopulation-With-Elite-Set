@@ -170,383 +170,195 @@ def convert_values_to_int(params):
 
 
 # Função principal para executar o framework com múltiplas execuções
-
 def run_framework_many_executions(function_bechmarking=False, config_num_arg=None, exec_num_arg=None, objective_function_index=0):
     numero = objective_function_index
 
     if function_bechmarking:
-
         print("Função objetivo selecionada: Rastrigin")
-
     else:
-
         print(f"Função objetivo selecionada: {ARRAY_FITNESS_FUNCTIONS[numero]}")
 
-    # 1. Carrega parâmetros base e opções
+    start_time = datetime.now()
+    
+    # Se chamado pelo launcher, execute uma única configuração e saia.
+    if config_num_arg is not None and exec_num_arg is not None:
+        params = load_params(f"{BASE_DIR}/params.json")
+        params = convert_values_to_int(params)
+        
+        timestamp = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
+        main_output_dir = BASE_DIR / "output" / f"run_{timestamp}"
+        os.makedirs(main_output_dir, exist_ok=True)
+        config_dir = main_output_dir / f"config_{config_num_arg}"
+        os.makedirs(config_dir, exist_ok=True)
+        
+        print(f"\n[INFO] Executando configuração {config_num_arg}, execução {exec_num_arg}")
+        print(f"Parâmetros: {params}")
+
+        run_single_execution(params, fitness_func_idx=numero, is_benchmark=function_bechmarking,
+                             config_num=config_num_arg, exec_num=exec_num_arg,
+                             output_dir=config_dir, total_start_time=start_time)
+        
+        return
+
+    # Lógica original para execuções múltiplas (quando rodado diretamente)
     params_base = load_params(f"{BASE_DIR}/params.json")
     options = load_params(f"{BASE_DIR}/options.json")
     params_base = convert_values_to_int(params_base)
 
-    # 2. Descobre variações e número de execuções
     varying_keys = [k for k in options if isinstance(options[k], list) and len(options[k]) > 0]
     varying_values = [options[k] for k in varying_keys]
     repeticoes = options.get('repeticoes_por_config', 1)
 
-    # 3. Gera todas as combinações de parâmetros
     from itertools import product
     combinations = [dict(zip(varying_keys, vals)) for vals in product(*varying_values)] if varying_keys else [{}]
-    # If caller requested a single configuration/execution via CLI args, restrict accordingly
+    
+    total_execs = len(combinations) * repeticoes
+    print("\nResumo da Execução:")
+    print(f"  Configurações Únicas: {len(combinations)}")
+    print(f"  Execuções por Configuração: {repeticoes}")
+    print(f"  Total de Execuções: {total_execs}\n")
 
-    # Determina o número da configuração inicial e filtra as combinações se um
-    # argumento específico for passado.
-    if config_num_arg is not None:
-        # Quando um número de configuração específico é passado (pelo launcher),
-        # filtramos a lista de combinações para conter apenas essa.
-        # O config_num_arg é 1-based, então ajustamos para o índice 0-based.
-        idx = int(config_num_arg) - 1
-        if idx < 0 or idx >= len(combinations):
-            print(f"Índice de configuração inválido: {config_num_arg}")
-            return
-        combinations = [combinations[idx]]
-        # Define o número inicial da configuração para o que foi fornecido.
-        config_num_start = config_num_arg
-    else:
-        # Se nenhum argumento for passado, inicia a partir da primeira configuração.
-        config_num_start = 1
-
-    #! Inicia o contador de tempo de execução
-    start = datetime.now()
-    # Exibe informações das configurações
-    print(f"\nTotal de configurações únicas: {len(combinations)}")
-    print(f"Execuções por configuração: {repeticoes}")
-
-    # Cria um diretório de saída com timestamp para evitar sobreposições
     timestamp = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
     main_output_dir = BASE_DIR / "output" / f"run_{timestamp}"
     os.makedirs(main_output_dir, exist_ok=True)
-    config_num = config_num_start
-
-    for combo in combinations:
-        # Cria um diretório específico para a configuração
-        config_dir = main_output_dir / f"config_{config_num}"
-        os.makedirs(config_dir, exist_ok=True)
-
-        # Monta params para esta configuração
-
-        params = params_base.copy()
-
-        params.update(combo)
-
-        params = convert_values_to_int(params)
-
-
-
-        print(f"\n[INFO] Executando com a seguinte combinação de parâmetros: {combo}")
-
-
-
-        #! 4) Define função objetivo
-
-        fitness_func = ARRAY_FITNESS_FUNCTIONS[numero] if not function_bechmarking else rastrigin
-
-        #! Pega a função de cálculo de tamanho de hash correspondente, se existir
-        size_func = HASHTABLE_SIZE_FUNCS.get(fitness_func.__name__)
-        tamanho_hash_val = 0
-        if size_func:
-            tamanho_hash_val = size_func()
-
-        #! 5) Instancia Setup uma vez por configuração
-        print(f"\n\nIniciando configuração {config_num}:\nusando os params.json:\n{params}\n")
-        setup = Setup(
-            params,
-            fitness_function=fitness_func,
-            tamanho_hash=tamanho_hash_val
-        )
-        print("Classe Setup iniciada para a configuração.")
-
-        def consultaHashTable():
-
-            # Consulta hash_table se existir (sub rotina)
-
-            if os.path.exists(HASH_TABLE_PATH[numero]):
-
-                try:
-
-                    
-
-                    # Read from Excel, using the first column as the index (our hash key)
-
-                    hash_excel = pd.read_excel(HASH_TABLE_PATH[numero], index_col=0)
-
-                    if not hash_excel.empty:
-
-                        
-
-                        # Update the list-based hash table from the loaded dictionary
-
-                        for key, value in hash_excel['Fitness'].items():
-
-                            
-
-                            if isinstance(key, int) and key < len(setup.tabela_hash):
-
-                                setup.tabela_hash[key] = value
-
-                                
-
-                        print(f"Tabela hash carregada e atualizada com {len(hash_excel)} registros!")
-
-                except Exception as e:
-
-                    print(f"Erro ao carregar hash_table.xlsx: {e}")
-
-            else:
-
-                # If the file doesn't exist, create it from the initial hash table
-
-                hash_df = pd.DataFrame(data=setup.tabela_hash, columns=['Fitness'])
-
-                hash_df.to_excel(HASH_TABLE_PATH[numero], index=False)
-
-                print(f"Tabela hash INICIAL com {len(setup.tabela_hash)} posições não existia e foi criada! - PVRV")
-
-
-
-        #!PVRV - Retirando e colocando no inicio de cada funcao objetivo
-
-        consultaHashTable()
-
-
-
-        # Define o range de execuções a serem rodadas
-
-        if exec_num_arg is not None:
-
-            
-
-            # Se uma execução específica foi passada como argumento, roda apenas ela
-
-            execution_range = range(exec_num_arg, exec_num_arg + 1)
-
-        else:
-
-            # Caso contrário, roda todas as repetições configuradas
-
-            execution_range = range(1, repeticoes + 1)
-
-
-
-        # O loop de repetições agora usa o range determinado
-
-        for exec_num in execution_range:
-
-            print(f"\n--- Iniciando execução {exec_num}/{repeticoes} ---")
-
-
-
-            # Inicia o cronômetro para esta execução específica
-
-            start_exec = datetime.now()
-
-
-
-            #! 6) Executa algoritmo
-
-            alg = AlgoritimoEvolutivoRCE(setup, DEBUG=DEBUG_MODE)
-
-            print(f"Algoritmo Evolutivo iniciado. DEBUG MODE = {DEBUG_MODE}")
-
-            pop_with_repopulation, logbook_with_repopulation, best_individual, all_individual_values = alg.run(RCE=True)
-
-            best_variables = list(best_individual)
-
-
-
-            # Finaliza o cronômetro e calcula a duração desta execução
-
-            end_exec = datetime.now()
-
-            elapsed_exec = end_exec - start_exec
-
-            formatted_time_exec = format_elapsed_time(elapsed_exec)
-
-
-
-            #! 7) Visualize os Resultados
-
-            print("\nEvolução concluída  - 100%")
-
-            best_solution_generation, _, _, _ = alg.dashboard.visualize(
-
-                logbook_with_repopulation,
-
-                pop_with_repopulation,
-
-                config_num=config_num,
-
-                execution_num=exec_num,
-
-            )
-
-
-
-            # Exibe os tempos e contadores de forma clara
-
-            print(f"\nDuração desta Execução: {formatted_time_exec}")
-
-            print(f"Tempo Total Acumulado: {format_elapsed_time(end_exec - start)}")
-
-            print(f"Objective functions runs: {setup.objectiveruns}")
-
-            print(f"Consultas HashTable: {setup.hashtablereads}\n")
-
-
-
-            #! 8) Salva os dados de visualização
-
-            vis_output_path = config_dir / f"config_{config_num}_exec_{exec_num}_visualization.json"
-
-            try:
-
-                for item in all_individual_values:
-
-                    if 'Variaveis de Decisão' in item and hasattr(item['Variaveis de Decisão'], 'tolist'):
-
-                        item['Variaveis de Decisão'] = item['Variaveis de Decisão'].tolist()
-
-                    elif isinstance(item['Variaveis de Decisão'], np.ndarray):
-
-                        item['Variaveis de Decisão'] = item['Variaveis de Decisão'].tolist()
-
-                    elif not isinstance(item['Variaveis de Decisão'], (list, str)):
-
-                        item['Variaveis de Decisão'] = list(item['Variaveis de Decisão'])
-
-                with open(vis_output_path, 'w', encoding='utf-8') as f:
-
-                    json.dump(all_individual_values, f, indent=4, ensure_ascii=False)
-
-            except Exception as e:
-
-                print(f"Erro ao salvar dados de visualização: {e}")
-
-
-
-            #! 9) Salva resultado individual como JSON
-
-            best_fitness = best_individual.fitness.values[0] if best_individual.fitness.valid else float('inf')
-
-            result = {
-
-                "config_num": config_num,
-
-                "exec_num": exec_num,
-
-                "params": params,
-
-                "best_variables": best_variables,
-
-                "best_fitness": best_fitness,
-
-                "best_gen_idx": best_solution_generation,
-
-                "time": formatted_time_exec,  # Usa o tempo da execução individual
-
-                "fitness_function": fitness_func.__name__
-
-            }
-
-            output_path = config_dir / f"config_{config_num}_exec_{exec_num}_results.json"
-
-            try:
-
-                with open(output_path, 'w', encoding='utf-8') as f:
-
-                    json.dump(result, f, indent=4, ensure_ascii=False)
-
-            except Exception as e:
-
-                print(f"Erro ao salvar resultado: {e}")
-
-            
-
-            print("Resultados e visualizações salvos com sucesso.")
-
-
-
-        # --- FIM DO LOOP DE REPETIÇÕES ---
-
-
-
-        # Salva a tabela hash UMA VEZ no final de todas as execuções da configuração
-
-        print("\n" + "="*60)
-
-        print(f"FIM DA CONFIGURAÇÃO {config_num}")
-
-        print("=" * 60)
-
-
-
-        try:
-
-            hash_df = pd.DataFrame(data=setup.tabela_hash, columns=['Fitness'])
-
-            hash_df.to_excel(HASH_TABLE_PATH[numero], index=False)
-
-            #print(f"Salvando tabela hash em {HASH_TABLE_PATH[NUMERO]}... com tamanho de {len(setup.tabela_hash)} posições!")
-
-
-
-        except Exception as e:
-
-            print(f"ERRO ao salvar a tabela hash: {e}")
-
-
-
-
-
-        config_num += 1
-
     
+    for config_idx, combo in enumerate(combinations, 1):
+        config_dir = main_output_dir / f"config_{config_idx}"
+        os.makedirs(config_dir, exist_ok=True)
+        
+        params = params_base.copy()
+        params.update(combo)
+        params = convert_values_to_int(params)
+        
+        print(f"\n[INFO] Iniciando configuração {config_idx} com: {combo}")
+
+        for exec_num in range(1, repeticoes + 1):
+            print(f"\n--- Iniciando execução {exec_num}/{repeticoes} ---")
+            run_single_execution(params, fitness_func_idx=numero, is_benchmark=function_bechmarking,
+                                 config_num=config_idx, exec_num=exec_num,
+                                 output_dir=config_dir, total_start_time=start_time)
+
+        print("\n" + "="*60 + f"\nFIM DA CONFIGURAÇÃO {config_idx}\n" + "=" * 60)
 
     print("\nTodas as execuções foram concluídas.")
+    consolidate_results_in_background()
 
+
+def run_single_execution(params, fitness_func_idx, is_benchmark, config_num, exec_num, output_dir, total_start_time):
+    """Executa uma única instância do algoritmo genético."""
     
+    start_exec = datetime.now()
 
-    # Consolidar resultados automaticamente em um subprocesso
+    fitness_func = ARRAY_FITNESS_FUNCTIONS[fitness_func_idx] if not is_benchmark else rastrigin
+    size_func = HASHTABLE_SIZE_FUNCS.get(fitness_func.__name__)
+    tamanho_hash_val = size_func() if size_func else 0
 
+    setup = Setup(
+        params,
+        fitness_function=fitness_func,
+        tamanho_hash=tamanho_hash_val
+    )
+    print("Classe Setup iniciada para a execução.")
+
+    # Carregar tabela hash (se existir)
+    hash_table_path = HASH_TABLE_PATH[fitness_func_idx]
+    if os.path.exists(hash_table_path):
+        try:
+            hash_excel = pd.read_excel(hash_table_path, index_col=0)
+            if not hash_excel.empty:
+                for key, value in hash_excel['Fitness'].items():
+                    if isinstance(key, int) and key < len(setup.tabela_hash):
+                        setup.tabela_hash[key] = value
+                print(f"Tabela hash carregada com {len(hash_excel)} registros!")
+        except Exception as e:
+            print(f"Erro ao carregar hash_table: {e}")
+
+    # Executa o algoritmo
+    alg = AlgoritimoEvolutivoRCE(setup, DEBUG=DEBUG_MODE)
+    print(f"Algoritmo Evolutivo iniciado. DEBUG MODE = {DEBUG_MODE}")
+    pop_with_repopulation, logbook_with_repopulation, best_individual, all_individual_values = alg.run(RCE=True)
+    best_variables = list(best_individual)
+    
+    end_exec = datetime.now()
+    elapsed_exec = end_exec - start_exec
+    formatted_time_exec = format_elapsed_time(elapsed_exec)
+
+    print("\nEvolução concluída - 100%")
+    best_solution_generation, _, _, _ = alg.dashboard.visualize(
+        logbook_with_repopulation,
+        pop_with_repopulation,
+        config_num=config_num,
+        execution_num=exec_num,
+    )
+
+    print(f"\nDuração desta Execução: {formatted_time_exec}")
+    print(f"Tempo Total Acumulado: {format_elapsed_time(end_exec - total_start_time)}")
+    print(f"Objective functions runs: {setup.objectiveruns}")
+    print(f"Consultas HashTable: {setup.hashtablereads}\n")
+
+    # Salvar resultados
+    save_execution_results(output_dir, config_num, exec_num, params, best_individual, best_solution_generation, formatted_time_exec, fitness_func.__name__, all_individual_values)
+    
+    # Salvar tabela hash
     try:
+        hash_df = pd.DataFrame(data=setup.tabela_hash, columns=['Fitness'])
+        hash_df.to_excel(hash_table_path, index=False)
+    except Exception as e:
+        print(f"ERRO ao salvar a tabela hash: {e}")
 
+def save_execution_results(output_dir, config_num, exec_num, params, best_individual, best_gen_idx, exec_time, func_name, all_individual_values):
+    """Salva os resultados de uma execução em arquivos JSON."""
+    
+    # Salva dados de visualização
+    vis_output_path = output_dir / f"config_{config_num}_exec_{exec_num}_visualization.json"
+    try:
+        for item in all_individual_values:
+            if 'Variaveis de Decisão' in item and hasattr(item['Variaveis de Decisão'], 'tolist'):
+                item['Variaveis de Decisão'] = item['Variaveis de Decisão'].tolist()
+            elif isinstance(item['Variaveis de Decisão'], np.ndarray):
+                item['Variaveis de Decisão'] = item['Variaveis de Decisão'].tolist()
+        with open(vis_output_path, 'w', encoding='utf-8') as f:
+            json.dump(all_individual_values, f, indent=4, ensure_ascii=False)
+    except Exception as e:
+        print(f"Erro ao salvar dados de visualização: {e}")
+
+    # Salva resultado principal
+    best_fitness = best_individual.fitness.values[0] if best_individual.fitness.valid else float('inf')
+    result = {
+        "config_num": config_num,
+        "exec_num": exec_num,
+        "params": params,
+        "best_variables": list(best_individual),
+        "best_fitness": best_fitness,
+        "best_gen_idx": best_gen_idx,
+        "time": exec_time,
+        "fitness_function": func_name
+    }
+    output_path = output_dir / f"config_{config_num}_exec_{exec_num}_results.json"
+    with open(output_path, 'w', encoding='utf-8') as f:
+        json.dump(result, f, indent=4, ensure_ascii=False)
+    
+    print("Resultados e visualizações salvos com sucesso.")
+
+
+def consolidate_results_in_background():
+    """Inicia o processo de consolidação de resultados em segundo plano."""
+    try:
         import subprocess
-
         import sys
-
         
-
         command = [
-
-            sys.executable, # Garante que está usando o mesmo interpretador Python
-
+            sys.executable,
             "-c", 
-
             "from database_controller import run_consolidar_resultados; run_consolidar_resultados()"
-
         ]
-
         
-
-        # Popen não bloqueia, o script principal pode terminar enquanto a consolidação roda.
-
         subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
-
         print("\nIniciando consolidação de resultados em segundo plano...")
 
-
-
     except Exception as e:
-
         print(f" Erro ao iniciar o subprocesso de consolidação: {e}")
+
 
 #! Rodando o framework se for o arquivo principal
 if __name__ == "__main__":

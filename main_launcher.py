@@ -9,6 +9,25 @@ conforme solicitado.
 - View: A interface gráfica.
 - Controller: O orquestrador que conecta Model e View.
 """
+
+
+#! Bug Fix 18/12/25 execucao unica
+"""
+  1. `self.thread.quit()`: Esta função envia um sinal para a thread indicando que ela deve encerrar seu loop
+      de eventos. É um pedido para que a thread termine suas tarefas pendentes e saia de forma limpa. Ela não
+      interrompe a thread imediatamente.
+   2. `self.thread.wait()`: Esta função bloqueia a thread que está chamando o `wait()` até que a self.thread
+      (a thread de trabalho) tenha realmente terminado sua execução.
+
+  No nosso caso, com as mudanças que fizemos para usar Qt.QueuedConnection, o método _on_process_finished (e
+  os outros slots que corrigimos) é executado na thread principal da sua aplicação (a thread da GUI). Quando a
+  thread principal chama self.thread.wait(), ela está esperando pela thread de trabalho (onde o
+  ProcessOutputReader estava rodando) terminar. Isso é seguro porque:
+
+
+"""
+
+
 # =====================================================================================
 # HEADER DE IMPORTAÇÃO COMPLETO
 # =====================================================================================
@@ -260,14 +279,13 @@ class ExecutionModel(QObject):
         self.worker.moveToThread(self.thread)
         self.worker.log_updated.connect(self.log_updated)
         self.worker.error.connect(lambda msg: self.all_executions_finished.emit(False, msg))
-        self.worker.finished.connect(lambda code: self._on_single_finished(code, config_manager))
+        self.worker.finished.connect(lambda code: self._on_single_finished(code, config_manager), Qt.QueuedConnection)
         self.thread.started.connect(self.worker.run)
         self.thread.start()
 
     def _on_single_finished(self, code, config_manager):
         self.log_updated.emit(f"Execução finalizada com código {code}.")
         self.thread.quit()
-        self.thread.wait()
         QTimer.singleShot(100, lambda: self._run_next_in_queue(config_manager))
 
     def stop_all(self):
@@ -543,7 +561,7 @@ class TerminalTab(QWidget):
             self.reader = ProcessOutputReader(self.process)
             self.reader.moveToThread(self.thread)
             self.reader.output_ready.connect(self._on_output)
-            self.reader.finished.connect(self._on_process_finished)
+            self.reader.finished.connect(self._on_process_finished, Qt.QueuedConnection)
             self.thread.started.connect(self.reader.run)
             self.thread.start()
             self.input_line.setFocus()
@@ -564,7 +582,6 @@ class TerminalTab(QWidget):
         self.input_line.setText("--- PROCESSO FINALIZADO ---")
         if self.thread:
             self.thread.quit()
-            self.thread.wait()
 
     @Slot()
     def send_command(self):
@@ -981,8 +998,10 @@ class MainController(QObject):
         tab = self.open_tabs.get("run_ag")
         if isinstance(tab, ScriptExecutionTab):
             tab.on_execution_finished(success, message)
-            try: tab.start_stop_btn.clicked.disconnect()
-            except RuntimeError: pass
+            try: 
+                tab.start_stop_btn.clicked.disconnect(self.execution_model.stop_all)
+            except RuntimeError: 
+                pass
             # Re-connect to toggle_single_script, but it needs a script_path.
             # For now, let's assume the user might want to run a single default run.
             tab.script_path = RUN_FRAMEWORK_SCRIPT
@@ -1004,12 +1023,14 @@ class MainController(QObject):
             worker = ScriptWorker(script_path); thread = QThread()
             tab.setProperty("worker", worker); tab.setProperty("thread", thread)
             worker.moveToThread(thread); worker.log_updated.connect(tab.append_log)
-            worker.finished.connect(lambda code: self.on_single_script_finished(tab, code))
+            worker.finished.connect(lambda code: self.on_single_script_finished(tab, code), Qt.QueuedConnection)
             thread.started.connect(worker.run); thread.start(); tab.start_stop_btn.setText("⏹️ Parar Script")
     def on_single_script_finished(self, tab, code):
         thread = tab.property("thread")
-        if thread: thread.quit(); thread.wait()
-        tab.setProperty("thread", None); tab.setProperty("worker", None)
+        if thread:
+            thread.quit()
+        tab.setProperty("thread", None)
+        tab.setProperty("worker", None)
         tab.on_execution_finished(code == 0, f"Script concluído com código {code}.")
 
 # =====================================================================================

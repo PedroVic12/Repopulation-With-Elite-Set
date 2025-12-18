@@ -3,7 +3,7 @@ import pathlib
 import pandas as pd
 from datetime import datetime
 
-from DashboardApp.controllers.Utils import FOLDER_NAME, PARAMETROS_JSON
+from DashboardApp.controllers.Utils import  PARAMETROS_JSON
 
 # 4 parametros variando [Mutação, Crossover, Var DIFF, DELTA e restante fixo 
 print("rodou! config.py")
