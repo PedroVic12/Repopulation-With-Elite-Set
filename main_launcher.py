@@ -10,23 +10,16 @@ conforme solicitado.
 - Controller: O orquestrador que conecta Model e View.
 """
 
-
 #! Bug Fix 18/12/25 execucao unica
 """
-  1. `self.thread.quit()`: Esta função envia um sinal para a thread indicando que ela deve encerrar seu loop
-      de eventos. É um pedido para que a thread termine suas tarefas pendentes e saia de forma limpa. Ela não
-      interrompe a thread imediatamente.
-   2. `self.thread.wait()`: Esta função bloqueia a thread que está chamando o `wait()` até que a self.thread
-      (a thread de trabalho) tenha realmente terminado sua execução.
+1) self.thread.quit(): Esta função envia um sinal para a thread indicando que ela deve encerrar seu loop de eventos. É um pedido para que a thread termine suas tarefas pendentes e saia de forma limpa. Ela não interrompe a thread imediatamente.
 
-  No nosso caso, com as mudanças que fizemos para usar Qt.QueuedConnection, o método _on_process_finished (e
-  os outros slots que corrigimos) é executado na thread principal da sua aplicação (a thread da GUI). Quando a
-  thread principal chama self.thread.wait(), ela está esperando pela thread de trabalho (onde o
-  ProcessOutputReader estava rodando) terminar. Isso é seguro porque:
+2) self.thread.wait(): Esta função bloqueia a thread que está chamando o wait() até que a self.thread (a thread de trabalho) tenha realmente terminado sua execução.
 
+No nosso caso, com as mudanças que fizemos para usar Qt.QueuedConnection, o método _on_process_finished (e os outros slots que corrigimos) é executado na thread principal da sua aplicação (a thread da GUI).
 
+Quando a thread principal chama self.thread.wait(), ela está esperando pela thread de trabalho (onde o ProcessOutputReader estava rodando) terminar.
 """
-
 
 # =====================================================================================
 # HEADER DE IMPORTAÇÃO COMPLETO
@@ -277,15 +270,24 @@ class ExecutionModel(QObject):
         self.worker = ScriptWorker(RUN_FRAMEWORK_SCRIPT, args)
         self.thread = QThread()
         self.worker.moveToThread(self.thread)
+
+        # Conexões para ciclo de vida robusto da thread, inspirado por app.py
+        self.thread.started.connect(self.worker.run)
+        self.worker.finished.connect(self.thread.quit)
+        self.worker.finished.connect(self.worker.deleteLater)
+        self.thread.finished.connect(self.thread.deleteLater)
+
+        # Conexões para feedback e controle
         self.worker.log_updated.connect(self.log_updated)
         self.worker.error.connect(lambda msg: self.all_executions_finished.emit(False, msg))
-        self.worker.finished.connect(lambda code: self._on_single_finished(code, config_manager), Qt.QueuedConnection)
-        self.thread.started.connect(self.worker.run)
+        self.worker.finished.connect(lambda code: self._on_single_finished(code, config_manager))
+        
         self.thread.start()
 
     def _on_single_finished(self, code, config_manager):
         self.log_updated.emit(f"Execução finalizada com código {code}.")
-        self.thread.quit()
+        self.thread = None
+        self.worker = None
         QTimer.singleShot(100, lambda: self._run_next_in_queue(config_manager))
 
     def stop_all(self):
@@ -490,26 +492,74 @@ class ScriptExecutionTab(QWidget):
         self.is_queue_runner = is_queue_runner
         self.script_path = script_path
         self.init_ui()
+
     def init_ui(self):
-        layout = QVBoxLayout(self); self.status_label = QLabel("Aguardando início...")
-        self.progress_bar = QProgressBar(); self.progress_bar.setVisible(False)
-        status_box = QGroupBox("Status"); sbl = QVBoxLayout(status_box); sbl.addWidget(self.status_label)
-        sbl.addWidget(self.progress_bar); self.log_text = QTextEdit(); self.log_text.setReadOnly(True)
-        log_box = QGroupBox("Log de Execução"); lbl = QVBoxLayout(log_box); lbl.addWidget(self.log_text)
-        layout.addWidget(status_box); layout.addWidget(log_box); ctrl_layout = QHBoxLayout()
-        self.start_stop_btn = QPushButton(f"▶️ Iniciar {self.tab_title}"); ctrl_layout.addWidget(self.start_stop_btn)
-        if not self.is_queue_runner:
-            self.consolidate_btn = QPushButton("📄 Consolidar Resultados")
-            ctrl_layout.addStretch(); ctrl_layout.addWidget(self.consolidate_btn)
+        layout = QVBoxLayout(self)
+        self.status_label = QLabel("Aguardando início...")
+        self.progress_bar = QProgressBar()
+        self.progress_bar.setVisible(False)
+        
+        status_box = QGroupBox("Status")
+        sbl = QVBoxLayout(status_box)
+        sbl.addWidget(self.status_label)
+        sbl.addWidget(self.progress_bar)
+
+        self.log_text = QTextEdit()
+        self.log_text.setReadOnly(True)
+        log_box = QGroupBox("Log de Execução")
+        lbl = QVBoxLayout(log_box)
+        lbl.addWidget(self.log_text)
+
+        layout.addWidget(status_box)
+        layout.addWidget(log_box)
+        
+        ctrl_layout = QHBoxLayout()
+        self.start_stop_btn = QPushButton(f"▶️ Iniciar {self.tab_title}")
+        self.consolidate_btn = QPushButton("📄 Consolidar Resultados")
+        self.run_dashboard_btn = QPushButton("📊 Abrir Dashboard")
+
+        ctrl_layout.addWidget(self.start_stop_btn)
+        ctrl_layout.addStretch()
+        ctrl_layout.addWidget(self.consolidate_btn)
+        ctrl_layout.addWidget(self.run_dashboard_btn)
+        
+        self.run_dashboard_btn.clicked.connect(self.run_dashboard)
+        
         layout.addLayout(ctrl_layout)
+
+    def run_dashboard(self):
+        dashboard_script_path = SRC_DIR / "DashboardApp" / "dashboard_RCE_APP.py"
+        
+        if not dashboard_script_path.exists():
+            QMessageBox.critical(self, "Erro", f"Script do dashboard não encontrado:\n{dashboard_script_path}")
+            return
+        
+        PORTA = 8501
+        try:
+            cmd = [
+                sys.executable, "-m", "streamlit", "run",
+                str(dashboard_script_path), "--server.port", str(PORTA)
+            ]
+            subprocess.Popen(cmd)
+            self.append_log(f"Dashboard iniciado em http://localhost:{PORTA}")
+        except Exception as e:
+            self.append_log(f"Erro ao iniciar dashboard: {e}")
+            QMessageBox.critical(self, "Erro no Dashboard", f"Não foi possível iniciar o Streamlit: {e}")
+
     @Slot(str)
-    def append_log(self, msg): self.log_text.append(f"[{time.strftime('%H:%M:%S')}] {msg}"); self.log_text.ensureCursorVisible()
+    def append_log(self, msg):
+        self.log_text.append(f"[{time.strftime('%H:%M:%S')}] {msg}")
+        self.log_text.ensureCursorVisible()
+
     @Slot(bool, str)
     def on_execution_finished(self, success, message):
         self.status_label.setText(f"Finalizado: {message}")
-        if success: self.progress_bar.setValue(self.progress_bar.maximum())
-        self.start_stop_btn.setText(f"▶️ Iniciar {self.tab_title}"); self.start_stop_btn.setEnabled(True)
-        if success: QMessageBox.information(self, "Concluído", message)
+        if success:
+            self.progress_bar.setValue(self.progress_bar.maximum())
+        self.start_stop_btn.setText(f"▶️ Iniciar {self.tab_title}")
+        self.start_stop_btn.setEnabled(True)
+        if success:
+            QMessageBox.information(self, "Concluído", message)
 
 class TerminalTab(QWidget):
     """Widget que emula um terminal para rodar scripts interativos."""

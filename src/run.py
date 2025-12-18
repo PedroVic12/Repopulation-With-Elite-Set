@@ -168,7 +168,6 @@ def convert_values_to_int(params):
     return params
 
 
-
 # Função principal para executar o framework com múltiplas execuções
 def run_framework_many_executions(function_bechmarking=False, config_num_arg=None, exec_num_arg=None, objective_function_index=0):
     numero = objective_function_index
@@ -198,6 +197,7 @@ def run_framework_many_executions(function_bechmarking=False, config_num_arg=Non
                              config_num=config_num_arg, exec_num=exec_num_arg,
                              output_dir=config_dir, total_start_time=start_time)
         
+        print("\nExecução única concluída.")
         return
 
     # Lógica original para execuções múltiplas (quando rodado diretamente)
