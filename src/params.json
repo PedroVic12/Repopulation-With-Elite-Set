@@ -18,8 +18,8 @@
         0,
         31
     ],
-    "MUTACAO": 0.9,
-    "NUM_GENERATIONS": 15,
+    "MUTACAO": 0.1,
+    "NUM_GENERATIONS": 5,
     "NUM_VAR_DIFERENTES": 1,
     "POP_SIZE": 4,
     "PORCENTAGEM": 0.2,

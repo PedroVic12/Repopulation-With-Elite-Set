@@ -398,3 +398,20 @@ if __name__ == "__main__":
         objective_function_index=numero_selecionado,
         output_dir_arg=args.output_dir
     )
+
+# --- Exemplos de Uso via Linha de Comando (argparse) ---
+#
+# 1. Execução de uma bateria de testes completa (modo nativo):
+#    - Este modo lê os arquivos 'src/params.json' e 'src/options.json'.
+#    - 'options.json' define as variações de parâmetros e o número de repetições.
+#    - O script criará um novo diretório de output com timestamp para salvar os resultados.
+#    - Comando:
+#      python3 src/run.py
+#
+# 2. Execução de uma única instância (modo utilizado pelo Launcher):
+#    - Este modo é para executar uma única combinação de configuração e repetição.
+#    - É ideal para ser chamado por um processo pai (como o launcher) que controla o loop geral.
+#    - Requer que o diretório de output já tenha sido criado pelo processo pai.
+#    - Comando de exemplo para a config 1, repetição 2, usando a função objetivo de índice 0 (IEEE14):
+#      python3 src/run.py --config_num 1 --exec_num 2 --objective_function_index 0 --output_dir "src/output/run_2025-12-23_12-00-00"
+#

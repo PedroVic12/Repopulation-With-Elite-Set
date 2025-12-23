@@ -288,8 +288,6 @@ class ExecutionModel(QObject):
 
     def _on_single_finished(self, code, config_manager):
         self.log_updated.emit(f"Execução finalizada com código {code}.")
-        self.thread = None
-        self.worker = None
         QTimer.singleShot(100, lambda: self._run_next_in_queue(config_manager))
 
     def stop_all(self):
@@ -526,6 +524,10 @@ class ScriptExecutionTab(QWidget):
         ctrl_layout.addWidget(self.run_dashboard_btn)
         
         self.run_dashboard_btn.clicked.connect(self.run_dashboard)
+
+        # Oculta o botão de iniciar para a aba da fila de execução, pois ela começa automaticamente
+        if self.is_queue_runner:
+            self.start_stop_btn.setVisible(False)
         
         layout.addLayout(ctrl_layout)
 
@@ -990,7 +992,7 @@ class MainController(QObject):
     @Slot()
     def open_params_tab(self): self.open_or_focus_tab("params_ag", "⌨️ Parâmetros AG", ParamsAGTab, self.config_manager)
     @Slot()
-    def open_run_ag_tab(self): self.open_or_focus_tab("run_ag", "▶️ Executar AG", ScriptExecutionTab, "Bateria AG", is_queue_runner=True)
+    def open_run_ag_tab(self): self.open_or_focus_tab("run_ag", "▶️ Executar AG", ScriptExecutionTab, "Bateria de Simulações AG", is_queue_runner=True)
     
     #@Slot()
     #def open_power_system_analysis_tab(self): self.open_or_focus_tab("power_system_analysis", "🔬 Análise de SEP", MainAnalysisTab, ANALYSIS_CASES, self)
@@ -1037,7 +1039,6 @@ class MainController(QObject):
         output_dir = SRC_DIR / "output" / f"run_{timestamp}"
         try:
             os.makedirs(output_dir, exist_ok=True)
-            self.log_updated.emit(f"Diretório de resultados criado em: {output_dir}")
             QTimer.singleShot(100, lambda: self.execution_model.start_execution_queue(configs, runs_per_config, self.config_manager, objective_function_index, output_dir))
         except OSError as e:
             QMessageBox.critical(self.view, "Erro de Diretório", f"Não foi possível criar o diretório de output:\n{e}")
@@ -1047,6 +1048,7 @@ class MainController(QObject):
         if isinstance(tab, ScriptExecutionTab):
             tab.progress_bar.setRange(0, total_runs); tab.progress_bar.setValue(0); tab.progress_bar.setVisible(True)
             tab.start_stop_btn.setText("⏹️ Parar Bateria"); tab.start_stop_btn.setEnabled(True)
+            tab.start_stop_btn.setVisible(True) # Torna o botão de parar visível
             try: tab.start_stop_btn.clicked.disconnect()
             except RuntimeError: pass
             tab.start_stop_btn.clicked.connect(self.execution_model.stop_all)
@@ -1059,14 +1061,13 @@ class MainController(QObject):
         tab = self.open_tabs.get("run_ag")
         if isinstance(tab, ScriptExecutionTab):
             tab.on_execution_finished(success, message)
+            # Reseta e esconde o botão de parar, já que a fila terminou
+            tab.start_stop_btn.setText("▶️ Iniciar Bateria AG")
+            tab.start_stop_btn.setVisible(False)
             try: 
                 tab.start_stop_btn.clicked.disconnect(self.execution_model.stop_all)
             except RuntimeError: 
                 pass
-            # Re-connect to toggle_single_script, but it needs a script_path.
-            # For now, let's assume the user might want to run a single default run.
-            tab.script_path = RUN_FRAMEWORK_SCRIPT
-            tab.start_stop_btn.clicked.connect(partial(self.toggle_single_script, tab))
 
     @Slot(str)
     def update_log_on_active_tab(self, message):
