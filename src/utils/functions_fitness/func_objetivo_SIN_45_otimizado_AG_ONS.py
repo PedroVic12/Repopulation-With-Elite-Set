@@ -357,7 +357,8 @@ def funcao_objetivo_SIN45(individuo, setupobj, _debug=False):
     
     except Exception as e:
         print(f"\n[ERRO] na função objetivo SIN45: {e}")
-        return float("inf"), {}
+        # Retorna uma tupla com um valor de fitness de penalidade alta, conforme esperado pelo DEAP
+        return float("inf"),
 
 
 HORARIOS_COND_INICIAL = [15, 15, 10, 21, 20]

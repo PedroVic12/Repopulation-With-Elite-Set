@@ -169,7 +169,7 @@ def convert_values_to_int(params):
 
 
 # Função principal para executar o framework com múltiplas execuções
-def run_framework_many_executions(function_bechmarking=False, config_num_arg=None, exec_num_arg=None, objective_function_index=0):
+def run_framework_many_executions(function_bechmarking=False, config_num_arg=None, exec_num_arg=None, objective_function_index=0, output_dir_arg=None):
     numero = objective_function_index
 
     if function_bechmarking:
@@ -184,13 +184,20 @@ def run_framework_many_executions(function_bechmarking=False, config_num_arg=Non
         params = load_params(f"{BASE_DIR}/params.json")
         params = convert_values_to_int(params)
         
-        timestamp = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
-        main_output_dir = BASE_DIR / "output" / f"run_{timestamp}"
+        # Se um diretório de output é passado pelo launcher, usa ele.
+        # Senão, cria um novo (comportamento antigo para retrocompatibilidade).
+        if output_dir_arg:
+            main_output_dir = pathlib.Path(output_dir_arg)
+        else:
+            timestamp = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
+            main_output_dir = BASE_DIR / "output" / f"run_{timestamp}"
+
         os.makedirs(main_output_dir, exist_ok=True)
         config_dir = main_output_dir / f"config_{config_num_arg}"
         os.makedirs(config_dir, exist_ok=True)
         
         print(f"\n[INFO] Executando configuração {config_num_arg}, execução {exec_num_arg}")
+        print(f"Salvando em: {config_dir}")
         print(f"Parâmetros: {params}")
 
         run_single_execution(params, fitness_func_idx=numero, is_benchmark=function_bechmarking,
@@ -370,6 +377,8 @@ if __name__ == "__main__":
     parser.add_argument("--exec_num", type=int, help="(Opcional) número da repetição para executar apenas essa repetição")
 
     parser.add_argument("--objective_function_index", type=int, default=0, help="Índice da função objetivo (0-based).")
+    
+    parser.add_argument("--output_dir", type=str, help="(Opcional) Caminho para o diretório principal de output, usado pelo Launcher.")
 
     args = parser.parse_args()
 
@@ -383,8 +392,9 @@ if __name__ == "__main__":
             numero_selecionado = int(choice)
 
     run_framework_many_executions(
-        function_bechmarking=BECHMARKING_MODE, 
-        config_num_arg=args.config_num, 
+        function_bechmarking=BECHMARKING_MODE,
+        config_num_arg=args.config_num,
         exec_num_arg=args.exec_num,
-        objective_function_index=numero_selecionado
-        )
+        objective_function_index=numero_selecionado,
+        output_dir_arg=args.output_dir
+    )

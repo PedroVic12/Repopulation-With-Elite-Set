@@ -241,16 +241,18 @@ class ExecutionModel(QObject):
         self.configurations, self.total_runs, self.current_run_number = [], 0, 0
         self.objective_function_index = 0
 
-    def start_execution_queue(self, configs, runs_per_config, config_manager, objective_function_index):
+    def start_execution_queue(self, configs, runs_per_config, config_manager, objective_function_index, output_dir):
         if self.thread and self.thread.isRunning():
             self.log_updated.emit("Bateria de testes em execução.")
             return
         self.configurations = configs
         self.objective_function_index = objective_function_index
+        self.output_dir = output_dir  # Store the output directory
         self._pending_runs = deque([(ci, r) for ci in range(len(configs)) for r in range(1, runs_per_config + 1)])
         self.total_runs = len(self._pending_runs)
         self.current_run_number = 0
         self.execution_started.emit(self.total_runs)
+        self.log_updated.emit(f"Diretório de resultados criado em: {self.output_dir}")
         self._run_next_in_queue(config_manager)
 
     def _run_next_in_queue(self, config_manager):
@@ -266,7 +268,7 @@ class ExecutionModel(QObject):
             self.log_updated.emit("Erro ao salvar parâmetros, abortando.")
             self.all_executions_finished.emit(False, "Erro ao salvar arquivo de parâmetros.")
             return
-        args = ["--config_num", str(cfg_idx + 1), "--exec_num", str(rep), "--objective_function_index", str(self.objective_function_index)]
+        args = ["--config_num", str(cfg_idx + 1), "--exec_num", str(rep), "--objective_function_index", str(self.objective_function_index), "--output_dir", str(self.output_dir)]
         self.worker = ScriptWorker(RUN_FRAMEWORK_SCRIPT, args)
         self.thread = QThread()
         self.worker.moveToThread(self.thread)
@@ -1029,7 +1031,16 @@ class MainController(QObject):
     @Slot(list, int, int)
     def start_ag_execution_queue(self, configs, runs_per_config, objective_function_index):
         self.open_run_ag_tab()
-        QTimer.singleShot(100, lambda: self.execution_model.start_execution_queue(configs, runs_per_config, self.config_manager, objective_function_index))
+        
+        # Criar diretório de output único para toda a bateria de testes
+        timestamp = time.strftime("%Y-%m-%d_%H-%M-%S")
+        output_dir = SRC_DIR / "output" / f"run_{timestamp}"
+        try:
+            os.makedirs(output_dir, exist_ok=True)
+            self.log_updated.emit(f"Diretório de resultados criado em: {output_dir}")
+            QTimer.singleShot(100, lambda: self.execution_model.start_execution_queue(configs, runs_per_config, self.config_manager, objective_function_index, output_dir))
+        except OSError as e:
+            QMessageBox.critical(self.view, "Erro de Diretório", f"Não foi possível criar o diretório de output:\n{e}")
     @Slot(int)
     def on_queue_started(self, total_runs):
         tab = self.open_tabs.get("run_ag")

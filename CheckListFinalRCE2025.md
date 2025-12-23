@@ -21,9 +21,9 @@ Erros que continuam:
 [20:28:01] Error in fitness_func: float() argument must be a string or a real number, not 'dict'
 
 - [ ] Opção do Dashboard "População Final" mostra a mesma tabela para todas as execuções
-- [ ] Dashboard : mensagem de erro sobre cálculo do tempo "Erro ao calcular tempo médio e tempo total acumulado."
+- [x] Dashboard : mensagem de erro sobre cálculo do tempo "Erro ao calcular tempo médio e tempo total acumulado."
 - [ ] usar o launcher mais de uma vez, indo para o dashboard e voltando, pode travar o processo do launcher.
-- [ ] analisar previamente a função objetivo selecionada no run.py ou permitir selecioná-la antes de executar resolveria muitos problemas, principalmente quando o número de variáveis é diferente.
+- [x] analisar previamente a função objetivo selecionada no run.py ou permitir selecioná-la antes de executar resolveria muitos problemas, principalmente quando o número de variáveis é diferente.
 - [x] Sistema Teste 57 está com muitos erros (não é no código).
 - [ ] Apesar de ter duas configs e no log aparecerem duas configs, no dashboard aparece apenas config_num1 apos correção para artigo PIBIC
 
@@ -43,5 +43,23 @@ Erros que continuam:
 - [ ]  Validar entrada/saída com asserts
 
 - [ ]  Usar parametrização de testes (pytest)
+
+---
+
+## 🎯 Plano de Ação (23/12/2025)
+
+Checklist baseado na análise do Gemini para correção dos bugs críticos.
+
+### 1. Correção da Função Objetivo SIN45 (`func_objetivo_SIN_45_otimizado_AG_ONS.py`)
+- [ ] **Corrigir chamada da API Pandapower:** Alterar a chamada incorreta de `pandapower.networks.create_empty_network` para a chamada correta `pandapower.create_empty_network`.
+- [ ] **Ajustar retorno de erro no Fitness:** Modificar o bloco `except` para retornar uma tupla de penalidade numérica (ex: `return 99999999.0,`) em vez de um dicionário, para evitar o crash do DEAP.
+
+### 2. Correção do Dashboard e Consolidação de Dados
+- [ ] **Depurar Consolidação de Resultados (`database_controller.py`):** Garantir que a função `run_consolidar_resultados` itere sobre **todas** as pastas `config_*` e não pare após a primeira.
+- [ ] **Corrigir Filtros de Visualização (`dashboard_RCE_APP.py`):** Implementar ou corrigir a lógica de filtragem para que os gráficos e tabelas no Streamlit respondam corretamente à seleção do usuário (configuração, execução, etc.).
+
+### 3. Correção de Estabilidade do Launcher
+- [ ] **Gerenciar Subprocesso do Dashboard (`main_launcher.py`):** Implementar um mecanismo para rastrear e finalizar o processo do Streamlit (`terminate()`) quando a aba do dashboard ou a janela principal do launcher for fechada.
+
 
 
