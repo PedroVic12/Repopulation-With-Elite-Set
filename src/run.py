@@ -378,21 +378,13 @@ if __name__ == "__main__":
     numero_selecionado = args.objective_function_index
 
     if CLI:
-
         choice = input(f"Digite o número da função objetivo (padrão: {numero_selecionado}): ")
-
         if choice:
-
             numero_selecionado = int(choice)
 
     run_framework_many_executions(
-
         function_bechmarking=BECHMARKING_MODE, 
-
         config_num_arg=args.config_num, 
-
         exec_num_arg=args.exec_num,
-
         objective_function_index=numero_selecionado
-
         )
