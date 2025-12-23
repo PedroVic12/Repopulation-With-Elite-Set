@@ -169,7 +169,7 @@ def convert_values_to_int(params):
 
 
 # Função principal para executar o framework com múltiplas execuções
-def run_framework_many_executions(function_bechmarking=False, config_num_arg=None, exec_num_arg=None, objective_function_index=0, output_dir_arg=None):
+def run_framework_many_executions(function_bechmarking=False, objective_function_index=0):
     numero = objective_function_index
 
     if function_bechmarking:
@@ -178,36 +178,8 @@ def run_framework_many_executions(function_bechmarking=False, config_num_arg=Non
         print(f"Função objetivo selecionada: {ARRAY_FITNESS_FUNCTIONS[numero]}")
 
     start_time = datetime.now()
-    
-    # Se chamado pelo launcher, execute uma única configuração e saia.
-    if config_num_arg is not None and exec_num_arg is not None:
-        params = load_params(f"{BASE_DIR}/params.json")
-        params = convert_values_to_int(params)
-        
-        # Se um diretório de output é passado pelo launcher, usa ele.
-        # Senão, cria um novo (comportamento antigo para retrocompatibilidade).
-        if output_dir_arg:
-            main_output_dir = pathlib.Path(output_dir_arg)
-        else:
-            timestamp = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
-            main_output_dir = BASE_DIR / "output" / f"run_{timestamp}"
 
-        os.makedirs(main_output_dir, exist_ok=True)
-        config_dir = main_output_dir / f"config_{config_num_arg}"
-        os.makedirs(config_dir, exist_ok=True)
-        
-        print(f"\n[INFO] Executando configuração {config_num_arg}, execução {exec_num_arg}")
-        print(f"Salvando em: {config_dir}")
-        print(f"Parâmetros: {params}")
-
-        run_single_execution(params, fitness_func_idx=numero, is_benchmark=function_bechmarking,
-                             config_num=config_num_arg, exec_num=exec_num_arg,
-                             output_dir=config_dir, total_start_time=start_time)
-        
-        print("\nExecução única concluída.")
-        return
-
-    # Lógica original para execuções múltiplas (quando rodado diretamente)
+    # Lógica unificada: sempre executa a bateria de testes com base nos arquivos de configuração
     params_base = load_params(f"{BASE_DIR}/params.json")
     options = load_params(f"{BASE_DIR}/options.json")
     params_base = convert_values_to_int(params_base)
@@ -370,15 +342,9 @@ def consolidate_results_in_background():
 #! Rodando o framework se for o arquivo principal
 if __name__ == "__main__":
 
-    parser = argparse.ArgumentParser()
+    parser = argparse.ArgumentParser(description="Executa o framework RCE para otimização de redes elétricas.")
 
-    parser.add_argument("--config_num", type=int, help="(Opcional) número da configuração (1-based) para executar apenas essa configuração")
-
-    parser.add_argument("--exec_num", type=int, help="(Opcional) número da repetição para executar apenas essa repetição")
-
-    parser.add_argument("--objective_function_index", type=int, default=0, help="Índice da função objetivo (0-based).")
-    
-    parser.add_argument("--output_dir", type=str, help="(Opcional) Caminho para o diretório principal de output, usado pelo Launcher.")
+    parser.add_argument("--objective_function_index", type=int, default=0, help="Índice da função objetivo a ser usada (padrão: 0).")
 
     args = parser.parse_args()
 
@@ -387,16 +353,16 @@ if __name__ == "__main__":
     numero_selecionado = args.objective_function_index
 
     if CLI:
-        choice = input(f"Digite o número da função objetivo (padrão: {numero_selecionado}): ")
-        if choice:
-            numero_selecionado = int(choice)
+        try:
+            choice = input(f"Digite o número da função objetivo (padrão: {numero_selecionado}): ")
+            if choice:
+                numero_selecionado = int(choice)
+        except (ValueError, IndexError):
+            print("Seleção inválida. Usando o valor padrão.")
 
     run_framework_many_executions(
         function_bechmarking=BECHMARKING_MODE,
-        config_num_arg=args.config_num,
-        exec_num_arg=args.exec_num,
-        objective_function_index=numero_selecionado,
-        output_dir_arg=args.output_dir
+        objective_function_index=numero_selecionado
     )
 
 # --- Exemplos de Uso via Linha de Comando (argparse) ---

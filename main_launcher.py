@@ -228,75 +228,56 @@ class ScriptWorker(QObject):
             self.log_updated.emit("Processo terminado pelo usuário.")
 
 class ExecutionModel(QObject):
-    """Model - Gerencia a lógica da fila de execuções de scripts."""
-    execution_started = Signal(int)
-    execution_progress = Signal(int, str)
+    """Model - Gerencia a lógica de execução de um único script."""
     log_updated = Signal(str)
-    all_executions_finished = Signal(bool, str)
+    all_executions_finished = Signal(bool, str) # Mantido para consistência
 
     def __init__(self):
         super().__init__()
         self.thread, self.worker = None, None
-        self._pending_runs = deque()
-        self.configurations, self.total_runs, self.current_run_number = [], 0, 0
-        self.objective_function_index = 0
 
-    def start_execution_queue(self, configs, runs_per_config, config_manager, objective_function_index, output_dir):
+    @Slot()
+    def _nullify_worker_references(self):
+        """Slot para limpar as referências ao worker e à thread após a finalização segura."""
+        self.worker = None
+        self.thread = None
+
+    def start_execution(self, config_manager, objective_function_index):
+        """Inicia a execução única do script de bateria de testes."""
         if self.thread and self.thread.isRunning():
-            self.log_updated.emit("Bateria de testes em execução.")
+            self.log_updated.emit("Bateria de testes já está em execução.")
             return
-        self.configurations = configs
-        self.objective_function_index = objective_function_index
-        self.output_dir = output_dir  # Store the output directory
-        self._pending_runs = deque([(ci, r) for ci in range(len(configs)) for r in range(1, runs_per_config + 1)])
-        self.total_runs = len(self._pending_runs)
-        self.current_run_number = 0
-        self.execution_started.emit(self.total_runs)
-        self.log_updated.emit(f"Diretório de resultados criado em: {self.output_dir}")
-        self._run_next_in_queue(config_manager)
 
-    def _run_next_in_queue(self, config_manager):
-        if not self._pending_runs:
-            self.all_executions_finished.emit(True, "Todas as execuções foram concluídas!")
-            return
-        cfg_idx, rep = self._pending_runs.popleft()
-        current_config = self.configurations[cfg_idx]
-        self.current_run_number += 1
-        status = f"Executando {self.current_run_number}/{self.total_runs} (Config: {cfg_idx + 1}, Rep: {rep})"
-        self.execution_progress.emit(self.current_run_number, status)
-        if not config_manager.save_params(current_config):
-            self.log_updated.emit("Erro ao salvar parâmetros, abortando.")
-            self.all_executions_finished.emit(False, "Erro ao salvar arquivo de parâmetros.")
-            return
-        args = ["--config_num", str(cfg_idx + 1), "--exec_num", str(rep), "--objective_function_index", str(self.objective_function_index), "--output_dir", str(self.output_dir)]
+        # Os parâmetros agora são lidos pelo próprio run.py a partir dos arquivos
+        # O launcher apenas os salva antes de chamar aqui.
+        args = ["--objective_function_index", str(objective_function_index)]
+        
         self.worker = ScriptWorker(RUN_FRAMEWORK_SCRIPT, args)
         self.thread = QThread()
         self.worker.moveToThread(self.thread)
 
-        # Conexões para ciclo de vida robusto da thread, inspirado por app.py
+        # Conexões de ciclo de vida
         self.thread.started.connect(self.worker.run)
         self.worker.finished.connect(self.thread.quit)
         self.worker.finished.connect(self.worker.deleteLater)
         self.thread.finished.connect(self.thread.deleteLater)
+        self.thread.finished.connect(self._nullify_worker_references)
 
-        # Conexões para feedback e controle
+        # Conexões de feedback
         self.worker.log_updated.connect(self.log_updated)
         self.worker.error.connect(lambda msg: self.all_executions_finished.emit(False, msg))
-        self.worker.finished.connect(lambda code: self._on_single_finished(code, config_manager))
+        self.worker.finished.connect(lambda code: self.all_executions_finished.emit(code == 0, f"Execução da bateria de testes concluída com código {code}."))
         
         self.thread.start()
 
-    def _on_single_finished(self, code, config_manager):
-        self.log_updated.emit(f"Execução finalizada com código {code}.")
-        QTimer.singleShot(100, lambda: self._run_next_in_queue(config_manager))
-
     def stop_all(self):
-        self._pending_runs.clear()
+        """Para a execução atual do script."""
         if self.worker: self.worker.stop()
         if self.thread and self.thread.isRunning():
             self.thread.quit()
             self.thread.wait()
-        self.all_executions_finished.emit(False, "Execução interrompida pelo usuário.")
+        # A mensagem de interrupção agora virá do sinal 'finished' com código diferente de 0
+        self.log_updated.emit("Processo de execução interrompido pelo usuário.")
 
 class PowerSystemModel:
     """Model - Lógica de análise de sistemas de potência com Pandapower."""
@@ -365,7 +346,7 @@ class ResultsRepository:
 
 # Tabs (Iframes separados)
 class ConfigTab(QWidget):
-    execution_requested = Signal(list, int, int)
+    execution_requested = Signal(int) # Apenas o índice da função objetivo
     def __init__(self, config_manager):
         super().__init__()
         self.config_manager, self.param_widgets = config_manager, {}
@@ -443,15 +424,27 @@ class ConfigTab(QWidget):
     def prepare_and_run(self):
         params, var_arrays = self.config_manager.get_params(), self._get_variable_arrays()
         for name, info in self.param_widgets.items():
-            if info["mode"].checkedButton().text() == "Fixo":
-                try: params[name] = int(info["fixed"].text()) if info["is_int"] else float(info["fixed"].text())
-                except ValueError: QMessageBox.warning(self, "Erro de Valor", f"Valor inválido para '{name}'."); return
+            if name not in VARYING_KEYS: # Salva params que não são de variação
+                try:
+                    params[name] = int(info["fixed"].text()) if info["is_int"] else float(info["fixed"].text())
+                except (ValueError, TypeError):
+                     pass # Ignora se o campo estiver vazio ou for inválido
+            elif info["mode"].checkedButton().text() == "Fixo":
+                 try:
+                    params[name] = int(info["fixed"].text()) if info["is_int"] else float(info["fixed"].text())
+                 except ValueError:
+                    QMessageBox.warning(self, "Erro de Valor", f"Valor inválido para '{name}'.")
+                    return
+
+        # Salva os parâmetros base em params.json
+        self.config_manager.save_params(params)
+        
+        # Salva as variações e repetições em options.json
         opts = {'repeticoes_por_config': self.runs_per_config_spin.value(), **var_arrays}
-        self.config_manager.save_params(params); self.config_manager.save_options(opts)
-        keys = list(var_arrays.keys())
-        combos = [dict(zip(keys, v)) for v in product(*var_arrays.values())] if keys else [{}]
+        self.config_manager.save_options(opts)
+
         objective_function_index = self.objective_function_combo.currentIndex()
-        self.execution_requested.emit([dict(params, **c) for c in combos], self.runs_per_config_spin.value(), objective_function_index)
+        self.execution_requested.emit(objective_function_index)
 
 class ParamsAGTab(QWidget):
     EXCLUDED_PARAMS = {"MUTACAO", "CROSSOVER", "NUM_GENERATIONS", "POP_SIZE"}
@@ -915,17 +908,15 @@ class MainController(QObject):
     def connect_signals(self):
         nav = self.view.nav_menu
         nav.config_ag_requested.connect(self.open_config_tab); nav.params_ag_requested.connect(self.open_params_tab)
-        #nav.power_system_analysis_requested.connect(self.open_power_system_analysis_tab)
-        #nav.run_sin45_simulator_requested.connect(self.open_sin45_simulator_tab)
         nav.cli_requested.connect(self.open_cli_tab)
-        #nav.dynamic_script_requested.connect(self.run_dynamic_script)
         
         self.view.closing.connect(self.cleanup_on_exit)
         self.view.tabs.tabCloseRequested.connect(self.close_tab); self.view.tabs.currentChanged.connect(self.on_tab_changed)
         
+        # Conexões simplificadas do modelo
         model = self.execution_model
-        model.log_updated.connect(self.update_log_on_active_tab); model.all_executions_finished.connect(self.on_queue_finished)
-        model.execution_started.connect(self.on_queue_started); model.execution_progress.connect(self.on_queue_progress)
+        model.log_updated.connect(self.update_log_on_active_tab)
+        model.all_executions_finished.connect(self.on_execution_finished)
 
     @Slot(str)
     def run_dynamic_script(self, script_id):
@@ -977,7 +968,7 @@ class MainController(QObject):
         self.view.tabs.setCurrentWidget(widget)
         self.open_tabs[tab_name] = widget
         if isinstance(widget, ConfigTab):
-            widget.execution_requested.connect(self.start_ag_execution_queue)
+            widget.execution_requested.connect(self.start_ag_execution) # Conexão atualizada
         elif isinstance(widget, ScriptExecutionTab) and not widget.is_queue_runner:
             widget.start_stop_btn.clicked.connect(partial(self.toggle_single_script, widget))
         if hasattr(widget, 'consolidate_btn'):
@@ -1030,38 +1021,35 @@ class MainController(QObject):
         widget = self.view.tabs.widget(index)
         tab_name = next((name for name, w in self.open_tabs.items() if w == widget), None)
         if tab_name: self.view.nav_menu.set_active_button(tab_name)
-    @Slot(list, int, int)
-    def start_ag_execution_queue(self, configs, runs_per_config, objective_function_index):
+    @Slot(int)
+    def start_ag_execution(self, objective_function_index):
+        """Inicia a aba de execução e dispara o modelo para uma única execução da bateria de testes."""
         self.open_run_ag_tab()
         
-        # Criar diretório de output único para toda a bateria de testes
-        timestamp = time.strftime("%Y-%m-%d_%H-%M-%S")
-        output_dir = SRC_DIR / "output" / f"run_{timestamp}"
-        try:
-            os.makedirs(output_dir, exist_ok=True)
-            QTimer.singleShot(100, lambda: self.execution_model.start_execution_queue(configs, runs_per_config, self.config_manager, objective_function_index, output_dir))
-        except OSError as e:
-            QMessageBox.critical(self.view, "Erro de Diretório", f"Não foi possível criar o diretório de output:\n{e}")
-    @Slot(int)
-    def on_queue_started(self, total_runs):
         tab = self.open_tabs.get("run_ag")
         if isinstance(tab, ScriptExecutionTab):
-            tab.progress_bar.setRange(0, total_runs); tab.progress_bar.setValue(0); tab.progress_bar.setVisible(True)
-            tab.start_stop_btn.setText("⏹️ Parar Bateria"); tab.start_stop_btn.setEnabled(True)
-            tab.start_stop_btn.setVisible(True) # Torna o botão de parar visível
+            tab.log_text.clear()
+            tab.status_label.setText("Iniciando bateria de testes...")
+            tab.progress_bar.setVisible(False) # A barra de progresso não é mais granular
+            tab.start_stop_btn.setText("⏹️ Parar Bateria")
+            tab.start_stop_btn.setVisible(True)
+            tab.start_stop_btn.setEnabled(True)
+            
             try: tab.start_stop_btn.clicked.disconnect()
             except RuntimeError: pass
             tab.start_stop_btn.clicked.connect(self.execution_model.stop_all)
-    @Slot(int, str)
-    def on_queue_progress(self, current_run, status_text):
-        tab = self.open_tabs.get("run_ag")
-        if isinstance(tab, ScriptExecutionTab): tab.progress_bar.setValue(current_run); tab.status_label.setText(status_text)
+
+        # Chama o modelo para iniciar a execução do run.py
+        QTimer.singleShot(100, lambda: self.execution_model.start_execution(self.config_manager, objective_function_index))
+
     @Slot(bool, str)
-    def on_queue_finished(self, success, message):
+    def on_execution_finished(self, success, message):
+        """Chamado quando a execução da bateria de testes termina."""
         tab = self.open_tabs.get("run_ag")
         if isinstance(tab, ScriptExecutionTab):
             tab.on_execution_finished(success, message)
-            # Reseta e esconde o botão de parar, já que a fila terminou
+            
+            # Reseta e esconde o botão de parar
             tab.start_stop_btn.setText("▶️ Iniciar Bateria AG")
             tab.start_stop_btn.setVisible(False)
             try: 
