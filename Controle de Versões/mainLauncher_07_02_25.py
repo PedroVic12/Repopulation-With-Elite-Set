@@ -10,7 +10,7 @@ conforme solicitado.
 - Controller: O orquestrador que conecta Model e View.
 """
 
-#! Bug Fix 18/12/25 execução única
+#! Bug Fix 18/12/25 execucao unica
 """
 1) self.thread.quit(): Esta função envia um sinal para a thread indicando que ela deve encerrar seu loop de eventos. É um pedido para que a thread termine suas tarefas pendentes e saia de forma limpa. Ela não interrompe a thread imediatamente.
 
@@ -1673,4 +1673,5 @@ if __name__ == "__main__":
 
     controller = MainController(app)
     controller.view.showMaximized()
+
     sys.exit(app.exec())

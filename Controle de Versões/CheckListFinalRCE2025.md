@@ -2,17 +2,18 @@
 # Checklist de Correção de Erros — Projeto Repopulation With Elite Set 2025
 ---
 
-## 1) Requisitos RZ desde (16/10/2025)
+# 1) Requisitos RZ desde (16/10/2025)
 
-- [x] IEEE14, IEEE30 e IEEE118 estão funcionando muito bem. IEEE57 está com o problema do modelo do pandapower e o SIN45 não está funcionando. 
+- [x] IEEE14, IEEE30 e IEEE118 estão funcionando muito bem. IEEE57 está com o problema do modelo do pandapower e o SIN45 não está funcionando.
 
 - [x] SIN 45 com novo código e mostrando os ramos desligados com os horários de intervenção
 
-RZ: Erros consertados com estes arquivos a seguir 
+RZ: Erros consertados com estes arquivos a seguir
+
 - [x] erro no IEEE 118 - demanda com 9999 ao invés de 99
 - [x] erro no SIN45 - erro de sintaxe log usando format com aspas
 - [ ] SIN45 sem variável de ambiente (nao importante ainda)
-    - Teste com variveis globais em config.py e global_settings.py
+  - Teste com variveis globais em config.py e global_settings.py
 
 - [x] run.py - corrigido erro de chamada das funções objetivo passando o index da func objetivo e usando os argumentos --config_num e --exec_num
 
@@ -30,29 +31,28 @@ RZ: Erros consertados com estes arquivos a seguir
 
 - [ ] Usar como base o Framework como ferramenta final antes de implementar novas telas
 
-- [ ] Usar como base projeto em Simulink e Matlab para construir um software academico para análise de SEP 
-    - https://www.youtube.com/watch?v=ftcaSp-uhtc
-    - https://www.youtube.com/watch?v=WFFDyCbCdXg
-
+- [ ] Usar como base projeto em Simulink e Matlab para construir um software academico para análise de SEP
+  - <https://www.youtube.com/watch?v=ftcaSp-uhtc>
+  - <https://www.youtube.com/watch?v=WFFDyCbCdXg>
 
 ## 2) __Erros que continuam:__
 
-- [x] Na função objetivo do SIN45 : 
-[20:28:01] [ERRO] na fun��o objetivo SIN45: module 'pandapower.networks' has no attribute 'create_empty_network' 
-    - Erro acontece por erro de sintaxe do pandapower mas a classe de Rede Elétrica já possui este método encapsulado
+- [x] Na função objetivo do SIN45 :
+[20:28:01] [ERRO] na fun��o objetivo SIN45: module 'pandapower.networks' has no attribute 'create_empty_network'
+  - Erro acontece por erro de sintaxe do pandapower mas a classe de Rede Elétrica já possui este método encapsulado
 
 - [x] [20:28:01] Error in fitness_func: float() argument must be a string or a real number, not 'dict'
-
 
 - [x] analisar previamente a função objetivo selecionada no run.py ou permitir selecioná-la antes de executar resolveria muitos problemas, principalmente quando o número de variáveis é diferente.
 
 - [x] Sistema Teste 57 está com muitos erros (não é no código e sim a biblioteca pandapower).
 
-
 ---
 
 ### 3) Bug Fix 18/12/25 execucao unica
+
 """
+
 1) self.thread.quit(): Esta função envia um sinal para a thread indicando que ela deve encerrar seu loop de eventos. É um pedido para que a thread termine suas tarefas pendentes e saia de forma limpa. Ela não interrompe a thread imediatamente.
 
 2) self.thread.wait(): Esta função bloqueia a thread que está chamando o wait() até que a self.thread (a thread de trabalho) tenha realmente terminado sua execução.
@@ -61,8 +61,9 @@ No nosso caso, com as mudanças que fizemos para usar Qt.QueuedConnection, o mé
 
 Quando a thread principal chama self.thread.wait(), ela está esperando pela thread de trabalho (onde o ProcessOutputReader estava rodando) terminar.
 """
- 
+
 ## 4) TODO PVRV
+
 - [x] Refatoração novo Lancher
 - [x] Verificar versão do repositório utilizada para análise
 - [x] Ter versão estável usada no artigo como backup no github
@@ -72,19 +73,22 @@ Quando a thread principal chama self.thread.wait(), ela está esperando pela thr
 - [x] Dashboard só visualiza *config_1*. A principio corrigido em 23/12/25 após bateria de testes
 
 ### 2. Correção do Dashboard e Consolidação de Dados
-- [x] **Depurar Consolidação de Resultados (`database_controller.py`):** Garantir que a função `run_consolidar_resultados` itere sobre **todas** as pastas `config_*` e não pare após a primeira.
-- [ ] **Corrigir Filtros de Visualização (`dashboard_RCE_APP.py`):** Implementar ou corrigir a lógica de filtragem para que os gráficos e tabelas no Streamlit respondam corretamente à seleção do usuário (configuração, execução, etc.).
+
+- [x] __Depurar Consolidação de Resultados (`database_controller.py`):__ Garantir que a função `run_consolidar_resultados` itere sobre __todas__ as pastas `config_*` e não pare após a primeira.
+- [ ] __Corrigir Filtros de Visualização (`dashboard_RCE_APP.py`):__ Implementar ou corrigir a lógica de filtragem para que os gráficos e tabelas no Streamlit respondam corretamente à seleção do usuário (configuração, execução, etc.).
 
 ### 3. Correção de Estabilidade do Launcher
-- [X] **Gerenciar Subprocesso do Dashboard (`main_launcher.py`):** Implementado mecanismo para `src/run.py` utilizar um diretório de output compartilhado, passado pelo launcher. (Ainda pendente: Implementar a finalização explícita do subprocesso do Streamlit ao fechar o dashboard ou o launcher).
+
+- [X] __Gerenciar Subprocesso do Dashboard (`main_launcher.py`):__ Implementado mecanismo para `src/run.py` utilizar um diretório de output compartilhado, passado pelo launcher. (Ainda pendente: Implementar a finalização explícita do subprocesso do Streamlit ao fechar o dashboard ou o launcher).
 s
 
 ---
+
 ## 5) Testing e Qualidade
 
-- [ ]  Criar testes unitários para cada função objetivo 
-    - [x] Test benchmarking (rastrigin)
-    - [x] Test run.py
+- [ ]  Criar testes unitários para cada função objetivo
+  - [x] Test benchmarking (rastrigin)
+  - [x] Test run.py
 
 - [ ]  Validar entrada/saída com options e params com pasta output em variaveis globais
 
