@@ -1,8 +1,16 @@
----
 # Checklist de Correção de Erros — Projeto Repopulation With Elite Set 2025
+
 ---
 
-# 1) Requisitos RZ desde (16/10/2025)
+## Upgrades 2026
+
+- [ ] Novo CLI com python app.py --run 10 --config 3 --json params.json
+- [ ] options.json configuracao de fluxo de potencia newthon raphson
+- [ ] Novos Iframes embutidos na tela
+- [ ] Usando rotas com localhost para exibir conteudo Web
+- [ ] AI gera comandos para decks AnaRede e Pandapower e excel
+
+## 1) Requisitos RZ desde (16/10/2025)
 
 - [x] IEEE14, IEEE30 e IEEE118 estão funcionando muito bem. IEEE57 está com o problema do modelo do pandapower e o SIN45 não está funcionando.
 
