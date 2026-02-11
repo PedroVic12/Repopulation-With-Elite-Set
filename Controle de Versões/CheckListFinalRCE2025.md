@@ -20,14 +20,14 @@ RZ: Erros consertados com estes arquivos a seguir
 
 - [x] erro no IEEE 118 - demanda com 9999 ao invés de 99
 - [x] erro no SIN45 - erro de sintaxe log usando format com aspas
-- [ ] SIN45 sem variável de ambiente (nao importante ainda)
+- [ ] SIN45 sem variável de ambiente
   - Teste com variveis globais em config.py e global_settings.py
 
 - [x] run.py - corrigido erro de chamada das funções objetivo passando o index da func objetivo e usando os argumentos --config_num e --exec_num
 
 - [x] todas as funções objetivo ajustadas para funcionar com run.py da mesma maneira (agora como argparse e Launcher)
 
-- [x] (REVER COM URGENCIA) __Apesar de ter duas configs e no log aparecerem duas configs, no dashboard aparece apenas config_num1 apos correção para artigo PIBIC__
+- [x] (REVER) __Apesar de ter duas configs e no log aparecerem duas configs, no dashboard aparece apenas config_num1 apos correção para artigo PIBIC__
 
 - [ ] __Opção do Dashboard "População Final" mostra a mesma tabela para todas as execuções__
 
@@ -76,8 +76,7 @@ Quando a thread principal chama self.thread.wait(), ela está esperando pela thr
 - [x] Verificar versão do repositório utilizada para análise
 - [x] Ter versão estável usada no artigo como backup no github
 - [x] Limpeza de arquivos não usados no Github
-- [ ] Criação de um excel com os casos IEEE e seus ramos de contigencias para retirar o *hardcoded* dentro de cada código e ter acesso a planilha no Launcher
-- [ ] Criar branch `bugfix/dec-2025` para corrigir erros listados
+- [x] Criação de um excel com os casos IEEE e seus ramos de contigencias para retirar o *hardcoded* dentro de cada código e ter acesso a planilha no Launcher
 - [x] Dashboard só visualiza *config_1*. A principio corrigido em 23/12/25 após bateria de testes
 
 ### 2. Correção do Dashboard e Consolidação de Dados
