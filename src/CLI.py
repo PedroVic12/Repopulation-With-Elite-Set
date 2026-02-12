@@ -50,6 +50,8 @@ PROGRAMS: Dict[str, Dict[str, str]] = {
         "work_dir": "src",
         "requirements": None,
     },
+
+    
     "IEEE_CASES": {
         "name": "▶️ Executar Electrical-Power-System",
         "script": "SYSTEM_ELECTRICAL_PANDAPOWER.py" ,
