@@ -359,17 +359,112 @@ def run_framework_many_executions(function_bechmarking=False, config_num_arg=Non
     except Exception as e:
         print(f" Erro ao iniciar o subprocesso de consolidação: {e}")
 
+#! __main__ antigo de 2025 
+# if __name__ == "__main__":
+#     parser = argparse.ArgumentParser()
+#     parser.add_argument("--config_num", type=int, help="(Opcional) número da configuração (1-based) para executar apenas essa configuração")
+#     parser.add_argument("--exec_num", type=int, help="(Opcional) número da repetição para executar apenas essa repetição")
+#     parser.add_argument("--objective_function_index", type=int, default=None, help="Índice da função objetivo a ser usada (enviado pelo launcher).")
+    
+#     args = parser.parse_args()
+
+#     run_framework_many_executions(
+#         function_bechmarking=BECHMARKING_MODE, 
+#         config_num_arg=args.config_num, 
+#         exec_num_arg=args.exec_num,
+#         objective_function_index=args.objective_function_index
+#     )
+
+
+
+"""
+# Comando
+python run.py --run 10 --config 3
+
+# Ou com função objetivo
+python run.py --run 10 --config 3 --objective_function_index 2
+
+# Ou os comandos antigos (ainda funcionam)
+python run.py --exec_num 10 --config_num 3
+
+# Com modo debug
+python run.py --run 10 --config 3 --debug
+
+# Com benchmarking
+python run.py --run 5 --config 1 --benchmark
+
+# Apenas uma configuração (todas as execuções)
+python run.py --config 3
+
+# Apenas uma execução específica de uma config
+python run.py --config 2 --run 5
+"""
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser()
-    parser.add_argument("--config_num", type=int, help="(Opcional) número da configuração (1-based) para executar apenas essa configuração")
-    parser.add_argument("--exec_num", type=int, help="(Opcional) número da repetição para executar apenas essa repetição")
-    parser.add_argument("--objective_function_index", type=int, default=None, help="Índice da função objetivo a ser usada (enviado pelo launcher).")
+    parser = argparse.ArgumentParser(description="Execução do Framework RCE")
+    
+    # Aceita tanto --config quanto --config_num (retrocompatibilidade)
+    parser.add_argument("--config", "--config_num", type=int, dest="config_num",
+                       help="Número da configuração (1-based) para executar apenas essa configuração")
+    
+    # Aceita tanto --run quanto --exec_num (retrocompatibilidade)
+    parser.add_argument("--run", "--exec_num", type=int, dest="exec_num",
+                       help="Número da execução/repetição para executar apenas essa execução")
+    
+    parser.add_argument("--objective_function_index", "--func", type=int, default=None, dest="objective_function_index",
+                       help="Índice da função objetivo a ser usada (0-4)")
+    
+    parser.add_argument("--debug", action="store_true",
+                       help="Ativa o modo DEBUG")
+    
+    parser.add_argument("--benchmark", action="store_true",
+                       help="Ativa o modo BENCHMARKING")
     
     args = parser.parse_args()
+
+    # Validações
+    if args.objective_function_index is not None:
+        if args.objective_function_index < 0 or args.objective_function_index >= len(ARRAY_FITNESS_FUNCTIONS):
+            print(f"❌ ERRO: objective_function_index deve estar entre 0 e {len(ARRAY_FITNESS_FUNCTIONS)-1}")
+            sys.exit(1)
+    
+    if args.config_num is not None and args.config_num < 1:
+        print("❌ ERRO: --config deve ser maior que 0")
+        sys.exit(1)
+    
+    if args.exec_num is not None and args.exec_num < 1:
+        print("❌ ERRO: --run deve ser maior que 0")
+        sys.exit(1)
+    
+    # Atualiza as variáveis globais se argumentos forem fornecidos
+    if args.debug:
+        DEBUG_MODE = True
+    
+    if args.benchmark:
+        BECHMARKING_MODE = True
+    
+    # Exibe os parâmetros recebidos
+    if args.config_num or args.exec_num or args.objective_function_index is not None:
+        print("\n" + "="*60)
+        print("⚙️  PARÂMETROS CLI:")
+        if args.config_num:
+            print(f"  📋 Configuração: {args.config_num}")
+        if args.exec_num:
+            print(f"  🔄 Execução: {args.exec_num}")
+        if args.objective_function_index is not None:
+            func_name = ARRAY_FITNESS_FUNCTIONS[args.objective_function_index].__name__
+            print(f"  🎯 Função Objetivo: [{args.objective_function_index}] {func_name}")
+        if args.debug:
+            print(f"  🐛 Debug: Ativado")
+        if args.benchmark:
+            print(f"  📊 Benchmark: Ativado")
+        print("="*60 + "\n")
+    
     run_framework_many_executions(
         function_bechmarking=BECHMARKING_MODE, 
         config_num_arg=args.config_num, 
         exec_num_arg=args.exec_num,
         objective_function_index=args.objective_function_index
     )
+
+

@@ -8,7 +8,7 @@ class LoadingWidget(QWidget):
     def __init__(self):
         super().__init__()
         self.setWindowTitle("Carregando RCE Framework")
-        self.setFixedSize(500, 400)
+        self.setFixedSize(900, 500)
         self.setWindowFlags(Qt.FramelessWindowHint | Qt.WindowStaysOnTopHint)
         self.setAttribute(Qt.WA_TranslucentBackground)
         
