@@ -10,6 +10,9 @@ PROJECT_DIR="$SCRIPT_DIR"
 # Navegar para o diretório do projeto
 cd "$PROJECT_DIR"
 
+# Remover venv anterior para garantir uma instalação limpa
+rm -rf .venv
+
 # Criar/ativar venv com uv
 echo "Configurando ambiente virtual com uv..."
 uv venv
@@ -17,29 +20,31 @@ uv venv
 # Ativar o ambiente virtual
 source .venv/bin/activate
 
-# Instalar PySide6 isoladamente para depuração
-echo "Attempting to install PySide6 independently for debugging..."
-uv pip install PySide6
-if [ $? -ne 0 ]; then
-    echo "Error: Failed to install PySide6 independently. Please check compatibility with Python 3.14.2."
-    exit 1
-fi
-echo "PySide6 independent installation attempt complete."
 
-# Instalar dependências se existir requirements.txt (temporariamente desativado para testar PySide6)
+
+# Instalar dependências se existir requirements.txt
 if [ -f "requirements.txt" ]; then
     echo "Instalando dependências..."
     uv pip install -r requirements.txt
 fi
 
-# Verificar a instalação do PySide6
-echo "Verifying PySide6 installation..."
-python -c "import PySide6; print('PySide6 imported successfully.')"
+# Re-instalar PySide6 explicitamente para garantir sua presença
+echo "Ensuring PySide6 is installed explicitly..."
+uv pip install PySide6
 if [ $? -ne 0 ]; then
-    echo "Error: PySide6 not importable in venv. Please ensure it's installed."
+    echo "Error: Failed to explicitly install PySide6. Check compatibility."
     exit 1
 fi
-echo "PySide6 verification complete!!!"
+echo "Explicit PySide6 installation complete."
+
+# Verificar a instalação do PySide6
+echo "Verifying PySide6 and pandas installations..."
+python -c "import PySide6; print('PySide6 imported successfully.'); import pandas; print('pandas imported successfully.')"
+if [ $? -ne 0 ]; then
+    echo "Error: PySide6 or pandas not importable in venv. Please ensure they are installed."
+    exit 1
+fi
+echo "PySide6 and pandas verification complete!!!"
 
 # Instalar PyInstaller
 echo "Instalando PyInstaller..."
