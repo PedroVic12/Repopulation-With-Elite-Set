@@ -2,8 +2,10 @@
 
 ---
 
-## Upgrades 2026
+## Upgrades 2026 (10/02/2026)
 
+- [x] Modificaçõs de caminhos de pastas na nova pasta /tools
+- [x] Tela de loading inicial
 - [ ] Novo CLI com python app.py --run 10 --config 3 --json params.json
 - [ ] options.json configuracao de fluxo de potencia newthon raphson
 - [ ] Novos Iframes embutidos na tela
