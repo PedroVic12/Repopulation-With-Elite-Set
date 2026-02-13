@@ -50,26 +50,24 @@ PROGRAMS: Dict[str, Dict[str, str]] = {
         "work_dir": "src",
         "requirements": None,
     },
-
     "IEEE_CASES": {
         "name": "▶️ Executar Electrical-Power-System",
-        "script": "app.py" ,
-        "work_dir": "src/Electrical-System-Pandapower/",
+        "script": "app.py",
+        "work_dir": "src/Electrical-System-PandaPower/",
         "requirements": None,
     },
-    "PandaPowerCaseManager":{
+    "PandaPowerCaseManager": {
         "name": "▶️ Executar PandaPower Case Manager",
-        "script":  "PandaPowerCaseManager.py",
+        "script": "PandaPowerCaseManager.py",
         "work_dir": "src/RedeEletrica/SimulatorSIN45/",
         "requirements": None,
-        
     },
-    "SmartGridSimulator":{
+    "SmartGridSimulator": {
         "name": "▶️ Executar Smart Grid Simulator",
         "script": "SmartGridSimulator.py",
         "work_dir": "src/RedeEletrica/SimulatorSIN45/",
         "requirements": None,
-    }   
+    },
 }
 
 
@@ -176,4 +174,3 @@ if __name__ == "__main__":
         menu = CLIMenu(PROGRAMS, PROJECTS_ROOT)
         menu.display_interrupted()
         sys.exit(0)
-

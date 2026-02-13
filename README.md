@@ -1,24 +1,25 @@
 # Repopulation-With-Elite-Set
 
 ---
+
 #### FRAMEWORK DESENVOLVIDO PARA FINS ACADÊMICOS USANDO ALGORITMOS GENÉTICOS PARA RESOLVER PROBLEMAS DE OTIMIZAÇÃO EM REDES ELÉTRICAS, FINANCIADO POR BOLSA DE INICIAÇÃO CIENTÍFICA PELA UNIVERSIDADE FEDERAL FLUMINENSE (UFF)
+
 ---
 
 <table>
   <tr>
     <td>
-	    <img src="https://github.com/user-attachments/assets/21e2218a-3df3-4757-8234-eb59c91490c3" alt="Descrição Imagem 1">
+     <img src="https://github.com/user-attachments/assets/21e2218a-3df3-4757-8234-eb59c91490c3" alt="Descrição Imagem 1">
     </td>
     <td>
-	    <img src="https://github.com/user-attachments/assets/5e46cfe2-c669-42ef-9dd5-4f526a82753b" alt="Descrição Imagem 1">
-	</td>
+     <img src="https://github.com/user-attachments/assets/5e46cfe2-c669-42ef-9dd5-4f526a82753b" alt="Descrição Imagem 1">
+ </td>
   </tr>
 </table>
 
-
 **Um framework acadêmico completo para otimização de problemas em Redes Elétricas de Potência usando Algoritmos Genéticos (AG) e a estratégia de diversificação RCE.**
 
------
+---
 
 ## 🎯 Contexto
 
@@ -28,13 +29,14 @@ A principal inovação é o uso da estratégia **RCE (Repopulação Conjunto Eli
 
 ## ✨ Funcionalidades Principais
 
-  * **Algoritmo de Otimização:** Implementação de Algoritmo Genético (AG) focado no problema de agendamento, utilizando a biblioteca **DEAP**.
-  * **Estratégia de Diversificação:** Inclui a técnica **RCE (Repopulação Conjunto Elite)** para melhorar a qualidade e a diversidade das soluções encontradas.
-  * **Simulação de Redes Elétricas:** Utiliza **Pandapower** para modelar as redes (IEEE 14, 30, 118 e SIN 45) e calcular o fluxo de potência, que serve como a "função objetivo" (fitness) do AG.
-  * **Interface Gráfica (Desktop):** Um *Launcher* completo em **PySide6 (Qt)** para configurar todos os parâmetros do AG, definir múltiplas execuções e acompanhar os logs em tempo real.
-  * **Dashboard Web Interativo:** Um painel de análise de resultados em **Streamlit** para visualizar graficamente a convergência do algoritmo, comparar execuções e explorar as soluções finais.
+* **Algoritmo de Otimização:** Implementação de Algoritmo Genético (AG) focado no problema de agendamento, utilizando a biblioteca **DEAP**.
+* **Estratégia de Diversificação:** Inclui a técnica **RCE (Repopulação Conjunto Elite)** para melhorar a qualidade e a diversidade das soluções encontradas.
+* **Simulação de Redes Elétricas:** Utiliza **Pandapower** para modelar as redes (IEEE 14, 30, 118 e SIN 45) e calcular o fluxo de potência, que serve como a "função objetivo" (fitness) do AG.
+* **Interface Gráfica (Desktop):** Um *Launcher* completo em **PySide6 (Qt)** para configurar todos os parâmetros do AG, definir múltiplas execuções e acompanhar os logs em tempo real.
+* **Dashboard Web Interativo:** Um painel de análise de resultados em **Streamlit** para visualizar graficamente a convergência do algoritmo, comparar execuções e explorar as soluções finais.
 
 ## EXEMPLO DE USO COM O SIN DE 45 BARRAS (ONS) - REGIÃO RJ/SP
+
 ---
 
 Uso com 20 gerações, mutação e crossover de 80%, com demandas de contingências leve, média e pesada.
@@ -78,12 +80,12 @@ Este script utiliza um Algoritmo Genético para otimizar o agendamento de manute
 
 O framework segue uma arquitetura desacoplada, facilitando a manutenção e o uso:
 
-1.  **`Launcher.py` (Frontend Desktop):** O utilizador configura os parâmetros da simulação (Ex: % de mutação, nº de gerações) e clica em "Executar".
-2.  **`run.py` (Backend/Controlador):** Este script principal recebe as configurações, instancia o algoritmo evolutivo (AG + RCE) e inicia o processo.
-3.  **`funcao_objetivo` (Modelo):** Para cada "indivíduo" (solução) gerado pelo AG, o `run.py` chama a função objetivo.
-4.  **Pandapower:** A função objetivo usa o Pandapower para simular o cenário (desligamentos + contingências) e calcular as violações (fitness).
-5.  **`output/` (Resultados):** O `run.py` salva os logs, gráficos e a melhor solução numa pasta de resultados.
-6.  **`dashboard_RCE_APP.py` (Frontend Web):** O Streamlit lê os dados da pasta `output/` e exibe os resultados de forma interativa.
+1. **`Launcher.py` (Frontend Desktop):** O utilizador configura os parâmetros da simulação (Ex: % de mutação, nº de gerações) e clica em "Executar".
+2. **`run.py` (Backend/Controlador):** Este script principal recebe as configurações, instancia o algoritmo evolutivo (AG + RCE) e inicia o processo.
+3. **`funcao_objetivo` (Modelo):** Para cada "indivíduo" (solução) gerado pelo AG, o `run.py` chama a função objetivo.
+4. **Pandapower:** A função objetivo usa o Pandapower para simular o cenário (desligamentos + contingências) e calcular as violações (fitness).
+5. **`output/` (Resultados):** O `run.py` salva os logs, gráficos e a melhor solução numa pasta de resultados.
+6. **`dashboard_RCE_APP.py` (Frontend Web):** O Streamlit lê os dados da pasta `output/` e exibe os resultados de forma interativa.
 
 ## 🚀 Começo Rápido
 
@@ -122,30 +124,30 @@ pip install -r requirements.txt
 
 Esta é a forma mais fácil de usar.
 
-1.  Inicia o Launcher:
+1. Inicia o Launcher:
 
     ```bash
     python launcher.py
     ```
 
-2.  Na aba **"Configuração e Execução"**, define os teus parâmetros:
+2. Na aba **"Configuração e Execução"**, define os teus parâmetros:
 
       * **Execuções por Configuração:** Quantas vezes o AG deve rodar para cada conjunto de parâmetros (importante para resultados estatísticos).
       * **Parâmetros do Algoritmo Genético:** Podes definir valores fixos ou múltiplos valores (Modo "Variável") para `MUTACAO`, `CROSSOVER`, `NUM_GENERATIONS` e `POP_SIZE`. O framework irá testar *todas as combinações* possíveis.
 
-3.  Na aba **"Parâmetros AG - RCE"**, podes ajustar detalhes mais finos da estratégia RCE.
+3. Na aba **"Parâmetros AG - RCE"**, podes ajustar detalhes mais finos da estratégia RCE.
 
-4.  Clica em **"Salvar e Executar"**.
+4. Clica em **"Salvar e Executar"**.
 
-5.  Acompanha o progresso na aba **"Dashboard e Logs"**. A partir dela, podes clicar em **"Abrir Dashboard"** para ver os resultados no Streamlit em tempo real.
+5. Acompanha o progresso na aba **"Dashboard e Logs"**. A partir dela, podes clicar em **"Abrir Dashboard"** para ver os resultados no Streamlit em tempo real.
 
 #### Método 2: Direto via Terminal (Avançado)
 
 Para utilizadores avançados que preferem scripts.
 
-1.  Edita o ficheiro de configuração principal: `src/params.json`.
+1. Edita o ficheiro de configuração principal: `src/params.json`.
 
-2.  Executa o script `run.py` (localizado dentro da pasta `src`):
+2. Executa o script `run.py` (localizado dentro da pasta `src`):
 
     ```bash
     python src/run.py
@@ -169,7 +171,7 @@ streamlit run dashboard_RCE_APP.py
 
 Para usar o framework para o *teu* problema, só precisas de te focar em duas coisas:
 
-1.  **O ficheiro `params.json` (ou a interface gráfica):**
+1. **O ficheiro `params.json` (ou a interface gráfica):**
     Aqui defines os parâmetros do teu AG.
 
     ```json
@@ -188,18 +190,19 @@ Para usar o framework para o *teu* problema, só precisas de te focar em duas co
     }
     ```
 
-2.  **Código 1: Exemplo de indivíduo e função objetivo**
+2. **Código 1: Exemplo de indivíduo e função objetivo**
+
 ```python
 ind1 = [1,2,3,4,5,6,7,8,9,10]  # Exemplo de indivíduo de tamanho 10
 
 def evaluate(individual):
-	"""Função objetivo do problema."""
-	a = sum(individual)
-	b = len(individual)
-	return a / b
+ """Função objetivo do problema."""
+ a = sum(individual)
+ b = len(individual)
+ return a / b
 ```
 
-3.  O **Código 2** ilustra o funcionamento ao instanciar os objetos do framework. Neste exemplo, são utilizados o indivíduo `ind1` e a função `evaluate`. Ao executar a função `run`, o utilizador escolhe se deseja usar a estratégia RCE. A função retorna a população final, o melhor indivíduo e gera um gráfico com os resultados.
+1. O **Código 2** ilustra o funcionamento ao instanciar os objetos do framework. Neste exemplo, são utilizados o indivíduo `ind1` e a função `evaluate`. Ao executar a função `run`, o utilizador escolhe se deseja usar a estratégia RCE. A função retorna a população final, o melhor indivíduo e gera um gráfico com os resultados.
 
 **Código 2: Código `main` para execução do framework**
 
@@ -233,9 +236,9 @@ if __name__ == "__main__":
 
 ## 💡 Dicas de Otimização (Estratégia RCE)
 
-  * Aumenta a **Mutação** para maior diversidade entre os valores.
-  * Aumenta a **PORCENTAGEM** para aumentar significativamente a quantidade de indivíduos no conjunto Elite (Critério 1).
-  * Altera **RCE\_REPOPULATION\_GENERATIONS** para obter mais ou menos aplicações da Estratégia de Diversificação RCE.
+* Aumenta a **Mutação** para maior diversidade entre os valores.
+* Aumenta a **PORCENTAGEM** para aumentar significativamente a quantidade de indivíduos no conjunto Elite (Critério 1).
+* Altera **RCE\_REPOPULATION\_GENERATIONS** para obter mais ou menos aplicações da Estratégia de Diversificação RCE.
 
 ***Com valores altos de Mutação, Crossover e Porcentagem, é mais provável que atinja valores próximos do ótimo global.***
 
@@ -253,13 +256,12 @@ Esta classe representa uma rede elétrica usando a biblioteca Pandapower. Ela fo
 <table>
   <tr>
     <td>
-	<img src="https://github.com/PedroVic12/Repopulation-With-Elite-Set/blob/main/src/assets/plot_ieee14_100_generations.png" />
+ <img src="https://github.com/PedroVic12/Repopulation-With-Elite-Set/blob/main/src/assets/plot_ieee14_100_generations.png" />
     </td>
     <td>
-	  <img src="https://icseg.iti.illinois.edu/files/2013/10/WSCC14.png" />
+   <img src="https://icseg.iti.illinois.edu/files/2013/10/WSCC14.png" />
   </tr>
 </table>
-
 
 Esta é a classe central que interage com o Pandapower.
 
@@ -269,12 +271,12 @@ A função `funcao_objetivo_IEEE14` usa a classe `RedeEletricaPandaPower` para s
 
 O processo resume-se a:
 
-1.  **Inicialização:** É criada uma instância da classe `RedeEletricaPandaPower`, carregando a rede IEEE 14 barras.
-2.  **Configuração:** São definidos os pesos para as violações de fitness e carregados os dados de agendamento e contingência.
-3.  **Avaliação de Cenários:** A função `avalia_cenarios` é utilizada para gerar uma matriz de cenários, considerando os horários de início e duração dos desligamentos e os perfis de carregamento.
-4.  **Simulação:** Para cada cenário, o fluxo de carga é executado com `executar_fluxo_de_carga`. As cargas são ajustadas e os elementos da rede são desligados/religados conforme o cenário.
-5.  **Cálculo de Fitness:** As violações são calculadas com `calcular_violacoes_fitness`, e o fitness do cenário é determinado com base nos pesos atribuídos.
-6.  **Agregação de Resultados:** Os valores de fitness de todos os cenários são somados para obter o fitness final do agendamento.
+1. **Inicialização:** É criada uma instância da classe `RedeEletricaPandaPower`, carregando a rede IEEE 14 barras.
+2. **Configuração:** São definidos os pesos para as violações de fitness e carregados os dados de agendamento e contingência.
+3. **Avaliação de Cenários:** A função `avalia_cenarios` é utilizada para gerar uma matriz de cenários, considerando os horários de início e duração dos desligamentos e os perfis de carregamento.
+4. **Simulação:** Para cada cenário, o fluxo de carga é executado com `executar_fluxo_de_carga`. As cargas são ajustadas e os elementos da rede são desligados/religados conforme o cenário.
+5. **Cálculo de Fitness:** As violações são calculadas com `calcular_violacoes_fitness`, e o fitness do cenário é determinado com base nos pesos atribuídos.
+6. **Agregação de Resultados:** Os valores de fitness de todos os cenários são somados para obter o fitness final do agendamento.
 
 #### Por que o fluxo de potência "não converge"?
 
@@ -282,25 +284,25 @@ Isto é um comportamento **esperado** e correto. A não convergência do fluxo d
 
 Isso geralmente acontece quando um cenário de operação (um agendamento de manutenção + uma contingência) leva a uma condição fisicamente instável ou impossível na rede, como:
 
-  * **Colapso de Tensão:** As tensões em algumas barras caem para níveis tão baixos que o sistema "apaga".
-  * **Sobrecargas Extremas:** Linhas ou transformadores sobrecarregados.
-  * **Ilhamento:** A rede divide-se em "ilhas" e uma delas fica sem geração própria para se sustentar.
+* **Colapso de Tensão:** As tensões em algumas barras caem para níveis tão baixos que o sistema "apaga".
+* **Sobrecargas Extremas:** Linhas ou transformadores sobrecarregados.
+* **Ilhamento:** A rede divide-se em "ilhas" e uma delas fica sem geração própria para se sustentar.
 
 O nosso algoritmo de otimização *penaliza* esses indivíduos, atribuindo-lhes um fitness muito alto (penalidade por não atendimento à demanda), garantindo que o AG aprenda a evitá-los.
 
 ### Métodos Principais da Classe
 
-  * `carregar_redes_padrao()`: Carrega uma rede padrão do Pandapower (ex: "case14").
-  * `validar_dados()`: Valida os DataFrames de agendamento e contingência.
-  * `hashtableindex()`: Calcula o índice da tabela hash para um cenário (evita recálculo).
-  * `calcular_violacoes_fitness()`: Calcula as violações de tensão e carregamento (o *fitness*).
-  * `calcular_perfil()`: Determina o perfil de carregamento (leve, médio, pesado).
-  * `avalia_cenarios()`: Gera a matriz de cenários de operação.
-  * `executar_fluxo_de_carga()`: Executa o `runpp` do Pandapower.
-  * `ajustar_cargas()`: Ajusta as cargas da rede conforme o perfil.
-  * `desligar_elementos_agendamento()`: Desliga elementos com base no agendamento.
-  * `desligar_contingencia()`: Desliga um elemento para simular uma contingência.
-  * `religar_todos_os_ramos_agendamento()`: Limpa a rede para o próximo cenário.
+* `carregar_redes_padrao()`: Carrega uma rede padrão do Pandapower (ex: "case14").
+* `validar_dados()`: Valida os DataFrames de agendamento e contingência.
+* `hashtableindex()`: Calcula o índice da tabela hash para um cenário (evita recálculo).
+* `calcular_violacoes_fitness()`: Calcula as violações de tensão e carregamento (o *fitness*).
+* `calcular_perfil()`: Determina o perfil de carregamento (leve, médio, pesado).
+* `avalia_cenarios()`: Gera a matriz de cenários de operação.
+* `executar_fluxo_de_carga()`: Executa o `runpp` do Pandapower.
+* `ajustar_cargas()`: Ajusta as cargas da rede conforme o perfil.
+* `desligar_elementos_agendamento()`: Desliga elementos com base no agendamento.
+* `desligar_contingencia()`: Desliga um elemento para simular uma contingência.
+* `religar_todos_os_ramos_agendamento()`: Limpa a rede para o próximo cenário.
 
 ## 🎓 Agradecimentos
 
@@ -316,16 +318,16 @@ Projeto educacional desenvolvido para UFF e PIBIC.
 
 ## 📚 Recursos Adicionais
 
-- [Next.js Documentation](https://nextjs.org/docs)
+* [Next.js Documentation](https://nextjs.org/docs)
 
 ---
 
 **Data de Criação**: 20 de Outubro de 2025
 **Versão**: 5.1.2
 **Ultimas atualizações**:
-- RCE Lancher
-- Pyintaller com instalar.bat
-- AG - Análise de Contigencaias + FLuxPlot com Pandapower e Pyside6
-- Dashboard Streamlit com pastas /outputs com correções no lancher
-  
 
+* RCE Lancher
+* Pyintaller com instalar.bat
+* AG - Análise de Contigencaias + FLuxPlot com Pandapower e Pyside6
+* Dashboard Streamlit com pastas /outputs com correções no lancher
+  
