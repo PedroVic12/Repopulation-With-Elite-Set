@@ -37,7 +37,7 @@ RZ: Erros consertados com estes arquivos a seguir
 
 - [ ] __Dashboard :usar o launcher mais de uma vez, indo para o dashboard e voltando, pode travar o processo do launcher.__
 
-- [ ] Usar como base o Framework como ferramenta final antes de implementar novas telas
+- [x] Usar como base o Framework como ferramenta final antes de implementar novas telas
 
 - [ ] Usar como base projeto em Simulink e Matlab para construir um software academico para análise de SEP
   - <https://www.youtube.com/watch?v=ftcaSp-uhtc>
@@ -82,7 +82,7 @@ Quando a thread principal chama self.thread.wait(), ela está esperando pela thr
 ### 2. Correção do Dashboard e Consolidação de Dados
 
 - [x] __Depurar Consolidação de Resultados (`database_controller.py`):__ Garantir que a função `run_consolidar_resultados` itere sobre __todas__ as pastas `config_*` e não pare após a primeira.
-- [ ] __Corrigir Filtros de Visualização (`dashboard_RCE_APP.py`):__ Implementar ou corrigir a lógica de filtragem para que os gráficos e tabelas no Streamlit respondam corretamente à seleção do usuário (configuração, execução, etc.).
+- [x] __Corrigir Filtros de Visualização (`dashboard_RCE_APP.py`):__ Implementar ou corrigir a lógica de filtragem para que os gráficos e tabelas no Streamlit respondam corretamente à seleção do usuário (configuração, execução, etc.).
 
 ### 3. Correção de Estabilidade do Launcher
 
