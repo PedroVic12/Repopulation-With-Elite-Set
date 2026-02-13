@@ -2,7 +2,7 @@
 
 ---
 
-#### FRAMEWORK DESENVOLVIDO PARA FINS ACADÊMICOS USANDO ALGORITMOS GENÉTICOS PARA RESOLVER PROBLEMAS DE OTIMIZAÇÃO EM REDES ELÉTRICAS, FINANCIADO POR BOLSA DE INICIAÇÃO CIENTÍFICA PELA UNIVERSIDADE FEDERAL FLUMINENSE (UFF)
+### FRAMEWORK DESENVOLVIDO PARA FINS ACADÊMICOS USANDO ALGORITMOS GENÉTICOS PARA RESOLVER PROBLEMAS DE OTIMIZAÇÃO EM REDES ELÉTRICAS, FINANCIADO POR BOLSA DE INICIAÇÃO CIENTÍFICA PELA UNIVERSIDADE FEDERAL FLUMINENSE (UFF)
 
 ---
 
@@ -116,7 +116,7 @@ Certifica-te de que tens o Python 3.8 (ou superior) e instala as bibliotecas nec
 pip install -r requirements.txt
 ```
 
------
+---
 
 ### 2\. Execução
 
@@ -127,7 +127,7 @@ Esta é a forma mais fácil de usar.
 1. Inicia o Launcher:
 
     ```bash
-    python launcher.py
+    python app.py
     ```
 
 2. Na aba **"Configuração e Execução"**, define os teus parâmetros:
@@ -153,7 +153,7 @@ Para utilizadores avançados que preferem scripts.
     python src/run.py
     ```
 
------
+---
 
 ### 3\. Visualizando os Resultados (Manualmente)
 
@@ -244,7 +244,7 @@ if __name__ == "__main__":
 
 ---
 
-# 📚 Documentação: `RedeEletricaPandaPower`
+## 📚 Documentação: `RedeEletricaPandaPower`
 
 ![image](https://github.com/user-attachments/assets/1291f753-d5c8-44b5-8cc2-460b1a6bd5ca)
 
