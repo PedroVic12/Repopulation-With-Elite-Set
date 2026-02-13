@@ -6,6 +6,7 @@
 
 - [x] Modificaçõs de caminhos de pastas na nova pasta /tools
 - [x] Tela de loading inicial
+- [x] Script ./build.sh para gerar o executáveç .exe limpo
 - [ ] Novo CLI com python app.py --run 10 --config 3 --json params.json
 - [ ] options.json configuracao de fluxo de potencia newthon raphson
 - [ ] Novos Iframes embutidos na tela

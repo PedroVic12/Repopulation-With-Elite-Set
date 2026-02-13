@@ -39,8 +39,6 @@ from functools import partial
 from src.LauncherGUI.gui.widgets.py_push_button import PyPushButton
 from src.LauncherGUI.gui.iframes.LoadingWidget import LoadingWidget
 
-
-
 import shutil
 
 # --- Imports para Análise de SEP ---
@@ -1658,7 +1656,7 @@ class MainController(QObject):
 #  PONTO DE ENTRADA DA APLICAÇÃO
 # =====================================================================================
 if __name__ == "__main__":
-    
+
     # Testando tela de loading antes do app.py
     lazyLoading = True
     if lazyLoading:
@@ -1673,7 +1671,6 @@ if __name__ == "__main__":
 
     # Evento de mostrar o loading
     app.processEvents()
-    
 
     # Colocando o Icon do app
     icon_path = BASE_DIR / "src/assets/IconRCELancher.png"
@@ -1696,10 +1693,10 @@ if __name__ == "__main__":
         elapsed = time.time() - start_time
         if elapsed < 1.5:
             time.sleep(1.5 - elapsed)
-    
+
     # Fecha a tela de loading
     loading_screen.close()
-    
+
     # Mostra a janela principal
     controller.view.showMaximized()
 
