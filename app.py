@@ -37,6 +37,9 @@ from collections import deque
 from functools import partial
 
 from src.LauncherGUI.gui.widgets.py_push_button import PyPushButton
+from src.LauncherGUI.gui.iframes.LoadingWidget import LoadingWidget
+
+
 
 import shutil
 
@@ -110,7 +113,7 @@ except ImportError:
     PLOTLY_AVAILABLE = False
 
 # O import do database_controller permanece, pois é um módulo externo essencial
-from src.database_controller import DatabaseController
+from src.tools.database_controller import DatabaseController
 
 # =====================================================================================
 #  CONFIGURAÇÕES, ESTILOS E CONSTANTES
@@ -1655,8 +1658,22 @@ class MainController(QObject):
 #  PONTO DE ENTRADA DA APLICAÇÃO
 # =====================================================================================
 if __name__ == "__main__":
+    
+    # Testando tela de loading antes do app.py
+    lazyLoading = True
+    if lazyLoading:
+        start_time = time.time()
+
     plt.ioff()  # inicia aplicativo desktop
     app = QApplication(sys.argv)
+
+    # Tela de loading
+    loading_screen = LoadingWidget()
+    loading_screen.show()
+
+    # Evento de mostrar o loading
+    app.processEvents()
+    
 
     # Colocando o Icon do app
     icon_path = BASE_DIR / "src/assets/IconRCELancher.png"
@@ -1671,6 +1688,19 @@ if __name__ == "__main__":
             "O pacote 'PySide6-WebEngine' não foi encontrado. Os gráficos interativos podem não funcionar.",
         )
 
+    # Carrega o controller (parte pesada)
     controller = MainController(app)
+
+    if lazyLoading:
+        # Garante que a tela de loading ficou visível por pelo menos 1.5 segundos
+        elapsed = time.time() - start_time
+        if elapsed < 1.5:
+            time.sleep(1.5 - elapsed)
+    
+    # Fecha a tela de loading
+    loading_screen.close()
+    
+    # Mostra a janela principal
     controller.view.showMaximized()
+
     sys.exit(app.exec())

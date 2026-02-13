@@ -51,11 +51,10 @@ PROGRAMS: Dict[str, Dict[str, str]] = {
         "requirements": None,
     },
 
-    
     "IEEE_CASES": {
         "name": "▶️ Executar Electrical-Power-System",
-        "script": "SYSTEM_ELECTRICAL_PANDAPOWER.py" ,
-        "work_dir": "src/LauncherGUI/frontend/Electrical-System-pandapower/",
+        "script": "app.py" ,
+        "work_dir": "src/Electrical-System-Pandapower/",
         "requirements": None,
     },
     "PandaPowerCaseManager":{
@@ -66,7 +65,6 @@ PROGRAMS: Dict[str, Dict[str, str]] = {
         
     },
     "SmartGridSimulator":{
-        
         "name": "▶️ Executar Smart Grid Simulator",
         "script": "SmartGridSimulator.py",
         "work_dir": "src/RedeEletrica/SimulatorSIN45/",

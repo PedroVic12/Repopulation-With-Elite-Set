@@ -22,6 +22,7 @@ options_main_file = configuracoes_execucoes
 
 # --- CONFIGURAÇÃO do Launcher Estável ---
 BASE_DIR = Path(__file__).parent
+print("Diretorio Atual: ", BASE_DIR)
 SRC_DIR = BASE_DIR / "src"
 RUN_FRAMEWORK_SCRIPT = SRC_DIR / "run.py"
 DASHBOARD_SCRIPT = SRC_DIR / "DashboardApp" / "dashboard_RCE_APP.py"
