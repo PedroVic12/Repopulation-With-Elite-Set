@@ -1691,8 +1691,8 @@ if __name__ == "__main__":
     if lazyLoading:
         # Garante que a tela de loading ficou visível por pelo menos 1.5 segundos
         elapsed = time.time() - start_time
-        if elapsed < 1.5:
-            time.sleep(1.5 - elapsed)
+        if elapsed < 2.5:
+            time.sleep(2.5 - elapsed)
 
     # Fecha a tela de loading
     loading_screen.close()
