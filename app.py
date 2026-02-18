@@ -1657,47 +1657,49 @@ class MainController(QObject):
 # =====================================================================================
 if __name__ == "__main__":
 
-    # Testando tela de loading antes do app.py
+    # Configurações de Loading
     lazyLoading = True
-    if lazyLoading:
-        start_time = time.time()
+    tempo_minimo_segundos = 3
 
-    plt.ioff()  # inicia aplicativo desktop
     app = QApplication(sys.argv)
+    plt.ioff()
 
-    # Tela de loading
+    # Inicia a tela de loading
     loading_screen = LoadingWidget()
+    print("Iniciando a tela de loading do sistema...")
     loading_screen.show()
 
-    # Evento de mostrar o loading
+    # Processa os eventos para a tela aparecer imediatamente
     app.processEvents()
 
-    # Colocando o Icon do app
+    # Configurações visuais
     icon_path = BASE_DIR / "src/assets/IconRCELancher.png"
     app.setWindowIcon(QIcon(str(icon_path)))
-
-    # Colocando o CSS
     app.setStyleSheet(STYLESHEET)
-    if not PLOTLY_AVAILABLE:
-        QMessageBox.warning(
-            None,
-            "Dependência Opcional Faltando",
-            "O pacote 'PySide6-WebEngine' não foi encontrado. Os gráficos interativos podem não funcionar.",
-        )
 
-    # Carrega o controller (parte pesada)
+    if not PLOTLY_AVAILABLE:
+        QMessageBox.warning(None, "Dependência", "PySide6-WebEngine não encontrado.")
+
+    # Marca o início do carregamento
+    start_time = time.time()
+
+    # Carrega o controller (Parte pesada)
     controller = MainController(app)
 
     if lazyLoading:
-        # Garante que a tela de loading ficou visível por pelo menos 1.5 segundos
+        # Calcula quanto tempo ainda falta para completar os 3 segundos
         elapsed = time.time() - start_time
-        if elapsed < 2.5:
-            time.sleep(2.5 - elapsed)
+        remaining = max(0, tempo_minimo_segundos - elapsed)
 
-    # Fecha a tela de loading
+        # Em vez de time.sleep, usamos um loop de eventos curto ou QTimer
+        # para manter a interface responsiva enquanto espera
+        wait_until = time.time() + remaining
+        while time.time() < wait_until:
+            app.processEvents()
+            time.sleep(0.01)  # Pequena pausa para não fritar o processador
+
+    # Finaliza e mostra a principal
     loading_screen.close()
-
-    # Mostra a janela principal
     controller.view.showMaximized()
 
     sys.exit(app.exec())
