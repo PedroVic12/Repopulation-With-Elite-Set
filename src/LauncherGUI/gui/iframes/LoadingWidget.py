@@ -5,7 +5,7 @@ from PySide6.QtGui import QPixmap, QColor
 from pathlib import Path
 
 class LoadingWidget(QWidget):
-    def __init__(self, duration_ms = 4000):
+    def __init__(self, duration_ms = 3000):
         super().__init__()
         self.setWindowTitle("RCE Framework Loader")
         # Aumentando a tela para 1000x600 para um visual mais imersivo
@@ -94,4 +94,4 @@ def show_loading_screen(duration_ms):
     app.exec() # Roda até o .close() ser chamado pelo Timer
 
 # Rodando em 5 segundos de duração
-show_loading_screen(5000) 
+# show_loading_screen(5000) 

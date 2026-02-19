@@ -1665,8 +1665,8 @@ if __name__ == "__main__":
     plt.ioff()
 
     # Inicia a tela de loading
-    loading_screen = LoadingWidget()
     print("Iniciando a tela de loading do sistema...")
+    loading_screen = LoadingWidget()
     loading_screen.show()
 
     # Processa os eventos para a tela aparecer imediatamente
