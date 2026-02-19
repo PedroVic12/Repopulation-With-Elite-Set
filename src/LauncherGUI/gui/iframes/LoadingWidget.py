@@ -1,98 +1,97 @@
 import sys
-from PySide6.QtWidgets import QWidget, QLabel, QVBoxLayout, QApplication
-from PySide6.QtCore import Qt, QTimer
-from PySide6.QtGui import QPixmap
+from PySide6.QtWidgets import QWidget, QLabel, QVBoxLayout, QApplication, QGraphicsDropShadowEffect
+from PySide6.QtCore import Qt, QTimer, Property, QPropertyAnimation, QEasingCurve
+from PySide6.QtGui import QPixmap, QColor
 from pathlib import Path
 
 class LoadingWidget(QWidget):
-    def __init__(self):
+    def __init__(self, duration_ms = 4000):
         super().__init__()
-        self.setWindowTitle("Carregando RCE Framework")
-        self.setFixedSize(900, 500)
-        self.setWindowFlags(Qt.FramelessWindowHint | Qt.WindowStaysOnTopHint)
+        self.setWindowTitle("RCE Framework Loader")
+        # Aumentando a tela para 1000x600 para um visual mais imersivo
+        self.setFixedSize(1000, 600) 
+        self.setWindowFlags(Qt.FramelessWindowHint | Qt.WindowStaysOnTopHint | Qt.Tool)
         self.setAttribute(Qt.WA_TranslucentBackground)
         
-        # Layout principal
         layout = QVBoxLayout(self)
-        layout.setAlignment(Qt.AlignCenter)
-        layout.setContentsMargins(0, 0, 0, 0)
+        layout.setContentsMargins(20, 20, 20, 20)
         
-        # Container com fundo
-        container = QWidget()
-        container.setStyleSheet("""
-            QWidget {
-                background-color: white;
-                border-radius: 15px;
-                border: 2px solid #1976D2;
+        # Container Principal com QSS Premium (Dark Mode/Blue Accent)
+        self.container = QWidget()
+        self.container.setObjectName("MainContainer")
+        self.container.setStyleSheet("""
+            #MainContainer {
+                background-color: qlineargradient(spread:pad, x1:0, y1:0, x2:1, y2:1, 
+                                    stop:0 rgba(33, 37, 43, 255), stop:1 rgba(45, 52, 63, 255));
+                border-radius: 30px;
+                border: 1px solid rgba(25, 118, 210, 80);
             }
+            QLabel { color: #E0E0E0; font-family: 'Segoe UI', 'Roboto', sans-serif; }
         """)
-        container_layout = QVBoxLayout(container)
+        
+        # Efeito de Sombra
+        shadow = QGraphicsDropShadowEffect(self)
+        shadow.setBlurRadius(40)
+        shadow.setXOffset(0)
+        shadow.setYOffset(0)
+        shadow.setColor(QColor(0, 0, 0, 180))
+        self.container.setGraphicsEffect(shadow)
+
+        container_layout = QVBoxLayout(self.container)
         container_layout.setAlignment(Qt.AlignCenter)
         container_layout.setSpacing(20)
-        container_layout.setContentsMargins(30, 30, 30, 30)
         
-        # Logo
+        # Logo com reflexo simples
         logo_path = Path(__file__).parent / "src" / "assets" / "IconRCELancher.png"
         if logo_path.exists():
             logo_label = QLabel()
             pixmap = QPixmap(str(logo_path))
-            scaled_pixmap = pixmap.scaled(150, 150, Qt.KeepAspectRatio, Qt.SmoothTransformation)
-            logo_label.setPixmap(scaled_pixmap)
-            logo_label.setAlignment(Qt.AlignCenter)
-            container_layout.addWidget(logo_label)
+            logo_label.setPixmap(pixmap.scaled(180, 180, Qt.KeepAspectRatio, Qt.SmoothTransformation))
+            container_layout.addWidget(logo_label, 0, Qt.AlignCenter)
         
-        # Título
-        title = QLabel("RCE Framework")
-        title.setStyleSheet("""
-            font-size: 28px;
-            font-weight: bold;
-            color: #1976D2;
-        """)
-        title.setAlignment(Qt.AlignCenter)
-        container_layout.addWidget(title)
+        # Título com Gradiente simulado via QSS
+        self.title = QLabel("RCE FRAMEWORK")
+        self.title.setStyleSheet("font-size: 42px; font-weight: 900; color: #1976D2; letter-spacing: 5px;")
+        container_layout.addWidget(self.title, 0, Qt.AlignCenter)
         
-        # Texto de loading
-        self.loading_text = QLabel("Carregando aplicação...")
-        self.loading_text.setStyleSheet("""
-            font-size: 14px;
-            color: #666;
-        """)
-        self.loading_text.setAlignment(Qt.AlignCenter)
-        container_layout.addWidget(self.loading_text)
+        # Status Text
+        self.loading_text = QLabel("INICIALIZANDO O SISTEMA...")
+        self.loading_text.setStyleSheet("font-size: 14px; color: #888; font-weight: bold;")
+        container_layout.addWidget(self.loading_text, 0, Qt.AlignCenter)
         
-        # Spinner animado
-        self.spinner_label = QLabel("⬤ ⬤ ⬤")
-        self.spinner_label.setStyleSheet("""
-            font-size: 32px;
-            color: #1976D2;
-        """)
-        self.spinner_label.setAlignment(Qt.AlignCenter)
-        container_layout.addWidget(self.spinner_label)
+        # Barra de Progresso Customizada (Simulada com Label)
+        self.bar_bg = QWidget()
+        self.bar_bg.setFixedSize(600, 4)
+        self.bar_bg.setStyleSheet("background: rgba(255,255,255,0.1); border-radius: 2px;")
+        container_layout.addWidget(self.bar_bg, 0, Qt.AlignCenter)
         
-        # Adiciona container ao layout principal
-        layout.addWidget(container)
+        self.bar_fg = QWidget(self.bar_bg)
+        self.bar_fg.setFixedHeight(4)
+        self.bar_fg.setStyleSheet("background: #1976D2; border-radius: 2px;")
         
-        # Timer para animação do spinner
-        self.spinner_timer = QTimer()
-        self.spinner_timer.timeout.connect(self.animate_spinner)
-        self.spinner_states = ["⬤", "⬤ ⬤", "⬤ ⬤ ⬤", "⬤ ⬤", "⬤"]
-        self.spinner_index = 0
-        self.spinner_timer.start(300)
-        
-        # Centralizar na tela
+        layout.addWidget(self.container)
+
+        # Animação da Barra
+        self.anim = QPropertyAnimation(self.bar_fg, b"geometry")
+        self.anim.setDuration(duration_ms)
+        self.anim.setStartValue(self.bar_bg.rect().adjusted(0,0,-600,0))
+        self.anim.setEndValue(self.bar_bg.rect())
+        self.anim.setEasingCurve(QEasingCurve.InOutQuart)
+        self.anim.start()
+
+        # Timer para fechar
+        QTimer.singleShot(duration_ms, self.close)
         self.center_on_screen()
-    
+
     def center_on_screen(self):
-        screen = QApplication.primaryScreen().geometry()
-        x = (screen.width() - self.width()) // 2
-        y = (screen.height() - self.height()) // 2
-        self.move(x, y)
-    
-    def animate_spinner(self):
-        self.spinner_label.setText(self.spinner_states[self.spinner_index])
-        self.spinner_index = (self.spinner_index + 1) % len(self.spinner_states)
-    
-    def closeEvent(self, event):
-        """Para o timer quando a janela for fechada"""
-        self.spinner_timer.stop()
-        super().closeEvent(event)
+        screen = QApplication.primaryScreen().availableGeometry()
+        self.move(screen.center() - self.rect().center())
+
+def show_loading_screen(duration_ms):
+    app = QApplication(sys.argv)
+    loading_widget = LoadingWidget(duration_ms)
+    loading_widget.show()
+    app.exec() # Roda até o .close() ser chamado pelo Timer
+
+# Rodando em 5 segundos de duração
+show_loading_screen(5000) 
