@@ -1,0 +1,156 @@
+---
+title: "Eletromagnetismo e Circuitos AC: Python & Julia"
+author: "Pedro Victor"
+# format:
+#   html:
+#     code-fold: true
+#     toc: true
+#   pdf:
+#     number-sections: true
+jupyter: julia-1.12
+---
+
+
+### Como executar este documento híbrido no Arch Linux:
+
+1.  **Instalar Kernels:**
+    *   **Python:** `pip install ipykernel jupyter`
+    *   **Julia:** No terminal Julia, rode `using Pkg; Pkg.add(["IJulia", "Plots", "ControlSystems"])`
+
+## 1. Eletromagnetismo: Lei de Faraday (Maxwell-Faraday)
+
+A terceira equação de Maxwell estabelece que $\nabla \times \mathbf{E} = -\frac{\partial \mathbf{B}}{\partial t}$. Vamos simular a corrente induzida em uma espira por um campo magnético variável usando **Python**.
+
+```{python}
+#| label: fig-faraday
+#| fig-cap: "Tensão Induzida (FEM) em função da variação do fluxo"
+import numpy as np
+import matplotlib.pyplot as plt
+
+def simular_faraday(frequencia, espiras):
+    t = np.linspace(0, 0.05, 500)
+    phi_max = 0.01  # Weber
+    fluxo = phi_max * np.cos(2 * np.pi * frequencia * t)
+    
+    # FEM = -N * dPhi/dt
+    fem = espiras * (phi_max * 2 * np.pi * frequencia) * np.sin(2 * np.pi * frequencia * t)
+    
+    fig, ax1 = plt.subplots(figsize=(8, 4))
+    ax1.plot(t, fluxo, 'b-', label='Fluxo Φ (Wb)')
+    ax2 = ax1.twinx()
+    ax2.plot(t, fem, 'r-', label='FEM Induzida (V)')
+    
+    ax1.set_xlabel('Tempo (s)')
+    ax1.legend(loc='upper left')
+    ax2.legend(loc='upper right')
+    plt.grid(True, alpha=0.3)
+    return fig
+
+simular_faraday(frequencia=60, espiras=50)
+plt.show()
+```
+
+
+## 2. Análise de Circuito RLC com Fasores (Julia)
+Em circuitos AC, a impedância é tratada como um número complexo. Julia possui suporte nativo excelente para aritmética complexa, ideal para calcular a ressonância em um circuito RLC série.
+
+```{julia}
+#| label: rlc-julia
+using Plots
+
+function analisar_rlc(R, L, C, V_rms)
+    f = collect(10:1:1000) # Frequências de 10 a 1000 Hz
+    ω = 2 * π .* f
+    
+    # Impedância Complexa: Z = R + j(ωL - 1/ωC)
+    Z = R .+ im .* (ω .* L .- 1 ./ (ω .* C))
+    I = V_rms ./ abs.(Z)
+    
+    plot(f, I, title="Ressonância RLC Série",
+         xlabel="Frequência (Hz)", ylabel="Corrente (A)",
+         lw=2, label="I(f)", color=:blue)
+end
+
+# R=10Ω, L=0.1H, C=100µF, V=127V
+analisar_rlc(10, 0.1, 100e-6, 127)
+```
+
+
+## 3. Análise de Circuitos CA com Números Complexos
+
+Na engenharia elétrica, a análise de regime permanente senoidal é simplificada usando fasores. A impedância complexa $\dot{Z}$ é definida como:
+
+$$\dot{Z} = R + j\left( X_L - X_C \right) = R + j\left( \omega L - \frac{1}{\omega C} \right)$$
+
+Onde:
+- $R$ é a resistência ($\Omega$)
+- $X_L = \omega L$ é a reatância indutiva ($\Omega$)
+- $X_C = \frac{1}{\omega C}$ é a reatância capacitiva ($\Omega$)
+
+```{julia}
+#| label: calculo-complexo
+# Definindo parâmetros do circuito
+V_rms = 127.0          # Volts
+f = 60.0               # Hz
+ω = 2 * π * f          # rad/s
+R = 10.0               # Ohms
+L = 0.05               # Henry
+C = 200e-6             # Farad
+
+# Impedâncias individuais
+Z_R = R + 0im
+Z_L = 0 + im * (ω * L)
+Z_C = 0 - im * (1 / (ω * C))
+
+# Impedância Total Série
+Z_total = Z_R + Z_L + Z_C
+
+# Lei de Ohm Fasorial: I = V / Z
+I_fasor = V_rms / Z_total
+
+println("Impedância Total: ", round(Z_total, digits=2), " Ω")
+println("Corrente (Fasor): ", round(I_fasor, digits=2), " A")
+println("Magnitude da Corrente: ", round(abs(I_fasor), digits=2), " A")
+println("Fase da Corrente (graus): ", round(rad2deg(angle(I_fasor)), digits=2), "°")
+```
+
+## 4. Diagrama de Bode em Julia (Filtro Passa-Baixa RLC)
+O Diagrama de Bode expressa a função de transferência
+em termos de magnitude (dB) e fase. Para um circuito RLC onde a saída é a tensão no capacitor:
+
+```{julia}
+#| label: bode-rlc
+#| fig-cap: "Diagrama de Bode - Filtro RLC"
+using ControlSystems, Plots
+
+function plotar_bode_rlc()
+    # Parâmetros
+    R = 20.0
+    L = 0.1
+    C = 100e-6
+    
+    # Definição da Função de Transferência H(s)
+    num = [1/(L*C)]
+    den = [1.0, R/L, 1/(L*C)]
+    sys = tf(num, den)
+    
+    # Gerar Diagrama de Bode
+    # No Arch/VSCode, o plot aparecerá no painel de Preview
+    bodeplot(sys, title="Resposta em Frequência - RLC", 
+             fillalpha=0.1, grid=true)
+end
+
+plotar_bode_rlc()
+```
+
+
+## 5. Conclusão
+
+Este documento demonstrou a aplicação de Python e Julia na análise de circuitos elétricos CA, abordando:
+
+1. **Lei de Faraday** - Indução eletromagnética e geração de tensão
+2. **Análise de circuitos RLC** - Resposta transitória e estacionária
+3. **Números complexos** - Representação fasorial e impedância
+4. **Diagrama de Bode** - Análise de frequência e filtros
+
+As duas linguagens oferecem ferramentas poderosas para engenharia elétrica, com Python sendo mais popular em ciência de dados e Julia oferecendo desempenho próximo ao C para simulações complexas.

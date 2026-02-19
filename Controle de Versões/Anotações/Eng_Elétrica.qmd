@@ -1,0 +1,165 @@
+---
+title: "Engenharia Elétrica: Circuitos CC e Eletromagnetismo"
+author: "Demonstração Técnica"
+format:
+  html:
+    code-fold: true
+    code-summary: "Ver código Python"
+    toc: true
+  pdf:
+    documentclass: article
+    papersize: letter
+    number-sections: true
+jupyter: python3
+---
+
+## 1) Análise Simbólica com SymPy (Circuito CC)
+
+Vamos definir as equações de malha para um circuito com duas fontes de tensão e resistores para encontrar as correntes.
+
+```{python}
+import sympy as sp
+
+def resolver_malhas_cc():
+    # Definição de símbolos
+    I1, I2 = sp.symbols('I1 I2')
+    R1, R2, R3 = 10, 20, 30  # Ohms
+    V1, V2 = 12, 9           # Volts
+
+    # Equações de malha (KVL)
+    # Malha 1: V1 - I1*R1 - (I1 - I2)*R3 = 0
+    # Malha 2: - (I2 - I1)*R3 - I2*R2 - V2 = 0
+    eq1 = sp.Eq(R1*I1 + R3*(I1 - I2), V1)
+    eq2 = sp.Eq(R2*I2 + R3*(I2 - I1), -V2)
+
+    solucao = sp.solve((eq1, eq2), (I1, I2))
+    return solucao
+
+sol = resolver_malhas_cc()
+print(f"Corrente I1: {sol[sp.symbols('I1')]:.4f} A")
+print(f"Corrente I2: {sol[sp.symbols('I2')]:.4f} A")
+```
+
+## 2) Visualização de Campo Magnético com Matplotlib
+Representação vetorial do campo magnético ao redor de um condutor infinito.
+
+#| label: fig-campo-b
+#| fig-cap: "Campo Magnético ao redor de um fio condutor (Lei de Biot-Savart)"
+
+```{python}
+import numpy as np
+import matplotlib.pyplot as plt
+
+def plot_campo_magnetico():
+    y, z = np.meshgrid(np.linspace(-2, 2, 15), np.linspace(-2, 2, 15))
+    r_sq = y**2 + z**2
+    
+    # Componentes do campo (B = mu0 * I / 2 * pi * r)
+    By = -z / r_sq
+    Bz = y / r_sq
+
+    fig, ax = plt.subplots(figsize=(7, 5))
+    q = ax.quiver(y, z, By, Bz, color='teal')
+    ax.set_xlabel('y (m)')
+    ax.set_ylabel('z (m)')
+    ax.set_title('Vetores de Indução Magnética (B)')
+    plt.grid(True)
+    return fig
+
+plot_campo_magnetico()
+plt.show()
+```
+
+
+## 3) Visualização de Campo Magnético com Matplotlib
+Representação vetorial do campo magnético ao redor de um condutor infinito.
+
+#| label: fig-campo-b
+#| fig-cap: "Campo Magnético ao redor de um fio condutor (Lei de Biot-Savart)"
+
+```{python}
+import numpy as np
+import matplotlib.pyplot as plt
+
+def plot_campo_magnetico():
+    y, z = np.meshgrid(np.linspace(-2, 2, 15), np.linspace(-2, 2, 15))
+    r_sq = y**2 + z**2
+    
+    # Componentes do campo (B = mu0 * I / 2 * pi * r)
+    By = -z / r_sq
+    Bz = y / r_sq
+
+    fig, ax = plt.subplots(figsize=(7, 5))
+    q = ax.quiver(y, z, By, Bz, color='teal')
+    ax.set_xlabel('y (m)')
+    ax.set_ylabel('z (m)')
+    ax.set_title('Vetores de Indução Magnética (B)')
+    plt.grid(True)
+    return fig
+
+plot_campo_magnetico()
+plt.show()
+
+```
+
+
+## 4) Resposta Transitória Interativa com Plotly
+Simulação de carga de um capacitor em um circuito RC. 
+
+```{python}
+import plotly.graph_objects as go
+
+def simular_carga_rc(R, C, V_source):
+    t = np.linspace(0, 5 * R * C, 100)
+    v_c = V_source * (1 - np.exp(-t / (R * C)))
+    
+    fig = go.Figure()
+    fig.add_trace(go.Scatter(x=t, y=v_c, mode='lines', name='V_c(t)', line=dict(color='firebrick')))
+    
+    fig.update_layout(
+        title='Carga de um Capacitor (Circuito RC)',
+        xaxis_title='Tempo (s)',
+        yaxis_title='Tensão no Capacitor (V)',
+        template='plotly_white'
+    )
+    return fig
+
+# R = 1k Ohm, C = 100uF, V = 10V
+fig_rc = simular_carga_rc(1000, 100e-6, 10)
+fig_rc.show()
+```
+
+---
+
+### Dicas de Uso da CLI do Quarto
+
+Para gerar seus documentos a partir do terminal, utilize os seguintes comandos:
+
+1.  **Renderizar para HTML:**
+    Otimizado para a web com gráficos interativos (Plotly funcionará perfeitamente aqui).
+
+```bash
+    quarto render demo_eletrica.qmd --to html
+```
+
+2.  **Renderizar para PDF:**
+    Gera um relatório estático e profissional via LaTeX. *Nota: Gráficos Plotly são convertidos automaticamente em imagens estáticas no PDF.*
+
+```bash
+    quarto render demo_eletrica.qmd --to pdf
+```
+
+3.  **Preview em tempo real:**
+    Muito útil enquanto você escreve as funções. Ele atualiza o navegador a cada "Ctrl+S".
+
+```bash
+    quarto preview demo_eletrica.qmd
+```
+
+### Por que usar várias células com funções?
+
+*   **Modularidade:** Se houver um erro no cálculo do `SymPy`, você consegue debugar apenas aquela célula sem quebrar o plot do `Matplotlib`.
+*   **Performance:** O Quarto permite habilitar o `cache: true` no YAML. Se você mudar apenas o texto, ele não reexecuta as funções de cálculo pesado.
+*   **Legibilidade:** Separar "Cálculo" de "Visualização" torna o documento um material didático muito superior para outros engenheiros.
+
+
