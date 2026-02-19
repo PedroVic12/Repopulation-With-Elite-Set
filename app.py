@@ -1666,7 +1666,7 @@ if __name__ == "__main__":
 
     # Inicia a tela de loading
     print("Iniciando a tela de loading do sistema...")
-    loading_screen = LoadingWidget()
+    loading_screen = LoadingWidget(tempo_minimo_segundos*1000)
     loading_screen.show()
 
     # Processa os eventos para a tela aparecer imediatamente
@@ -1687,7 +1687,7 @@ if __name__ == "__main__":
     controller = MainController(app)
 
     if lazyLoading:
-        # Calcula quanto tempo ainda falta para completar os 3 segundos
+        # Calcula quanto tempo ainda falta para completar os segundos
         elapsed = time.time() - start_time
         remaining = max(0, tempo_minimo_segundos - elapsed)
 
@@ -1696,7 +1696,7 @@ if __name__ == "__main__":
         wait_until = time.time() + remaining
         while time.time() < wait_until:
             app.processEvents()
-            time.sleep(0.01)  # Pequena pausa para não fritar o processador
+            time.sleep(0.05)  # Pequena pausa para não fritar o processador
 
     # Finaliza e mostra a principal
     loading_screen.close()
