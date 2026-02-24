@@ -9,6 +9,7 @@ pvrv/
 output/
 docs-sphinx/_build/
 
+app
 
 #! Comandos para retirar o cache no github e manter os arquivos na maquina local
 # git rm -r --cached .
