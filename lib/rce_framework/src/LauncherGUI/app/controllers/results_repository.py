@@ -1,3 +1,6 @@
+import pandas as pd
+
+
 class ResultsRepository:
     """Repository - Busca e formata resultados da simulação para a View."""
 
@@ -56,4 +59,3 @@ class ResultsRepository:
                 .rename(columns={"index": "Linha", "loading_percent": "Carreg. (%)"})
             )
         return pd.DataFrame()
-

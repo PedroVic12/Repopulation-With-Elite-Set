@@ -1,12 +1,13 @@
-
 # --- Imports do PySide6 ---
 
-from PySide6.QtCore import (
-    QThread,
-    Signal,
-    Slot,
-    QObject
-)
+from PySide6.QtCore import QThread, Signal, Slot, QObject
+
+import os
+import sys
+import subprocess
+
+from ....global_settings import SRC_DIR, RUN_FRAMEWORK_SCRIPT
+import traceback
 
 
 class ScriptWorker(QObject):

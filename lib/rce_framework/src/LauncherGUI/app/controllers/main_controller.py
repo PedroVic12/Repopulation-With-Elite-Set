@@ -8,14 +8,24 @@ from PySide6.QtCore import (
     QTimer,
     Slot,
     QObject,
-
 )
 
-
+from ..models.executer_model import ExecutionModel, ScriptWorker
+from ..models.config_manager import ConfigManager
 
 from ..views.launcher_window import LauncherWindow
-from ..models.executer_model import ExecutionModel
-from ..models.config_manager import ConfigManager
+from ..views.tabs_page import *
+from ..views.widgets.QT_Widgets import PowerSystemAnalysisView
+
+from ..controllers.power_system_controller import PowerSystemController
+
+from ....global_settings import CUSTOM_SCRIPTS, CLI_SCRIPT_PATH, ANALYSIS_CASES
+import traceback
+
+from functools import partial
+import shutil
+
+import importlib.util
 
 
 class MainController(QObject):
@@ -310,4 +320,3 @@ class MainController(QObject):
         tab.setProperty("thread", None)
         tab.setProperty("worker", None)
         tab.on_execution_finished(code == 0, f"Script concluído com código {code}.")
-

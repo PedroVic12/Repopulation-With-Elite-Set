@@ -27,19 +27,14 @@ Quando a thread principal chama self.thread.wait(), ela está esperando pela thr
 import sys
 import os
 import json
-import subprocess
 import time
-import importlib.util
-import traceback
 from pathlib import Path
-from itertools import product
 from collections import deque
-from functools import partial
+
 
 from src.LauncherGUI.gui.widgets.py_push_button import PyPushButton
 from src.LauncherGUI.gui.iframes.LoadingWidget import LoadingWidget
 
-import shutil
 
 # --- Imports para Análise de SEP ---
 import pandas as pd
@@ -113,6 +108,7 @@ except ImportError:
 # O import do database_controller permanece, pois é um módulo externo essencial
 from src.tools.database_controller import DatabaseController
 
+
 class ConfigManager:
     """Model - Gerencia o acesso aos arquivos de configuração JSON."""
 
@@ -134,6 +130,7 @@ class ConfigManager:
     def consolidate_results(self):
         self.db_controller.consolidate_results()
 
+
 # =====================================================================================
 #  CONFIGURAÇÕES, ESTILOS E CONSTANTES
 # =====================================================================================
@@ -142,26 +139,27 @@ class ConfigManager:
 from style import STYLESHEET
 
 # --- Importa todas as constantes do config central ---
-from config import *
+from src.global_settings import *
 
 # =====================================================================================
 #  CAMADA MVC — importa Models, Views e Controllers das subpastas
 # =====================================================================================
-from src.LauncherGUI.app.models.process_output_reader  import ProcessOutputReader
-#from models.config_manager         import ConfigManager
-#from models.script_worker          import ScriptWorker
-#from models.execution_model        import ExecutionModel
+from src.LauncherGUI.app.models.process_output_reader import ProcessOutputReader
+
+# from models.config_manager         import ConfigManager
+# from models.script_worker          import ScriptWorker
+# from models.execution_model        import ExecutionModel
 from src.LauncherGUI.app.models.executer_model import ScriptWorker, ExecutionModel
 
-from src.LauncherGUI.app.models.power_system_model     import PowerSystemModel
-from src.LauncherGUI.app.controllers.results_repository     import ResultsRepository
+from src.LauncherGUI.app.models.power_system_model import PowerSystemModel
+from src.LauncherGUI.app.controllers.results_repository import ResultsRepository
 
-from src.LauncherGUI.app.views.launcher_window         import LauncherWindow, NavigationMenu
+from src.LauncherGUI.app.views.launcher_window import LauncherWindow, NavigationMenu
 
-from src.LauncherGUI.app.controllers.main_controller        import MainController
-from src.LauncherGUI.app.controllers.power_system_controller import PowerSystemController
-
-
+from src.LauncherGUI.app.controllers.main_controller import MainController
+from src.LauncherGUI.app.controllers.power_system_controller import (
+    PowerSystemController,
+)
 
 
 # =====================================================================================
