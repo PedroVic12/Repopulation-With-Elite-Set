@@ -10,16 +10,20 @@
 #
 # ///////////////////////////////////////////////////////////////
 
-from qt_core import *
+# IMPORT QT CORE
+from PySide6.QtCore import *
+from PySide6.QtGui import *
+from PySide6.QtWidgets import *
+
 
 class PyTextButton(QPushButton):
     def __init__(
         self,
-        text = "",
-        height = 30,
-        text_color = "#c3ccdf",
-        hover_color = "#4f5368",
-        pressed_color = "#282a36"
+        text="",
+        height=30,
+        text_color="#c3ccdf",
+        hover_color="#4f5368",
+        pressed_color="#282a36",
     ):
         super().__init__()
 
@@ -36,17 +40,12 @@ class PyTextButton(QPushButton):
 
         # Set style
         self.set_style(
-            text_color = self._text_color,
-            hover_color = self._hover_color,
-            pressed_color = self._pressed_color
+            text_color=self._text_color,
+            hover_color=self._hover_color,
+            pressed_color=self._pressed_color,
         )
 
-    def set_style(
-        self,
-        text_color,
-        hover_color,
-        pressed_color
-    ):
+    def set_style(self, text_color, hover_color, pressed_color):
         style = f"""
         QPushButton {{
             color: {text_color};

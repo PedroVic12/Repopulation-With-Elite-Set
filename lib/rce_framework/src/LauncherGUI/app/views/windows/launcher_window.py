@@ -1,27 +1,22 @@
 # --- Imports do PySide6 ---
 from PySide6.QtWidgets import (
-
     QMainWindow,
     QPushButton,
     QVBoxLayout,
     QWidget,
     QHBoxLayout,
-
     QTabWidget,
-
     QFrame,
-
 )
 from PySide6.QtCore import (
-
     Signal,
     Slot,
     QPropertyAnimation,
     QEasingCurve,
 )
 
+from ..widgets.py_push_button import PyPushButton
 
-from ...gui.widgets.py_push_button import PyPushButton
 
 class NavigationMenu(QWidget):
     """View - Menu de navegação lateral."""
@@ -78,7 +73,6 @@ class NavigationMenu(QWidget):
         for btn_name, btn_widget in self.buttons.items():
             if not btn_name.startswith("script_"):
                 btn_widget.set_active(btn_name == name)
-
 
 
 #! Janela Principal do app desktop

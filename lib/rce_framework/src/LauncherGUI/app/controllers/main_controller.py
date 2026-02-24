@@ -13,7 +13,7 @@ from PySide6.QtCore import (
 from ..models.executer_model import ExecutionModel, ScriptWorker
 from ..models.config_manager import ConfigManager
 
-from ..views.launcher_window import LauncherWindow
+from ..views.windows.launcher_window import LauncherWindow
 from ..views.tabs_page import *
 from ..views.widgets.QT_Widgets import PowerSystemAnalysisView
 
