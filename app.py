@@ -1302,8 +1302,6 @@ class PowerSystemController(QObject):
 
 
 #! Janela Principal do app desktop
-
-
 class LauncherWindow(QMainWindow):
     closing = Signal()
 
