@@ -28,7 +28,6 @@ import time
 # --- Imports do PySide6 ---
 from PySide6.QtWidgets import (
     QApplication,
-    QMessageBox,
 )
 
 from PySide6.QtGui import (
@@ -37,15 +36,6 @@ from PySide6.QtGui import (
 
 # --- Checagem de dependências opcionais ---
 import matplotlib.pyplot as plt
-
-try:
-    from PySide6.QtWebEngineWidgets import QWebEngineView
-    import plotly.graph_objects as go
-    import plotly.io as pio
-
-    PLOTLY_AVAILABLE = True
-except ImportError:
-    PLOTLY_AVAILABLE = False
 
 
 # =====================================================================================
@@ -61,24 +51,10 @@ from src.global_settings import *
 # =====================================================================================
 #  CAMADA MVC — importa Models, Views e Controllers das subpastas
 # =====================================================================================
-from src.LauncherGUI.app.models.process_output_reader import ProcessOutputReader
 
 from src.LauncherGUI.app.views.iframes.LoadingWidget import LoadingWidget
 
-from src.LauncherGUI.app.models.executer_model import ScriptWorker, ExecutionModel
-
-from src.LauncherGUI.app.models.power_system_model import PowerSystemModel
-from src.LauncherGUI.app.controllers.results_repository import ResultsRepository
-
-from src.LauncherGUI.app.views.windows.launcher_window import (
-    LauncherWindow,
-    NavigationMenu,
-)
-
 from src.LauncherGUI.app.controllers.main_controller import MainController
-from src.LauncherGUI.app.controllers.power_system_controller import (
-    PowerSystemController,
-)
 
 
 # =====================================================================================
@@ -104,9 +80,6 @@ if __name__ == "__main__":
     # Configurações visuais
     app.setWindowIcon(QIcon(str(ICON_PATH)))
     app.setStyleSheet(STYLESHEET)
-
-    if not PLOTLY_AVAILABLE:
-        QMessageBox.warning(None, "Dependência", "PySide6-WebEngine não encontrado.")
 
     # Marca o início do carregamento
     start_time = time.time()
