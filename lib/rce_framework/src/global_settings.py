@@ -87,3 +87,7 @@ TEMPO_MINIMO_SEGUNDOS  = 3
 
 # --- Ícone da Aplicação ---
 ICON_PATH = BASE_DIR / "src/assets/IconRCELancher.png"
+
+_debug_mode = False
+
+

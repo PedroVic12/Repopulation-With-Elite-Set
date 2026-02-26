@@ -84,13 +84,15 @@ HASHTABLE_SIZE_FUNCS = {
 BASE_DIR = pathlib.Path(__file__).resolve().parent
 
 # variaveis de controle
-CLI = False
+CLI = True
+
 
 #! Debug Mode para AG e logs.txt para o SEP
-DEBUG_MODE = False
+DEBUG_MODE = True
 BECHMARKING_MODE = False
 SHOW_SETTINGS = False
-NUMERO = 1  # 0 1 3 4
+NUMERO = 3  # 0 1 3 4
+
 
 
 # Entrada de dados do usuario
