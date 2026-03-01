@@ -29,16 +29,17 @@ from AlgEvolutivoRCE.alg_evolutivo_rce import AlgoritimoEvolutivoRCE
 from utils.functions_fitness.function_IEEE_14_contigencias import (
     funcao_objetivo_IEEE14,
     hashtablesize,
+    HASH_TABLE_PATH
 )
 
 def consultaHashTable():
     # Consulta hash_table se existir (sub rotina)
-    if os.path.exists(HASH_TABLE_PATH[numero_da_funcao]):
+    if os.path.exists(HASH_TABLE_PATH):
         try:
 
             # Read from Excel, using the first column as the index (our hash key)
             hash_excel = pd.read_excel(
-                HASH_TABLE_PATH[numero_da_funcao], index_col=0
+                HASH_TABLE_PATH, index_col=0
             )
             if not hash_excel.empty:
 
@@ -56,7 +57,7 @@ def consultaHashTable():
     else:
         # If the file doesn't exist, create it from the initial hash table
         hash_df = pd.DataFrame(data=setup.tabela_hash, columns=["Fitness"])
-        hash_df.to_excel(HASH_TABLE_PATH[numero_da_funcao], index=False)
+        hash_df.to_excel(HASH_TABLE_PATH, index=False)
         print(
             f"Tabela hash INICIAL com {len(setup.tabela_hash)} posições não existia e foi criada! - PVRV"
         )
