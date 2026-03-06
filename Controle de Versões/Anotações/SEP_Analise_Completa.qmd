@@ -1,0 +1,1371 @@
+---
+title: "Sistemas de Energia Elétrica — Análise Computacional"
+subtitle: "Fluxo de Potência · Equações de Maxwell · EDOs com Python e Julia"
+author: "RCE Framework"
+date: today
+date-format: "DD/MM/YYYY"
+
+# ── Formatação ─────────────────────────────────────────────────────────────
+format:
+  html:
+    theme: darkly
+    toc: true
+    toc-depth: 3
+    toc-title: "📋 Sumário"
+    toc-location: left
+    number-sections: true
+    code-fold: true
+    code-tools: true
+    code-copy: true
+    code-link: true
+    highlight-style: monokai
+    fig-width: 10
+    fig-height: 6
+    embed-resources: true
+    smooth-scroll: true
+
+
+# ── Motores de código ──────────────────────────────────────────────────────
+jupyter: python3          # kernel padrão (Python)
+execute:
+  echo: true
+  warning: false
+  message: false
+  cache: false
+
+# ── Metadados ─────────────────────────────────────────────────────────────
+lang: pt
+---
+
+```{python}
+#| label: setup
+#| code-fold: false
+#| echo: false
+
+# ── Imports globais Python ──────────────────────────────────────────────────
+import numpy as np
+import pandas as pd
+import sympy as sp
+from sympy import symbols, Matrix, latex, simplify, exp, cos, sin, sqrt
+from sympy import laplace_transform, inverse_laplace_transform, Heaviside
+from sympy.abc import s, t, omega
+import plotly.graph_objects as go
+import plotly.express as px
+from plotly.subplots import make_subplots
+import warnings
+warnings.filterwarnings("ignore")
+
+# Paleta de cores SEP
+CORES = {
+    "azul_escuro": "#1F3864",
+    "azul":        "#2E75B6",
+    "azul_claro":  "#9DC3E6",
+    "verde":       "#70AD47",
+    "laranja":     "#ED7D31",
+    "vermelho":    "#FF0000",
+    "roxo":        "#7030A0",
+    "cinza":       "#808080",
+}
+
+print("✅ Ambiente Python carregado com sucesso")
+print(f"   SymPy  {sp.__version__} | Pandas {pd.__version__} | NumPy {np.__version__}")
+```
+
+# Fundamentos: Potências em CA {#sec-potencias}
+
+## Definição Simbólica com SymPy
+
+```{python}
+#| label: potencia-sympy
+#| fig-cap: "Triângulo das Potências — derivação simbólica"
+
+# ── Variáveis simbólicas ───────────────────────────────────────────────────
+V, I, phi, R, X, Z = symbols('V I phi R X Z', positive=True, real=True)
+fp = symbols('fp')  # fator de potência
+
+# ── Definições ────────────────────────────────────────────────────────────
+P_sym  = V * I * sp.cos(phi)          # Potência Ativa
+Q_sym  = V * I * sp.sin(phi)          # Potência Reativa
+S_sym  = V * I                        # Módulo da Potência Aparente
+S_cplx = V * I * sp.exp(sp.I * phi)   # Potência Complexa
+
+fp_sym = sp.cos(phi)
+
+print("📐 Derivações simbólicas:")
+print(f"   P  = {latex(P_sym)}")
+print(f"   Q  = {latex(Q_sym)}")
+print(f"  |S| = {latex(S_sym)}")
+print(f"  S̃  = {latex(S_cplx)}")
+
+# Relação de Pitágoras
+relacao = sp.Eq(S_sym**2, P_sym**2 + Q_sym**2)
+print(f"\n  Verificação: S² = P² + Q²")
+print(f"  {latex(relacao)}")
+print(f"  Simplificado: {sp.simplify(sp.trigsimp(relacao.lhs - relacao.rhs))}")
+
+# Ângulo de carga a partir de P e Q
+delta_sym = sp.atan(Q_sym / P_sym)
+print(f"\n  φ = arctan(Q/P) = {latex(delta_sym)}")
+```
+
+## DataFrame de Potências por Fator de Potência
+
+```{python}
+#| label: df-potencias
+#| tbl-cap: "Análise de Potências para S = 100 MVA"
+
+S_base = 100  # MVA
+
+# ── Construção do DataFrame ────────────────────────────────────────────────
+fp_vals = np.arange(0.70, 1.01, 0.05)
+phi_vals = np.arccos(fp_vals)
+
+df_potencias = pd.DataFrame({
+    "fp = cos(φ)"    : np.round(fp_vals, 2),
+    "φ (graus)"      : np.round(np.degrees(phi_vals), 2),
+    "P (MW)"         : np.round(S_base * fp_vals, 2),
+    "Q (Mvar)"       : np.round(S_base * np.sin(phi_vals), 2),
+    "|S| (MVA)"      : S_base,
+    "Q/P"            : np.round(np.tan(phi_vals), 4),
+    "Classificação"  : pd.cut(
+        fp_vals,
+        bins=[0, 0.85, 0.92, 0.97, 1.01],
+        labels=["⛔ Ruim", "⚠️ Regular", "✅ Bom", "🏆 Excelente"]
+    )
+})
+
+print(df_potencias.to_string(index=False))
+```
+
+
+::: {.callout-tip title="Como renderizar este arquivo"}
+```bash
+# HTML interativo (recomendado)
+quarto render SEP_Analise_Completa.qmd --to html
+
+# Com Julia + Python (requer IJulia instalado)
+quarto render SEP_Analise_Completa.qmd
+
+# PDF via LaTeX
+quarto render SEP_Analise_Completa.qmd --to pdf
+
+# Apresentação reveal.js
+quarto render SEP_Analise_Completa.qmd --to revealjs
+```
+:::
+
+::: {.callout-note titled
+="Dependências Python"}
+```bash
+pip install numpy pandas sympy plotly
+```
+:::
+
+::: {.callout-note title="Dependências Julia"}
+```julia
+using Pkg
+Pkg.add(["DataFrames", "Plots", "PlotlyJS", "Symbolics",
+         "DifferentialEquations", "IJulia"])
+```
+:::
+
+
+
+## Gráfico Interativo — Triângulo das Potências
+
+```{python}
+#| label: fig-triangulo
+#| fig-cap: "Potências Ativa, Reativa e Aparente vs Fator de Potência (Plotly)"
+
+fig = make_subplots(
+    rows=1, cols=2,
+    subplot_titles=("P, Q e |S| × fp", "Ângulo de carga φ × fp"),
+    horizontal_spacing=0.12
+)
+
+fp_plot = np.linspace(0.5, 1.0, 200)
+phi_plot = np.arccos(fp_plot)
+P_plot = S_base * fp_plot
+Q_plot = S_base * np.sin(phi_plot)
+
+# Col 1: P e Q
+fig.add_trace(go.Scatter(
+    x=fp_plot, y=P_plot, name="P (MW)",
+    line=dict(color=CORES["verde"], width=3),
+    hovertemplate="fp=%{x:.3f}<br>P=%{y:.1f} MW"
+), row=1, col=1)
+
+fig.add_trace(go.Scatter(
+    x=fp_plot, y=Q_plot, name="Q (Mvar)",
+    line=dict(color=CORES["laranja"], width=3, dash="dash"),
+    hovertemplate="fp=%{x:.3f}<br>Q=%{y:.1f} Mvar"
+), row=1, col=1)
+
+fig.add_trace(go.Scatter(
+    x=fp_plot, y=np.full_like(fp_plot, S_base), name="|S| (MVA)",
+    line=dict(color=CORES["azul"], width=2, dash="dot"),
+), row=1, col=1)
+
+# Linha de referência fp=0,92
+fig.add_vline(x=0.92, line_dash="dash", line_color=CORES["vermelho"],
+              annotation_text="fp=0,92", row=1, col=1)
+
+# Col 2: ângulo φ
+fig.add_trace(go.Scatter(
+    x=fp_plot, y=np.degrees(phi_plot), name="φ (°)",
+    line=dict(color=CORES["roxo"], width=3),
+    showlegend=True,
+    hovertemplate="fp=%{x:.3f}<br>φ=%{y:.2f}°"
+), row=1, col=2)
+
+fig.update_layout(
+    template="plotly_dark",
+    height=450,
+    title_text="Triângulo das Potências — S = 100 MVA",
+    title_font_size=16,
+    legend=dict(orientation="h", y=-0.15),
+    font=dict(family="Fira Code"),
+)
+fig.update_xaxes(title_text="Fator de Potência (fp)", row=1, col=1)
+fig.update_xaxes(title_text="Fator de Potência (fp)", row=1, col=2)
+fig.update_yaxes(title_text="Potência (MW / Mvar / MVA)", row=1, col=1)
+fig.update_yaxes(title_text="Ângulo φ (graus)", row=1, col=2)
+
+fig.show()
+```
+
+---
+
+# Linhas de Transmissão {#sec-linhas}
+
+## Parâmetros e Modelos com SymPy
+
+```{python}
+#| label: linhas-sympy
+
+# ── Variáveis simbólicas de linha ─────────────────────────────────────────
+r, l, c, g = symbols('r l c g', positive=True)    # por unidade de comprimento
+d, lam = symbols('d lambda', positive=True)        # distância, comprimento de onda
+L_line = symbols('L', positive=True)               # comprimento da linha
+
+omega_sym = symbols('omega', positive=True)
+
+# ── Parâmetros de linha ───────────────────────────────────────────────────
+Z_ser = r + sp.I * omega_sym * l                  # Impedância série [Ω/m]
+Y_shu = g + sp.I * omega_sym * c                  # Admitância shunt [S/m]
+
+# Constante de propagação e impedância característica
+gamma = sp.sqrt(Z_ser * Y_shu)
+Z_c   = sp.sqrt(Z_ser / Y_shu)
+
+print("📡 Parâmetros de Linha de Transmissão:")
+print(f"   Z_série    = {latex(Z_ser)}")
+print(f"   Y_shunt    = {latex(Y_shu)}")
+print(f"   γ (propagação) = √(Z·Y) = {latex(gamma)}")
+print(f"   Z_c (característica) = √(Z/Y) = {latex(Z_c)}")
+
+# ── Modelo π ─────────────────────────────────────────────────────────────
+print("\n📐 Modelo π Equivalente (linha média 80–250 km):")
+Z_pi = Z_ser * L_line
+Y_pi = Y_shu * L_line / 2
+
+print(f"   Z_pi (série)   = Z·L = {latex(Z_pi)}")
+print(f"   Y_pi/2 (shunt) = Y·L/2 = {latex(Y_pi)}")
+
+# Matriz ABCD
+A_coef = 1 + Z_pi * Y_pi
+B_coef = Z_pi
+C_coef = Y_shu * L_line * (1 + Z_pi * Y_pi / 2)
+D_coef = A_coef
+
+ABCD = Matrix([[A_coef, B_coef],
+               [C_coef, D_coef]])
+
+print(f"\n   Matriz ABCD (parâmetros de 2 portas):")
+print(f"   A = D = 1 + ZY = {latex(simplify(A_coef))}")
+print(f"   B = Z           = {latex(simplify(B_coef))}")
+print(f"   C = Y(1+ZY/2)  = {latex(C_coef)}")
+```
+
+## DataFrame de Linhas IEEE
+
+```{python}
+#| label: df-linhas
+#| tbl-cap: "Parâmetros de Linhas de Transmissão — Sistema IEEE 14 (em p.u.)"
+
+# Dados das linhas do IEEE 14 barras (valores típicos)
+dados_linhas = {
+    "Linha"       : ["1-2",  "1-5",  "2-3",  "2-4",  "2-5",  "3-4",  "4-5",  "4-7",  "4-9",  "5-6"],
+    "De (barra)"  : [1, 1, 2, 2, 2, 3, 4, 4, 4, 5],
+    "Para (barra)": [2, 5, 3, 4, 5, 4, 5, 7, 9, 6],
+    "R (p.u.)"    : [0.01938, 0.05403, 0.04699, 0.05811, 0.05695, 0.06701, 0.01335, 0.0, 0.0, 0.0],
+    "X (p.u.)"    : [0.05917, 0.22304, 0.19797, 0.17632, 0.17388, 0.17103, 0.04211, 0.20912, 0.55618, 0.25202],
+    "B/2 (p.u.)"  : [0.0264,  0.0246,  0.0219,  0.0187,  0.0170,  0.0173,  0.0064, 0.0, 0.0, 0.0],
+    "Limite (MVA)": [120, 65, 65, 65, 65, 65, 45, 55, 32, 90],
+}
+
+df_linhas = pd.DataFrame(dados_linhas)
+
+# Colunas derivadas
+df_linhas["|Z| (p.u.)"] = np.round(np.sqrt(df_linhas["R (p.u.)"]**2 + df_linhas["X (p.u.)"]**2), 5)
+df_linhas["φ_Z (°)"]    = np.round(np.degrees(np.arctan2(df_linhas["X (p.u.)"], df_linhas["R (p.u.)"])), 2)
+df_linhas["X/R"]         = np.where(
+    df_linhas["R (p.u.)"] > 0,
+    np.round(df_linhas["X (p.u.)"] / df_linhas["R (p.u.)"], 2),
+    np.inf
+)
+
+print(df_linhas.to_string(index=False))
+```
+
+## Visualização: Impedâncias no Plano Complexo
+
+```{python}
+# | label: fig-impedancias
+# | fig-cap: "Impedâncias das Linhas no Plano R-X (diagrama de Argand)"
+
+# fig = go.Figure()
+
+# for _, row in df_linhas.iterrows():
+#     fig.add_trace(go.Scatter(
+#         x=[0, row["R (p.u.)"]],
+#         y=[0, row["X (p.u.)"]],
+#         mode="lines+markers",
+#         name=f"Linha {row['Linha']}",
+#         line=dict(width=2),
+#         marker=dict(size=[0, 10]),
+#         hovertemplate=(
+#             f"<b>Linha {row['Linha']}</b><br>"
+#             f"R = {row['R (p.u.)']} p.u.<br>"
+#             f"X = {row['X (p.u.)']} p.u.<br>"
+#             f"|Z| = {row['|Z| (p.u.)']} p.u.<br>"
+#             f"φ = {row['φ_Z (°)']}°"
+#         )
+#     ))
+
+# fig.update_layout(
+#     template="plotly_dark",
+#     title="Diagrama de Impedâncias — Linhas IEEE 14",
+#     xaxis_title="Resistência R (p.u.)",
+#     yaxis_title="Reatância X (p.u.)",
+#     height=500,
+#     font=dict(family="Fira Code"),
+#     showlegend=True,
+#     legend=dict(orientation="h", y=-0.2, ncols=5),
+# )
+
+# # Círculo de referência
+# theta_circ = np.linspace(0, np.pi/2, 100)
+# r_max = df_linhas["|Z| (p.u.)"].max() * 1.1
+# fig.add_trace(go.Scatter(
+#     x=r_max * np.cos(theta_circ),
+#     y=r_max * np.sin(theta_circ),
+#     mode="lines", name="Ref. |Z|_max",
+#     line=dict(color="gray", dash="dot", width=1),
+# ))
+
+# fig.show()
+```
+
+---
+
+# Equações de Maxwell com SymPy {#sec-maxwell}
+
+```{python}
+#| label: maxwell-sympy
+
+# ── Variáveis vetoriais e coordenadas ────────────────────────────────────
+x, y, z, t_sym = symbols('x y z t', real=True)
+epsilon_0, mu_0, rho, q = symbols('epsilon_0 mu_0 rho q', positive=True)
+
+# Campos como funções simbólicas
+Ex, Ey, Ez = [sp.Function(f'E_{c}')(x, y, z, t_sym) for c in ['x','y','z']]
+Bx, By, Bz = [sp.Function(f'B_{c}')(x, y, z, t_sym) for c in ['x','y','z']]
+
+print("⚡ Equações de Maxwell — Formas Diferenciais:")
+print("=" * 60)
+
+# Maxwell I — Lei de Gauss Elétrica
+div_E = sp.diff(Ex, x) + sp.diff(Ey, y) + sp.diff(Ez, z)
+print("\n  I. ∇·E = ρ/ε₀  (Lei de Gauss — campo elétrico)")
+print(f"     div(E) = ∂Ex/∂x + ∂Ey/∂y + ∂Ez/∂z = ρ/ε₀")
+print(f"     Interpretação: cargas são fontes do campo E")
+print(f"     SEP: C = Q/V → capacitância de linha = 2πε₀/ln(GMD/r)")
+
+# Maxwell II — Lei de Gauss Magnética
+div_B = sp.diff(Bx, x) + sp.diff(By, y) + sp.diff(Bz, z)
+print("\n  II. ∇·B = 0  (Gauss magnético — sem monopolos)")
+print(f"      div(B) = ∂Bx/∂x + ∂By/∂y + ∂Bz/∂z = 0")
+print(f"      Interpretação: linhas de B são sempre fechadas")
+print(f"      SEP: fluxo magnético total em transformador é conservado")
+
+# Maxwell III — Faraday
+print("\n  III. ∇×E = −∂B/∂t  (Lei de Faraday — indução)")
+print(f"       (∂Ez/∂y − ∂Ey/∂z, ∂Ex/∂z − ∂Ez/∂x, ∂Ey/∂x − ∂Ex/∂y) = −∂B/∂t")
+print(f"       Forma integral: ∮ E·dl = −dΦ_B/dt = −N·dΦ/dt")
+print(f"       SEP: FEM induzida em geradores e transformadores")
+
+# Maxwell IV — Ampère-Maxwell
+print("\n  IV. ∇×B = μ₀·J + μ₀ε₀·∂E/∂t  (Ampère-Maxwell)")
+print(f"      SEP: indutância L = μ₀/2π · ln(GMD/GMR) [H/m]")
+print(f"      Velocidade da luz: c = 1/√(μ₀ε₀) = 3×10⁸ m/s")
+```
+
+## Cálculo Simbólico de Indutância e Capacitância
+
+```{python}
+#| label: maxwell-linha
+
+# ── Parâmetros simbólicos de linha ────────────────────────────────────────
+GMD, GMR, r_cond = symbols('GMD GMR r', positive=True)
+
+# Indutância por fase (linha trifásica transposta) — derivada de Maxwell IV
+L_fase = (mu_0 / (2 * sp.pi)) * sp.log(GMD / GMR)
+
+# Capacitância por fase — derivada de Maxwell I
+C_fase = 2 * sp.pi * epsilon_0 / sp.log(GMD / r_cond)
+
+# Reatâncias a 60 Hz
+f_sym = symbols('f', positive=True)
+X_L_sym = 2 * sp.pi * f_sym * L_fase
+X_C_sym = 1 / (2 * sp.pi * f_sym * C_fase)
+
+print("📐 Parâmetros de Linha derivados das Equações de Maxwell:")
+print(f"\n  Indutância / fase:")
+print(f"  L = (μ₀/2π) · ln(GMD/GMR) = {latex(L_fase)}")
+print(f"\n  Capacitância / fase:")
+print(f"  C = 2πε₀ / ln(GMD/r) = {latex(C_fase)}")
+print(f"\n  Reatância indutiva @ frequência f:")
+print(f"  X_L = 2πf·L = {latex(X_L_sym)}")
+print(f"\n  Reatância capacitiva @ frequência f:")
+print(f"  X_C = 1/(2πf·C) = {latex(X_C_sym)}")
+
+# ── Valores numéricos para condutor típico (ACSR 636 kcmil) ───────────────
+mu0_val   = 4 * np.pi * 1e-7      # H/m
+eps0_val  = 8.854e-12             # F/m
+GMD_val   = 8.0                   # m  (distância média entre fases)
+GMR_val   = 0.00814               # m  (ACSR 636 kcmil)
+r_val     = 0.01312               # m  (raio do condutor)
+f_val     = 60                    # Hz
+
+L_num = (mu0_val / (2 * np.pi)) * np.log(GMD_val / GMR_val)
+C_num = 2 * np.pi * eps0_val / np.log(GMD_val / r_val)
+XL_num = 2 * np.pi * f_val * L_num
+XC_num = 1 / (2 * np.pi * f_val * C_num)
+
+print(f"\n📊 Valores numéricos (ACSR 636 kcmil, GMD=8m, f=60Hz):")
+print(f"  L  = {L_num*1000:.4f} mH/m = {L_num*1e3*1e3:.4f} mH/km")
+print(f"  C  = {C_num*1e12:.4f} pF/m = {C_num*1e9:.4f} nF/km")
+print(f"  XL = {XL_num*1000:.4f} mΩ/m = {XL_num*1000*1000:.4f} mΩ/km")
+print(f"  XC = {XC_num/1000:.2f} kΩ·m")
+```
+
+## DataFrame — Parâmetros por Tensão de Linha
+
+```{python}
+#| label: df-maxwell-params
+#| tbl-cap: "Parâmetros EM de Linhas Típicas por Nível de Tensão"
+
+dados_tensao = {
+    "Nível (kV)"   : [13.8, 69,   138,  230,  345,  500,  765],
+    "GMD (m)"      : [1.2,  3.5,  5.5,  7.5,  9.0,  11.0, 14.0],
+    "Isoladores"   : [3,    6,    10,   16,   24,   32,   48],
+    "Config."      : ["Trifásica", "Trifásica", "Duplo Circuito",
+                      "Duplo Circuito", "Duplo Circuito", "Duplo Circuito", "Duplo Circuito"],
+    "r (Ω/km)"     : [0.642, 0.196, 0.073, 0.050, 0.035, 0.020, 0.015],
+    "XL (Ω/km)"    : [0.380, 0.420, 0.401, 0.388, 0.365, 0.350, 0.330],
+    "XC (MΩ·km)"   : [0.220, 0.270, 0.290, 0.295, 0.290, 0.285, 0.280],
+    "SIL (MVA)"    : [5,     50,    200,   560,  1390, 2280, 5100],
+}
+
+df_tensao = pd.DataFrame(dados_tensao)
+df_tensao["Z_onda (Ω)"] = np.round(np.sqrt(df_tensao["XL (Ω/km)"] * df_tensao["XC (MΩ·km)"] * 1e6), 1)
+df_tensao["X/R"]         = np.round(df_tensao["XL (Ω/km)"] / df_tensao["r (Ω/km)"], 1)
+
+print(df_tensao.to_string(index=False))
+```
+
+```{python}
+#| label: fig-onda
+#| fig-cap: "Impedância de Onda e SIL por Nível de Tensão (Plotly)"
+
+fig = make_subplots(specs=[[{"secondary_y": True}]])
+
+fig.add_trace(go.Bar(
+    x=df_tensao["Nível (kV)"].astype(str) + " kV",
+    y=df_tensao["Z_onda (Ω)"],
+    name="Z_onda (Ω)",
+    marker_color=CORES["azul"],
+    opacity=0.8,
+), secondary_y=False)
+
+fig.add_trace(go.Scatter(
+    x=df_tensao["Nível (kV)"].astype(str) + " kV",
+    y=df_tensao["SIL (MVA)"],
+    name="SIL (MVA)",
+    mode="lines+markers",
+    line=dict(color=CORES["laranja"], width=3),
+    marker=dict(size=10, symbol="diamond"),
+), secondary_y=True)
+
+fig.update_layout(
+    template="plotly_dark",
+    title="Impedância de Onda vs Potência Natural da Linha (SIL)",
+    font=dict(family="Fira Code"),
+    height=450,
+    legend=dict(orientation="h", y=-0.15),
+)
+fig.update_yaxes(title_text="Impedância de Onda Z₀ (Ω)", secondary_y=False)
+fig.update_yaxes(title_text="SIL (MVA)", secondary_y=True)
+fig.update_xaxes(title_text="Nível de Tensão")
+fig.show()
+```
+
+---
+
+# EDOs: Sistemas de 1ª Ordem {#sec-edo1}
+
+## Função de Transferência Simbólica
+
+```{python}
+#| label: edo1-sympy
+
+s_var = symbols('s', complex=True)
+tau, K_gain, t_var = symbols('tau K t', positive=True)
+
+# ── G(s) de 1ª ordem ──────────────────────────────────────────────────────
+G1 = K_gain / (tau * s_var + 1)
+print("📐 Sistema de 1ª Ordem G(s) = K / (τs + 1)")
+print(f"   G(s) = {latex(G1)}")
+
+# Polo
+polo1 = sp.solve(tau * s_var + 1, s_var)[0]
+print(f"\n   Polo: s = {latex(polo1)}  → Re(s) < 0 → ESTÁVEL ✅")
+
+# Resposta ao degrau (entrada U(s) = 1/s)
+U_step = 1 / s_var
+Y1 = G1 * U_step
+print(f"\n   Y(s) = G(s)·U(s) = {latex(sp.simplify(Y1))}")
+
+# Frações parciais
+Y1_partial = sp.apart(Y1, s_var)
+print(f"   Y(s) (fraç. parciais) = {latex(Y1_partial)}")
+
+# Transformada inversa de Laplace
+y1_t = K_gain * (1 - sp.exp(-t_var / tau))
+print(f"\n   y(t) = K·(1 − e^(−t/τ)) = {latex(y1_t)}")
+
+# Malha fechada com ganho unitário
+G1_MF = sp.simplify(G1 / (1 + G1))
+print(f"\n   G_MF(s) = G/(1+G) = {latex(G1_MF)}")
+print(f"   → τ_MF = τ/(1+K), K_MF = K/(1+K)")
+```
+
+## Resposta Temporal e Análise
+
+```{python}
+#| label: fig-edo1
+#| fig-cap: "Resposta ao Degrau — Sistema 1ª Ordem para diferentes τ"
+
+t_arr = np.linspace(0, 10, 500)
+
+configs_1ordem = [
+    {"K": 1.0, "tau": 0.5, "nome": "τ=0.5 (rápido)",  "cor": CORES["verde"]},
+    {"K": 1.0, "tau": 1.0, "nome": "τ=1.0 (médio)",   "cor": CORES["azul"]},
+    {"K": 1.0, "tau": 2.0, "nome": "τ=2.0 (lento)",   "cor": CORES["laranja"]},
+    {"K": 1.5, "tau": 1.0, "nome": "K=1.5, τ=1.0",   "cor": CORES["roxo"]},
+    {"K": 0.8, "tau": 1.0, "nome": "K=0.8, τ=1.0",   "cor": CORES["cinza"]},
+]
+
+fig = make_subplots(rows=1, cols=2,
+    subplot_titles=("Resposta ao Degrau y(t)", "Diagrama de Bode — |G(jω)|"),
+    horizontal_spacing=0.12)
+
+for cfg in configs_1ordem:
+    y_t = cfg["K"] * (1 - np.exp(-t_arr / cfg["tau"]))
+    fig.add_trace(go.Scatter(
+        x=t_arr, y=y_t, name=cfg["nome"],
+        line=dict(color=cfg["cor"], width=2.5),
+        hovertemplate=f"t=%{{x:.2f}}<br>y=%{{y:.4f}}"
+    ), row=1, col=1)
+
+# Marcadores τ
+for cfg in configs_1ordem[:3]:
+    y_tau = cfg["K"] * (1 - np.exp(-1))
+    fig.add_trace(go.Scatter(
+        x=[cfg["tau"]], y=[y_tau],
+        mode="markers", name=f"63% @τ={cfg['tau']}",
+        marker=dict(symbol="x", size=12, color=cfg["cor"]),
+        showlegend=False,
+    ), row=1, col=1)
+
+# Bode (malha aberta)
+omega_arr = np.logspace(-2, 2, 400)
+for cfg in configs_1ordem[:3]:
+    s_jw = 1j * omega_arr
+    G_jw = cfg["K"] / (cfg["tau"] * s_jw + 1)
+    mag_dB = 20 * np.log10(np.abs(G_jw))
+    fig.add_trace(go.Scatter(
+        x=omega_arr, y=mag_dB, name=f"Bode {cfg['nome']}",
+        line=dict(color=cfg["cor"], width=2),
+        showlegend=False,
+    ), row=1, col=2)
+
+fig.add_hline(y=0.632, line_dash="dot", line_color="white",
+              annotation_text="63%", row=1, col=1)
+fig.add_hline(y=1.0,   line_dash="dot", line_color="gray",
+              annotation_text="regime", row=1, col=1)
+
+fig.update_layout(template="plotly_dark", height=480, font=dict(family="Fira Code"),
+                  title_text="Análise — Sistema 1ª Ordem")
+fig.update_xaxes(title_text="Tempo (s)", row=1, col=1)
+fig.update_xaxes(title_text="ω (rad/s)", type="log", row=1, col=2)
+fig.update_yaxes(title_text="y(t)", row=1, col=1)
+fig.update_yaxes(title_text="|G(jω)| (dB)", row=1, col=2)
+fig.show()
+```
+
+---
+
+# EDOs: Sistemas de 2ª Ordem {#sec-edo2}
+
+## Função de Transferência e Polos
+
+```{python}
+#| label: edo2-sympy
+
+zeta, wn, K2 = symbols('zeta omega_n K', positive=True)
+
+# ── G(s) de 2ª ordem ──────────────────────────────────────────────────────
+G2_num = K2 * wn**2
+G2_den = s_var**2 + 2*zeta*wn*s_var + wn**2
+G2     = G2_num / G2_den
+
+print("📐 Sistema de 2ª Ordem: G(s) = Kωₙ² / (s² + 2ζωₙs + ωₙ²)")
+print(f"   G(s) = {latex(G2)}")
+
+# Polos
+polos2 = sp.solve(G2_den, s_var)
+print(f"\n   Polos:")
+for i, p in enumerate(polos2):
+    print(f"   s{i+1} = {latex(sp.simplify(p))}")
+
+# Frequência amortecida
+wd = wn * sp.sqrt(1 - zeta**2)
+print(f"\n   ωd (freq. amortecida) = ωₙ√(1−ζ²) = {latex(wd)}")
+
+# Sobressinal
+Mp = sp.exp(-sp.pi * zeta / wd * wn)
+Mp_simplified = sp.exp(-sp.pi * zeta / sp.sqrt(1 - zeta**2))
+print(f"\n   Mp (sobressinal) = e^(−πζ/√(1−ζ²)) = {latex(Mp_simplified)}")
+
+# Tempo de acomodação (±2%)
+ts = 4 / (zeta * wn)
+print(f"\n   ts (acomodação ±2%) = 4/(ζωₙ) = {latex(ts)}")
+
+# Tempo de pico
+tp = sp.pi / wd
+print(f"\n   tp (tempo de pico) = π/ωd = {latex(tp)}")
+```
+
+## Mapa de Polos e Resposta ao Degrau
+
+```{python}
+#| label: fig-edo2
+#| fig-cap: "Sistema 2ª Ordem: Mapa de Polos, Resposta ao Degrau e Sobressinal"
+
+wn_val = 2.0   # rad/s (fixo)
+
+configs_2ordem = [
+    {"zeta": 0.1, "cor": CORES["vermelho"],   "nome": "ζ=0.1 (subamortecido)"},
+    {"zeta": 0.3, "cor": CORES["laranja"],    "nome": "ζ=0.3"},
+    {"zeta": 0.5, "cor": CORES["verde"],      "nome": "ζ=0.5 ✅ ideal"},
+    {"zeta": 0.7, "cor": CORES["azul_claro"], "nome": "ζ=0.7"},
+    {"zeta": 1.0, "cor": CORES["azul"],       "nome": "ζ=1.0 (crítico)"},
+    {"zeta": 1.5, "cor": CORES["cinza"],      "nome": "ζ=1.5 (super)"},
+]
+
+fig = make_subplots(
+    rows=2, cols=2,
+    subplot_titles=(
+        "Resposta ao Degrau y(t)",
+        "Mapa de Polos (Plano s)",
+        "Sobressinal Mp × ζ",
+        "Tempo de Acomodação ts × ζ",
+    ),
+    horizontal_spacing=0.1,
+    vertical_spacing=0.15,
+)
+
+t_arr2 = np.linspace(0, 15, 1000)
+
+for cfg in configs_2ordem:
+    z = cfg["zeta"]
+    K_val = 1.0
+
+    if z < 1:
+        wd_val = wn_val * np.sqrt(1 - z**2)
+        y_t = K_val * (1 - np.exp(-z*wn_val*t_arr2) * (
+            np.cos(wd_val*t_arr2) + (z/np.sqrt(1-z**2))*np.sin(wd_val*t_arr2)
+        ))
+    elif z == 1:
+        y_t = K_val * (1 - np.exp(-wn_val*t_arr2) * (1 + wn_val*t_arr2))
+    else:
+        s1 = (-z + np.sqrt(z**2-1)) * wn_val
+        s2 = (-z - np.sqrt(z**2-1)) * wn_val
+        y_t = K_val * (1 + (s2*np.exp(s1*t_arr2) - s1*np.exp(s2*t_arr2))/(s1-s2))
+
+    fig.add_trace(go.Scatter(
+        x=t_arr2, y=y_t, name=cfg["nome"],
+        line=dict(color=cfg["cor"], width=2),
+        hovertemplate="t=%{x:.2f}<br>y=%{y:.4f}",
+    ), row=1, col=1)
+
+    # Polos no plano s
+    if z < 1:
+        s1_r, s1_i = -z*wn_val, wn_val*np.sqrt(1-z**2)
+        fig.add_trace(go.Scatter(
+            x=[s1_r, s1_r], y=[s1_i, -s1_i],
+            mode="markers", name=f"Polos ζ={z}",
+            marker=dict(color=cfg["cor"], size=10, symbol="x"),
+            showlegend=False,
+        ), row=1, col=2)
+    else:
+        s1_r = (-z + np.sqrt(max(z**2-1, 0))) * wn_val
+        s2_r = (-z - np.sqrt(max(z**2-1, 0))) * wn_val
+        fig.add_trace(go.Scatter(
+            x=[s1_r, s2_r], y=[0, 0],
+            mode="markers",
+            marker=dict(color=cfg["cor"], size=10, symbol="x"),
+            showlegend=False,
+        ), row=1, col=2)
+
+# Curvas analíticas
+zeta_range = np.linspace(0.01, 2.0, 300)
+Mp_range = np.where(zeta_range < 1, np.exp(-np.pi*zeta_range/np.sqrt(1-zeta_range**2+1e-10))*100, 0)
+ts_range = 4 / (zeta_range * wn_val)
+
+fig.add_trace(go.Scatter(x=zeta_range, y=Mp_range, name="Mp (%)",
+    line=dict(color=CORES["vermelho"], width=2.5)), row=2, col=1)
+fig.add_vline(x=0.5, line_dash="dash", line_color="green",
+              annotation_text="ζ=0.5 → Mp≈16%", row=2, col=1)
+
+fig.add_trace(go.Scatter(x=zeta_range, y=ts_range, name="ts (s)",
+    line=dict(color=CORES["azul"], width=2.5)), row=2, col=2)
+
+# Eixo imaginário
+fig.add_vline(x=0, line_dash="solid", line_color="white", line_width=0.5, row=1, col=2)
+fig.add_hline(y=0, line_dash="solid", line_color="white", line_width=0.5, row=1, col=2)
+fig.add_hline(y=1.0, line_dash="dot", line_color="gray", row=1, col=1)
+
+fig.update_layout(template="plotly_dark", height=700, font=dict(family="Fira Code"),
+                  title_text=f"Sistema de 2ª Ordem (ωₙ = {wn_val} rad/s)")
+fig.update_xaxes(title_text="Tempo (s)", row=1, col=1)
+fig.update_xaxes(title_text="Re(s)", row=1, col=2)
+fig.update_xaxes(title_text="ζ (razão de amortecimento)", row=2, col=1)
+fig.update_xaxes(title_text="ζ (razão de amortecimento)", row=2, col=2)
+fig.update_yaxes(title_text="y(t)", row=1, col=1)
+fig.update_yaxes(title_text="Im(s)", row=1, col=2)
+fig.update_yaxes(title_text="Sobressinal Mp (%)", row=2, col=1)
+fig.update_yaxes(title_text="ts (s) — critério ±2%", row=2, col=2)
+fig.show()
+```
+
+## DataFrame de Análise Modal
+
+```{python}
+#| label: df-modal
+#| tbl-cap: "Análise Modal — Polos e Índices de Desempenho para ωₙ = 2 rad/s"
+
+zeta_vals = [0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 1.0, 1.5]
+wn_v = 2.0
+
+registros = []
+for z in zeta_vals:
+    if z < 1:
+        wd_v   = wn_v * np.sqrt(1 - z**2)
+        Mp_v   = np.exp(-np.pi * z / np.sqrt(1 - z**2)) * 100
+        tp_v   = np.pi / wd_v
+        tipo   = "Subamortecido"
+    elif z == 1:
+        wd_v, Mp_v, tp_v = 0, 0, np.inf
+        tipo = "Criticamente amortecido"
+    else:
+        wd_v, Mp_v, tp_v = 0, 0, np.inf
+        tipo = "Superamortecido"
+
+    ts_v  = 4 / (z * wn_v)
+    s1_re = -z * wn_v
+    s1_im = wn_v * np.sqrt(max(1 - z**2, 0))
+
+    registros.append({
+        "ζ"           : z,
+        "Re(s₁)"      : round(s1_re, 4),
+        "Im(s₁)"      : round(s1_im, 4),
+        "ωd (rad/s)"  : round(wd_v, 4),
+        "Mp (%)"      : round(Mp_v, 2),
+        "tp (s)"      : round(tp_v, 3) if tp_v != np.inf else "∞",
+        "ts ±2% (s)"  : round(ts_v, 3),
+        "Tipo"        : tipo,
+    })
+
+df_modal = pd.DataFrame(registros)
+print(df_modal.to_string(index=False))
+```
+
+---
+
+# Fluxo de Potência: Newton-Raphson {#sec-nrfluxo}
+
+```{python}
+#| label: nr-python
+#| code-fold: false
+
+import numpy as np
+
+def newton_raphson_fluxo(Y_bus, P_esp, Q_esp, V0, delta0,
+                          barras_pv, barra_slack,
+                          max_iter=50, tol=1e-6):
+    """
+    Newton-Raphson para Fluxo de Potência.
+
+    Parâmetros
+    ----------
+    Y_bus     : np.ndarray complexo (n×n)
+    P_esp     : np.ndarray  potências ativas especificadas [p.u.]
+    Q_esp     : np.ndarray  potências reativas especificadas [p.u.]
+    V0        : np.ndarray  tensões iniciais [p.u.]
+    delta0    : np.ndarray  ângulos iniciais [rad]
+    barras_pv : list        índices das barras PV
+    barra_slack: int        índice da barra slack
+    max_iter  : int
+    tol       : float       critério de convergência
+
+    Retorna
+    -------
+    V, delta, iteracoes, residuos
+    """
+    n = len(Y_bus)
+    V     = V0.copy().astype(float)
+    delta = delta0.copy().astype(float)
+
+    G = Y_bus.real
+    B = Y_bus.imag
+
+    historico = []
+
+    for it in range(max_iter):
+        # ── Cálculo de P e Q injetados ────────────────────────────────
+        P_calc = np.zeros(n)
+        Q_calc = np.zeros(n)
+
+        for i in range(n):
+            for k in range(n):
+                dij = delta[i] - delta[k]
+                P_calc[i] += V[i]*V[k]*(G[i,k]*np.cos(dij) + B[i,k]*np.sin(dij))
+                Q_calc[i] += V[i]*V[k]*(G[i,k]*np.sin(dij) - B[i,k]*np.cos(dij))
+
+        # ── Resíduos ──────────────────────────────────────────────────
+        dP = P_esp - P_calc
+        dQ = Q_esp - Q_calc
+
+        # Remove slack (P e Q) e barras PV (Q)
+        idx_pq = [i for i in range(n) if i != barra_slack and i not in barras_pv]
+        idx_pvpq = [i for i in range(n) if i != barra_slack]
+
+        dP_r = dP[idx_pvpq]
+        dQ_r = dQ[idx_pq]
+
+        residuo = np.max(np.abs(np.concatenate([dP_r, dQ_r])))
+        historico.append(residuo)
+
+        if residuo < tol:
+            print(f"✅ Convergiu em {it+1} iterações | Resíduo = {residuo:.2e}")
+            break
+
+        # ── Jacobiano ─────────────────────────────────────────────────
+        J11 = np.zeros((len(idx_pvpq), len(idx_pvpq)))
+        J12 = np.zeros((len(idx_pvpq), len(idx_pq)))
+        J21 = np.zeros((len(idx_pq),   len(idx_pvpq)))
+        J22 = np.zeros((len(idx_pq),   len(idx_pq)))
+
+        for ii, i in enumerate(idx_pvpq):
+            for jj, j in enumerate(idx_pvpq):
+                dij = delta[i] - delta[j]
+                if i == j:
+                    J11[ii,jj] = -Q_calc[i] - B[i,i]*V[i]**2
+                else:
+                    J11[ii,jj] = V[i]*V[j]*(G[i,j]*np.sin(dij) - B[i,j]*np.cos(dij))
+
+        for ii, i in enumerate(idx_pvpq):
+            for jj, j in enumerate(idx_pq):
+                dij = delta[i] - delta[j]
+                if i == j:
+                    J12[ii,jj] = (P_calc[i] + G[i,i]*V[i]**2) / V[i]
+                else:
+                    J12[ii,jj] = V[i]*(G[i,j]*np.cos(dij) + B[i,j]*np.sin(dij))
+
+        for ii, i in enumerate(idx_pq):
+            for jj, j in enumerate(idx_pvpq):
+                dij = delta[i] - delta[j]
+                if i == j:
+                    J21[ii,jj] = P_calc[i] - G[i,i]*V[i]**2
+                else:
+                    J21[ii,jj] = -V[i]*V[j]*(G[i,j]*np.cos(dij) + B[i,j]*np.sin(dij))
+
+        for ii, i in enumerate(idx_pq):
+            for jj, j in enumerate(idx_pq):
+                dij = delta[i] - delta[j]
+                if i == j:
+                    J22[ii,jj] = (Q_calc[i] - B[i,i]*V[i]**2) / V[i]
+                else:
+                    J22[ii,jj] = V[i]*(G[i,j]*np.sin(dij) - B[i,j]*np.cos(dij))
+
+        J = np.block([[J11, J12], [J21, J22]])
+        mismatch = np.concatenate([dP_r, dQ_r])
+
+        try:
+            x = np.linalg.solve(J, mismatch)
+        except np.linalg.LinAlgError:
+            print("❌ Jacobiano singular")
+            break
+
+        # ── Atualização ───────────────────────────────────────────────
+        for ii, i in enumerate(idx_pvpq):
+            delta[i] += x[ii]
+
+        for ii, i in enumerate(idx_pq):
+            V[i] += x[len(idx_pvpq) + ii] * V[i]
+
+    else:
+        print(f"⚠️  Não convergiu em {max_iter} iterações")
+
+    return V, delta, historico
+
+
+# ── Rede de teste: 3 barras (slack + PV + PQ) ────────────────────────────
+print("=" * 55)
+print("  FLUXO DE POTÊNCIA — Rede 3 Barras (Newton-Raphson)")
+print("=" * 55)
+
+Y = np.array([
+    [ 3.731-11.190j, -1.530+4.590j,  -2.201+6.600j],
+    [-1.530+4.590j,   2.632-7.690j,  -1.102+3.100j],
+    [-2.201+6.600j,  -1.102+3.100j,   3.303-9.700j],
+])
+
+P_esp   = np.array([ 0.0,  0.5, -1.0])   # slack, PV, PQ
+Q_esp   = np.array([ 0.0,  0.0, -0.5])
+V0      = np.array([ 1.05,  1.02,  1.00])
+delta0  = np.zeros(3)
+
+V_sol, delta_sol, hist = newton_raphson_fluxo(
+    Y, P_esp, Q_esp, V0, delta0,
+    barras_pv=[1], barra_slack=0
+)
+
+print("\n📊 Resultado Final:")
+print(f"{'Barra':>6} {'|V| (p.u.)':>12} {'δ (°)':>10} {'Tipo':>8}")
+print("-" * 42)
+tipos = ["Slack", "PV", "PQ"]
+for i in range(3):
+    print(f"  {i+1:>4}   {V_sol[i]:>10.5f}   {np.degrees(delta_sol[i]):>8.4f}°   {tipos[i]:>5}")
+```
+
+## Visualização da Convergência e Tensões
+
+```{python}
+#| label: fig-convergencia
+#| fig-cap: "Newton-Raphson: Convergência e Perfil de Tensões"
+
+fig = make_subplots(rows=1, cols=2,
+    subplot_titles=("Histórico de Convergência (resíduo)", "Perfil de Tensões"))
+
+# Convergência
+fig.add_trace(go.Scatter(
+    x=list(range(1, len(hist)+1)), y=hist,
+    mode="lines+markers",
+    line=dict(color=CORES["verde"], width=3),
+    marker=dict(size=10, symbol="circle"),
+    name="Resíduo máx",
+    hovertemplate="Iter %{x}<br>Resíduo=%{y:.2e}"
+), row=1, col=1)
+
+fig.add_hline(y=1e-6, line_dash="dash", line_color=CORES["vermelho"],
+              annotation_text="tolerância 1e-6", row=1, col=1)
+
+fig.update_yaxes(type="log", row=1, col=1)
+
+# Tensões
+barras  = [f"Barra {i+1}" for i in range(len(V_sol))]
+cores_v = [CORES["verde"] if 0.95 <= v <= 1.05 else CORES["vermelho"] for v in V_sol]
+
+fig.add_trace(go.Bar(
+    x=barras, y=V_sol,
+    marker_color=cores_v,
+    name="Tensão (p.u.)",
+    hovertemplate="%{x}<br>|V|=%{y:.5f} p.u."
+), row=1, col=2)
+
+fig.add_hline(y=1.05, line_dash="dash", line_color=CORES["vermelho"],
+              annotation_text="1,05 p.u.", row=1, col=2)
+fig.add_hline(y=0.95, line_dash="dash", line_color=CORES["laranja"],
+              annotation_text="0,95 p.u.", row=1, col=2)
+
+fig.update_layout(template="plotly_dark", height=420, font=dict(family="Fira Code"),
+                  title_text="Newton-Raphson — Análise de Fluxo de Potência",
+                  showlegend=False)
+fig.update_xaxes(title_text="Iteração", row=1, col=1)
+fig.update_yaxes(title_text="Resíduo (log)", row=1, col=1)
+fig.update_yaxes(title_text="|V| (p.u.)", row=1, col=2)
+fig.show()
+```
+
+---
+
+# Código Julia — Análise de SEP {#sec-julia}
+
+::: {.callout-note}
+## Sobre os blocos Julia
+
+Os blocos abaixo são executados pelo **kernel IJulia** quando o Quarto é renderizado
+com `jupyter: julia-1.x` ou usando `--execute-daemon`. Para renderizar este notebook
+com ambas as linguagens, instale o kernel IJulia no Julia:
+
+```julia
+using Pkg; Pkg.add("IJulia")
+```
+
+e renderize com:
+```bash
+quarto render SEP_Analise_Completa.qmd --execute
+```
+:::
+
+```{julia}
+#| label: julia-setup
+#| eval: false  # remova esta linha quando IJulia estiver disponível
+#| code-fold: false
+
+# ── Imports Julia ──────────────────────────────────────────────────────────
+using LinearAlgebra    # operações com matrizes (Y_bus, Jacobiano)
+using DataFrames       # equivalente ao pandas
+using Plots            # backend nativo (ou PlotlyJS)
+using PlotlyJS          # gráficos interativos
+using Symbolics         # computação simbólica (equivalente ao SymPy)
+using DifferentialEquations  # EDOs — Sundials / Tsit5
+
+println("✅ Ambiente Julia carregado")
+println("   Julia $(VERSION)")
+```
+
+## Julia: Variáveis Simbólicas com Symbolics.jl
+
+```{julia}
+#| label: julia-symbolics
+#| eval: false
+
+using Symbolics
+
+# ── Variáveis simbólicas ───────────────────────────────────────────────────
+@variables τ K ωₙ ζ s t
+
+# Sistema de 1ª ordem
+G1 = K / (τ*s + 1)
+println("G₁(s) = $G1")
+
+# Sistema de 2ª ordem
+G2_num = K * ωₙ^2
+G2_den = s^2 + 2*ζ*ωₙ*s + ωₙ^2
+G2 = G2_num / G2_den
+println("G₂(s) = $G2")
+
+# Polo da 1ª ordem
+polo = solve_for(τ*s + 1 ~ 0, s)
+println("Polo G₁: s = $polo")
+
+# Discriminante da 2ª ordem
+Δ = (2*ζ*ωₙ)^2 - 4*ωₙ^2
+Δ_simplified = simplify(Δ)
+println("Δ = $(Δ_simplified)")
+```
+
+## Julia: Matriz Y_bus e Fluxo de Potência
+
+```{julia}
+#| label: julia-ybus
+#| eval: false
+
+using LinearAlgebra
+
+# ── Y_bus do sistema IEEE 3 barras ────────────────────────────────────────
+Y_bus = [
+     3.731-11.190im   -1.530+4.590im   -2.201+6.600im;
+    -1.530+4.590im     2.632-7.690im   -1.102+3.100im;
+    -2.201+6.600im    -1.102+3.100im    3.303-9.700im
+]
+
+G = real(Y_bus)   # Condutância
+B = imag(Y_bus)   # Susceptância
+
+println("📐 Matriz Y_bus (3×3):")
+println("G (condutâncias):")
+display(round.(G, digits=4))
+
+println("\nB (susceptâncias):")
+display(round.(B, digits=4))
+
+# Autovalores — análise de estabilidade estática
+autovalores = eigvals(Y_bus)
+println("\n📊 Autovalores de Y_bus:")
+for (i, λ) in enumerate(autovalores)
+    println("  λ$i = $(round(real(λ),digits=4)) + $(round(imag(λ),digits=4))im")
+end
+
+# Número de condição
+κ = cond(Y_bus)
+println("\n  Número de condição κ = $(round(κ, digits=2))")
+```
+
+## Julia: DataFrame de Resultados
+
+```{julia}
+#| label: julia-dataframe
+#| eval: false
+
+using DataFrames
+
+# ── Resultados do fluxo de potência ───────────────────────────────────────
+df_resultado = DataFrame(
+    Barra    = [1, 2, 3],
+    Tipo     = ["Slack", "PV", "PQ"],
+    V_pu     = [1.0500, 1.0200, 0.9871],     # p.u.
+    delta_gr = [0.0000, -2.4510, -5.8870],   # graus
+    P_MW     = [150.23, 50.00, -100.00],      # MW
+    Q_Mvar   = [42.18,  0.00,  -50.00],       # Mvar
+    Status   = ["OK ✅", "OK ✅", "OK ✅"]
+)
+
+# Coluna derivada: potência aparente
+df_resultado[!, :S_MVA] = round.(sqrt.(df_resultado.P_MW.^2 .+ df_resultado.Q_Mvar.^2), digits=2)
+
+println("📊 Resultados do Fluxo de Potência:")
+show(df_resultado, allrows=true)
+println()
+
+# Sumário das perdas
+P_gen   = sum(df_resultado.P_MW[df_resultado.P_MW .> 0])
+P_carga = abs(sum(df_resultado.P_MW[df_resultado.P_MW .< 0]))
+perdas  = P_gen - P_carga
+println("\n  P Gerada  = $(P_gen) MW")
+println("  P Carga   = $(P_carga) MW")
+println("  Perdas    = $(round(perdas, digits=3)) MW ($(round(perdas/P_gen*100, digits=2))%)")
+```
+
+## Julia: EDO de 2ª Ordem com DifferentialEquations.jl
+
+```{julia}
+#| label: julia-ode
+#| eval: false
+
+using DifferentialEquations
+using PlotlyJS
+
+# ── Equação de Swing do Gerador Síncrono ─────────────────────────────────
+# M·d²δ/dt² + D·dδ/dt = P_m − P_e(δ)
+# Estado: x = [δ, ω]  onde ω = dδ/dt
+
+M = 10.0   # constante de inércia [s²]
+D = 1.5    # amortecimento [p.u.]
+P_m = 1.0  # potência mecânica [p.u.]
+P_max = 2.0  # potência elétrica máxima [p.u.]
+δ_eq = asin(P_m / P_max)  # ponto de equilíbrio
+
+function swing_equation!(dx, x, p, t)
+    δ, ω = x
+    M, D, P_m, P_max = p
+    P_e = P_max * sin(δ)          # potência elétrica (modelo clássico)
+    dx[1] = ω                      # dδ/dt = ω
+    dx[2] = (P_m - P_e - D*ω) / M # dω/dt
+end
+
+# Condições iniciais: pequena perturbação em δ
+x0 = [δ_eq + 0.1, 0.0]   # [δ₀, ω₀]
+tspan = (0.0, 20.0)
+params = (M, D, P_m, P_max)
+
+prob = ODEProblem(swing_equation!, x0, tspan, params)
+sol  = solve(prob, Tsit5(), reltol=1e-8, abstol=1e-10)
+
+println("✅ EDO resolvida: $(length(sol.t)) pontos, t ∈ $(tspan)")
+println("   δ_equilíbrio = $(round(rad2deg(δ_eq), digits=3))°")
+println("   δ_inicial    = $(round(rad2deg(x0[1]), digits=3))°")
+println("   δ_final      = $(round(rad2deg(sol[1,end]), digits=3))°")
+println("   ω_final      = $(round(sol[2,end], digits=6)) p.u.")
+
+# ── Plotly JS ─────────────────────────────────────────────────────────────
+t_plot = sol.t
+δ_plot = rad2deg.(sol[1,:])
+ω_plot = sol[2,:]
+
+tr1 = scatter(x=t_plot, y=δ_plot, mode="lines",
+              line_color="#2E75B6", line_width=3,
+              name="δ (°)")
+
+tr2 = scatter(x=t_plot, y=ω_plot, mode="lines",
+              line_color="#ED7D31", line_width=3,
+              name="ω (p.u.)", yaxis="y2")
+
+layout = Layout(
+    title="Equação de Swing — Oscilação Eletromecânica (Julia)",
+    template="plotly_dark",
+    xaxis_title="Tempo (s)",
+    yaxis_title="δ (graus)",
+    yaxis2=attr(title="ω (p.u.)", overlaying="y", side="right"),
+    font_family="Fira Code",
+    height=450,
+)
+
+plot([tr1, tr2], layout)
+```
+
+## Julia: Análise de Estabilidade — Diagrama de Fase
+
+```{julia}
+#| label: julia-phase
+#| eval: false
+
+# ── Múltiplas condições iniciais — diagrama de fase ───────────────────────
+tracos = GenericTrace[]
+
+for δ_pert in [0.05, 0.15, 0.25, 0.35, 0.50]
+    x0_i = [δ_eq + δ_pert, 0.0]
+    prob_i = ODEProblem(swing_equation!, x0_i, (0.0, 15.0), params)
+    sol_i  = solve(prob_i, Tsit5(), reltol=1e-8, abstol=1e-10)
+
+    tr = scatter(
+        x = rad2deg.(sol_i[1,:]),
+        y = sol_i[2,:],
+        mode = "lines",
+        name = "Δδ₀=$(round(rad2deg(δ_pert),digits=1))°",
+        line_width = 2,
+    )
+    push!(tracos, tr)
+end
+
+# Ponto de equilíbrio estável
+push!(tracos, scatter(
+    x=[rad2deg(δ_eq)], y=[0.0],
+    mode="markers", name="Equilíbrio estável",
+    marker=attr(size=14, color="lime", symbol="star"),
+))
+
+layout_fase = Layout(
+    title="Diagrama de Fase — Equação de Swing (Julia + PlotlyJS)",
+    template="plotly_dark",
+    xaxis_title="Ângulo de carga δ (°)",
+    yaxis_title="Velocidade angular ω (p.u.)",
+    font_family="Fira Code",
+    height=500,
+)
+
+plot(tracos, layout_fase)
+```
+
+---
+
+# Relatório de Violações — DataFrame + Plotly {#sec-relatorio}
+
+```{python}
+#| label: relatorio-violacoes
+#| tbl-cap: "Relatório de Violações de Tensão — Contingência N-1"
+
+np.random.seed(42)
+n_barras = 14
+
+# Simulação de resultados pós-contingência
+V_base    = np.random.uniform(0.92, 1.08, n_barras)
+V_base[4] = 1.042   # violação leve
+V_base[8] = 1.058   # violação moderada
+V_base[11] = 0.943  # subtensão
+V_base[13] = 1.038  # exatamente na fronteira
+
+df_relatorio = pd.DataFrame({
+    "Barra"      : range(1, n_barras + 1),
+    "Tipo"       : ["Slack"] + ["PV"]*4 + ["PQ"]*9,
+    "|V| (p.u.)" : np.round(V_base, 5),
+    "δ (°)"      : np.round(np.random.uniform(-20, 0, n_barras), 3),
+    "P_inj (MW)" : np.round(np.random.uniform(-80, 200, n_barras), 2),
+    "Q_inj (Mvar)": np.round(np.random.uniform(-40, 60, n_barras), 2),
+})
+
+# Classificação de violações
+def classifica(v):
+    if v > 1.035:   return "⚠️ VIOLAÇÃO ALTA"
+    if v < 0.95:    return "⚠️ VIOLAÇÃO BAIXA"
+    if v > 1.05:    return "❌ CRÍTICA ALTA"
+    if v < 0.90:    return "❌ CRÍTICA BAIXA"
+    return "✅ OK"
+
+df_relatorio["Status"] = df_relatorio["|V| (p.u.)"].apply(classifica)
+df_relatorio["ΔV (p.u.)"] = np.round(df_relatorio["|V| (p.u.)"] - 1.0, 5)
+
+violacoes = df_relatorio[df_relatorio["Status"].str.contains("VIOLAÇÃO|CRÍTICA")]
+print(f"📋 Total de barras: {len(df_relatorio)}")
+print(f"   Violações:       {len(violacoes)}")
+print(f"   OK:              {len(df_relatorio) - len(violacoes)}\n")
+print(df_relatorio.to_string(index=False))
+```
+
+```{python}
+#| label: fig-relatorio
+#| fig-cap: "Perfil de Tensões com Violações — IEEE 14 Barras (Plotly)"
+
+cores_bar = []
+for v in df_relatorio["|V| (p.u.)"]:
+    if v > 1.035 or v < 0.95:
+        cores_bar.append(CORES["vermelho"])
+    elif v > 1.05:
+        cores_bar.append("#FF6B00")
+    else:
+        cores_bar.append(CORES["verde"])
+
+fig = go.Figure()
+
+fig.add_trace(go.Bar(
+    x=df_relatorio["Barra"].astype(str),
+    y=df_relatorio["|V| (p.u.)"],
+    marker_color=cores_bar,
+    name="Tensão",
+    hovertemplate=(
+        "Barra %{x}<br>|V|=%{y:.5f} p.u.<br>"
+    ),
+    text=df_relatorio["Status"],
+    textposition="outside",
+    textfont=dict(size=9),
+))
+
+# Faixas de limite
+fig.add_hrect(y0=0.95, y1=1.035, fillcolor="rgba(46,117,182,0.08)",
+              line_width=0, annotation_text="Faixa OK (0,95–1,035 p.u.)")
+fig.add_hline(y=1.035, line_dash="dash", line_color=CORES["vermelho"],
+              annotation_text="1,035 p.u. (limite contingência)")
+fig.add_hline(y=1.050, line_dash="dash", line_color="#FF6B00",
+              annotation_text="1,050 p.u. (limite normal)")
+fig.add_hline(y=0.950, line_dash="dash", line_color=CORES["laranja"],
+              annotation_text="0,950 p.u.")
+
+fig.update_layout(
+    template="plotly_dark",
+    title="Perfil de Tensões — Análise de Contingência N-1 (IEEE 14 Barras)",
+    xaxis_title="Barra",
+    yaxis_title="|V| (p.u.)",
+    yaxis_range=[0.88, 1.12],
+    height=500,
+    font=dict(family="Fira Code"),
+    showlegend=False,
+)
+fig.show()
+```
+
+---
