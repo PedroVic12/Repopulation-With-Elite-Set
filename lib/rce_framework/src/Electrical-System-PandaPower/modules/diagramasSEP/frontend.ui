@@ -1,0 +1,314 @@
+
+#  Interface Gráfica (frontend.ui)
+# Aqui não podemos desenhar o arquivo .ui, mas podemos descrever os elementos essenciais:
+
+# QMainWindow com central widget.
+
+# QTabWidget com abas: "Barras", "Linhas", "Transformadores", "Diagrama", "Ybus".
+
+# Cada aba de listagem contém uma QTableView (exibindo dados via QSqlTableModel ou QStandardItemModel) e botões "Adicionar", "Excluir".
+
+# Aba "Diagrama" contém um QWidget para incorporar a figura plotly (usando QtWebEngineWidgets ou salvando HTML e carregando).
+
+# Aba "Ybus" contém um QTextEdit para exibir a matriz formatada (ou uma tabela).
+
+# Barra de menus: "Arquivo" > "Importar Excel", "Sair"; "Ferramentas" > "Calcular Ybus", "Plotar Diagrama".
+
+# Um QWizard separado (ou páginas de diálogo) para entrada passo a passo.
+
+# No Qt Designer, criamos a janela principal e salvamos como frontend.ui. Depois, no código, carregamos com uic.loadUi.
+
+
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>MainWindow</class>
+ <widget class="QMainWindow" name="MainWindow">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>1000</width>
+    <height>700</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>Analisador de Redes Elétricas</string>
+  </property>
+  <widget class="QWidget" name="centralwidget">
+   <layout class="QVBoxLayout" name="verticalLayout">
+    <item>
+     <widget class="QTabWidget" name="tabWidget">
+      <property name="currentIndex">
+       <number>0</number>
+      </property>
+      <!-- Aba: Barras -->
+      <widget class="QWidget" name="tabBuses">
+       <attribute name="title">
+        <string>Barras</string>
+       </attribute>
+       <layout class="QVBoxLayout" name="verticalLayout_2">
+        <item>
+         <widget class="QTableView" name="tableViewBuses"/>
+        </item>
+        <item>
+         <layout class="QHBoxLayout" name="horizontalLayout">
+          <item>
+           <widget class="QPushButton" name="btnAddBus">
+            <property name="text">
+             <string>Adicionar Barra</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QPushButton" name="btnEditBus">
+            <property name="text">
+             <string>Editar Barra</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QPushButton" name="btnDelBus">
+            <property name="text">
+             <string>Excluir Barra</string>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </item>
+       </layout>
+      </widget>
+      <!-- Aba: Linhas -->
+      <widget class="QWidget" name="tabLines">
+       <attribute name="title">
+        <string>Linhas</string>
+       </attribute>
+       <layout class="QVBoxLayout" name="verticalLayout_3">
+        <item>
+         <widget class="QTableView" name="tableViewLines"/>
+        </item>
+        <item>
+         <layout class="QHBoxLayout" name="horizontalLayout_2">
+          <item>
+           <widget class="QPushButton" name="btnAddLine">
+            <property name="text">
+             <string>Adicionar Linha</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QPushButton" name="btnEditLine">
+            <property name="text">
+             <string>Editar Linha</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QPushButton" name="btnDelLine">
+            <property name="text">
+             <string>Excluir Linha</string>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </item>
+       </layout>
+      </widget>
+      <!-- Aba: Transformadores -->
+      <widget class="QWidget" name="tabTrafos">
+       <attribute name="title">
+        <string>Transformadores</string>
+       </attribute>
+       <layout class="QVBoxLayout" name="verticalLayout_4">
+        <item>
+         <widget class="QTableView" name="tableViewTrafos"/>
+        </item>
+        <item>
+         <layout class="QHBoxLayout" name="horizontalLayout_3">
+          <item>
+           <widget class="QPushButton" name="btnAddTrafo">
+            <property name="text">
+             <string>Adicionar Transformador</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QPushButton" name="btnEditTrafo">
+            <property name="text">
+             <string>Editar Transformador</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QPushButton" name="btnDelTrafo">
+            <property name="text">
+             <string>Excluir Transformador</string>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </item>
+       </layout>
+      </widget>
+      <!-- Aba: Diagrama Unifilar (Plotly) -->
+      <widget class="QWidget" name="tabDiagram">
+       <attribute name="title">
+        <string>Diagrama Unifilar</string>
+       </attribute>
+       <layout class="QVBoxLayout" name="verticalLayout_5">
+        <item>
+         <widget class="QWebEngineView" name="webEngineView" native="true"/>
+        </item>
+       </layout>
+      </widget>
+      <!-- Aba: Resultados do Fluxo -->
+      <widget class="QWidget" name="tabResults">
+       <attribute name="title">
+        <string>Resultados</string>
+       </attribute>
+       <layout class="QVBoxLayout" name="verticalLayout_6">
+        <item>
+         <widget class="QTableView" name="tableViewResults"/>
+        </item>
+       </layout>
+      </widget>
+      <!-- NOVA ABA: Circuitos com String -->
+      <widget class="QWidget" name="tabStringCircuit">
+       <attribute name="title">
+        <string>Circuitos (String)</string>
+       </attribute>
+       <layout class="QVBoxLayout" name="verticalLayout_7">
+        <item>
+         <layout class="QHBoxLayout" name="horizontalLayout_4">
+          <item>
+           <widget class="QLabel" name="label">
+            <property name="text">
+             <string>Notação do Circuito:</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QLineEdit" name="lineEditCircuit">
+            <property name="text">
+             <string>R1-[C2,R3-[C4,R5]]</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QPushButton" name="btnGenerateCircuit">
+            <property name="text">
+             <string>Gerar Diagrama</string>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </item>
+        <item>
+         <widget class="QLabel" name="labelCircuitImage">
+          <property name="text">
+           <string>Diagrama será exibido aqui</string>
+          </property>
+          <property name="alignment">
+           <set>Qt::AlignCenter</set>
+          </property>
+          <property name="styleSheet">
+           <string>border: 1px solid gray;</string>
+          </property>
+          <property name="minimumSize">
+           <size>
+            <width>400</width>
+            <height>300</height>
+           </size>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QPushButton" name="btnExamples">
+          <property name="text">
+           <string>Carregar Exemplo</string>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </widget>
+     </widget>
+    </item>
+   </layout>
+  </widget>
+  <widget class="QMenuBar" name="menubar">
+   <property name="geometry">
+    <rect>
+     <x>0</x>
+     <y>0</y>
+     <width>1000</width>
+     <height>22</height>
+    </rect>
+   </property>
+   <widget class="QMenu" name="menuArquivo">
+    <property name="title">
+     <string>Arquivo</string>
+    </property>
+    <addaction name="actionImportar_Excel"/>
+    <addaction name="actionImportar_Anarede"/>
+    <addaction name="separator"/>
+    <addaction name="actionExportar_Resultados"/>
+    <addaction name="separator"/>
+    <addaction name="actionSair"/>
+   </widget>
+   <widget class="QMenu" name="menuFerramentas">
+    <property name="title">
+     <string>Ferramentas</string>
+    </property>
+    <addaction name="actionCalcular_Ybus"/>
+    <addaction name="actionExecutar_Fluxo"/>
+    <addaction name="actionPlotar_Diagrama"/>
+   </widget>
+   <addaction name="menuArquivo"/>
+   <addaction name="menuFerramentas"/>
+  </widget>
+  <widget class="QStatusBar" name="statusbar"/>
+  <action name="actionImportar_Excel">
+   <property name="text">
+    <string>Importar Excel</string>
+   </property>
+  </action>
+  <action name="actionImportar_Anarede">
+   <property name="text">
+    <string>Importar AnaREDE (.pwf)</string>
+   </property>
+  </action>
+  <action name="actionExportar_Resultados">
+   <property name="text">
+    <string>Exportar Resultados para Excel</string>
+   </property>
+  </action>
+  <action name="actionSair">
+   <property name="text">
+    <string>Sair</string>
+   </property>
+  </action>
+  <action name="actionCalcular_Ybus">
+   <property name="text">
+    <string>Calcular Matriz Ybus</string>
+   </property>
+  </action>
+  <action name="actionExecutar_Fluxo">
+   <property name="text">
+    <string>Executar Fluxo de Potência</string>
+   </property>
+  </action>
+  <action name="actionPlotar_Diagrama">
+   <property name="text">
+    <string>Plotar Diagrama Unifilar</string>
+   </property>
+  </action>
+ </widget>
+ <customwidgets>
+  <customwidget>
+   <class>QWebEngineView</class>
+   <extends>QWidget</extends>
+   <header>PySide6.QtWebEngineWidgets</header>
+  </customwidget>
+ </customwidgets>
+ <resources/>
+ <connections/>
+</ui>
