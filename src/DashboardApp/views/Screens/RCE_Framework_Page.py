@@ -646,6 +646,7 @@ class FrameworkRCEDashboard:
 
         # Header
         self.renderHeader()
+        st.write("Testes realizados no ultimo teste de deploy em 09/03/2026 estão sendo implementados com checklist de mudanças abaixo:")
         executions_map = st.session_state.executions_map
 
         if not executions_map:
