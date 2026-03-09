@@ -5,6 +5,41 @@ from PySide6.QtWidgets import (QApplication, QMainWindow, QVBoxLayout, QHBoxLayo
                                QWidget, QFrame, QLabel, QPushButton, QScrollArea, QSplitter)
 from PySide6.QtWebEngineWidgets import QWebEngineView
 
+from typing import Optional
+
+from winotify import Notification, audio
+
+
+def create_notification_toast(id: str, title: str, msg: str, icon: str, duracao: str = "short", link_url: Optional[str] = "https://google.com"):
+    # Cria a notificação
+    toast = Notification(
+        app_id=id,
+        title=title,
+        msg=msg,
+        duration=duracao,  # ou "long"
+        icon=icon
+    )
+
+    # Adiciona um botão de ação (opcional)
+    toast.add_actions(label="Ver mais", launch=link_url)
+
+    # Audio
+    toast.set_audio(audio.Default, loop=False)
+
+    # Exibe
+    toast.show()
+
+    return toast
+
+def show_windows_notification():
+    toast = create_notification_toast(
+        id="windows app",
+        title="Alerta Importante!",
+        msg="New Notification!",
+        icon=r"C:\caminho\para\seu\icone.png"
+    )
+    #toast.show()
+
 class WebContainerWidget(QFrame):
     """
     Container personalizado com cor opcional, texto no centro e ícone ao lado.
@@ -118,6 +153,7 @@ class MainWindow(QMainWindow):
             {"title": "Qt Framework", "url": "https://www.qt.io", "color": "#d1ecf1", "icon": "⚙️"},
             {"title": "GitHub", "url": "https://github.com", "color": "#f0f0f0", "icon": "🐙"},
         ]
+        show_windows_notification()  # Exibe a notificação ao iniciar o aplicativo
 
         self.load_containers()
 
