@@ -1,0 +1,48 @@
+{
+    "barras": [
+        {
+            "nome": "Barra 1",
+            "vn_kv": 138.0,
+            "x": 0,
+            "y": 0
+        },
+        {
+            "nome": "Barra 2",
+            "vn_kv": 13.8,
+            "x": 3,
+            "y": 2
+        }
+    ],
+    "linhas": [
+        {
+            "de": "Barra 1",
+            "para": "Barra 2",
+            "comprimento_km": 5,
+            "std_type": "NAYY 4x150 SE"
+        }
+    ],
+    "transformadores": [
+        {
+            "hv": "Barra 1",
+            "lv": "Barra 2",
+            "sn_mva": 10,
+            "vn_hv_kv": 138.0,
+            "vn_lv_kv": 13.8,
+            "vkr_percent": 1.0,
+            "vk_percent": 10.0,
+            "pfe_kw": 20,
+            "i0_percent": 0.5
+        }
+    ],
+    "cargas": [
+        {
+            "barra": "Barra 2",
+            "p_mw": 5,
+            "q_mvar": 2
+        }
+    ],
+    "rede_externa": {
+        "barra": "Barra 1",
+        "vm_pu": 1.0
+    }
+}
