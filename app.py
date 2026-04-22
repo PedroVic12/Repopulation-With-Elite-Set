@@ -1664,7 +1664,7 @@ if __name__ == "__main__":
 
     # Inicia a tela de loading
     print("Iniciando a tela de loading do sistema...")
-    loading_screen = LoadingWidget(tempo_minimo_segundos*1000)
+    loading_screen = LoadingWidget(tempo_minimo_segundos * 1000)
     loading_screen.show()
 
     # Processa os eventos para a tela aparecer imediatamente
