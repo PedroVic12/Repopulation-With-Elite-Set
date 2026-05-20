@@ -203,14 +203,14 @@ class ConfigTab(QWidget):
         metadata = OBJECTIVE_FUNCTIONS_METADATA.get(func_key)
         if metadata:
             expected_dim = metadata["dim"]
-            current_vars = params.get("VARIAVEIS_DE_DECISAO", [])
+            current_vars = params.get("ARRAY_VAR", [])
             if len(current_vars) != expected_dim:
                 QMessageBox.critical(
                     self,
                     "Erro de Dimensão",
                     f"A função '{metadata['name']}' espera {expected_dim} variáveis de decisão.\n"
                     f"Atualmente existem {len(current_vars)} no params.json.\n\n"
-                    "Por favor, ajuste o array 'VARIAVEIS_DE_DECISAO' na aba 'Parâmetros AG'.",
+                    "Por favor, ajuste o array 'ARRAY_VAR' na aba 'Parâmetros AG'.",
                 )
                 return
 

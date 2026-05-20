@@ -206,7 +206,7 @@ def run_framework_many_executions(
     #! debug pela CLI e pelo launcher de ter excpetion sempre checando esse valor
     print(
         "Tamanho do ARRAY de variáveis de decisão no params.json:",
-        len(params_base.get("VARIAVEIS_DE_DECISAO", [])),
+        len(params_base.get("ARRAY_VAR", [])),
     )
 
     # 2. Descobre variações e número de execuções

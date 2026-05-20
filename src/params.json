@@ -1,6 +1,10 @@
 {
     "ARRAY_VAR": [
-        24
+        14,
+        15,
+        14,
+        18,
+        15
     ],
     "CROSSOVER": 0.87,
     "DELTA_MIN": 2,
@@ -15,9 +19,6 @@
     "POP_SIZE": 5,
     "PORCENTAGEM": 0.2,
     "RCE_REPOPULATION_GENERATIONS": 50,
-    "VARIAVEIS_DE_DECISAO": [
-        24
-    ],
     "CLI_MODE": false,
     "DEBUG_MODE": true,
     "BENCHMARKING_MODE": false

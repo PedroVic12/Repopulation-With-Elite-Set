@@ -22,20 +22,21 @@ from PySide6.QtCore import *
 from PySide6.QtGui import *
 from PySide6.QtWidgets import *
 
+
 class PyPushButton(QPushButton):
     def __init__(
         self,
-        text = "",
-        height = 40,
-        minimum_width = 50,
-        text_padding = 55,
-        text_color = "#c3ccdf",
-        icon_path = "",
-        icon_color = "#c3ccdf",
-        btn_color = "#44475a",
-        btn_hover = "#4f5368",
-        btn_pressed = "#282a36",
-        is_active = False
+        text="",
+        height=40,
+        minimum_width=50,
+        text_padding=55,
+        text_color="#c3ccdf",
+        icon_path="",
+        icon_color="#c3ccdf",
+        btn_color="#44475a",
+        btn_hover="#4f5368",
+        btn_pressed="#282a36",
+        is_active=False,
     ):
         super().__init__()
 
@@ -58,32 +59,32 @@ class PyPushButton(QPushButton):
 
         # Set style
         self.set_style(
-            text_padding = self.text_padding,
-            text_color = self.text_color,
-            btn_color = self.btn_color,
-            btn_hover = self.btn_hover,
-            btn_pressed = self.btn_pressed,
-            is_active = self.is_active
+            text_padding=self.text_padding,
+            text_color=self.text_color,
+            btn_color=self.btn_color,
+            btn_hover=self.btn_hover,
+            btn_pressed=self.btn_pressed,
+            is_active=self.is_active,
         )
-    
+
     def set_active(self, is_active_menu):
         self.set_style(
-            text_padding = self.text_padding,
-            text_color = self.text_color,
-            btn_color = self.btn_color,
-            btn_hover = self.btn_hover,
-            btn_pressed = self.btn_pressed,
-            is_active = is_active_menu
+            text_padding=self.text_padding,
+            text_color=self.text_color,
+            btn_color=self.btn_color,
+            btn_hover=self.btn_hover,
+            btn_pressed=self.btn_pressed,
+            is_active=is_active_menu,
         )
 
     def set_style(
         self,
-        text_padding = 55,
-        text_color = "#c3ccdf",
-        btn_color = "#44475a",
-        btn_hover = "#4f5368",
-        btn_pressed = "#282a36",
-        is_active = False
+        text_padding=55,
+        text_color="#c3ccdf",
+        btn_color="#44475a",
+        btn_hover="#4f5368",
+        btn_pressed="#282a36",
+        is_active=False,
     ):
         style = f"""
         QPushButton {{
@@ -122,7 +123,7 @@ class PyPushButton(QPushButton):
         qp.setRenderHint(QPainter.Antialiasing)
         qp.setPen(Qt.NoPen)
 
-        rect = QRect(0,0, self.minimum_width, self.height())
+        rect = QRect(0, 0, self.minimum_width, self.height())
 
         self.draw_icon(qp, self.icon_path, rect, self.icon_color)
 
@@ -148,8 +149,6 @@ class PyPushButton(QPushButton):
         painter.setCompositionMode(QPainter.CompositionMode_SourceIn)
         painter.fillRect(icon.rect(), color)
         qp.drawPixmap(
-            (rect.width() - icon.width()) / 2,
-            (rect.height() - icon.height()) / 2,
-            icon
+            (rect.width() - icon.width()) / 2, (rect.height() - icon.height()) / 2, icon
         )
         painter.end()

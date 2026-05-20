@@ -93,7 +93,7 @@ class RCE_CLI_App:
         try:
             with open(params_file, "r") as f:
                 params = json.load(f)
-            current_vars = params.get("VARIAVEIS_DE_DECISAO", [])
+            current_vars = params.get("ARRAY_VAR", [])
             if len(current_vars) != expected_dim and expected_dim != -1:
                 self.console.print(f"\n[bold red]❌ ERRO DE DIMENSÃO![/bold red]")
                 self.console.print(f"A função '{meta['name']}' espera [bold yellow]{expected_dim}[/bold yellow] variáveis de decisão.")
@@ -103,7 +103,7 @@ class RCE_CLI_App:
                         current_vars = current_vars[:expected_dim]
                     else:
                         current_vars.extend([0] * (expected_dim - len(current_vars)))
-                    params["VARIAVEIS_DE_DECISAO"] = current_vars
+                    params["ARRAY_VAR"] = current_vars
                     params["IND_SIZE"] = expected_dim
                     if params.get("NUM_VAR_DIFERENTES", 0) >= expected_dim:
                         params["NUM_VAR_DIFERENTES"] = max(0, expected_dim - 1)
