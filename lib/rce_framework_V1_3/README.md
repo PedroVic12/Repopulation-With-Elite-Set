@@ -38,6 +38,7 @@ rce_framework/
 ## Como usar o arquivo .ui
 
 ### Opção 1 — Carregar em tempo de execução (método usado neste projeto)
+
 ```python
 from PySide6.QtUiTools import QUiLoader
 from PySide6.QtCore import QFile, QIODevice
@@ -50,10 +51,13 @@ ui_file.close()
 ```
 
 ### Opção 2 — Gerar código Python (alternativa)
+
 ```bash
 pyside6-uic ui/launcher_window.ui -o ui/ui_launcher_window.py
 ```
+
 Depois importe e use:
+
 ```python
 from ui.ui_launcher_window import Ui_LauncherWindow
 class LauncherWindow(QMainWindow):
@@ -64,6 +68,7 @@ class LauncherWindow(QMainWindow):
 ```
 
 ### Opção 3 — Editar visualmente
+
 ```bash
 pyside6-designer ui/launcher_window.ui
 # ou
@@ -71,6 +76,7 @@ designer ui/launcher_window.ui
 ```
 
 ## Fluxo de dados
+
 ```
 NavigationMenu (sinal) → MainController (slot) → abre Tab (View)
 ConfigTab (execution_requested) → MainController → ExecutionModel (ScriptWorker)
@@ -78,5 +84,6 @@ ScriptWorker (log_updated) → MainController → ScriptExecutionTab.append_log
 ```
 
 ## Adicionando novos scripts ao menu
+
 Edite `config.py` → `CUSTOM_SCRIPTS`, depois descomente os loops em
 `views/navigation_menu.py` e `controllers/main_controller.py`.

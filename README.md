@@ -2,7 +2,7 @@
 
 ---
 
-### FRAMEWORK DESENVOLVIDO PARA FINS ACADÊMICOS USANDO ALGORITMOS GENÉTICOS PARA RESOLVER PROBLEMAS DE OTIMIZAÇÃO EM REDES ELÉTRICAS, FINANCIADO POR BOLSA DE INICIAÇÃO CIENTÍFICA PELA UNIVERSIDADE FEDERAL FLUMINENSE (UFF)
+## FRAMEWORK DESENVOLVIDO PARA FINS ACADÊMICOS USANDO ALGORITMOS GENÉTICOS PARA RESOLVER PROBLEMAS DE OTIMIZAÇÃO EM REDES ELÉTRICAS, FINANCIADO POR BOLSA DE INICIAÇÃO CIENTÍFICA PELA UNIVERSIDADE FEDERAL FLUMINENSE (UFF)
 
 ---
 
@@ -21,6 +21,28 @@
 
 ---
 
+## Atualizações e Bugs Fixes (20-05-2026)
+
+- Novo modulo de projeto usando uma arquitetura Model-View-Controller (MVC) e integra
+a funcionalidade completa de análise de sistemas de potência em um único script,
+conforme solicitado.
+
+- Model: Camada de dados e lógica de negócio.
+- View: A interface gráfica.
+- Controller: O orquestrador que conecta Model e View.
+
+- **Bug Fix 18/12/25 execução única**
+
+1) self.thread.quit(): Esta função envia um sinal para a thread indicando que ela deve encerrar seu loop de eventos. É um pedido para que a thread termine suas tarefas pendentes e saia de forma limpa. Ela não interrompe a thread imediatamente.
+
+2) self.thread.wait(): Esta função bloqueia a thread que está chamando o wait() até que a self.thread (a thread de trabalho) tenha realmente terminado sua execução.
+
+No nosso caso, com as mudanças que fizemos para usar Qt.QueuedConnection, o método _on_process_finished (e os outros slots que corrigimos) é executado na thread principal da sua aplicação (a thread da GUI).
+
+Quando a thread principal chama self.thread.wait(), ela está esperando pela thread de trabalho (onde o ProcessOutputReader estava rodando) terminar.
+
+---
+
 ## 🎯 Contexto
 
 Este framework foi desenvolvido como parte de um projeto de Iniciação Científica (PIBIC) na Universidade Federal Fluminense (UFF). O seu objetivo é aplicar **Algoritmos Genéticos (AG)** para resolver problemas complexos de otimização em Engenharia Elétrica, especificamente o **Agendamento Ótimo de Intervenções (manutenções) em Redes Elétricas**.
@@ -29,11 +51,11 @@ A principal inovação é o uso da estratégia **RCE (Repopulação Conjunto Eli
 
 ## ✨ Funcionalidades Principais
 
-* **Algoritmo de Otimização:** Implementação de Algoritmo Genético (AG) focado no problema de agendamento, utilizando a biblioteca **DEAP**.
-* **Estratégia de Diversificação:** Inclui a técnica **RCE (Repopulação Conjunto Elite)** para melhorar a qualidade e a diversidade das soluções encontradas.
-* **Simulação de Redes Elétricas:** Utiliza **Pandapower** para modelar as redes (IEEE 14, 30, 118 e SIN 45) e calcular o fluxo de potência, que serve como a "função objetivo" (fitness) do AG.
-* **Interface Gráfica (Desktop):** Um *Launcher* completo em **PySide6 (Qt)** para configurar todos os parâmetros do AG, definir múltiplas execuções e acompanhar os logs em tempo real.
-* **Dashboard Web Interativo:** Um painel de análise de resultados em **Streamlit** para visualizar graficamente a convergência do algoritmo, comparar execuções e explorar as soluções finais.
+- **Algoritmo de Otimização:** Implementação de Algoritmo Genético (AG) focado no problema de agendamento, utilizando a biblioteca **DEAP**.
+- **Estratégia de Diversificação:** Inclui a técnica **RCE (Repopulação Conjunto Elite)** para melhorar a qualidade e a diversidade das soluções encontradas.
+- **Simulação de Redes Elétricas:** Utiliza **Pandapower** para modelar as redes (IEEE 14, 30, 118 e SIN 45) e calcular o fluxo de potência, que serve como a "função objetivo" (fitness) do AG.
+- **Interface Gráfica (Desktop):** Um *Launcher* completo em **PySide6 (Qt)** para configurar todos os parâmetros do AG, definir múltiplas execuções e acompanhar os logs em tempo real.
+- **Dashboard Web Interativo:** Um painel de análise de resultados em **Streamlit** para visualizar graficamente a convergência do algoritmo, comparar execuções e explorar as soluções finais.
 
 ## EXEMPLO DE USO COM O SIN DE 45 BARRAS (ONS) - REGIÃO RJ/SP
 
@@ -132,8 +154,8 @@ Esta é a forma mais fácil de usar.
 
 2. Na aba **"Configuração e Execução"**, define os teus parâmetros:
 
-      * **Execuções por Configuração:** Quantas vezes o AG deve rodar para cada conjunto de parâmetros (importante para resultados estatísticos).
-      * **Parâmetros do Algoritmo Genético:** Podes definir valores fixos ou múltiplos valores (Modo "Variável") para `MUTACAO`, `CROSSOVER`, `NUM_GENERATIONS` e `POP_SIZE`. O framework irá testar *todas as combinações* possíveis.
+      - **Execuções por Configuração:** Quantas vezes o AG deve rodar para cada conjunto de parâmetros (importante para resultados estatísticos).
+      - **Parâmetros do Algoritmo Genético:** Podes definir valores fixos ou múltiplos valores (Modo "Variável") para `MUTACAO`, `CROSSOVER`, `NUM_GENERATIONS` e `POP_SIZE`. O framework irá testar *todas as combinações* possíveis.
 
 3. Na aba **"Parâmetros AG - RCE"**, podes ajustar detalhes mais finos da estratégia RCE.
 
@@ -236,9 +258,9 @@ if __name__ == "__main__":
 
 ## 💡 Dicas de Otimização (Estratégia RCE)
 
-* Aumenta a **Mutação** para maior diversidade entre os valores.
-* Aumenta a **PORCENTAGEM** para aumentar significativamente a quantidade de indivíduos no conjunto Elite (Critério 1).
-* Altera **RCE\_REPOPULATION\_GENERATIONS** para obter mais ou menos aplicações da Estratégia de Diversificação RCE.
+- Aumenta a **Mutação** para maior diversidade entre os valores.
+- Aumenta a **PORCENTAGEM** para aumentar significativamente a quantidade de indivíduos no conjunto Elite (Critério 1).
+- Altera **RCE\_REPOPULATION\_GENERATIONS** para obter mais ou menos aplicações da Estratégia de Diversificação RCE.
 
 ***Com valores altos de Mutação, Crossover e Porcentagem, é mais provável que atinja valores próximos do ótimo global.***
 
@@ -278,31 +300,31 @@ O processo resume-se a:
 5. **Cálculo de Fitness:** As violações são calculadas com `calcular_violacoes_fitness`, e o fitness do cenário é determinado com base nos pesos atribuídos.
 6. **Agregação de Resultados:** Os valores de fitness de todos os cenários são somados para obter o fitness final do agendamento.
 
-#### Por que o fluxo de potência "não converge"?
+### Por que o fluxo de potência "não converge"?
 
 Isto é um comportamento **esperado** e correto. A não convergência do fluxo de potência é um problema clássico ao simular múltiplas falhas na rede (N-k).
 
 Isso geralmente acontece quando um cenário de operação (um agendamento de manutenção + uma contingência) leva a uma condição fisicamente instável ou impossível na rede, como:
 
-* **Colapso de Tensão:** As tensões em algumas barras caem para níveis tão baixos que o sistema "apaga".
-* **Sobrecargas Extremas:** Linhas ou transformadores sobrecarregados.
-* **Ilhamento:** A rede divide-se em "ilhas" e uma delas fica sem geração própria para se sustentar.
+- **Colapso de Tensão:** As tensões em algumas barras caem para níveis tão baixos que o sistema "apaga".
+- **Sobrecargas Extremas:** Linhas ou transformadores sobrecarregados.
+- **Ilhamento:** A rede divide-se em "ilhas" e uma delas fica sem geração própria para se sustentar.
 
 O nosso algoritmo de otimização *penaliza* esses indivíduos, atribuindo-lhes um fitness muito alto (penalidade por não atendimento à demanda), garantindo que o AG aprenda a evitá-los.
 
 ### Métodos Principais da Classe
 
-* `carregar_redes_padrao()`: Carrega uma rede padrão do Pandapower (ex: "case14").
-* `validar_dados()`: Valida os DataFrames de agendamento e contingência.
-* `hashtableindex()`: Calcula o índice da tabela hash para um cenário (evita recálculo).
-* `calcular_violacoes_fitness()`: Calcula as violações de tensão e carregamento (o *fitness*).
-* `calcular_perfil()`: Determina o perfil de carregamento (leve, médio, pesado).
-* `avalia_cenarios()`: Gera a matriz de cenários de operação.
-* `executar_fluxo_de_carga()`: Executa o `runpp` do Pandapower.
-* `ajustar_cargas()`: Ajusta as cargas da rede conforme o perfil.
-* `desligar_elementos_agendamento()`: Desliga elementos com base no agendamento.
-* `desligar_contingencia()`: Desliga um elemento para simular uma contingência.
-* `religar_todos_os_ramos_agendamento()`: Limpa a rede para o próximo cenário.
+- `carregar_redes_padrao()`: Carrega uma rede padrão do Pandapower (ex: "case14").
+- `validar_dados()`: Valida os DataFrames de agendamento e contingência.
+- `hashtableindex()`: Calcula o índice da tabela hash para um cenário (evita recálculo).
+- `calcular_violacoes_fitness()`: Calcula as violações de tensão e carregamento (o *fitness*).
+- `calcular_perfil()`: Determina o perfil de carregamento (leve, médio, pesado).
+- `avalia_cenarios()`: Gera a matriz de cenários de operação.
+- `executar_fluxo_de_carga()`: Executa o `runpp` do Pandapower.
+- `ajustar_cargas()`: Ajusta as cargas da rede conforme o perfil.
+- `desligar_elementos_agendamento()`: Desliga elementos com base no agendamento.
+- `desligar_contingencia()`: Desliga um elemento para simular uma contingência.
+- `religar_todos_os_ramos_agendamento()`: Limpa a rede para o próximo cenário.
 
 ## 🎓 Agradecimentos
 
@@ -318,7 +340,7 @@ Projeto educacional desenvolvido para UFF e PIBIC.
 
 ## 📚 Recursos Adicionais
 
-* [Next.js Documentation](https://nextjs.org/docs)
+- [Next.js Documentation](https://nextjs.org/docs)
 
 ---
 
@@ -326,8 +348,8 @@ Projeto educacional desenvolvido para UFF e PIBIC.
 **Versão**: 5.1.2
 **Ultimas atualizações**:
 
-* RCE Lancher
-* Pyintaller com instalar.bat
-* AG - Análise de Contigencaias + FLuxPlot com Pandapower e Pyside6
-* Dashboard Streamlit com pastas /outputs com correções no lancher
+- RCE Lancher
+- Pyintaller com instalar.bat
+- AG - Análise de Contigencaias + FLuxPlot com Pandapower e Pyside6
+- Dashboard Streamlit com pastas /outputs com correções no lancher
   

@@ -1,27 +1,3 @@
-"""
-Arquivo principal do launcher unificado do RCE Framework.
-
-Este arquivo implementa uma arquitetura Model-View-Controller (MVC) e integra
-a funcionalidade completa de análise de sistemas de potência em um único script,
-conforme solicitado.
-
-- Model: Camada de dados e lógica de negócio.
-- View: A interface gráfica.
-- Controller: O orquestrador que conecta Model e View.
-"""
-
-#! Bug Fix 18/12/25 execução única
-"""
-1) self.thread.quit(): Esta função envia um sinal para a thread indicando que ela deve encerrar seu loop de eventos. É um pedido para que a thread termine suas tarefas pendentes e saia de forma limpa. Ela não interrompe a thread imediatamente.
-
-2) self.thread.wait(): Esta função bloqueia a thread que está chamando o wait() até que a self.thread (a thread de trabalho) tenha realmente terminado sua execução.
-
-No nosso caso, com as mudanças que fizemos para usar Qt.QueuedConnection, o método _on_process_finished (e os outros slots que corrigimos) é executado na thread principal da sua aplicação (a thread da GUI).
-
-Quando a thread principal chama self.thread.wait(), ela está esperando pela thread de trabalho (onde o ProcessOutputReader estava rodando) terminar.
-"""
-
-
 import sys
 import time
 
@@ -36,7 +12,6 @@ from PySide6.QtGui import (
 
 # --- Checagem de dependências opcionais ---
 import matplotlib.pyplot as plt
-
 
 # =====================================================================================
 #  CONFIGURAÇÕES, ESTILOS E CONSTANTES
@@ -55,7 +30,6 @@ from src.global_settings import *
 from src.views.LauncherGUI.app.views.iframes.LoadingWidget import LoadingWidget
 
 from src.views.LauncherGUI.app.controllers.main_controller import MainController
-
 
 # =====================================================================================
 #  PONTO DE ENTRADA DA APLICAÇÃO
