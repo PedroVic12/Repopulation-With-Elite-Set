@@ -6,7 +6,7 @@ import os
 import sys
 import subprocess
 
-from ....global_settings import SRC_DIR, RUN_FRAMEWORK_SCRIPT
+from .....global_settings import SRC_DIR, RUN_FRAMEWORK_SCRIPT
 import traceback
 
 

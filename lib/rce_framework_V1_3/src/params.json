@@ -17,5 +17,8 @@
     "RCE_REPOPULATION_GENERATIONS": 50,
     "VARIAVEIS_DE_DECISAO": [
         24
-    ]
+    ],
+    "CLI_MODE": false,
+    "DEBUG_MODE": true,
+    "BENCHMARKING_MODE": false
 }

@@ -8,7 +8,7 @@ from .Dashboard import DashboardApp
 
 
 def get_folder_path():
-    BASE_DIR = pathlib.Path(__file__).resolve().parent.parent
+    BASE_DIR = pathlib.Path(__file__).resolve().parent.parent.parent
 
     # Define o caminho relativo para a pasta "output" dentro do projeto
     FOLDER_NAME = BASE_DIR / "output"

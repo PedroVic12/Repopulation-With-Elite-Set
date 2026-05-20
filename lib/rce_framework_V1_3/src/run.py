@@ -6,8 +6,8 @@ RZ - 16/10/2025 - resolvendo chamada a diversas funções objetivo
 """
 
 # Imports principais do framework
-from AlgEvolutivoRCE.Setup import Setup
-from AlgEvolutivoRCE.alg_evolutivo_rce import AlgoritimoEvolutivoRCE
+from models.AlgEvolutivoRCE.Setup import Setup
+from models.AlgEvolutivoRCE.alg_evolutivo_rce import AlgoritimoEvolutivoRCE
 
 # Utils - Trazer esses codigos para esse unico arquivo
 from config import FOLDER_NAME, format_elapsed_time
@@ -190,24 +190,28 @@ def run_framework_many_executions(
     exec_num_arg=None,
     objective_function_index=None,
 ):
-
-    # Define qual função objetivo usar. Prioriza o argumento do launcher.
-    if objective_function_index is not None:
-        numero_da_funcao = objective_function_index
-    else:
-        numero_da_funcao = NUMERO  # Usa o valor global NUMERO se nada for passado
-
-    if function_bechmarking:
-        print("Função objetivo selecionada: Rastrigin")
-    else:
-        print(
-            f"Função objetivo selecionada: {ARRAY_FITNESS_FUNCTIONS[numero_da_funcao]}"
-        )
-
     # 1. Carrega parâmetros base e opções
     params_base = load_params(f"{BASE_DIR}/params.json")
     options = load_params(f"{BASE_DIR}/options.json")
     params_base = convert_values_to_int(params_base)
+
+    # Pegar modos do params.json ou usar default
+    cli_mode = params_base.get("CLI_MODE", False)
+    debug_mode_flag = params_base.get("DEBUG_MODE", True)
+    benchmarking_mode_flag = params_base.get("BENCHMARKING_MODE", False)
+
+    if objective_function_index is not None:
+        numero_da_funcao = objective_function_index
+        cli_mode = False # Se veio do launcher, desativa CLI
+    else:
+        numero_da_funcao = NUMERO  # Usa o valor global NUMERO se nada for passado
+
+    if function_bechmarking or benchmarking_mode_flag:
+        print("Função objetivo selecionada: Rastrigin")
+        fitness_func_to_use = rastrigin
+    else:
+        fitness_func_to_use = ARRAY_FITNESS_FUNCTIONS[numero_da_funcao]
+        print(f"Função objetivo selecionada: {fitness_func_to_use.__name__}")
 
     #! debug pela CLI e pelo launcher de ter excpetion sempre checando esse valor
     print(

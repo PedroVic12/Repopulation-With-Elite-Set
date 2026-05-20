@@ -52,9 +52,9 @@ from src.global_settings import *
 #  CAMADA MVC — importa Models, Views e Controllers das subpastas
 # =====================================================================================
 
-from src.LauncherGUI.app.views.iframes.LoadingWidget import LoadingWidget
+from src.views.LauncherGUI.app.views.iframes.LoadingWidget import LoadingWidget
 
-from src.LauncherGUI.app.controllers.main_controller import MainController
+from src.views.LauncherGUI.app.controllers.main_controller import MainController
 
 
 # =====================================================================================

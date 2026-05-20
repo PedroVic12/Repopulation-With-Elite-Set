@@ -19,7 +19,7 @@ from ..views.widgets.QT_Widgets import PowerSystemAnalysisView
 
 from ..controllers.power_system_controller import PowerSystemController
 
-from ....global_settings import CUSTOM_SCRIPTS, CLI_SCRIPT_PATH, ANALYSIS_CASES
+from .....global_settings import CUSTOM_SCRIPTS, CLI_SCRIPT_PATH, ANALYSIS_CASES
 import traceback
 
 from functools import partial

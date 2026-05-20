@@ -15,8 +15,8 @@ def load_params_from_file(path):
         params = json.load(file)
     return params
 
-path_json = pathlib.Path(__file__).resolve().parent.parent.parent / "params.json"
-path_options = pathlib.Path(__file__).resolve().parent.parent.parent / "options.json"
+path_json = pathlib.Path(__file__).resolve().parent.parent.parent.parent / "params.json"
+path_options = pathlib.Path(__file__).resolve().parent.parent.parent.parent / "options.json"
 PARAMETROS_JSON = load_params_from_file(path_json)
 OPTIONS_JSON = load_params_from_file(path_options)
 #print("PARAMETROS_JSON DEFAULT:", PARAMETROS_JSON)  

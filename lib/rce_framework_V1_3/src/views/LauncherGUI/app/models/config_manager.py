@@ -1,6 +1,6 @@
 
-from ....tools.database_controller import DatabaseController
-from ....global_settings import SRC_DIR
+from .....tools.database_controller import DatabaseController
+from .....global_settings import SRC_DIR
 
 class ConfigManager:
     """Model - Gerencia o acesso aos arquivos de configuração JSON."""

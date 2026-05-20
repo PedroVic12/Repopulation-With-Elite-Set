@@ -35,7 +35,6 @@ from collections import deque
 from src.LauncherGUI.gui.widgets.py_push_button import PyPushButton
 from src.LauncherGUI.gui.iframes.LoadingWidget import LoadingWidget
 
-
 # --- Imports para Análise de SEP ---
 import pandas as pd
 import pandapower as pp
@@ -144,22 +143,24 @@ from src.global_settings import *
 # =====================================================================================
 #  CAMADA MVC — importa Models, Views e Controllers das subpastas
 # =====================================================================================
-from src.LauncherGUI.app.models.process_output_reader import ProcessOutputReader
+from src.views.LauncherGUI.app.models.process_output_reader import ProcessOutputReader
 
 # from models.config_manager         import ConfigManager
 # from models.script_worker          import ScriptWorker
 # from models.execution_model        import ExecutionModel
-from src.LauncherGUI.app.models.executer_model import ScriptWorker, ExecutionModel
 
-from src.LauncherGUI.app.models.power_system_model import PowerSystemModel
-from src.LauncherGUI.app.controllers.results_repository import ResultsRepository
+# imports agrupados para evitar confusão e facilitar a manutenção
+from src.views.LauncherGUI.app.models.executer_model import ScriptWorker, ExecutionModel
 
-from src.LauncherGUI.app.views.windows.launcher_window import (
+from src.views.LauncherGUI.app.models.power_system_model import PowerSystemModel
+from src.views.LauncherGUI.app.controllers.results_repository import ResultsRepository
+
+from src.views.LauncherGUI.app.views.windows.launcher_window import (
     LauncherWindow,
     NavigationMenu,
 )
 
-from src.LauncherGUI.app.controllers.main_controller import MainController
-from src.LauncherGUI.app.controllers.power_system_controller import (
+from src.views.LauncherGUI.app.controllers.main_controller import MainController
+from src.views.LauncherGUI.app.controllers.power_system_controller import (
     PowerSystemController,
 )

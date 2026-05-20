@@ -42,7 +42,7 @@ import time
 import subprocess
 import os
 
-from ....global_settings import OBJECTIVE_FUNCTIONS, VARYING_KEYS, SRC_DIR
+from .....global_settings import OBJECTIVE_FUNCTIONS, VARYING_KEYS, SRC_DIR, OBJECTIVE_FUNCTIONS_METADATA
 
 from ..models.process_output_reader import ProcessOutputReader
 
@@ -197,6 +197,42 @@ class ConfigTab(QWidget):
             self.config_manager.get_params(),
             self._get_variable_arrays(),
         )
+
+        # --- Validação de Dimensão das Variáveis de Decisão ---
+        func_key = self.objective_function_combo.currentText()
+        metadata = OBJECTIVE_FUNCTIONS_METADATA.get(func_key)
+        if metadata:
+            expected_dim = metadata["dim"]
+            current_vars = params.get("VARIAVEIS_DE_DECISAO", [])
+            if len(current_vars) != expected_dim:
+                QMessageBox.critical(
+                    self,
+                    "Erro de Dimensão",
+                    f"A função '{metadata['name']}' espera {expected_dim} variáveis de decisão.\n"
+                    f"Atualmente existem {len(current_vars)} no params.json.\n\n"
+                    "Por favor, ajuste o array 'VARIAVEIS_DE_DECISAO' na aba 'Parâmetros AG'.",
+                )
+                return
+
+        # --- Alerta de Modos Especiais (CLI / Benchmarking) ---
+        special_modes = []
+        if params.get("CLI_MODE", False):
+            special_modes.append("CLI MODE")
+        if params.get("BENCHMARKING_MODE", False):
+            special_modes.append("BENCHMARKING MODE")
+
+        if special_modes:
+            reply = QMessageBox.warning(
+                self,
+                "Aviso de Modo Especial",
+                f"Os seguintes modos estão ATIVADOS: {', '.join(special_modes)}.\n\n"
+                "O modo CLI pode fazer o programa travar aguardando input no terminal.\n"
+                "Deseja continuar mesmo assim?",
+                QMessageBox.Yes | QMessageBox.No,
+            )
+            if reply == QMessageBox.No:
+                return
+
         for name, info in self.param_widgets.items():
             if name not in VARYING_KEYS:  # Salva params que não são de variação
                 try:
