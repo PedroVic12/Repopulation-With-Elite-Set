@@ -1,3 +1,13 @@
+import sys
+
+import subprocess
+from pathlib import Path
+
+
+
+from PySide6.QtCore import Signal,  Slot, QObject
+
+
 import glob
 print(f"Loading database_controller.py from: {__file__}")
 import json
@@ -7,6 +17,28 @@ import glob
 from datetime import datetime
 import shutil
 import os
+
+class ConfigManager:
+    """Gerencia a lógica de configuração, usando o DatabaseController para I/O."""
+    def __init__(self):
+        self.db_controller = DatabaseController(SRC_DIR)
+        self.params = self.db_controller.get_params()
+        self.options = self.db_controller.get_options()
+        self.clean_options()
+
+    def clean_options(self):
+        """Mantém apenas arrays para chaves permitidas e deduplica valores."""
+        current = self.options
+        cleaned = {}
+        if 'repeticoes_por_config' in current:
+            cleaned['repeticoes_por_config'] = current['repeticoes_por_config']
+        for k in VARYING_KEYS:
+            if k in current and isinstance(current[k], list):
+                cleaned[k] = list(dict.fromkeys(current[k]))
+        
+        if cleaned != current:
+            self.options = cleaned
+            self.db_controller.save_options(self.options)
 
 def consolidar_resultados(output_dir: Path):
     """
@@ -125,14 +157,19 @@ class DatabaseController:
             self.base_dir = Path(__file__).resolve().parent
         else:
             self.base_dir = base_dir
+
+        try:
             
-        self.src_dir = self.base_dir 
-        self.output_dir = self.src_dir / "output"
-        self.params_file = self.src_dir / "params.json"
-        self.options_file = self.src_dir / "options.json"
-        self.consolidated_results_file = self.output_dir / "resultados_consolidados.xlsx"
-        
-        self.output_dir.mkdir(parents=True, exist_ok=True)
+            self.src_dir = self.base_dir 
+            self.output_dir = self.src_dir / "output"
+            self.params_file = self.src_dir / "params.json"
+            self.options_file = self.src_dir / "options.json"
+            self.consolidated_results_file = self.output_dir / "resultados_consolidados.xlsx"
+            
+            self.output_dir.mkdir(exist_ok=True)
+
+        except Exception as e:
+            print(f"Erro ao criar a pasta /output: {e}")
 
     def get_params(self) -> dict:
         """Carrega os parâmetros base de params.json."""
@@ -626,9 +663,9 @@ def run_consolidar_resultados():
     controller = DatabaseController(base_dir=base_directory)
 
     controller.consolidate_results()
-    
-if __name__ == "__main__":
-    run_consolidar_resultados()
+
+ #! teste o script separado   
+#run_consolidar_resultados()
 
 def run_controller():
     base_directory = Path(__file__).resolve().parent
@@ -640,3 +677,57 @@ def run_controller():
         show_data=True,
         show_viz_data=True
     )
+
+# --- CONFIGURAÇÃO ---
+BASE_DIR = Path(__file__).parent
+SRC_DIR = BASE_DIR / "src"
+RUN_FRAMEWORK_SCRIPT = SRC_DIR / "run.py"
+DASHBOARD_SCRIPT = SRC_DIR / "DashboardApp" / "dashboard_RCE_APP.py"
+
+# run.py com --config_num 1 e --exec_num N repetidamente.
+TEST_DEBUG = False
+
+# Parâmetros que podem variar via options.json (arrays)
+VARYING_KEYS = {"MUTACAO", "CROSSOVER", "NUM_GENERATIONS", "POP_SIZE"}
+
+
+
+class ScriptWorker(QObject):
+    """Worker object that runs the script in a subprocess."""
+    started = Signal()
+    log_updated = Signal(str)
+    finished = Signal(int)
+    error = Signal(str)
+
+    def __init__(self, script_path, args):
+        super().__init__()
+        self.script_path = script_path
+        self.args = args
+        self.process = None
+
+    @Slot()
+    def run_script(self):
+        self.started.emit()
+        try:
+            cmd = [sys.executable, str(self.script_path)] + self.args
+            self.log_updated.emit(f"Executando: {' '.join(cmd)}")
+            
+            self.process = subprocess.Popen(
+                cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
+                universal_newlines=True, cwd=SRC_DIR, encoding='utf-8', errors='replace'
+            )
+            
+            for line in iter(self.process.stdout.readline, ''):
+                if line:
+                    self.log_updated.emit(line.strip())
+            
+            return_code = self.process.wait()
+            self.finished.emit(return_code)
+            
+        except Exception as e:
+            self.error.emit(f"Erro na execução: {e}")
+
+    def stop(self):
+        if self.process and self.process.poll() is None:
+            self.process.terminate()
+            self.log_updated.emit("Processo de execução terminado pelo usuário.")

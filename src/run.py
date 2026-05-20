@@ -6,8 +6,8 @@ RZ - 16/10/2025 - resolvendo chamada a diversas funções objetivo
 """
 
 # Imports principais do framework
-from AlgEvolutivoRCE.Setup import Setup
-from AlgEvolutivoRCE.alg_evolutivo_rce import AlgoritimoEvolutivoRCE
+from models.AlgEvolutivoRCE.Setup import Setup
+from models.AlgEvolutivoRCE.alg_evolutivo_rce import AlgoritimoEvolutivoRCE
 
 # Utils - Trazer esses codigos para esse unico arquivo
 from config import FOLDER_NAME, format_elapsed_time
@@ -43,6 +43,16 @@ from utils.functions_fitness.function_IEEE_118_otimizacao import (
     hashtablesize as hashtablesize_IEEE118,
 )
 
+from utils.functions_fitness.function_SEP_small_cases import (
+    funcao_objetivo_SEP3,
+    funcao_objetivo_SEP5,
+    funcao_objetivo_SEP9,
+    hashtablesize_3,
+    hashtablesize_5,
+    hashtablesize_9,
+    HASH_TABLE_PATH as HASH_TABLE_PATH_SEP_SMALL,
+)
+
 # from database_controller import run_consolidar_resultados
 import argparse
 
@@ -55,7 +65,6 @@ import os
 from datetime import datetime
 import sys
 
-
 # VARIAVEIS GLOBAIS
 ARRAY_FITNESS_FUNCTIONS = [
     funcao_objetivo_IEEE14,
@@ -63,6 +72,9 @@ ARRAY_FITNESS_FUNCTIONS = [
     funcao_objetivo_IEEE57,
     funcao_objetivo_IEEE118,
     funcao_objetivo_SIN45,
+    funcao_objetivo_SEP3,
+    funcao_objetivo_SEP5,
+    funcao_objetivo_SEP9,
 ]
 
 HASH_TABLE_PATH = [
@@ -71,6 +83,9 @@ HASH_TABLE_PATH = [
     HASH_TABLE_PATH_IEEE57,
     HASH_TABLE_PATH_IEEE118,
     HASH_TABLE_PATH_SIN45,
+    HASH_TABLE_PATH_SEP_SMALL,
+    HASH_TABLE_PATH_SEP_SMALL,
+    HASH_TABLE_PATH_SEP_SMALL,
 ]
 
 HASHTABLE_SIZE_FUNCS = {
@@ -79,54 +94,21 @@ HASHTABLE_SIZE_FUNCS = {
     "funcao_objetivo_IEEE57": hashtablesize_IEEE57,
     "funcao_objetivo_IEEE118": hashtablesize_IEEE118,
     "funcao_objetivo_SIN45": hashtablesize_SIN45,
+    "funcao_objetivo_SEP3": hashtablesize_3,
+    "funcao_objetivo_SEP5": hashtablesize_5,
+    "funcao_objetivo_SEP9": hashtablesize_9,
 }
 
 BASE_DIR = pathlib.Path(__file__).resolve().parent
 
 # variaveis de controle
-CLI = False
+CLI = True
 
 #! Debug Mode para AG e logs.txt para o SEP
-DEBUG_MODE = False
+DEBUG_MODE = True
 BECHMARKING_MODE = False
 SHOW_SETTINGS = False
-NUMERO = 1  # 0 1 3 4
-
-
-# Entrada de dados do usuario
-print("\n--------------------------------")
-print("No arquivo:", BASE_DIR / "utils" / "functions_fitness")
-print(
-    "\nSELECIONE O SEU CASO DE SIMULAÇÃO DE AGENDAMENTO DE DESLIGAMENTOS DE CONTINGENCIAS E OTIMIZAÇÃO PARA REDES ELÉTRICAS"
-)
-print("\n--------------------------------")
-for i in range(len(ARRAY_FITNESS_FUNCTIONS)):
-    print(f"{i} - {ARRAY_FITNESS_FUNCTIONS[i].__name__}")
-print("--------------------------------\n")
-
-
-if CLI:
-    print("Responda no terminal onde o seu laucher.py esta sendo executado")
-    choice = input("Digite o número da função objetivo: ")
-    NUMERO = int(choice)
-    print("\n")
-    choice_benchmarking = input("Deseja usar o modo benchmarking? (S/N): default (N) ")
-    BECHMARKING_MODE = True if choice_benchmarking.lower() == "s" else False
-    print("\n")
-    debug_mode = input("Deseja usar o modo debug? (S/N): default (N) ")
-    DEBUG_MODE = True if debug_mode.lower() == "s" else False
-
-#! https://budavariam.github.io/asciiart-text/
-MSG_TERMINAL = """
- __       _______ .___________. __      _______.   .______        ______     ______  __  ___  __  
-|  |     |   ____||           |(_ )    /       |   |   _  \      /  __  \   /      ||  |/  / |  | 
-|  |     |  |__   `---|  |----` |/    |   (----`   |  |_)  |    |  |  |  | |  ,----'|  '  /  |  | 
-|  |     |   __|      |  |             \   \       |      /     |  |  |  | |  |     |    <   |  | 
-|  `----.|  |____     |  |         .----)   |      |  |\  \----.|  `--'  | |  `----.|  .  \  |__| 
-|_______||_______|    |__|         |_______/       | _| `._____| \______/   \______||__|'__\ (__) 
-                                                                                                  
-"""
-print(f"\n{MSG_TERMINAL}\n")
+NUMERO = 3  # Valor padrão
 
 
 # Funções auxiliares
@@ -168,24 +150,64 @@ def run_framework_many_executions(
     exec_num_arg=None,
     objective_function_index=None,
 ):
-
-    # Define qual função objetivo usar. Prioriza o argumento do launcher.
-    if objective_function_index is not None:
-        numero_da_funcao = objective_function_index
-    else:
-        numero_da_funcao = NUMERO  # Usa o valor global NUMERO se nada for passado
-
-    if function_bechmarking:
-        print("Função objetivo selecionada: Rastrigin")
-    else:
-        print(
-            f"Função objetivo selecionada: {ARRAY_FITNESS_FUNCTIONS[numero_da_funcao]}"
-        )
+    global NUMERO, DEBUG_MODE, BECHMARKING_MODE, CLI
 
     # 1. Carrega parâmetros base e opções
     params_base = load_params(f"{BASE_DIR}/params.json")
     options = load_params(f"{BASE_DIR}/options.json")
     params_base = convert_values_to_int(params_base)
+
+    # Pegar modos do params.json ou usar default
+    cli_mode = params_base.get("CLI_MODE", CLI)
+    debug_mode_flag = params_base.get("DEBUG_MODE", DEBUG_MODE)
+    benchmarking_mode_flag = params_base.get("BENCHMARKING_MODE", BECHMARKING_MODE)
+
+    # Lógica de seleção da função
+    if objective_function_index is not None:
+        numero_da_funcao = int(objective_function_index)
+        cli_mode = False  # Se veio argumento, não pergunta nada
+    elif cli_mode:
+        print("\n--------------------------------")
+        print(f"No arquivo: {BASE_DIR / 'utils' / 'functions_fitness'}")
+        print("\nSELECIONE O CASO DE SIMULAÇÃO:")
+        print("--------------------------------")
+        for i in range(len(ARRAY_FITNESS_FUNCTIONS)):
+            print(f"{i} - {ARRAY_FITNESS_FUNCTIONS[i].__name__}")
+        print("--------------------------------\n")
+        
+        try:
+            choice = input("Digite o número da função objetivo: ")
+            numero_da_funcao = int(choice)
+            
+            choice_bench = input("Deseja usar o modo benchmarking? (S/N): default (N) ")
+            benchmarking_mode_flag = True if choice_bench.lower() == "s" else benchmarking_mode_flag
+            
+            choice_debug = input("Deseja usar o modo debug? (S/N): default (N) ")
+            debug_mode_flag = True if choice_debug.lower() == "s" else debug_mode_flag
+        except ValueError:
+            print("Entrada inválida. Usando padrão.")
+            numero_da_funcao = NUMERO
+    else:
+        numero_da_funcao = NUMERO
+
+    if function_bechmarking or benchmarking_mode_flag:
+        print("Função objetivo selecionada: Rastrigin")
+        fitness_func_to_use = rastrigin
+    else:
+        if 0 <= numero_da_funcao < len(ARRAY_FITNESS_FUNCTIONS):
+            fitness_func_to_use = ARRAY_FITNESS_FUNCTIONS[numero_da_funcao]
+        else:
+            print(f"Erro: Índice {numero_da_funcao} inválido. Usando IEEE14.")
+            fitness_func_to_use = ARRAY_FITNESS_FUNCTIONS[0]
+            numero_da_funcao = 0
+            
+        print(f"Função objetivo selecionada: {fitness_func_to_use.__name__}")
+
+    #! debug pela CLI e pelo launcher de ter excpetion sempre checando esse valor
+    print(
+        "Tamanho do ARRAY de variáveis de decisão no params.json:",
+        len(params_base.get("VARIAVEIS_DE_DECISAO", [])),
+    )
 
     # 2. Descobre variações e número de execuções
     varying_keys = [
@@ -205,13 +227,12 @@ def run_framework_many_executions(
 
     # If caller requested a single configuration/execution via CLI args, restrict accordingly
     if config_num_arg is not None:
-        # config_num_arg is 1-based coming from launcher
         idx = int(config_num_arg) - 1
-        if idx < 0 or idx >= len(combinations):
+        if 0 <= idx < len(combinations):
+            combinations = [combinations[idx]]
+        else:
             print(f"Índice de configuração inválido: {config_num_arg}")
             return
-        combinations = [combinations[idx]]
-        # If exec_num_arg provided, we'll run only that exec (handled below)
 
     #! Inicia o contador de tempo de execução
     start = datetime.now()
@@ -224,11 +245,9 @@ def run_framework_many_executions(
     timestamp = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
     main_output_dir = BASE_DIR / "output" / f"run_{timestamp}"
     os.makedirs(main_output_dir, exist_ok=True)
-    # print(f"\nSalvando resultados em: {main_output_dir}")
 
     config_num = 1
     for combo in combinations:
-
         # Cria um diretório específico para a configuração
         config_dir = main_output_dir / f"config_{config_num}"
         os.makedirs(config_dir, exist_ok=True)
@@ -241,11 +260,7 @@ def run_framework_many_executions(
         print(f"\n[INFO] Executando com a seguinte combinação de parâmetros: {combo}")
 
         #! 4) Define função objetivo
-        fitness_func = (
-            ARRAY_FITNESS_FUNCTIONS[numero_da_funcao]
-            if not function_bechmarking
-            else rastrigin
-        )
+        fitness_func = fitness_func_to_use
 
         #! Pega a função de cálculo de tamanho de hash correspondente, se existir
         size_func = HASHTABLE_SIZE_FUNCS.get(fitness_func.__name__)
@@ -255,8 +270,6 @@ def run_framework_many_executions(
             tamanho_hash_val = size_func()
 
         #! 5) Instancia Setup uma vez por configuração
-        # print(f"\n\nIniciando configuração {config_num}:\nusando os params.json:\n{params}\n")
-
         setup = Setup(
             params, fitness_function=fitness_func, tamanho_hash=tamanho_hash_val
         )
@@ -267,54 +280,36 @@ def run_framework_many_executions(
             # Consulta hash_table se existir (sub rotina)
             if os.path.exists(HASH_TABLE_PATH[numero_da_funcao]):
                 try:
-
-                    # Read from Excel, using the first column as the index (our hash key)
                     hash_excel = pd.read_excel(
                         HASH_TABLE_PATH[numero_da_funcao], index_col=0
                     )
                     if not hash_excel.empty:
-
-                        # Update the list-based hash table from the loaded dictionary
                         for key, value in hash_excel["Fitness"].items():
-
                             if isinstance(key, int) and key < len(setup.tabela_hash):
                                 setup.tabela_hash[key] = value
-
-                        print(
-                            f"Tabela hash carregada e atualizada com {len(hash_excel)} registros!"
-                        )
+                        print(f"Tabela hash carregada e atualizada com {len(hash_excel)} registros!")
                 except Exception as e:
                     print(f"Erro ao carregar hash_table.xlsx: {e}")
             else:
-                # If the file doesn't exist, create it from the initial hash table
                 hash_df = pd.DataFrame(data=setup.tabela_hash, columns=["Fitness"])
                 hash_df.to_excel(HASH_TABLE_PATH[numero_da_funcao], index=False)
-                print(
-                    f"Tabela hash INICIAL com {len(setup.tabela_hash)} posições não existia e foi criada! - PVRV"
-                )
+                print(f"Tabela hash INICIAL criada!")
 
-        #!PVRV - Retirando e colocando no inicio de cada funcao objetivo
         consultaHashTable()
 
         # Define o range de execuções a serem rodadas
         if exec_num_arg is not None:
-
-            # Se uma execução específica foi passada como argumento, roda apenas ela
-            execution_range = range(exec_num_arg, exec_num_arg + 1)
+            execution_range = range(int(exec_num_arg), int(exec_num_arg) + 1)
         else:
-            # Caso contrário, roda todas as repetições configuradas
             execution_range = range(1, repeticoes + 1)
 
-        # O loop de repetições agora usa o range determinado
         for exec_num in execution_range:
             print(f"\n--- Iniciando execução {exec_num}/{repeticoes} ---")
-
-            # Inicia o cronômetro para esta execução específica
             start_exec = datetime.now()
 
             #! 6) Executa algoritmo
-            alg = AlgoritimoEvolutivoRCE(setup, DEBUG=DEBUG_MODE)
-            print(f"Algoritmo Evolutivo iniciado. DEBUG MODE = {DEBUG_MODE}")
+            alg = AlgoritimoEvolutivoRCE(setup, DEBUG=debug_mode_flag)
+            print(f"Algoritmo Evolutivo iniciado. DEBUG MODE = {debug_mode_flag}")
             (
                 pop_with_repopulation,
                 logbook_with_repopulation,
@@ -323,7 +318,6 @@ def run_framework_many_executions(
             ) = alg.run(RCE=True)
             best_variables = list(best_individual)
 
-            # Finaliza o cronômetro e calcula a duração desta execução
             end_exec = datetime.now()
             elapsed_exec = end_exec - start_exec
             formatted_time_exec = format_elapsed_time(elapsed_exec)
@@ -337,43 +331,26 @@ def run_framework_many_executions(
                 execution_num=exec_num,
             )
 
-            # Exibe os tempos e contadores de forma clara
             print(f"\nDuração desta Execução: {formatted_time_exec}")
             print(f"Tempo Total Acumulado: {format_elapsed_time(end_exec - start)}")
             print(f"Objective functions runs: {setup.objectiveruns}")
             print(f"Consultas HashTable: {setup.hashtablereads}\n")
 
             #! 8) Salva os dados de visualização
-            vis_output_path = (
-                config_dir / f"config_{config_num}_exec_{exec_num}_visualization.json"
-            )
+            vis_output_path = config_dir / f"config_{config_num}_exec_{exec_num}_visualization.json"
             try:
                 for item in all_individual_values:
-                    if "Variaveis de Decisão" in item and hasattr(
-                        item["Variaveis de Decisão"], "tolist"
-                    ):
-                        item["Variaveis de Decisão"] = item[
-                            "Variaveis de Decisão"
-                        ].tolist()
-                    elif isinstance(item["Variaveis de Decisão"], np.ndarray):
-                        item["Variaveis de Decisão"] = item[
-                            "Variaveis de Decisão"
-                        ].tolist()
-                    elif not isinstance(item["Variaveis de Decisão"], (list, str)):
-                        item["Variaveis de Decisão"] = list(
-                            item["Variaveis de Decisão"]
-                        )
+                    if "Variaveis de Decisão" in item and hasattr(item["Variaveis de Decisão"], "tolist"):
+                        item["Variaveis de Decisão"] = item["Variaveis de Decisão"].tolist()
+                    elif isinstance(item.get("Variaveis de Decisão"), np.ndarray):
+                        item["Variaveis de Decisão"] = item["Variaveis de Decisão"].tolist()
                 with open(vis_output_path, "w", encoding="utf-8") as f:
                     json.dump(all_individual_values, f, indent=4, ensure_ascii=False)
             except Exception as e:
                 print(f"Erro ao salvar dados de visualização: {e}")
 
             #! 9) Salva resultado individual como JSON
-            best_fitness = (
-                best_individual.fitness.values[0]
-                if best_individual.fitness.valid
-                else float("inf")
-            )
+            best_fitness = best_individual.fitness.values[0] if best_individual.fitness.valid else float("inf")
             result = {
                 "config_num": config_num,
                 "exec_num": exec_num,
@@ -381,79 +358,41 @@ def run_framework_many_executions(
                 "best_variables": best_variables,
                 "best_fitness": best_fitness,
                 "best_gen_idx": best_solution_generation,
-                "time": formatted_time_exec,  # Usa o tempo da execução individual
+                "time": formatted_time_exec,
                 "fitness_function": fitness_func.__name__,
             }
-            output_path = (
-                config_dir / f"config_{config_num}_exec_{exec_num}_results.json"
-            )
+            output_path = config_dir / f"config_{config_num}_exec_{exec_num}_results.json"
             try:
                 with open(output_path, "w", encoding="utf-8") as f:
                     json.dump(result, f, indent=4, ensure_ascii=False)
             except Exception as e:
                 print(f"Erro ao salvar resultado: {e}")
 
-            print("Resultados e visualizações salvos com sucesso.")
-
-        # --- FIM DO LOOP DE REPETIÇÕES ---
-
-        # Salva a tabela hash UMA VEZ no final de todas as execuções da configuração
-        print("\n" + "=" * 60)
-        print(f"FIM DA CONFIGURAÇÃO {config_num}")
-        print("=" * 60)
-
-        try:
-            hash_df = pd.DataFrame(data=setup.tabela_hash, columns=["Fitness"])
-            hash_df.to_excel(HASH_TABLE_PATH[numero_da_funcao], index=False)
-            # print(f"Salvando tabela hash em {HASH_TABLE_PATH[NUMERO]}... com tamanho de {len(setup.tabela_hash)} posições!")
-
-        except Exception as e:
-            print(f"ERRO ao salvar a tabela hash: {e}")
-
         config_num += 1
 
     print("\nTodas as execuções foram concluídas.")
 
-    # Consolidar resultados automaticamente em um subprocesso
     try:
         import subprocess
-        import sys
-
-        command = [
-            sys.executable,  # Garante que está usando o mesmo interpretador Python
-            "-c",
-            "from database_controller import run_consolidar_resultados; run_consolidar_resultados()",
-        ]
-
-        # Popen não bloqueia, o script principal pode terminar enquanto a consolidação roda.
+        command = [sys.executable, "-c", "from database_controller import run_consolidar_resultados; run_consolidar_resultados()"]
         subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
         print("\nIniciando consolidação de resultados em segundo plano...")
-
     except Exception as e:
-        print(f" Erro ao iniciar o subprocesso de consolidação: {e}")
+        print(f" Erro ao iniciar consolidação: {e}")
 
 
-#! __main__ antigo de 2025
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument(
-        "--config_num",
-        type=int,
-        help="(Opcional) número da configuração (1-based) para executar apenas essa configuração",
-    )
-    parser.add_argument(
-        "--exec_num",
-        type=int,
-        help="(Opcional) número da repetição para executar apenas essa repetição",
-    )
-    parser.add_argument(
-        "--objective_function_index",
-        type=int,
-        default=None,
-        help="Índice da função objetivo a ser usada (enviado pelo launcher).",
-    )
+    parser.add_argument("--config_num", type=int)
+    parser.add_argument("--exec_num", type=int)
+    parser.add_argument("--objective_function_index", type=int)
+    parser.add_argument("--debug", action="store_true")
+    parser.add_argument("--benchmark", action="store_true")
 
     args = parser.parse_args()
+
+    if args.debug: DEBUG_MODE = True
+    if args.benchmark: BECHMARKING_MODE = True
 
     run_framework_many_executions(
         function_bechmarking=BECHMARKING_MODE,
@@ -461,116 +400,3 @@ if __name__ == "__main__":
         exec_num_arg=args.exec_num,
         objective_function_index=args.objective_function_index,
     )
-
-
-"""
-# Comando
-python run.py --run 10 --config 3
-
-# Ou com função objetivo
-python run.py --run 10 --config 3 --objective_function_index 2
-
-# Ou os comandos antigos (ainda funcionam)
-python run.py --exec_num 10 --config_num 3
-
-# Com modo debug
-python run.py --run 10 --config 3 --debug
-
-# Com benchmarking
-python run.py --run 5 --config 1 --benchmark
-
-# Apenas uma configuração (todas as execuções)
-python run.py --config 3
-
-# Apenas uma execução específica de uma config
-python run.py --config 2 --run 5
-"""
-
-# if __name__ == "__main__":
-#     parser = argparse.ArgumentParser(description="Execução do Framework RCE")
-
-#     # Aceita tanto --config quanto --config_num (retrocompatibilidade)
-#     parser.add_argument(
-#         "--config",
-#         "--config_num",
-#         type=int,
-#         dest="config_num",
-#         help="Número da configuração (1-based) para executar apenas essa configuração",
-#     )
-
-#     # Aceita tanto --run quanto --exec_num (retrocompatibilidade)
-#     parser.add_argument(
-#         "--run",
-#         "--exec_num",
-#         type=int,
-#         dest="exec_num",
-#         help="Número da execução/repetição para executar apenas essa execução",
-#     )
-
-#     parser.add_argument(
-#         "--objective_function_index",
-#         "--func",
-#         type=int,
-#         default=None,
-#         dest="objective_function_index",
-#         help="Índice da função objetivo a ser usada (0-4)",
-#     )
-
-#     parser.add_argument("--debug", action="store_true", help="Ativa o modo DEBUG")
-
-#     parser.add_argument(
-#         "--benchmark", action="store_true", help="Ativa o modo BENCHMARKING"
-#     )
-
-#     args = parser.parse_args()
-
-#     # Validações
-#     if args.objective_function_index is not None:
-#         if args.objective_function_index < 0 or args.objective_function_index >= len(
-#             ARRAY_FITNESS_FUNCTIONS
-#         ):
-#             print(
-#                 f"❌ ERRO: objective_function_index deve estar entre 0 e {len(ARRAY_FITNESS_FUNCTIONS)-1}"
-#             )
-#             sys.exit(1)
-
-#     if args.config_num is not None and args.config_num < 1:
-#         print("❌ ERRO: --config deve ser maior que 0")
-#         sys.exit(1)
-
-#     if args.exec_num is not None and args.exec_num < 1:
-#         print("❌ ERRO: --run deve ser maior que 0")
-#         sys.exit(1)
-
-#     # Atualiza as variáveis globais se argumentos forem fornecidos
-#     if args.debug:
-#         DEBUG_MODE = True
-
-#     if args.benchmark:
-#         BECHMARKING_MODE = True
-
-#     # Exibe os parâmetros recebidos
-#     if args.config_num or args.exec_num or args.objective_function_index is not None:
-#         print("\n" + "=" * 60)
-#         print("⚙️  PARÂMETROS CLI:")
-#         if args.config_num:
-#             print(f"  📋 Configuração: {args.config_num}")
-#         if args.exec_num:
-#             print(f"  🔄 Execução: {args.exec_num}")
-#         if args.objective_function_index is not None:
-#             func_name = ARRAY_FITNESS_FUNCTIONS[args.objective_function_index].__name__
-#             print(
-#                 f"  🎯 Função Objetivo: [{args.objective_function_index}] {func_name}"
-#             )
-#         if args.debug:
-#             print(f"  🐛 Debug: Ativado")
-#         if args.benchmark:
-#             print(f"  📊 Benchmark: Ativado")
-#         print("=" * 60 + "\n")
-
-#     run_framework_many_executions(
-#         function_bechmarking=BECHMARKING_MODE,
-#         config_num_arg=args.config_num,
-#         exec_num_arg=args.exec_num,
-#         objective_function_index=args.objective_function_index,
-#     )

@@ -132,7 +132,7 @@ class DatabaseController:
         self.options_file = self.src_dir / "options.json"
         self.consolidated_results_file = self.output_dir / "resultados_consolidados.xlsx"
         
-        self.output_dir.mkdir(parents=True, exist_ok=True)
+        self.output_dir.mkdir(exist_ok=True)
 
     def get_params(self) -> dict:
         """Carrega os parâmetros base de params.json."""
@@ -627,8 +627,7 @@ def run_consolidar_resultados():
 
     controller.consolidate_results()
     
-if __name__ == "__main__":
-    run_consolidar_resultados()
+run_consolidar_resultados()
 
 def run_controller():
     base_directory = Path(__file__).resolve().parent
