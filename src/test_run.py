@@ -44,8 +44,8 @@ def test_sep_cases():
                 params = json.load(f)
             
             params["IND_SIZE"] = ind_size
-            # Também ajustamos VARIAVEIS_DE_DECISAO para o tamanho correto
-            params["VARIAVEIS_DE_DECISAO"] = params.get("VARIAVEIS_DE_DECISAO", params.get("ARRAY_VAR", []))[:ind_size]
+            # Também ajustamos ARRAY_VAR para o tamanho correto
+            params["ARRAY_VAR"] = params.get("ARRAY_VAR", [])[:ind_size]
             
             # Garante que NUM_VAR_DIFERENTES não seja maior que IND_SIZE
             if params.get("NUM_VAR_DIFERENTES", 0) >= ind_size:

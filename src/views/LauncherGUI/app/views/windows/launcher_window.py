@@ -41,7 +41,7 @@ class NavigationMenu(QWidget):
         self._add_nav_button(
             "params_ag", "⌨️ Parâmetros AG", self.params_ag_requested.emit
         )
-        self._add_nav_button("run_ag", "▶️ CONSOLE RCE AG", self.run_ag_requested.emit)
+        self._add_nav_button("run_ag", "▶️ Executar RCE AG", self.run_ag_requested.emit)
         # self._add_nav_button("power_system_analysis", "🔬 Análise de SEP", self.power_system_analysis_requested.emit)
         # self._add_nav_button("run_sin45_simulator", "⚡️ Simular SIN 45", self.run_sin45_simulator_requested.emit)
         self._add_nav_button("cli_terminal", "💻 Console", self.cli_requested.emit)
