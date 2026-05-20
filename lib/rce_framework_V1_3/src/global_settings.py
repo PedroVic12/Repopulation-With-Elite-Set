@@ -19,14 +19,19 @@ CLI_SCRIPT_PATH         = SRC_DIR / "CLI.py"
 # --- Parâmetros do AG que são variáveis (usados na bateria de testes) ---
 VARYING_KEYS = {"MUTACAO", "CROSSOVER", "NUM_GENERATIONS", "POP_SIZE"}
 
-# --- Funções Objetivo Disponíveis (definidas em src/__init__.py) ---
-OBJECTIVE_FUNCTIONS = [
-    "funcao_objetivo_IEEE14",
-    "funcao_objetivo_IEEE30",
-    "funcao_objetivo_IEEE57",
-    "funcao_objetivo_IEEE118",
-    "funcao_objetivo_SIN45",
-]
+# --- Funções Objetivo Disponíveis ---
+OBJECTIVE_FUNCTIONS_METADATA = {
+    "funcao_objetivo_IEEE14": {"name": "IEEE 14 Barras", "dim": 5},
+    "funcao_objetivo_IEEE30": {"name": "IEEE 30 Barras", "dim": 5},
+    "funcao_objetivo_IEEE57": {"name": "IEEE 57 Barras", "dim": 5},
+    "funcao_objetivo_IEEE118": {"name": "IEEE 118 Barras", "dim": 5},
+    "funcao_objetivo_SIN45": {"name": "SIN 45 Barras (ONS)", "dim": 10},
+    "funcao_objetivo_SEP3": {"name": "SEP 3 Barras (Reduzido)", "dim": 1},
+    "funcao_objetivo_SEP5": {"name": "SEP 5 Barras (Reduzido)", "dim": 2},
+    "funcao_objetivo_SEP9": {"name": "SEP 9 Barras (Reduzido)", "dim": 2},
+}
+
+OBJECTIVE_FUNCTIONS = list(OBJECTIVE_FUNCTIONS_METADATA.keys())
 
 # --- Casos de Análise de Contingência ---
 ANALYSIS_CASES = {

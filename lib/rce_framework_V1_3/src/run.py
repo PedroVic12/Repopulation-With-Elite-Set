@@ -43,6 +43,16 @@ from utils.functions_fitness.function_IEEE_118_otimizacao import (
     hashtablesize as hashtablesize_IEEE118,
 )
 
+from utils.functions_fitness.function_SEP_small_cases import (
+    funcao_objetivo_SEP3,
+    funcao_objetivo_SEP5,
+    funcao_objetivo_SEP9,
+    hashtablesize_3,
+    hashtablesize_5,
+    hashtablesize_9,
+    HASH_TABLE_PATH as HASH_TABLE_PATH_SEP_SMALL,
+)
+
 # from database_controller import run_consolidar_resultados
 import argparse
 
@@ -55,7 +65,6 @@ import os
 from datetime import datetime
 import sys
 
-
 # VARIAVEIS GLOBAIS
 ARRAY_FITNESS_FUNCTIONS = [
     funcao_objetivo_IEEE14,
@@ -63,6 +72,9 @@ ARRAY_FITNESS_FUNCTIONS = [
     funcao_objetivo_IEEE57,
     funcao_objetivo_IEEE118,
     funcao_objetivo_SIN45,
+    funcao_objetivo_SEP3,
+    funcao_objetivo_SEP5,
+    funcao_objetivo_SEP9,
 ]
 
 HASH_TABLE_PATH = [
@@ -71,6 +83,9 @@ HASH_TABLE_PATH = [
     HASH_TABLE_PATH_IEEE57,
     HASH_TABLE_PATH_IEEE118,
     HASH_TABLE_PATH_SIN45,
+    HASH_TABLE_PATH_SEP_SMALL,
+    HASH_TABLE_PATH_SEP_SMALL,
+    HASH_TABLE_PATH_SEP_SMALL,
 ]
 
 HASHTABLE_SIZE_FUNCS = {
@@ -79,6 +94,9 @@ HASHTABLE_SIZE_FUNCS = {
     "funcao_objetivo_IEEE57": hashtablesize_IEEE57,
     "funcao_objetivo_IEEE118": hashtablesize_IEEE118,
     "funcao_objetivo_SIN45": hashtablesize_SIN45,
+    "funcao_objetivo_SEP3": hashtablesize_3,
+    "funcao_objetivo_SEP5": hashtablesize_5,
+    "funcao_objetivo_SEP9": hashtablesize_9,
 }
 
 BASE_DIR = pathlib.Path(__file__).resolve().parent
@@ -87,12 +105,14 @@ BASE_DIR = pathlib.Path(__file__).resolve().parent
 CLI = True
 
 
+print("Verifique o tamanho do ARRAY de variaveis de decisão no arquivo params.json!")
+
+
 #! Debug Mode para AG e logs.txt para o SEP
 DEBUG_MODE = True
 BECHMARKING_MODE = False
 SHOW_SETTINGS = False
 NUMERO = 3  # 0 1 3 4
-
 
 
 # Entrada de dados do usuario
@@ -188,6 +208,13 @@ def run_framework_many_executions(
     params_base = load_params(f"{BASE_DIR}/params.json")
     options = load_params(f"{BASE_DIR}/options.json")
     params_base = convert_values_to_int(params_base)
+
+    #! debug pela CLI e pelo launcher de ter excpetion sempre checando esse valor
+    print(
+        "Tamanho do ARRAY de variáveis de decisão no params.json:",
+        len(params_base["VARIAVEIS_DE_DECISAO"]),
+    )
+    print(params_base["VARIAVEIS_DE_DECISAO"])
 
     # 2. Descobre variações e número de execuções
     varying_keys = [
