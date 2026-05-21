@@ -7,8 +7,7 @@ import datetime
 from streamlit_timeline import st_timeline
 import ast
 
-from .components.dashboard_config import get_config
-
+from components.dashboard_config import get_config
 
 #! Refatorar os novos componentes
 # from .components.dash_rce_components import  StatisticsTableComponent
@@ -33,14 +32,14 @@ class StatisticsTableComponent:
 
 
 # --- Adiciona o diretório raiz ao path para encontrar os módulos ---
-BASE_DIR = Path(__file__).resolve().parent.parent.parent.parent
+BASE_DIR = Path(__file__).resolve().parent.parent.parent.parent.parent
 if str(BASE_DIR) not in sys.path:
     sys.path.append(str(BASE_DIR))
+print(BASE_DIR)
 
 from tools.database_controller import DatabaseController, ConsolidationManager
 
-# print(f"Dashboard importing database_controller from: {DatabaseController.__module__}")
-# print(BASE_DIR)
+print(f"Dashboard importing database_controller from: {DatabaseController.__module__}")
 
 import streamlit.components.v1 as components
 import os
@@ -436,7 +435,8 @@ class FrameworkRCEDashboard:
             with col2:
                 config_col, _ = self._validate_required_columns(df)
                 st.metric(
-                    "⚙️ Configurações", df[config_col].nunique() if config_col else "N/A"
+                    "⚙️ Configurações",
+                    df[config_col].nunique() if config_col else "N/A",
                 )
             with col3:
                 st.metric("📊 Arquivos de Saída", len(st.session_state.executions_map))
