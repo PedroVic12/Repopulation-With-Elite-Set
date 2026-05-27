@@ -24,7 +24,7 @@
     "POP_SIZE": 5,
     "PORCENTAGEM": 0.2,
     "RCE_REPOPULATION_GENERATIONS": 50,
-    "CLI_MODE": "False",
-    "DEBUG_MODE": "True",
-    "BENCHMARKING_MODE": "False"
+    "CLI_MODE": false,
+    "DEBUG_MODE": true,
+    "BENCHMARKING_MODE": false
 }

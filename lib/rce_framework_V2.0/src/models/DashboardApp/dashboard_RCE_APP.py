@@ -1,13 +1,17 @@
 
+import sys
+import os
+from pathlib import Path
+
+# Adiciona o diretório 'src' ao sys.path para encontrar 'tools' e 'views' (do projeto)
+# src/models/DashboardApp/dashboard_RCE_APP.py -> src/
+SRC_DIR = Path(__file__).resolve().parent.parent.parent
+if str(SRC_DIR) not in sys.path:
+    sys.path.append(str(SRC_DIR))
+
 import streamlit as st
 from views.pages.themes import Theme
 from views.Screens.RCE_Framework_Page import FrameworkRCEDashboard
-
-import sys
-
-import os
-
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 from config import options_main_file
 
 
