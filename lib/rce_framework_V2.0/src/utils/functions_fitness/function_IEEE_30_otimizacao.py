@@ -11,6 +11,7 @@ from models.AlgEvolutivoRCE.Setup import Setup
 from models.AlgEvolutivoRCE.alg_evolutivo_rce import AlgoritimoEvolutivoRCE
 
 BASE_DIR = pathlib.Path(__file__).resolve().parent
+HASH_TABLE_PATH = BASE_DIR.parent.parent / "output" / "hash_table_ieee30.xlsx"
 
 # =========================================================
 # 📊 DADOS BASE
@@ -137,6 +138,9 @@ def funcao_objetivo_IEEE30(individuo, setupobj, _debug=False):
 
     df_ag = agendamento_base.copy()
     df_ag["inicio"] = individuo
+
+    # ✅ salvar info de agendamento no setup para o Dashboard
+    setupobj.agendamento_info = df_ag.to_dict(orient="records")
 
     rede.validar_dados(df_ag, contingencia_df)
 

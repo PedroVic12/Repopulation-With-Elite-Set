@@ -184,40 +184,67 @@ def AgendamentoRedePage(results_data: dict, config_num: int, exec_num: int):
     """
     st.subheader("🗓️ Linha do Tempo Interativa do Agendamento")
 
-    solution_variables = sorted(
-        [
-            v
-            for v in results_data.get("best_variables", [])
-            if isinstance(v, (int, float))
-        ]
-    )
-
-    if not solution_variables:
-        st.warning("Variáveis da solução não encontradas para gerar a linha do tempo.")
-        return
-
+    agendamento_info = results_data.get("agendamento_info")
     items = []
     base_date = datetime.datetime.now().replace(
         hour=0, minute=0, second=0, microsecond=0
     )
 
-    for i in range(len(solution_variables) - 1):
-        start_hour, end_hour = solution_variables[i], solution_variables[i + 1]
-        duration = end_hour - start_hour
-        items.append(
-            {
-                "id": i,
-                "content": f"Intervalo {i+1} ({duration:.1f}h)",
-                "start": (base_date + datetime.timedelta(hours=start_hour)).isoformat(),
-                "end": (base_date + datetime.timedelta(hours=end_hour)).isoformat(),
-                "title": f"Das {start_hour:.1f}h às {end_hour:.1f}h",
-            }
+    if agendamento_info:
+        for i, entry in enumerate(agendamento_info):
+            ramo = entry.get("ramo")
+            inicio = entry.get("inicio")
+            duracao = entry.get("duracao")
+            
+            # Se inicio for string "HH:MM", converte para int
+            if isinstance(inicio, str) and ":" in inicio:
+                inicio = int(inicio.split(":")[0])
+            
+            items.append(
+                {
+                    "id": i,
+                    "content": f"🛠️ Ramo {ramo}",
+                    "start": (base_date + datetime.timedelta(hours=float(inicio))).isoformat(),
+                    "end": (base_date + datetime.timedelta(hours=float(inicio) + float(duracao))).isoformat(),
+                    "title": f"Ramo {ramo} | Início: {inicio}h | Duração: {duracao}h",
+                }
+            )
+    else:
+        # Fallback para a lógica antiga baseada apenas nas variáveis de solução
+        solution_variables = sorted(
+            [
+                v
+                for v in results_data.get("best_variables", [])
+                if isinstance(v, (int, float))
+            ]
         )
+
+        if not solution_variables:
+            st.warning("Dados de agendamento não encontrados para gerar a linha do tempo.")
+            return
+
+        for i in range(len(solution_variables) - 1):
+            start_hour, end_hour = solution_variables[i], solution_variables[i + 1]
+            duration = end_hour - start_hour
+            if duration > 0:
+                items.append(
+                    {
+                        "id": i,
+                        "content": f"Intervalo {i+1} ({duration:.1f}h)",
+                        "start": (base_date + datetime.timedelta(hours=start_hour)).isoformat(),
+                        "end": (base_date + datetime.timedelta(hours=end_hour)).isoformat(),
+                        "title": f"Das {start_hour:.1f}h às {end_hour:.1f}h",
+                    }
+                )
+
+    if not items:
+        st.info("Nenhum item para exibir na linha do tempo.")
+        return
 
     selected_item = st_timeline(
         items,
         groups=[],
-        options={"height": 300},
+        options={"height": 350, "showCurrentTime": False},
         key=f"timeline_{config_num}_{exec_num}",
     )
 

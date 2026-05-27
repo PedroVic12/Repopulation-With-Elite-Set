@@ -405,7 +405,7 @@ class ScriptExecutionTab(QWidget):
         layout.addLayout(ctrl_layout)
 
     def run_dashboard(self):
-        dashboard_script_path = SRC_DIR / "DashboardApp" / "dashboard_RCE_APP.py"
+        dashboard_script_path = SRC_DIR / "models" / "DashboardApp" / "dashboard_RCE_APP.py"
 
         if not dashboard_script_path.exists():
             QMessageBox.critical(

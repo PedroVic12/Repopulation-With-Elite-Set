@@ -15,12 +15,12 @@ from config import FOLDER_NAME, format_elapsed_time
 #! Importando a minha função objetivo dentro do projeto
 from utils.functions_fitness.functions_benchmarking import rastrigin
 
-from utils.functions_fitness.function_IEEE_14_contigencias import (
+from utils.functions_fitness.analise_contingencia.analise_contingencia_ieee14 import (
     funcao_objetivo_IEEE14,
     HASH_TABLE_PATH as HASH_TABLE_PATH_IEEE14,
     hashtablesize as hashtablesize_IEEE14,
 )
-from utils.functions_fitness.function_IEEE_30_otimizacao import (
+from utils.functions_fitness.analise_contingencia.analise_contingencia_ieee30 import (
     funcao_objetivo_IEEE30,
     HASH_TABLE_PATH as HASH_TABLE_PATH_IEEE30,
     hashtablesize as hashtablesize_IEEE30,
@@ -37,7 +37,7 @@ from utils.functions_fitness.func_objetivo_SIN_45_otimizado_AG_ONS import (
     HASH_TABLE_PATH as HASH_TABLE_PATH_SIN45,
     hashtablesize as hashtablesize_SIN45,
 )
-from utils.functions_fitness.function_IEEE_118_otimizacao import (
+from utils.functions_fitness.analise_contingencia.analise_contingencia_ieee118 import (
     funcao_objetivo_IEEE118,
     HASH_TABLE_PATH as HASH_TABLE_PATH_IEEE118,
     hashtablesize as hashtablesize_IEEE118,
@@ -318,6 +318,21 @@ def run_framework_many_executions(
             ) = alg.run(RCE=True)
             best_variables = list(best_individual)
 
+            # Re-evaluating best individual to capture side-effects (like setup.df_resultados)
+            fitness_func(best_individual, setup)
+            
+            # Capture any additional results stored in setup (e.g., from IEEE30 function)
+            additional_results = {}
+            if hasattr(setup, "df_resultados") and isinstance(setup.df_resultados, pd.DataFrame):
+                additional_results["df_resultados"] = setup.df_resultados.to_dict(orient="records")
+            
+            # If it's the IEEE30 or similar, we might want the scheduling info too
+            # We can try to reconstruct it if we have access to the base data, 
+            # or if the fitness function stores it.
+            # For now, let's see if we can get agendamento_info
+            if hasattr(setup, "agendamento_info"):
+                additional_results["agendamento_info"] = setup.agendamento_info
+
             end_exec = datetime.now()
             elapsed_exec = end_exec - start_exec
             formatted_time_exec = format_elapsed_time(elapsed_exec)
@@ -360,6 +375,7 @@ def run_framework_many_executions(
                 "best_gen_idx": best_solution_generation,
                 "time": formatted_time_exec,
                 "fitness_function": fitness_func.__name__,
+                **additional_results,
             }
             output_path = config_dir / f"config_{config_num}_exec_{exec_num}_results.json"
             try:
