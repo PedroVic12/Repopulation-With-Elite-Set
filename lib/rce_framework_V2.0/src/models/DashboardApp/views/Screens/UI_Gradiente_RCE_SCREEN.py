@@ -159,9 +159,9 @@ class FrameworkRCEDashboard:
             st.session_state.user_config = self.options
 
 
-    def handle_tab_change(self, config_num: int, exec_num: int):
-        """Atualiza o par (config, exec) selecionado."""
-        UseState.set_state("selected_pair", (config_num, exec_num))
+    def handle_tab_change(self, run_config_key: str, exec_num: int):
+        """Atualiza o par (run_config_key, exec_num) selecionado."""
+        UseState.set_state("selected_pair", (run_config_key, exec_num))
 
 
     def init_css(self):

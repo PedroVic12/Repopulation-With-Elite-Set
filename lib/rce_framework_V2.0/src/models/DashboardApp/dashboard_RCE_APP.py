@@ -18,7 +18,9 @@ def DrawerSideBar():
 
     # Opções de páginas
     page_options = {
-        "⚡ Framework RCE ": FrameworkRCEDashboard(options_main_file).run,
+        "⚡ Framework RCE ": FrameworkRCEDashboard(
+            options_main_file  # pyright: ignore[reportCallIssue]
+        ).run,
         # "Dashboard Simulação de Contigencias": SimulacaoAnaliseContigenciasPage,
         # "Gerador de PDF": EasyPDF,
         # "Tela de Agendamentos de Redes": AgendamentoRedePage,

@@ -43,6 +43,42 @@ Quando a thread principal chama self.thread.wait(), ela está esperando pela thr
 
 ---
 
+## Atualização 27-05-2026
+
+- Validação do projeto em casos de uso do SIN do ONS
+- Correção e novos metodos para IEEE 30 como base de uso do lancher em Qt6
+- correção e testes de AG na func obejtivo de IEEE30 com o retorno de cada ramo selecionado para desligamento por patamares de carga Leve, media e Pesada
+
+- *Streamlit bug fixes:*
+
+1. Exportação Detalhada (Excel): Agora, ao final de cada simulação, o run.py
+      gera automaticamente o arquivo resultados_agendamento_<nome_funcao>.xlsx na
+      pasta output. Esse arquivo contém o detalhamento das intervenções (ramos,
+      início e duração).
+2. Diferenciação de Execuções:
+       *Atualizei o DatabaseController para identificar os resultados pela
+         combinação de Pasta da Run + Configuração.
+       * No Dashboard (RCE_Framework_Page.py), as abas agora mostram o nome da
+         Run (ex: 2026-05-27_11-57-31 | Config 1), evitando que uma simulação do
+         IEEE 30 sobrescreva visualmente uma do Rastrigin.
+3. Timeline melhorada: O componente de linha do tempo agora lê
+      preferencialmente os dados do novo Excel. Ele identifica automaticamente se
+      os dados vêm de uma análise de contingência e monta as barras com o nome
+      das intervenções (ex: 🛠️ Intervenção [1, 3]).
+4. Consolidação Inteligente: Ajustei a lógica de busca de arquivos para que o
+      Dashboard consiga localizar exatamente o JSON de cada execução dentro da
+      nova estrutura de pastas, garantindo que os gráficos e métricas
+      correspondam à aba selecionada.
+
+Como verificar:
+
+   1. Rode uma nova simulação (ex: IEEE 30).
+   2. No Dashboard, você verá uma aba com o timestamp da execução.
+   3. Dentro da aba "Solução", a "Linha do Tempo Interativa" estará preenchida
+      com os dados carregados diretamente do Excel de agendamento.
+
+---
+
 ## 🎯 Contexto
 
 Este framework foi desenvolvido como parte de um projeto de Iniciação Científica (PIBIC) na Universidade Federal Fluminense (UFF). O seu objetivo é aplicar **Algoritmos Genéticos (AG)** para resolver problemas complexos de otimização em Engenharia Elétrica, especificamente o **Agendamento Ótimo de Intervenções (manutenções) em Redes Elétricas**.

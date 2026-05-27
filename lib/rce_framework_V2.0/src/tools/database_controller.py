@@ -214,9 +214,13 @@ class DatabaseController:
                 print(f"Erro ao ler arquivo {f_path} para visualização: {e}")
         return all_viz_data
 
-    def get_run_data(self, config_num: int, exec_num: int) -> dict | None:
+    def get_run_data(self, config_num: int, exec_num: int, run_name: str = None) -> dict | None:
         """Carrega os dados de um arquivo de resultado individual (results.json)."""
-        search_pattern = str(self.output_dir / "**" / f"config_{config_num}_exec_{exec_num}_results.json")
+        if run_name:
+            search_pattern = str(self.output_dir / run_name / f"config_{config_num}" / f"config_{config_num}_exec_{exec_num}_results.json")
+        else:
+            search_pattern = str(self.output_dir / "**" / f"config_{config_num}_exec_{exec_num}_results.json")
+            
         result_files = glob.glob(search_pattern, recursive=True)
         if not result_files:
             return None
@@ -227,9 +231,13 @@ class DatabaseController:
             print(f"Aviso: Não foi possível ler o arquivo de resultado para config {config_num}, exec {exec_num}. Erro: {e}")
             return None
 
-    def get_visualization_data_for_run(self, config_num: int, exec_num: int) -> list | None:
+    def get_visualization_data_for_run(self, config_num: int, exec_num: int, run_name: str = None) -> list | None:
         """Carrega os dados de um arquivo de visualização individual (visualization.json)."""
-        search_pattern = str(self.output_dir / "**" / f"config_{config_num}_exec_{exec_num}_visualization.json")
+        if run_name:
+            search_pattern = str(self.output_dir / run_name / f"config_{config_num}" / f"config_{config_num}_exec_{exec_num}_visualization.json")
+        else:
+            search_pattern = str(self.output_dir / "**" / f"config_{config_num}_exec_{exec_num}_visualization.json")
+            
         viz_files = glob.glob(search_pattern, recursive=True)
         if not viz_files:
             return None
