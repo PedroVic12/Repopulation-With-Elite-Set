@@ -205,14 +205,28 @@ class ConfigTab(QWidget):
             expected_dim = metadata["dim"]
             current_vars = params.get("ARRAY_VAR", [])
             if len(current_vars) != expected_dim:
-                QMessageBox.critical(
+                reply = QMessageBox.question(
                     self,
-                    "Erro de Dimensão",
-                    f"A função '{metadata['name']}' espera {expected_dim} variáveis de decisão.\n"
-                    f"Atualmente existem {len(current_vars)} no params.json.\n\n"
-                    "Por favor, ajuste o array 'ARRAY_VAR' na aba 'Parâmetros AG'.",
+                    "Ajuste de Dimensão",
+                    f"A função '{metadata['name']}' espera {expected_dim} variáveis de decisão, "
+                    f"mas existem {len(current_vars)} no params.json.\n\n"
+                    "Deseja ajustar automaticamente o 'ARRAY_VAR' e 'IND_SIZE' para continuar?",
+                    QMessageBox.Yes | QMessageBox.No,
                 )
-                return
+                
+                if reply == QMessageBox.Yes:
+                    if len(current_vars) > expected_dim:
+                        current_vars = current_vars[:expected_dim]
+                    else:
+                        last_val = current_vars[-1] if current_vars else 0
+                        current_vars.extend([last_val] * (expected_dim - len(current_vars)))
+                    
+                    params["ARRAY_VAR"] = current_vars
+                    params["IND_SIZE"] = expected_dim
+                    self.config_manager.save_params(params)
+                    QMessageBox.information(self, "Sincronizado", "Parâmetros ajustados com sucesso.")
+                else:
+                    return
 
         # --- Alerta de Modos Especiais (CLI / Benchmarking) ---
         special_modes = []
@@ -333,6 +347,11 @@ class ParamsAGTab(QWidget):
             except (json.JSONDecodeError, ValueError):
                 value = val_str
             params[key] = value
+        
+        # Sincronização automática de IND_SIZE se ARRAY_VAR for alterado
+        if "ARRAY_VAR" in params and isinstance(params["ARRAY_VAR"], list):
+            params["IND_SIZE"] = len(params["ARRAY_VAR"])
+
         if self.config_manager.save_params(params):
             QMessageBox.information(self, "Sucesso", "Parâmetros salvos.")
         else:
