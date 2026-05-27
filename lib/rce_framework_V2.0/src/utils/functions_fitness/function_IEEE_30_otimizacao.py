@@ -275,4 +275,4 @@ def simulate_IEEE30():
 # new otimization model with streamlit interface and more variables of decision to be tested in the future
 
 # PVRV - 26/05/2026
-simulate_IEEE30()
+# simulate_IEEE30()

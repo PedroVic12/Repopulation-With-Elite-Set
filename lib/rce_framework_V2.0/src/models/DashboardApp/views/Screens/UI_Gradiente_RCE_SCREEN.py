@@ -43,7 +43,10 @@ import pathlib
 
 
 def load_data_excel():
-    df = pd.read_excel("/home/pedrov12/Documentos/GitHub/Repopulation-With-Elite-Set/src/output/resultados_consolidados.xlsx")
+    # Caminho relativo para o arquivo consolidado
+    output_dir = Path(__file__).resolve().parent.parent.parent.parent.parent / "output"
+    path = output_dir / "resultados_consolidados.xlsx"
+    df = pd.read_excel(path)
     return df
 
 
@@ -54,10 +57,10 @@ def rede_template_view(html_path: str | None = None, height: int = 1200):
         html_path: Caminho absoluto/relativo para o arquivo HTML. Se None, usa o arquivo padrão ao lado desta tela.
         height: Altura do iframe em pixels.
     """
-    # Caminho padrão: src/DashboardApp/plot_rede_IEEE_template_dashboard.html
+    # Caminho padrão
     if html_path is None:
-        html_path = os.path.join(CURRENT_DIR, "plot_rede_IEEE_template_dashboard.html")
-        html_path = "/home/pedrov12/Documentos/GitHub/Repopulation-With-Elite-Set/resultados - Artigo PIBIC/plot_rede_IEEE_template_dashboard.html"
+        base_dir = Path(__file__).resolve().parent.parent.parent.parent.parent
+        html_path = base_dir / "resultados - Artigo PIBIC" / "plot_rede_IEEE_template_dashboard.html"
     try:
         with open(html_path, "r", encoding="utf-8") as f:
             html_content = f.read()

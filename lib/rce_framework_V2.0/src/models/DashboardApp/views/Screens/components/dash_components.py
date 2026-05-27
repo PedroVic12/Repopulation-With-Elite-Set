@@ -15,16 +15,12 @@ from controllers.Utils import Controller, OPTIONS_JSON
 
 # Ajuste conforme a estrutura do projeto
 def get_folder_path():
-    BASE_DIR = pathlib.Path(__file__).resolve().parent.parent.parent  
-    # Define o caminho relativo para a pasta "output" dentro do projeto
-    FOLDER_NAME = BASE_DIR.parent.parent / "src" / "output"
+    # Sobe 5 níveis a partir de src/models/DashboardApp/views/Screens/components/
+    SRC_DIR = pathlib.Path(__file__).resolve().parent.parent.parent.parent.parent
+    FOLDER_NAME = SRC_DIR / "output"
     return FOLDER_NAME
 
 path_foler_output = get_folder_path()
-
-
-
-
 
 
 class ConsolidatedResultsComponent:
@@ -34,8 +30,9 @@ class ConsolidatedResultsComponent:
     def render():
         """Verifica e exibe a seção de resultados consolidados."""
 
-        # Nome base do arquivo
-        consolidated_excel_path = rf"{path_foler_output}/results_consolidados.xlsx"
+        # Nome base do arquivo unificado
+        consolidated_excel_path = path_foler_output / "resultados_consolidados.xlsx"
+
 
         def button_save_excel(arquivo, nome_arquivo):
             # Abre o arquivo usando o caminho completo para o botão de download

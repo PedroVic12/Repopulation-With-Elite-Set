@@ -122,7 +122,8 @@ class DatabaseController:
         Inicializa o controlador.
         """
         if base_dir is None:
-            self.base_dir = Path(__file__).resolve().parent
+            # Se não fornecido, assume que está em src/tools/ e sobe um nível para src/
+            self.base_dir = Path(__file__).resolve().parent.parent
         else:
             self.base_dir = base_dir
             
@@ -622,7 +623,8 @@ class ConsolidationManager:
 
 
 def run_consolidar_resultados():
-    base_directory = Path(__file__).resolve().parent
+    # Sobe um nível para chegar em src/ a partir de src/tools/
+    base_directory = Path(__file__).resolve().parent.parent
     controller = DatabaseController(base_dir=base_directory)
 
     controller.consolidate_results()

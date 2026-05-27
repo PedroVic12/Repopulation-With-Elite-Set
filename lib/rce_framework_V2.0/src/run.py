@@ -119,17 +119,25 @@ def load_params(file_path):
 
 
 def convert_values_to_int(params):
-    """Converte valores dos parâmetros para int, float ou listas, se aplicável."""
+    """Converte valores dos parâmetros para int, float, boolean ou listas, se aplicável."""
     float_keys = {"MUTACAO", "CROSSOVER", "PORCENTAGEM"}
     for key, value in params.items():
         # Se for uma string que parece uma lista, tenta converter
         if isinstance(value, str) and value.strip().startswith("["):
             try:
                 params[key] = json.loads(value)
-                continue  # Pula para o próximo item
+                continue
             except json.JSONDecodeError:
-                # Se não for um JSON válido, ignora e mantém a string original
                 pass
+
+        # Lógica para Booleanos
+        if isinstance(value, str):
+            if value.lower() == "true":
+                params[key] = True
+                continue
+            elif value.lower() == "false":
+                params[key] = False
+                continue
 
         # Lógica original para floats e ints
         try:
@@ -138,7 +146,6 @@ def convert_values_to_int(params):
             else:
                 params[key] = int(float(value))
         except (ValueError, TypeError):
-            # Ignora erros de conversão para valores que não são numéricos (como as listas já convertidas ou outras strings)
             pass
     return params
 
@@ -319,7 +326,10 @@ def run_framework_many_executions(
             best_variables = list(best_individual)
 
             # Re-evaluating best individual to capture side-effects (like setup.df_resultados)
-            fitness_func(best_individual, setup)
+            if fitness_func.__name__ == "rastrigin" or "benchmark" in fitness_func.__name__:
+                fitness_func(best_individual)
+            else:
+                fitness_func(best_individual, setup)
             
             # Capture any additional results stored in setup (e.g., from IEEE30 function)
             additional_results = {}
@@ -390,7 +400,8 @@ def run_framework_many_executions(
 
     try:
         import subprocess
-        command = [sys.executable, "-c", "from database_controller import run_consolidar_resultados; run_consolidar_resultados()"]
+        # Ajusta para chamar o módulo correto usando o caminho completo
+        command = [sys.executable, "-c", "import sys; from pathlib import Path; sys.path.append(str(Path.cwd())); from tools.database_controller import run_consolidar_resultados; run_consolidar_resultados()"]
         subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
         print("\nIniciando consolidação de resultados em segundo plano...")
     except Exception as e:
