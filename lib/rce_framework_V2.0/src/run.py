@@ -335,6 +335,15 @@ def run_framework_many_executions(
             additional_results = {}
             if hasattr(setup, "df_resultados") and isinstance(setup.df_resultados, pd.DataFrame):
                 additional_results["df_resultados"] = setup.df_resultados.to_dict(orient="records")
+                
+                # ✅ Salvar Excel detalhado de agendamento solicitado pelo usuário
+                try:
+                    excel_name = f"resultados_agendamento_{fitness_func.__name__}.xlsx"
+                    excel_path = BASE_DIR / "output" / excel_name
+                    setup.df_resultados.to_excel(excel_path, index=False)
+                    print(f"Dados detalhados de agendamento salvos em: {excel_path}")
+                except Exception as e:
+                    print(f"Erro ao salvar Excel de agendamento: {e}")
             
             # If it's the IEEE30 or similar, we might want the scheduling info too
             # We can try to reconstruct it if we have access to the base data, 

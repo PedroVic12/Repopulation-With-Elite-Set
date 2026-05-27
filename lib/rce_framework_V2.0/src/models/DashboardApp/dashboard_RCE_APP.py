@@ -1,4 +1,3 @@
-
 import sys
 import os
 from pathlib import Path
@@ -17,13 +16,12 @@ from config import options_main_file
 
 def DrawerSideBar():
 
-    # Opções de páginas 
+    # Opções de páginas
     page_options = {
         "⚡ Framework RCE ": FrameworkRCEDashboard(options_main_file).run,
-
-        #"Dashboard Simulação de Contigencias": SimulacaoAnaliseContigenciasPage,
-        #"Gerador de PDF": EasyPDF,
-        #"Tela de Agendamentos de Redes": AgendamentoRedePage,
+        # "Dashboard Simulação de Contigencias": SimulacaoAnaliseContigenciasPage,
+        # "Gerador de PDF": EasyPDF,
+        # "Tela de Agendamentos de Redes": AgendamentoRedePage,
     }
 
     # Navegação com rádio buttons
@@ -32,10 +30,10 @@ def DrawerSideBar():
         options=list(page_options.keys()),
         format_func=lambda x: x.replace("_", " ").title(),
         horizontal=True,
-        key="main_nav_radio"
+        key="main_nav_radio",
     )
 
-    #st.experimental_get_query_params(page=selected_page)
+    # st.experimental_get_query_params(page=selected_page)
 
     st.sidebar.markdown("---")
     st.sidebar.info("Select a page above to view its content.")
@@ -44,9 +42,6 @@ def DrawerSideBar():
     return page_options[selected_page]
 
 
-
- 
-
 # --- Main Application Class ---
 class App:
     def __init__(self):
@@ -54,7 +49,7 @@ class App:
             page_title="UFF RCE WebAPP",
             page_icon="⚡",
             layout="wide",
-            initial_sidebar_state="collapsed"
+            initial_sidebar_state="collapsed",
         )
 
         st.markdown(Theme, unsafe_allow_html=True)
@@ -73,10 +68,9 @@ if __name__ == "__main__":
     app = App()  # Initialize app config and styling
     try:
         # Passando a pagina que desejo exibir
-        #pagina_selecionada = FrameworkRCEDashboard().run()
-        #app.run(pagina_selecionada) 
-        page = FrameworkRCEDashboard()
-        page.run()
+        # pagina_selecionada = FrameworkRCEDashboard().run()
+        # app.run(pagina_selecionada)
+        FrameworkRCEDashboard().run()
 
     except Exception as e:
         st.exception(e)
