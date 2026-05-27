@@ -180,143 +180,131 @@ def CardsSolutions(results_data: dict):
 
 def AgendamentoRedePage(results_data: dict, run_config_key: str, exec_num: int):
     """
-    Renderiza o componente da linha do tempo interativa e seus detalhes.
+    Renderiza a linha do tempo usando apenas o resultado ótimo (início),
+    duração fixa e ramos. Ao clicar, busca os detalhes no Excel da execução.
     """
-    st.subheader("🗓️ Linha do Tempo Interativa do Agendamento")
+    st.subheader("🗓️ Cronograma Ótimo de Intervenções")
 
-    # 1. Tenta carregar pelo nome de arquivo específico salvo no JSON de resultados
-    excel_name = results_data.get("agendamento_excel_file")
-    base_dir = Path(__file__).resolve().parent.parent.parent.parent.parent
-    
-    agendamento_info = []
-    
-    if excel_name:
-        excel_path = base_dir / "output" / excel_name
-        if excel_path.exists():
-            try:
-                df_ag = pd.read_excel(excel_path)
-                agendamento_info = df_ag.to_dict(orient="records")
-                st.info(f"✅ Dados carregados da execução específica: `{excel_name}`")
-            except Exception as e:
-                st.error(f"Erro ao ler Excel da execução: {e}")
+    agendamento_info = results_data.get("agendamento_info", [])
 
-    # 2. Se não encontrou o específico, tenta o padrão (fallback)
     if not agendamento_info:
-        func_name = results_data.get("fitness_function", "funcao_objetivo_IEEE30")
-        fallback_path = base_dir / "output" / f"resultados_agendamento_{func_name}.xlsx"
-        if fallback_path.exists():
-            try:
-                df_ag = pd.read_excel(fallback_path)
-                agendamento_info = df_ag.to_dict(orient="records")
-                st.warning(f"⚠️ Usando arquivo de fallback (pode estar desatualizado): `{fallback_path.name}`")
-            except Exception as e:
-                st.error(f"Erro ao ler Excel de fallback: {e}")
-    
-    # 3. Fallback final para o agendamento_info do JSON
-    if not agendamento_info:
-        agendamento_info = results_data.get("agendamento_info", [])
+        st.warning("⚠️ Dados de agendamento básicos não encontrados para esta execução.")
+        return
 
     items = []
     base_date = datetime.datetime.now().replace(
         hour=0, minute=0, second=0, microsecond=0
     )
 
-    if agendamento_info:
-        for i, entry in enumerate(agendamento_info):
-            ramo = entry.get("ramo")
-            if not ramo:
-                ramo_from = entry.get("ramo_desligado_from")
-                ramo_to = entry.get("ramo_desligado_to")
-                ramo = f"[{ramo_from}, {ramo_to}]" if ramo_from and ramo_to else f"ID {i}"
+    for i, entry in enumerate(agendamento_info):
+        ramo = entry.get("ramo")
+        inicio = entry.get("inicio")
+        duracao = entry.get("duracao")
 
-            inicio = entry.get("inicio")
-            duracao = entry.get("duracao")
-            perfil = entry.get("perfil") # 0: Leve, 1: Média, 2: Pesada
+        if inicio is None or duracao is None:
+            continue
 
-            if inicio is None or duracao is None:
-                continue
+        try:
+            h_inicio = float(inicio.split(":")[0]) if isinstance(inicio, str) and ":" in inicio else float(inicio)
+            h_duracao = float(duracao)
+        except (ValueError, TypeError):
+            continue
+        
+        # Cores por Patamar
+        if h_inicio < 8:
+            emoji, label_perfil = "🟢", "Leve"
+        elif h_inicio < 18:
+            emoji, label_perfil = "🟡", "Médio"
+        else:
+            emoji, label_perfil = "🔴", "Pesado"
 
-            if isinstance(inicio, str) and ":" in inicio:
-                inicio = int(inicio.split(":")[0])
-            
-            # Lógica de Cores por Patamar de Carga
-            # 🟢 Leve (0-8h), 🟡 Média (8-18h), 🔴 Pesada (18-24h)
-            # Se vier do cenario, usamos o perfil. Se não, baseamos no horário.
-            if perfil == 0 or (perfil is None and float(inicio) < 8):
-                emoji = "🟢"
-                label_perfil = "Leve"
-            elif perfil == 1 or (perfil is None and float(inicio) < 18):
-                emoji = "🟡"
-                label_perfil = "Média"
-            else:
-                emoji = "🔴"
-                label_perfil = "Pesada"
-
-            items.append(
-                {
-                    "id": i,
-                    "content": f"{emoji} Ramo {ramo}",
-                    "start": (base_date + datetime.timedelta(hours=float(inicio))).isoformat(),
-                    "end": (base_date + datetime.timedelta(hours=float(inicio) + float(duracao))).isoformat(),
-                    "title": f"Perfil: {label_perfil} | Início: {inicio}h | Duração: {duracao}h",
-                    "group": i % 3 # Opcional: agrupar visualmente se quiser
-                }
-            )
+        items.append(
+            {
+                "id": i,
+                "content": f"{emoji} Ramo {ramo}",
+                "start": (base_date + datetime.timedelta(hours=h_inicio)).isoformat(),
+                "end": (base_date + datetime.timedelta(hours=h_inicio + h_duracao)).isoformat(),
+                "title": f"Ramo: {ramo} | Perfil: {label_perfil} | Início: {h_inicio}h | Duração: {h_duracao}h",
+            }
+        )
     
     if not items:
-        st.info("Nenhum item para exibir na linha do tempo.")
+        st.info("Nenhum item válido para exibir na linha do tempo.")
         return
 
     selected_item = st_timeline(
         items,
         groups=[],
-        options={"height": 350, "showCurrentTime": False},
-        key=f"timeline_{run_config_key}_{exec_num}",
+        options={"height": 300, "showCurrentTime": False},
+        key=f"timeline_simple_{run_config_key}_{exec_num}",
     )
 
     if selected_item:
         st.markdown("---")
         idx = selected_item['id']
-        # Proteção contra erro de índice caso a lista mude
-        data_item = agendamento_info[idx] if idx < len(agendamento_info) else {}
+        data_item = agendamento_info[idx]
+        ramo_str = str(data_item.get('ramo'))
         
-        st.subheader(f"🔍 Detalhes da Intervenção selecionada")
+        st.subheader(f"🔍 Detalhes da Intervenção: Ramo {ramo_str}")
         
-        c1, c2, c3 = st.columns(3)
-        with c1:
-            st.metric("🏆 Fitness Local", f"{data_item.get('fitness', 0):.4f}")
-        with c2:
-            st.metric("🕒 Horário Início", f"{data_item.get('inicio')}h")
-        with c3:
+        col1, col2, col3 = st.columns(3)
+        with col1:
+            st.metric("🕒 Hora de Início", f"{data_item.get('inicio')}h")
+        with col2:
             st.metric("⏳ Duração", f"{data_item.get('duracao')}h")
+        with col3:
+            st.metric("📌 Prioridade", data_item.get('prioridade', 'N/A'))
 
-        # Mostra detalhes de contingências se disponíveis
-        st.markdown("#### ⚠️ Contingências e Ramos")
-        col_left, col_right = st.columns(2)
+        # Carrega o Excel detalhado para buscar as contingências deste ramo específico
+        excel_name = results_data.get("agendamento_excel_file")
+        base_dir = Path(__file__).resolve().parent.parent.parent.parent.parent
         
-        with col_left:
-            st.write("**Dados da Simulação:**")
-            st.json({
-                "Cenário": data_item.get("cenario", "N/A"),
-                "Perfil Carga": data_item.get("perfil", "N/A"),
-                "Contingência ID": data_item.get("contingencia", "N/A"),
-            })
-            
-        with col_right:
-            st.write("**Ramos Envolvidos:**")
-            r_cont_from = data_item.get('ramo_cont_from', 'N/A')
-            r_cont_to = data_item.get('ramo_cont_to', 'N/A')
-            r_desl_from = data_item.get('ramo_desligado_from', 'N/A')
-            r_desl_to = data_item.get('ramo_desligado_to', 'N/A')
-            
-            st.write(f"- Contingência no Ramo: `[{r_cont_from}, {r_cont_to}]`")
-            st.write(f"- Ramo em Manutenção: `[{r_desl_from}, {r_desl_to}]`")
-            
-        # Adiciona Best Variables daquela execução específica para contexto
+        if excel_name:
+            excel_path = base_dir / "output" / excel_name
+            if excel_path.exists():
+                try:
+                    df_detalhes = pd.read_excel(excel_path)
+                    
+                    # Filtra o DataFrame para encontrar as contingências onde este ramo foi desligado
+                    # O Excel salva como ramo_desligado_from e ramo_desligado_to
+                    ramo_from, ramo_to = data_item.get('ramo', [None, None])
+                    
+                    df_filtrado = df_detalhes[
+                        (df_detalhes['ramo_desligado_from'] == ramo_from) & 
+                        (df_detalhes['ramo_desligado_to'] == ramo_to) &
+                        (df_detalhes['inicio'] == data_item.get('inicio'))
+                    ]
+                    
+                    if not df_filtrado.empty:
+                        st.markdown("#### ⚠️ Análise de Contingências para este Agendamento")
+                        st.write("A tabela abaixo mostra as contingências críticas avaliadas durante o período em que este ramo esteve desligado:")
+                        
+                        # Limpa as colunas para exibição
+                        df_exibicao = df_filtrado[['cenario', 'perfil', 'contingencia', 'ramo_cont_from', 'ramo_cont_to', 'fitness']].copy()
+                        df_exibicao.rename(columns={
+                            'cenario': 'Cenário',
+                            'perfil': 'Perfil Carga',
+                            'contingencia': 'ID Contingência',
+                            'ramo_cont_from': 'Ramo Falha (De)',
+                            'ramo_cont_to': 'Ramo Falha (Para)',
+                            'fitness': 'Fitness Penalidade'
+                        }, inplace=True)
+                        
+                        st.dataframe(df_exibicao, use_container_width=True)
+                        
+                        soma_fitness = df_filtrado['fitness'].sum()
+                        st.metric("💥 Impacto Total (Soma Fitness)", f"{soma_fitness:.4f}", help="Soma das penalidades de todas as contingências para este desligamento.")
+                    else:
+                        st.success("✅ Nenhuma contingência crítica gerou violação durante o desligamento deste ramo.")
+                        
+                except Exception as e:
+                    st.error(f"Erro ao ler detalhes de contingência do Excel: {e}")
+            else:
+                st.warning(f"Arquivo de detalhes não encontrado: {excel_name}")
+
         if "best_variables" in results_data:
-            st.markdown("---")
-            st.write("**🎯 Horários Ótimos do Agendamento (Varaíveis de Decisão):**")
-            st.write(results_data["best_variables"])
+            with st.expander("🎯 Ver Vetor de Solução Ótima (Varaíveis de Decisão)", expanded=False):
+                st.write(results_data["best_variables"])
 
 
 class TabPinningController:
@@ -541,10 +529,18 @@ class FrameworkRCEDashboard:
     def renderExecutionDetails(self, run_config_key, exec_num, pinned_tab_name=None):
         import re
         try:
-            run_name, config_part = run_config_key.split(" | ")
+            # Novo parsing para o formato: 🧪 IEEE30 (2026-05-27_11-57-31) | Config 1
+            if "(" in run_config_key and ")" in run_config_key:
+                # Extrai o que está entre parênteses: 2026-05-27_11-57-31
+                timestamp = re.search(r"\((.*?)\)", run_config_key).group(1)
+                run_name = f"run_{timestamp}"
+            else:
+                run_name, _ = run_config_key.split(" | ")
+            
+            config_part = run_config_key.split(" | ")[-1]
             config_num = re.search(r"Config (\d+)", config_part).group(1)
-        except:
-            st.error(f"Erro ao parsear chave: {run_config_key}")
+        except Exception as e:
+            st.error(f"Erro ao parsear chave: {run_config_key} | Erro: {e}")
             return
 
         results_data = self.db_controller.get_run_data(int(config_num), int(exec_num), run_name=run_name) or {}
