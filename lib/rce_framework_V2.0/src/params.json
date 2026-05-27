@@ -16,15 +16,15 @@
     "IND_SIZE": 10,
     "LIMITE_VAR": [
         0,
-        31
+        23
     ],
-    "MUTACAO": 0.99,
+    "MUTACAO": 0.9,
     "NUM_GENERATIONS": 10,
     "NUM_VAR_DIFERENTES": 1,
-    "POP_SIZE": 5,
+    "POP_SIZE": 10,
     "PORCENTAGEM": 0.2,
     "RCE_REPOPULATION_GENERATIONS": 50,
-    "CLI_MODE": false,
-    "DEBUG_MODE": true,
-    "BENCHMARKING_MODE": false
+    "CLI_MODE": "False",
+    "DEBUG_MODE": "True",
+    "BENCHMARKING_MODE": "False"
 }
