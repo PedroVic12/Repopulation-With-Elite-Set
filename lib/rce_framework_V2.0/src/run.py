@@ -338,10 +338,15 @@ def run_framework_many_executions(
                 
                 # ✅ Salvar Excel detalhado de agendamento solicitado pelo usuário
                 try:
-                    excel_name = f"resultados_agendamento_{fitness_func.__name__}.xlsx"
-                    excel_path = BASE_DIR / "output" / excel_name
+                    # Inclui o nome da pasta de run e config para evitar sobrescrever
+                    run_folder_clean = main_output_dir.name
+                    excel_name = f"resultados_agendamento_{fitness_func.__name__}_{run_folder_clean}_config{config_num}_exec{exec_num}.xlsx"
+                    excel_path = main_output_dir / excel_name
                     setup.df_resultados.to_excel(excel_path, index=False)
                     print(f"Dados detalhados de agendamento salvos em: {excel_path}")
+                    
+                    # Salva o nome do arquivo no dicionário de resultados para o Dashboard encontrar fácil
+                    additional_results["agendamento_excel_file"] = excel_name
                 except Exception as e:
                     print(f"Erro ao salvar Excel de agendamento: {e}")
             

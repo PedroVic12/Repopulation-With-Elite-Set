@@ -184,20 +184,35 @@ def AgendamentoRedePage(results_data: dict, run_config_key: str, exec_num: int):
     """
     st.subheader("🗓️ Linha do Tempo Interativa do Agendamento")
 
-    # Tenta carregar do Excel detalhado primeiro
-    func_name = results_data.get("fitness_function", "funcao_objetivo_IEEE30")
+    # 1. Tenta carregar pelo nome de arquivo específico salvo no JSON de resultados
+    excel_name = results_data.get("agendamento_excel_file")
     base_dir = Path(__file__).resolve().parent.parent.parent.parent.parent
-    excel_path = base_dir / "output" / f"resultados_agendamento_{func_name}.xlsx"
     
     agendamento_info = []
-    if excel_path.exists():
-        try:
-            df_ag = pd.read_excel(excel_path)
-            agendamento_info = df_ag.to_dict(orient="records")
-            st.info(f"✅ Dados de agendamento carregados de: {excel_path.name}")
-        except Exception as e:
-            st.error(f"Erro ao ler Excel de agendamento: {e}")
     
+    if excel_name:
+        excel_path = base_dir / "output" / excel_name
+        if excel_path.exists():
+            try:
+                df_ag = pd.read_excel(excel_path)
+                agendamento_info = df_ag.to_dict(orient="records")
+                st.info(f"✅ Dados carregados da execução específica: `{excel_name}`")
+            except Exception as e:
+                st.error(f"Erro ao ler Excel da execução: {e}")
+
+    # 2. Se não encontrou o específico, tenta o padrão (fallback)
+    if not agendamento_info:
+        func_name = results_data.get("fitness_function", "funcao_objetivo_IEEE30")
+        fallback_path = base_dir / "output" / f"resultados_agendamento_{func_name}.xlsx"
+        if fallback_path.exists():
+            try:
+                df_ag = pd.read_excel(fallback_path)
+                agendamento_info = df_ag.to_dict(orient="records")
+                st.warning(f"⚠️ Usando arquivo de fallback (pode estar desatualizado): `{fallback_path.name}`")
+            except Exception as e:
+                st.error(f"Erro ao ler Excel de fallback: {e}")
+    
+    # 3. Fallback final para o agendamento_info do JSON
     if not agendamento_info:
         agendamento_info = results_data.get("agendamento_info", [])
 
