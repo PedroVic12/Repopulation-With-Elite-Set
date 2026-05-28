@@ -7,7 +7,8 @@ import datetime
 from streamlit_timeline import st_timeline
 import ast
 
-from components.dashboard_config import get_config
+from .components.dashboard_config import get_config
+
 
 #! Refatorar os novos componentes
 # from .components.dash_rce_components import  StatisticsTableComponent
@@ -35,11 +36,11 @@ class StatisticsTableComponent:
 BASE_DIR = Path(__file__).resolve().parent.parent.parent.parent.parent
 if str(BASE_DIR) not in sys.path:
     sys.path.append(str(BASE_DIR))
-print(BASE_DIR)
 
 from tools.database_controller import DatabaseController, ConsolidationManager
 
-print(f"Dashboard importing database_controller from: {DatabaseController.__module__}")
+# print(f"Dashboard importing database_controller from: {DatabaseController.__module__}")
+# print(BASE_DIR)
 
 import streamlit.components.v1 as components
 import os
@@ -177,22 +178,17 @@ def CardsSolutions(results_data: dict):
                 )
 
 
-def AgendamentoRedePage(results_data: dict, config_num: int, exec_num: int):
+def AgendamentoRedePage(results_data: dict, run_config_key: str, exec_num: int):
     """
-    Renderiza o componente da linha do tempo interativa e seus detalhes.
+    Renderiza a linha do tempo usando apenas o resultado ótimo (início),
+    duração fixa e ramos. Ao clicar, busca os detalhes no Excel da execução.
     """
-    st.subheader("🗓️ Linha do Tempo Interativa do Agendamento")
+    st.subheader("🗓️ Cronograma Ótimo de Intervenções")
 
-    solution_variables = sorted(
-        [
-            v
-            for v in results_data.get("best_variables", [])
-            if isinstance(v, (int, float))
-        ]
-    )
+    agendamento_info = results_data.get("agendamento_info", [])
 
-    if not solution_variables:
-        st.warning("Variáveis da solução não encontradas para gerar a linha do tempo.")
+    if not agendamento_info:
+        st.warning("⚠️ Dados de agendamento básicos não encontrados para esta execução.")
         return
 
     items = []
@@ -200,67 +196,115 @@ def AgendamentoRedePage(results_data: dict, config_num: int, exec_num: int):
         hour=0, minute=0, second=0, microsecond=0
     )
 
-    for i in range(len(solution_variables) - 1):
-        start_hour, end_hour = solution_variables[i], solution_variables[i + 1]
-        duration = end_hour - start_hour
+    for i, entry in enumerate(agendamento_info):
+        ramo = entry.get("ramo")
+        inicio = entry.get("inicio")
+        duracao = entry.get("duracao")
+
+        if inicio is None or duracao is None:
+            continue
+
+        try:
+            h_inicio = float(inicio.split(":")[0]) if isinstance(inicio, str) and ":" in inicio else float(inicio)
+            h_duracao = float(duracao)
+        except (ValueError, TypeError):
+            continue
+        
+        # Cores por Patamar
+        if h_inicio < 8:
+            emoji, label_perfil = "🟢", "Leve"
+        elif h_inicio < 18:
+            emoji, label_perfil = "🟡", "Médio"
+        else:
+            emoji, label_perfil = "🔴", "Pesado"
+
         items.append(
             {
                 "id": i,
-                "content": f"Intervalo {i+1} ({duration:.1f}h)",
-                "start": (base_date + datetime.timedelta(hours=start_hour)).isoformat(),
-                "end": (base_date + datetime.timedelta(hours=end_hour)).isoformat(),
-                "title": f"Das {start_hour:.1f}h às {end_hour:.1f}h",
+                "content": f"{emoji} Ramo {ramo}",
+                "start": (base_date + datetime.timedelta(hours=h_inicio)).isoformat(),
+                "end": (base_date + datetime.timedelta(hours=h_inicio + h_duracao)).isoformat(),
+                "title": f"Ramo: {ramo} | Perfil: {label_perfil} | Início: {h_inicio}h | Duração: {h_duracao}h",
             }
         )
+    
+    if not items:
+        st.info("Nenhum item válido para exibir na linha do tempo.")
+        return
 
     selected_item = st_timeline(
         items,
         groups=[],
-        options={"height": 300},
-        key=f"timeline_{config_num}_{exec_num}",
+        options={"height": 300, "showCurrentTime": False},
+        key=f"timeline_simple_{run_config_key}_{exec_num}",
     )
 
     if selected_item:
         st.markdown("---")
-        st.subheader(f"⚙️ Detalhes do Intervalo {selected_item['id'] + 1}")
+        idx = selected_item['id']
+        data_item = agendamento_info[idx]
+        ramo_str = str(data_item.get('ramo'))
+        
+        st.subheader(f"🔍 Detalhes da Intervenção: Ramo {ramo_str}")
+        
+        col1, col2, col3 = st.columns(3)
+        with col1:
+            st.metric("🕒 Hora de Início", f"{data_item.get('inicio')}h")
+        with col2:
+            st.metric("⏳ Duração", f"{data_item.get('duracao')}h")
+        with col3:
+            st.metric("📌 Prioridade", data_item.get('prioridade', 'N/A'))
 
-        st.write(results_data.keys())
-
-        details_str = results_data.get("ramos_contingencias", "{}")
-        try:
-            details_dict = (
-                ast.literal_eval(details_str)
-                if isinstance(details_str, str)
-                else details_str
-            )
-
-            if (
-                isinstance(details_dict, dict)
-                and "ramos" in details_dict
-                and "contingencia" in details_dict
-            ):
-                ramos_df = pd.DataFrame(details_dict["ramos"], columns=["De", "Para"])
-                contingencia_df = pd.DataFrame(
-                    pd.Series(details_dict["contingencia"]), columns=["ID Contingência"]
-                )
-
-                col1, col2 = st.columns(2)
-                with col1:
-                    st.write("📌 **Ramos para Operação**")
-                    st.dataframe(ramos_df, use_container_width=True)
-                with col2:
-                    st.write("⚠️ **Contingências Consideradas**")
-                    st.dataframe(contingencia_df, use_container_width=True)
+        # Carrega o Excel detalhado para buscar as contingências deste ramo específico
+        excel_name = results_data.get("agendamento_excel_file")
+        base_dir = Path(__file__).resolve().parent.parent.parent.parent.parent
+        
+        if excel_name:
+            excel_path = base_dir / "output" / excel_name
+            if excel_path.exists():
+                try:
+                    df_detalhes = pd.read_excel(excel_path)
+                    
+                    # Filtra o DataFrame para encontrar as contingências onde este ramo foi desligado
+                    # O Excel salva como ramo_desligado_from e ramo_desligado_to
+                    ramo_from, ramo_to = data_item.get('ramo', [None, None])
+                    
+                    df_filtrado = df_detalhes[
+                        (df_detalhes['ramo_desligado_from'] == ramo_from) & 
+                        (df_detalhes['ramo_desligado_to'] == ramo_to) &
+                        (df_detalhes['inicio'] == data_item.get('inicio'))
+                    ]
+                    
+                    if not df_filtrado.empty:
+                        st.markdown("#### ⚠️ Análise de Contingências para este Agendamento")
+                        st.write("A tabela abaixo mostra as contingências críticas avaliadas durante o período em que este ramo esteve desligado:")
+                        
+                        # Limpa as colunas para exibição
+                        df_exibicao = df_filtrado[['cenario', 'perfil', 'contingencia', 'ramo_cont_from', 'ramo_cont_to', 'fitness']].copy()
+                        df_exibicao.rename(columns={
+                            'cenario': 'Cenário',
+                            'perfil': 'Perfil Carga',
+                            'contingencia': 'ID Contingência',
+                            'ramo_cont_from': 'Ramo Falha (De)',
+                            'ramo_cont_to': 'Ramo Falha (Para)',
+                            'fitness': 'Fitness Penalidade'
+                        }, inplace=True)
+                        
+                        st.dataframe(df_exibicao, use_container_width=True)
+                        
+                        soma_fitness = df_filtrado['fitness'].sum()
+                        st.metric("💥 Impacto Total (Soma Fitness)", f"{soma_fitness:.4f}", help="Soma das penalidades de todas as contingências para este desligamento.")
+                    else:
+                        st.success("✅ Nenhuma contingência crítica gerou violação durante o desligamento deste ramo.")
+                        
+                except Exception as e:
+                    st.error(f"Erro ao ler detalhes de contingência do Excel: {e}")
             else:
-                st.info(
-                    "Detalhes de ramos e contingências não encontrados na estrutura esperada."
-                )
-                st.warning("EM DESENVOLVIMENTO")
+                st.warning(f"Arquivo de detalhes não encontrado: {excel_name}")
 
-        except (ValueError, SyntaxError) as e:
-            st.error(
-                f"Não foi possível processar os detalhes de ramos/contingências. Verifique o formato dos dados. Erro: {e}"
-            )
+        if "best_variables" in results_data:
+            with st.expander("🎯 Ver Vetor de Solução Ótima (Varaíveis de Decisão)", expanded=False):
+                st.write(results_data["best_variables"])
 
 
 class TabPinningController:
@@ -405,17 +449,29 @@ class FrameworkRCEDashboard:
         df = st.session_state.df_consolidado
         if df is None or df.empty:
             return {}
+        
+        # Colunas necessárias
+        run_col = self._get_column_name_insensitive(df, ["pasta_run", "run", "pasta"])
         config_col, exec_col = self._validate_required_columns(df)
-        if not config_col or not exec_col:
-            st.error(
-                "O arquivo consolidado não contém as colunas de configuração ou execução."
-            )
+        func_col = self._get_column_name_insensitive(df, ["Funcao_objetivo", "fitness_function", "funcao"])
+        
+        if not run_col or not config_col or not exec_col:
+            st.error("O arquivo consolidado não contém colunas suficientes (Run, Config, Exec).")
             return {}
 
+        df[run_col] = df[run_col].astype(str)
         df[config_col] = df[config_col].astype(str)
         df[exec_col] = df[exec_col].astype(str)
+        
+        # Cria label amigável: [Função] Data/Hora | Config X
+        if func_col:
+            df["func_clean"] = df[func_col].str.replace("funcao_objetivo_", "").str.replace("_otimizacao", "")
+            df["run_config_key"] = "🧪 " + df["func_clean"] + " (" + df[run_col].str.replace("run_", "") + ") | Config " + df[config_col]
+        else:
+            df["run_config_key"] = df[run_col] + " | Config " + df[config_col]
+        
         return (
-            df.groupby(config_col)[exec_col]
+            df.groupby("run_config_key")[exec_col]
             .apply(lambda x: sorted(x.unique()))
             .to_dict()
         )
@@ -433,13 +489,16 @@ class FrameworkRCEDashboard:
             with col1:
                 st.metric("📁 Total de Execuções", len(df))
             with col2:
+                # Conta pares únicos de Run e Config
+                run_col = self._get_column_name_insensitive(df, ["pasta_run", "run", "pasta"])
                 config_col, _ = self._validate_required_columns(df)
-                st.metric(
-                    "⚙️ Configurações",
-                    df[config_col].nunique() if config_col else "N/A",
-                )
+                if run_col and config_col:
+                    unique_pairs = df.drop_duplicates(subset=[run_col, config_col])
+                    st.metric("⚙️ Configurações (Total)", len(unique_pairs))
+                else:
+                    st.metric("⚙️ Configurações", df[config_col].nunique() if config_col else "N/A")
             with col3:
-                st.metric("📊 Arquivos de Saída", len(st.session_state.executions_map))
+                st.metric("📊 Conjuntos Detectados", len(st.session_state.executions_map))
             with col4:
                 st.metric(
                     "📌 Config Fixada", st.session_state.locked_config or "Nenhuma"
@@ -467,16 +526,34 @@ class FrameworkRCEDashboard:
         except Exception as e:
             st.error(f"{self.config.get_message('error', 'cache_error')}: {e}")
 
-    def renderExecutionDetails(self, config_num, exec_num, pinned_tab_name=None):
-        results_data = self.db_controller.get_run_data(config_num, exec_num) or {}
+    def renderExecutionDetails(self, run_config_key, exec_num, pinned_tab_name=None):
+        import re
+        try:
+            # Novo parsing para o formato: 🧪 IEEE30 (2026-05-27_11-57-31) | Config 1
+            if "(" in run_config_key and ")" in run_config_key:
+                # Extrai o que está entre parênteses: 2026-05-27_11-57-31
+                timestamp = re.search(r"\((.*?)\)", run_config_key).group(1)
+                run_name = f"run_{timestamp}"
+            else:
+                run_name, _ = run_config_key.split(" | ")
+            
+            config_part = run_config_key.split(" | ")[-1]
+            config_num = re.search(r"Config (\d+)", config_part).group(1)
+        except Exception as e:
+            st.error(f"Erro ao parsear chave: {run_config_key} | Erro: {e}")
+            return
+
+        results_data = self.db_controller.get_run_data(int(config_num), int(exec_num), run_name=run_name) or {}
         df_consolidado = st.session_state.df_consolidado
 
         if df_consolidado is not None:
+            run_col = self._get_column_name_insensitive(df_consolidado, ["pasta_run", "run", "pasta"])
             config_col, exec_col = self._validate_required_columns(df_consolidado)
-            if config_col and exec_col:
+            if run_col and config_col and exec_col:
                 row = df_consolidado[
-                    (df_consolidado[config_col].astype(str) == str(config_num))
-                    & (df_consolidado[exec_col].astype(str) == str(exec_num))
+                    (df_consolidado[run_col].astype(str) == str(run_name)) &
+                    (df_consolidado[config_col].astype(str) == str(config_num)) &
+                    (df_consolidado[exec_col].astype(str) == str(exec_num))
                 ]
                 if not row.empty:
                     results_data.update(row.iloc[0].to_dict())
@@ -490,7 +567,7 @@ class FrameworkRCEDashboard:
                 results_data["best_variables"] = [results_data[k] for k in var_keys]
 
         viz_data_list = self.db_controller.get_visualization_data_for_run(
-            config_num, exec_num
+            int(config_num), int(exec_num), run_name=run_name
         )
         df_viz = pd.DataFrame(viz_data_list) if viz_data_list else pd.DataFrame()
 
@@ -502,7 +579,7 @@ class FrameworkRCEDashboard:
                 st.markdown("---")
 
                 # Chama a função refatorada para a timeline
-                AgendamentoRedePage(results_data, config_num, exec_num)
+                AgendamentoRedePage(results_data, run_config_key, exec_num)
             except Exception as e:
                 st.error(f"Erro ao renderizar a aba de Solução: {e}")
 
@@ -664,13 +741,15 @@ class FrameworkRCEDashboard:
             st.warning("Nenhum resultado encontrado para os filtros aplicados.")
 
         # Configuração dos TABS
-        config_keys = sorted(executions_map.keys())
-        config_tabs = st.tabs([f"Config {cfg}" for cfg in config_keys])
+        run_config_keys = sorted(executions_map.keys())
+        # Labels mais limpas para as abas
+        tab_labels = [key.replace("run_", "") for key in run_config_keys]
+        config_tabs = st.tabs(tab_labels)
 
-        # Config -> Executions -> Components (com uso de fixar aba)
+        # Run|Config -> Executions -> Components (com uso de fixar aba)
         for i, config_tab_ui in enumerate(config_tabs):
             with config_tab_ui:
-                config_num = config_keys[i]
+                run_config_key = run_config_keys[i]
                 tab_names = [
                     "Solução",
                     "Gráficos",
@@ -679,10 +758,10 @@ class FrameworkRCEDashboard:
                 ]
 
                 is_pinned = self.tab_pinning_controller.render_toggle(
-                    config_num=config_num
+                    config_num=run_config_key
                 )
 
-                select_key = f"pin_select_{config_num}"
+                select_key = f"pin_select_{run_config_key}"
 
                 if is_pinned:
                     selected_tab_name = (
@@ -690,7 +769,7 @@ class FrameworkRCEDashboard:
                             tab_names, key=select_key
                         )
                     )
-                    exec_numbers = executions_map.get(config_num, [])
+                    exec_numbers = executions_map.get(run_config_key, [])
 
                     if not exec_numbers:
                         st.warning(
@@ -704,12 +783,12 @@ class FrameworkRCEDashboard:
                         with exec_tab_ui:
                             exec_num = exec_numbers[j]
                             self.renderExecutionDetails(
-                                config_num, exec_num, pinned_tab_name=selected_tab_name
+                                run_config_key, exec_num, pinned_tab_name=selected_tab_name
                             )
 
                 else:
                     # Se não está fixado, continua com a lógica de abas para cada execução
-                    exec_numbers = executions_map.get(config_num, [])
+                    exec_numbers = executions_map.get(run_config_key, [])
                     if not exec_numbers:
                         st.warning(
                             "Nenhuma execução encontrada para esta configuração."
@@ -719,7 +798,7 @@ class FrameworkRCEDashboard:
                     exec_tabs = st.tabs([f"Execução {en}" for en in exec_numbers])
                     for j, exec_tab_ui in enumerate(exec_tabs):
                         with exec_tab_ui:
-                            self.renderExecutionDetails(config_num, exec_numbers[j])
+                            self.renderExecutionDetails(run_config_key, exec_numbers[j])
 
                     st.markdown("---")
 

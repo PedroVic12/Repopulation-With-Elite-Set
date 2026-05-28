@@ -15,12 +15,12 @@ from config import FOLDER_NAME, format_elapsed_time
 #! Importando a minha função objetivo dentro do projeto
 from utils.functions_fitness.functions_benchmarking import rastrigin
 
-from utils.functions_fitness.function_IEEE_14_contigencias import (
+from utils.functions_fitness.analise_contingencia.analise_contingencia_ieee14 import (
     funcao_objetivo_IEEE14,
     HASH_TABLE_PATH as HASH_TABLE_PATH_IEEE14,
     hashtablesize as hashtablesize_IEEE14,
 )
-from utils.functions_fitness.function_IEEE_30_otimizacao import (
+from utils.functions_fitness.analise_contingencia.analise_contingencia_ieee30 import (
     funcao_objetivo_IEEE30,
     HASH_TABLE_PATH as HASH_TABLE_PATH_IEEE30,
     hashtablesize as hashtablesize_IEEE30,
@@ -37,7 +37,7 @@ from utils.functions_fitness.func_objetivo_SIN_45_otimizado_AG_ONS import (
     HASH_TABLE_PATH as HASH_TABLE_PATH_SIN45,
     hashtablesize as hashtablesize_SIN45,
 )
-from utils.functions_fitness.function_IEEE_118_otimizacao import (
+from utils.functions_fitness.analise_contingencia.analise_contingencia_ieee118 import (
     funcao_objetivo_IEEE118,
     HASH_TABLE_PATH as HASH_TABLE_PATH_IEEE118,
     hashtablesize as hashtablesize_IEEE118,
@@ -119,17 +119,25 @@ def load_params(file_path):
 
 
 def convert_values_to_int(params):
-    """Converte valores dos parâmetros para int, float ou listas, se aplicável."""
+    """Converte valores dos parâmetros para int, float, boolean ou listas, se aplicável."""
     float_keys = {"MUTACAO", "CROSSOVER", "PORCENTAGEM"}
     for key, value in params.items():
         # Se for uma string que parece uma lista, tenta converter
         if isinstance(value, str) and value.strip().startswith("["):
             try:
                 params[key] = json.loads(value)
-                continue  # Pula para o próximo item
+                continue
             except json.JSONDecodeError:
-                # Se não for um JSON válido, ignora e mantém a string original
                 pass
+
+        # Lógica para Booleanos
+        if isinstance(value, str):
+            if value.lower() == "true":
+                params[key] = True
+                continue
+            elif value.lower() == "false":
+                params[key] = False
+                continue
 
         # Lógica original para floats e ints
         try:
@@ -138,7 +146,6 @@ def convert_values_to_int(params):
             else:
                 params[key] = int(float(value))
         except (ValueError, TypeError):
-            # Ignora erros de conversão para valores que não são numéricos (como as listas já convertidas ou outras strings)
             pass
     return params
 
@@ -318,6 +325,38 @@ def run_framework_many_executions(
             ) = alg.run(RCE=True)
             best_variables = list(best_individual)
 
+            # Re-evaluating best individual to capture side-effects (like setup.df_resultados)
+            if fitness_func.__name__ == "rastrigin" or "benchmark" in fitness_func.__name__:
+                fitness_func(best_individual)
+            else:
+                fitness_func(best_individual, setup)
+            
+            # Capture any additional results stored in setup (e.g., from IEEE30 function)
+            additional_results = {}
+            if hasattr(setup, "df_resultados") and isinstance(setup.df_resultados, pd.DataFrame):
+                additional_results["df_resultados"] = setup.df_resultados.to_dict(orient="records")
+                
+                # ✅ Salvar Excel detalhado de agendamento solicitado pelo usuário
+                try:
+                    # Inclui o nome da pasta de run e config para evitar sobrescrever
+                    run_folder_clean = main_output_dir.name
+                    excel_name = f"resultados_agendamento_{fitness_func.__name__}_{run_folder_clean}_config{config_num}_exec{exec_num}.xlsx"
+                    excel_path = main_output_dir / excel_name
+                    setup.df_resultados.to_excel(excel_path, index=False)
+                    print(f"Dados detalhados de agendamento salvos em: {excel_path}")
+                    
+                    # Salva o nome do arquivo no dicionário de resultados para o Dashboard encontrar fácil
+                    additional_results["agendamento_excel_file"] = excel_name
+                except Exception as e:
+                    print(f"Erro ao salvar Excel de agendamento: {e}")
+            
+            # If it's the IEEE30 or similar, we might want the scheduling info too
+            # We can try to reconstruct it if we have access to the base data, 
+            # or if the fitness function stores it.
+            # For now, let's see if we can get agendamento_info
+            if hasattr(setup, "agendamento_info"):
+                additional_results["agendamento_info"] = setup.agendamento_info
+
             end_exec = datetime.now()
             elapsed_exec = end_exec - start_exec
             formatted_time_exec = format_elapsed_time(elapsed_exec)
@@ -360,6 +399,7 @@ def run_framework_many_executions(
                 "best_gen_idx": best_solution_generation,
                 "time": formatted_time_exec,
                 "fitness_function": fitness_func.__name__,
+                **additional_results,
             }
             output_path = config_dir / f"config_{config_num}_exec_{exec_num}_results.json"
             try:
@@ -374,7 +414,8 @@ def run_framework_many_executions(
 
     try:
         import subprocess
-        command = [sys.executable, "-c", "from database_controller import run_consolidar_resultados; run_consolidar_resultados()"]
+        # Ajusta para chamar o módulo correto usando o caminho completo
+        command = [sys.executable, "-c", "import sys; from pathlib import Path; sys.path.append(str(Path.cwd())); from tools.database_controller import run_consolidar_resultados; run_consolidar_resultados()"]
         subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
         print("\nIniciando consolidação de resultados em segundo plano...")
     except Exception as e:

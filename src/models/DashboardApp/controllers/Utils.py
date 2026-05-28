@@ -116,30 +116,40 @@ class Utils:
     # --- Funções Auxiliares ---
     def find_available_executions(self):
         """
-        Encontra arquivos .pkl de execução, extrai os números de configuração e execução,
-        e retorna um dicionário estruturado e uma lista de avisos.
+        Encontra arquivos .pkl de execução recursivamente, extrai os nomes de run, 
+        configuração e execução, e retorna um dicionário estruturado.
         """
-        data_files = list(FOLDER_NAME.glob("dashboard_data_config*_exec*.pkl"))
+        # Procura recursivamente na pasta output
+        data_files = list(FOLDER_NAME.rglob("dashboard_data_config*_exec*.pkl"))
         executions = {}
         warnings = []
         import re
 
         for f_path in data_files:
+            # Tenta pegar o nome da pasta de run (ex: run_2026-05-27_10-28-33)
+            run_name = f_path.parent.parent.name
+            if not run_name.startswith("run_"):
+                run_name = "Default Run"
+
             match = re.search(r"config(\d+)_exec(\d+)", f_path.stem)
             if match:
                 config_num = int(match.group(1))
                 exec_num = int(match.group(2))
-                if config_num not in executions:
-                    executions[config_num] = []
-                executions[config_num].append(exec_num)
+                
+                # Chave única combinando Run e Config
+                run_config_key = f"{run_name} | Config {config_num}"
+                
+                if run_config_key not in executions:
+                    executions[run_config_key] = []
+                executions[run_config_key].append(exec_num)
             else:
                 warnings.append(
                     f"Não foi possível extrair o número de execução do arquivo: {f_path.name}"
                 )
         
-        # Ordena as execuções para cada configuração
-        for config_num in executions:
-            executions[config_num] = sorted(executions[config_num])
+        # Ordena as execuções para cada chave
+        for key in executions:
+            executions[key] = sorted(executions[key])
             
         return dict(sorted(executions.items())), warnings
 
@@ -152,20 +162,35 @@ class Utils:
         )
         return selected_num
 
-    def load_execution_data(self, config_num, exec_num, debug=False):
+    def load_execution_data(self, run_config_key, exec_num, debug=False):
         """
-        Carrega os dados .pkl para a configuração e execução especificadas.
+        Carrega os dados .pkl para a chave de run/config e execução especificadas.
         """
+        import re
         data = None
+        
+        # Extrai run_name e config_num da chave
+        try:
+            run_name, config_part = run_config_key.split(" | ")
+            config_num = re.search(r"Config (\d+)", config_part).group(1)
+        except Exception as e:
+            st.error(f"Erro ao parsear chave de execução: {e}")
+            return None
+
         file_name = f"dashboard_data_config{config_num}_exec{exec_num}.pkl"
-        data_file_selected = FOLDER_NAME / file_name
+        
+        # Procura o arquivo na estrutura de pastas
+        if run_name == "Default Run":
+             data_file_selected = FOLDER_NAME / file_name
+        else:
+             data_file_selected = FOLDER_NAME / run_name / f"config_{config_num}" / file_name
 
         def initial_screen():
             st.title("Bem-vindo ao Dashboard RCE")
             st.info("O framework ainda não foi executado. Execute o framework para visualizar os resultados.")
             st.markdown("---")
 
-        if not os.listdir(FOLDER_NAME):
+        if not os.path.exists(FOLDER_NAME):
             initial_screen()
             return None
 
@@ -177,11 +202,10 @@ class Utils:
                 data = pickle.load(f)
             if debug:
                 st.sidebar.success(
-                    f"INFO: Dados da config {config_num}/exec {exec_num} carregados."
+                    f"INFO: Dados da {run_config_key}/exec {exec_num} carregados."
                 )
         except FileNotFoundError:
-            st.warning(f"Arquivo de dados não encontrado: {file_name}")
-            # Não chama a tela inicial aqui para não interromper a renderização das outras abas
+            st.warning(f"Arquivo de dados não encontrado: {data_file_selected}")
         except Exception as e:
             st.error(f"Erro ao carregar dados de {file_name}: {e}")
 

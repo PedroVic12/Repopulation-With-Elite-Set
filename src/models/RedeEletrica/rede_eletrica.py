@@ -168,7 +168,7 @@ class RedeEletricaPandaPower:
         required_agendamento = ["ramo", "inicio", "duracao", "prioridade"]
         if not all(col in df_agendamento.columns for col in required_agendamento):
             # raise ValueError("Colunas faltantes no agendamento_df")
-            print("Colunas faltantes no agendamento_df")
+            print("Colunas faltantes no agendamento_df... verifique novamente")
 
         # Verifica existência dos ramos
         for _, row in df_agendamento.iterrows():

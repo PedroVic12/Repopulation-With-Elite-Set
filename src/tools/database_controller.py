@@ -122,7 +122,8 @@ class DatabaseController:
         Inicializa o controlador.
         """
         if base_dir is None:
-            self.base_dir = Path(__file__).resolve().parent
+            # Se não fornecido, assume que está em src/tools/ e sobe um nível para src/
+            self.base_dir = Path(__file__).resolve().parent.parent
         else:
             self.base_dir = base_dir
             
@@ -213,9 +214,13 @@ class DatabaseController:
                 print(f"Erro ao ler arquivo {f_path} para visualização: {e}")
         return all_viz_data
 
-    def get_run_data(self, config_num: int, exec_num: int) -> dict | None:
+    def get_run_data(self, config_num: int, exec_num: int, run_name: str = None) -> dict | None:
         """Carrega os dados de um arquivo de resultado individual (results.json)."""
-        search_pattern = str(self.output_dir / "**" / f"config_{config_num}_exec_{exec_num}_results.json")
+        if run_name:
+            search_pattern = str(self.output_dir / run_name / f"config_{config_num}" / f"config_{config_num}_exec_{exec_num}_results.json")
+        else:
+            search_pattern = str(self.output_dir / "**" / f"config_{config_num}_exec_{exec_num}_results.json")
+            
         result_files = glob.glob(search_pattern, recursive=True)
         if not result_files:
             return None
@@ -226,9 +231,13 @@ class DatabaseController:
             print(f"Aviso: Não foi possível ler o arquivo de resultado para config {config_num}, exec {exec_num}. Erro: {e}")
             return None
 
-    def get_visualization_data_for_run(self, config_num: int, exec_num: int) -> list | None:
+    def get_visualization_data_for_run(self, config_num: int, exec_num: int, run_name: str = None) -> list | None:
         """Carrega os dados de um arquivo de visualização individual (visualization.json)."""
-        search_pattern = str(self.output_dir / "**" / f"config_{config_num}_exec_{exec_num}_visualization.json")
+        if run_name:
+            search_pattern = str(self.output_dir / run_name / f"config_{config_num}" / f"config_{config_num}_exec_{exec_num}_visualization.json")
+        else:
+            search_pattern = str(self.output_dir / "**" / f"config_{config_num}_exec_{exec_num}_visualization.json")
+            
         viz_files = glob.glob(search_pattern, recursive=True)
         if not viz_files:
             return None
@@ -622,7 +631,8 @@ class ConsolidationManager:
 
 
 def run_consolidar_resultados():
-    base_directory = Path(__file__).resolve().parent
+    # Sobe um nível para chegar em src/ a partir de src/tools/
+    base_directory = Path(__file__).resolve().parent.parent
     controller = DatabaseController(base_dir=base_directory)
 
     controller.consolidate_results()

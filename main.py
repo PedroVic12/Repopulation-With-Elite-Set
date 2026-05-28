@@ -31,6 +31,21 @@ from src.views.LauncherGUI.app.views.iframes.LoadingWidget import LoadingWidget
 
 from src.views.LauncherGUI.app.controllers.main_controller import MainController
 
+#! Notas de atualização:
+# - 2025-03: Refatoração completa do código para a versão
+# Apresentação na PLC (27/05/2026) e testes com o main.py para verificar os resultados depois do artigo
+
+#! Upgrades na UI
+
+# QT designer
+# tela de deck builder
+# tela de inequacoes e seus tipos para o SIN no ONS
+# tela de carregamento das linhas e trafos com limites opeacionais sendo medidso em % e com taxa mostrando os acima dos 80%
+# Tela de Tensoes nas barras e de fluxo de potencia mais resumidas
+# Tela de agendamento Otimo com Timeline de intervençoes calculadas apos utilziar o modelo de otimização (STREAMLIT)
+# testes e configuracao para rodar 5 ou 10 varaiveis de decisões com modal na tela em QT para confirmar o caso de uso solicitado
+
+
 # =====================================================================================
 #  PONTO DE ENTRADA DA APLICAÇÃO
 # =====================================================================================

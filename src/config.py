@@ -3,19 +3,19 @@ import pathlib
 import pandas as pd
 from datetime import datetime
 
-from DashboardApp.controllers.Utils import  PARAMETROS_JSON
+from models.DashboardApp.controllers.Utils import PARAMETROS_JSON
 
-# 4 parametros variando [Mutação, Crossover, Var DIFF, DELTA e restante fixo 
+# 4 parametros variando [Mutação, Crossover, Var DIFF, DELTA e restante fixo
 print("rodou! config.py")
 configuracoes_execucoes = {
-        "key": True,
-        "value": 7,
-        "parametros_opcionais": [
-            {"MUTACAO": [PARAMETROS_JSON['MUTACAO']]},
-            {"CROSSOVER": [PARAMETROS_JSON['CROSSOVER']]},
-            {'NUM_GENERATIONS': [PARAMETROS_JSON['NUM_GENERATIONS']]},
-            {'POP_SIZE': [PARAMETROS_JSON['POP_SIZE']]},
-        ]
+    "key": True,
+    "value": 3,
+    "parametros_opcionais": [
+        {"MUTACAO": [PARAMETROS_JSON["MUTACAO"]]},
+        {"CROSSOVER": [PARAMETROS_JSON["CROSSOVER"]]},
+        {"NUM_GENERATIONS": [PARAMETROS_JSON["NUM_GENERATIONS"]]},
+        {"POP_SIZE": [PARAMETROS_JSON["POP_SIZE"]]},
+    ],
 }
 
 options_main_file = configuracoes_execucoes
@@ -25,7 +25,7 @@ BASE_DIR = Path(__file__).parent
 print("Diretorio Atual: ", BASE_DIR)
 SRC_DIR = BASE_DIR / "src"
 RUN_FRAMEWORK_SCRIPT = SRC_DIR / "run.py"
-DASHBOARD_SCRIPT = SRC_DIR / "DashboardApp" / "dashboard_RCE_APP.py"
+DASHBOARD_SCRIPT = SRC_DIR / "models" / "DashboardApp" / "dashboard_RCE_APP.py"
 
 # Modo de teste agressivo: quando True, para cada configuração salva o launcher
 # sobrescreve options.json apenas com 'repeticoes_por_config' e chama
@@ -36,53 +36,52 @@ TEST_DEBUG = False
 VARYING_KEYS = {"MUTACAO", "CROSSOVER", "NUM_GENERATIONS", "POP_SIZE"}
 
 
-
-
-
 ####################################
+
 
 # Função para simular a entrada de dados, como se fosse a leitura de um arquivo JSON ou Excel
 def entrada_de_dados():
-    
-    #TODO
+
+    # TODO
     # A ideia é simular a leitura de um arquivo JSON ou Excel que contenha os dados de agendamentos e contingências.
 
-    
     # Tabela agendamentos em xlsx hardcoded
-    agendamento_df = pd.DataFrame([
-            {"ramo": [1, 4], "inicio": "14:00", "duracao": 6 ,"prioridade": 4},
+    agendamento_df = pd.DataFrame(
+        [
+            {"ramo": [1, 4], "inicio": "14:00", "duracao": 6, "prioridade": 4},
             {"ramo": [1, 3], "inicio": "15:00", "duracao": 5, "prioridade": 1},
             {"ramo": [3, 6], "inicio": "14:00", "duracao": 6, "prioridade": 1},
             {"ramo": [11, 12], "inicio": "18:00", "duracao": 6, "prioridade": 1},
-            {"ramo": [9, 10], "inicio": "15:00", "duracao": 4, "prioridade": 1}
-        ])
+            {"ramo": [9, 10], "inicio": "15:00", "duracao": 4, "prioridade": 1},
+        ]
+    )
 
-    contingencia_df = pd.DataFrame([
-                {"contingencia":1,  "from":2 , "to": 3},
-                {"contingencia":2,  "from":5 , "to": 12},
-                {"contingencia":3,  "from":12 , "to": 13},
-        ])
+    contingencia_df = pd.DataFrame(
+        [
+            {"contingencia": 1, "from": 2, "to": 3},
+            {"contingencia": 2, "from": 5, "to": 12},
+            {"contingencia": 3, "from": 12, "to": 13},
+        ]
+    )
 
-        # Generate hash key (teste 01)
-    contingencias = contingencia_df['contingencia'].to_list()
+    # Generate hash key (teste 01)
+    contingencias = contingencia_df["contingencia"].to_list()
     num_carregamentos = 3
     num_contingencias = len(contingencias)  # 3
     num_desligamentos = len(agendamento_df)  # 5
-    
+
     return {
         "contigencias": contingencias,
         "num_carregamentos": num_carregamentos,
         "num_contingencias": num_contingencias,
         "num_desligamentos": num_desligamentos,
         "horarios_agendamento": agendamento_df,
-         
     }
-    
 
 
 # Função para obter o caminho da pasta "output" dentro do projeto
-def get_folder_path(debug = False):
-    BASE_DIR = pathlib.Path(__file__).resolve().parent  
+def get_folder_path(debug=False):
+    BASE_DIR = pathlib.Path(__file__).resolve().parent
 
     # Define o caminho relativo para a pasta "output" dentro do projeto
     FOLDER_NAME = BASE_DIR / "output"
@@ -98,9 +97,10 @@ def get_folder_path(debug = False):
     return FOLDER_NAME
 
 
-FOLDER_NAME = get_folder_path() # nome da pasta output resolvendo problemas de caminho
+FOLDER_NAME = get_folder_path()  # nome da pasta output resolvendo problemas de caminho
 
 ###############################################
+
 
 def format_elapsed_time(elapsed_time):
     """Formats the elapsed time into a human-readable string.
@@ -111,7 +111,7 @@ def format_elapsed_time(elapsed_time):
     Returns:
         A formatted string like "X h Y min Z s".
     """
-    parts = str(elapsed_time).split(':')
+    parts = str(elapsed_time).split(":")
     hours = int(parts[0])
     minutes = int(parts[1])
     seconds = float(parts[2])
@@ -127,29 +127,32 @@ def format_elapsed_time(elapsed_time):
     return formatted_time.strip()
 
 
-def load_many_executions(options, setupobj, algoritmo, config_num=1, exec_num=1, all_configs_results=None):
+def load_many_executions(
+    options, setupobj, algoritmo, config_num=1, exec_num=1, all_configs_results=None
+):
     print("\n================================")
     print(f"\tExecução: {exec_num}")
     print("================================\n")
     start = datetime.now()
-    
-    
+
     # Loop principal do Algoritmo Evolutivo
-    pop_with_repopulation, logbook_with_repopulation, best_variables = algoritmo.run(RCE=True)
+    pop_with_repopulation, logbook_with_repopulation, best_variables = algoritmo.run(
+        RCE=True
+    )
     print("\n\nEvolução concluída  - 100%")
     print(f"Best variables", best_variables)
-    
-    
+
     # # Resultados
     x, y, z, fig = algoritmo.dashboard.visualize(
-        logbook_with_repopulation, pop_with_repopulation,
-        config_num=config_num, execution_num=exec_num
+        logbook_with_repopulation,
+        pop_with_repopulation,
+        config_num=config_num,
+        execution_num=exec_num,
     )
-    
 
     # Passando os valores do array direto no dataframe com os index como chave (hash = chave, valor)
-    hash_df1 = pd.DataFrame(setupobj.tabela_hash, columns=['Fitness'])
-    hash_df1.sort_values(by='Fitness', ascending=False, inplace=True)
+    hash_df1 = pd.DataFrame(setupobj.tabela_hash, columns=["Fitness"])
+    hash_df1.sort_values(by="Fitness", ascending=False, inplace=True)
     hash_df1.to_excel("hash_table.xlsx", index=False)
 
     print(f"\nObjective function runs : {setupobj.objectiveruns}")
@@ -164,17 +167,12 @@ def load_many_executions(options, setupobj, algoritmo, config_num=1, exec_num=1,
     if all_configs_results is not None:
         if config_num not in all_configs_results:
             all_configs_results[config_num] = []
-        all_configs_results[config_num].append({
-            "execution": exec_num,
-            "solution_variables": y,
-            "best_fitness": z,
-            "best_generations": x,
-            "execution_time": elapsed.total_seconds() # Save as seconds for easier aggregation
-        })
-
-
-
-
-
-
-
+        all_configs_results[config_num].append(
+            {
+                "execution": exec_num,
+                "solution_variables": y,
+                "best_fitness": z,
+                "best_generations": x,
+                "execution_time": elapsed.total_seconds(),  # Save as seconds for easier aggregation
+            }
+        )
