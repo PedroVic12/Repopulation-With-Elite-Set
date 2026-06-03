@@ -93,7 +93,7 @@ def CardsSolutions(results_data: dict):
     Renderiza os cartões com os principais resultados da solução e as
     variáveis de decisão, incluindo um tooltip para horários > 24h.
     """
-    st.subheader("Solução de melhores horários de agendamento para o SEP")
+    st.subheader("Soluções da Otimização")
 
     # CSS do st.metric
     st.markdown(
@@ -113,68 +113,112 @@ def CardsSolutions(results_data: dict):
 
     # render_metrics()
 
-    # Cria duas colunas principais para o layout
-    left_col, right_col = st.columns([1, 1])  # A coluna da direita é mais larga
+    # Card de resultados da otimizacao da funcao objetivo
+    def card_resultados_otimizacao():
+        # Cria duas colunas principais para o layout
+        left_col, right_col = st.columns([1, 2])  # A coluna da direita é maior
 
-    # Coluna da esquerda para as métricas principais
-    with left_col:
-        with st.container(border=False):
-            st.metric(
-                "🏆 Melhor Fitness",
-                f"{results_data.get('best_fitness', 0):.2f}",
-                border=True,
-            )
-            st.metric(
-                "Função aptidão usada",
-                f"{results_data.get('Funcao_objetivo', 'N/A').upper()}",
-                border=True,
-            )
-
-    # Coluna da direita para as variáveis de decisão
-    with right_col:
-        with st.container(border=False):
-            st.metric(
-                "⏳ Melhor Geração",
-                f"{results_data.get('best_gen_idx', 'N/A')}",
-                border=True,
-            )
-            st.metric(
-                "⏱️ Tempo de Execução",
-                f"{results_data.get('Tempo_total_execucao', 'N/A')}",
-                border=True,
-            )
-
-    st.subheader("**Melhores Variáveis de Decisão (Horários)**")
-    solution_variables = results_data.get("best_variables", [])
-    if not solution_variables:
-        st.info("Nenhuma variável de decisão encontrada.")
-        return
-
-    # Cria uma linha de colunas dentro da coluna da direita para as variáveis
-    var_cols = st.columns(len(solution_variables))
-    for i, (col, var) in enumerate(zip(var_cols, solution_variables)):
-        with col:
-            with st.container(border=True):
-                tooltip_text = None
-                # Certifica que a variável é tratada como float
-                try:
-                    var_value = float(var)
-                except (ValueError, TypeError):
-                    var_value = 0.0  # Valor padrão em caso de erro
-
-                # Adiciona o tooltip se o valor for maior que 24
-                if var_value > 24:
-                    dias = int(var_value // 24)
-                    horas = var_value % 24
-                    dia_str = "dia seguinte" if dias == 1 else f"{dias} dias depois"
-                    tooltip_text = f"Equivale a: {dias*24}h + {horas:.2f}h ({dia_str})"
-
+        # Coluna da esquerda para as métricas principais
+        with left_col:
+            with st.container(border=False):
                 st.metric(
-                    label=f"Var {i+1}",
-                    value=f"{var_value:.2f}",
-                    help=tooltip_text,  # O parâmetro 'help' cria o tooltip
-                    delta_color="inverse",
+                    "🏆 Melhor Fitness",
+                    f"{results_data.get('best_fitness', 0):.2f}",
+                    border=True,
                 )
+                st.metric(
+                    "⏳ Melhor Geração",
+                    f"{results_data.get('best_gen_idx', 'N/A')}",
+                    border=True,
+                )
+
+        # Coluna da direita para as variáveis de decisão
+        with right_col:
+            with st.container(border=False):
+                st.metric(
+                    "Função aptidão usada",
+                    f"{results_data.get('Funcao_objetivo', 'N/A').upper()}",
+                    border=True,
+                )
+                st.metric(
+                    "⏱️ Tempo de Execução",
+                    f"{results_data.get('Tempo_total_execucao', 'N/A')}",
+                    border=True,
+                )
+
+    card_resultados_otimizacao()
+
+    # Card de solução dos horarios de agendamento
+    def card_solution_variables():
+        st.subheader("**Melhores soluções de horários para intervenção**")
+
+        solution_variables = results_data.get("best_variables", [])
+
+        if not solution_variables:
+            st.info("Nenhuma variável de decisão encontrada.")
+            return
+
+        # ✅ Converter tudo para float com segurança
+        values = []
+        for var in solution_variables:
+            try:
+                values.append(float(var))
+            except (ValueError, TypeError):
+                values.append(0.0)
+
+        # ✅ Encontrar o menor valor
+        min_value = min(values)
+
+        # ✅ Criar colunas
+        var_cols = st.columns(len(values))
+
+        for i, (col, var_value) in enumerate(zip(var_cols, values)):
+
+            with col:
+                with st.container(border=True):
+
+                    # ✅ Tooltip
+                    tooltip_text = None
+                    if var_value > 24:
+                        dias = int(var_value // 24)
+                        horas = var_value % 24
+                        dia_str = "dia seguinte" if dias == 1 else f"{dias} dias depois"
+                        tooltip_text = (
+                            f"Equivale a: {dias*24}h + {horas:.2f}h ({dia_str})"
+                        )
+
+                    # ✅ Diferença para o menor valor
+                    delta = var_value - min_value
+
+                    # ✅ Destaque visual (menor valor)
+                    if var_value == min_value:
+                        st.markdown(
+                            f"""
+                            <div style="
+                                background-color:#2563eb;
+                                padding:20px;
+                                border-radius:10px;
+                                text-align:center;
+                                color:white;
+                            ">
+                                <strong>Var {i+1}</strong><br>
+                                {var_value:.2f}
+                                <br>
+                                <small>Melhor valor</small>
+                            </div>
+                            """,
+                            unsafe_allow_html=True,
+                        )
+                    else:
+                        st.metric(
+                            label=f"Var {i+1}",
+                            value=f"{var_value:.2f}",
+                            delta=f"+{delta:.2f}",
+                            help=tooltip_text,
+                            delta_color="yellow",
+                        )
+
+    card_solution_variables()
 
 
 def AgendamentoRedePage(results_data: dict, run_config_key: str, exec_num: int):
@@ -525,7 +569,7 @@ class FrameworkRCEDashboard:
         )
 
     def renderHeader(self):
-        st.title(f"{self.config.PAGE_TITLE} (Versão Estável)")
+        st.title(f"{self.config.PAGE_TITLE} (4.1.5)")
         st.markdown(
             "Análise de resultados de otimização AG com Repopulation-With-Elite-Set usando DEAP + PandaPower em Python."
         )
