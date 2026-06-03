@@ -7,8 +7,7 @@ import datetime
 from streamlit_timeline import st_timeline
 import ast
 
-from .components.dashboard_config import get_config
-
+from .dashboard_config import get_config
 
 #! Refatorar os novos componentes
 # from .components.dash_rce_components import  StatisticsTableComponent
@@ -183,18 +182,22 @@ def AgendamentoRedePage(results_data: dict, run_config_key: str, exec_num: int):
     Renderiza a linha do tempo usando apenas o resultado ótimo (início),
     duração fixa e ramos. Ao clicar, busca os detalhes no Excel da execução.
     """
-    st.subheader("🗓️ Cronograma Ótimo de Intervenções")
+    st.subheader("🗓️ Timeline do Agendamento Ótimo de Intervenções")
 
     agendamento_info = results_data.get("agendamento_info", [])
 
     if not agendamento_info:
-        st.warning("⚠️ Dados de agendamento básicos não encontrados para esta execução.")
+        st.warning(
+            "⚠️ Dados de agendamento básicos não encontrados para esta execução."
+        )
         return
 
     items = []
     base_date = datetime.datetime.now().replace(
         hour=0, minute=0, second=0, microsecond=0
     )
+
+    # loop para pegar os ramos selecionados com os dados de entrada de inicio e duracao da intervençao
 
     for i, entry in enumerate(agendamento_info):
         ramo = entry.get("ramo")
@@ -205,11 +208,15 @@ def AgendamentoRedePage(results_data: dict, run_config_key: str, exec_num: int):
             continue
 
         try:
-            h_inicio = float(inicio.split(":")[0]) if isinstance(inicio, str) and ":" in inicio else float(inicio)
+            h_inicio = (
+                float(inicio.split(":")[0])
+                if isinstance(inicio, str) and ":" in inicio
+                else float(inicio)
+            )
             h_duracao = float(duracao)
         except (ValueError, TypeError):
             continue
-        
+
         # Cores por Patamar
         if h_inicio < 8:
             emoji, label_perfil = "🟢", "Leve"
@@ -223,11 +230,13 @@ def AgendamentoRedePage(results_data: dict, run_config_key: str, exec_num: int):
                 "id": i,
                 "content": f"{emoji} Ramo {ramo}",
                 "start": (base_date + datetime.timedelta(hours=h_inicio)).isoformat(),
-                "end": (base_date + datetime.timedelta(hours=h_inicio + h_duracao)).isoformat(),
+                "end": (
+                    base_date + datetime.timedelta(hours=h_inicio + h_duracao)
+                ).isoformat(),
                 "title": f"Ramo: {ramo} | Perfil: {label_perfil} | Início: {h_inicio}h | Duração: {h_duracao}h",
             }
         )
-    
+
     if not items:
         st.info("Nenhum item válido para exibir na linha do tempo.")
         return
@@ -241,69 +250,93 @@ def AgendamentoRedePage(results_data: dict, run_config_key: str, exec_num: int):
 
     if selected_item:
         st.markdown("---")
-        idx = selected_item['id']
+        idx = selected_item["id"]
         data_item = agendamento_info[idx]
-        ramo_str = str(data_item.get('ramo'))
-        
+        ramo_str = str(data_item.get("ramo"))
+
         st.subheader(f"🔍 Detalhes da Intervenção: Ramo {ramo_str}")
-        
+
         col1, col2, col3 = st.columns(3)
         with col1:
             st.metric("🕒 Hora de Início", f"{data_item.get('inicio')}h")
         with col2:
             st.metric("⏳ Duração", f"{data_item.get('duracao')}h")
         with col3:
-            st.metric("📌 Prioridade", data_item.get('prioridade', 'N/A'))
+            st.metric("📌 Prioridade", data_item.get("prioridade", "N/A"))
 
         # Carrega o Excel detalhado para buscar as contingências deste ramo específico
         excel_name = results_data.get("agendamento_excel_file")
         base_dir = Path(__file__).resolve().parent.parent.parent.parent.parent
-        
+
         if excel_name:
             excel_path = base_dir / "output" / excel_name
             if excel_path.exists():
                 try:
                     df_detalhes = pd.read_excel(excel_path)
-                    
+
                     # Filtra o DataFrame para encontrar as contingências onde este ramo foi desligado
                     # O Excel salva como ramo_desligado_from e ramo_desligado_to
-                    ramo_from, ramo_to = data_item.get('ramo', [None, None])
-                    
+                    ramo_from, ramo_to = data_item.get("ramo", [None, None])
+
                     df_filtrado = df_detalhes[
-                        (df_detalhes['ramo_desligado_from'] == ramo_from) & 
-                        (df_detalhes['ramo_desligado_to'] == ramo_to) &
-                        (df_detalhes['inicio'] == data_item.get('inicio'))
+                        (df_detalhes["ramo_desligado_from"] == ramo_from)
+                        & (df_detalhes["ramo_desligado_to"] == ramo_to)
+                        & (df_detalhes["inicio"] == data_item.get("inicio"))
                     ]
-                    
+
                     if not df_filtrado.empty:
-                        st.markdown("#### ⚠️ Análise de Contingências para este Agendamento")
-                        st.write("A tabela abaixo mostra as contingências críticas avaliadas durante o período em que este ramo esteve desligado:")
-                        
+                        st.markdown(
+                            "#### ⚠️ Análise de Contingências para este Agendamento"
+                        )
+                        st.write(
+                            "A tabela abaixo mostra as contingências críticas avaliadas durante o período em que este ramo esteve desligado:"
+                        )
+
                         # Limpa as colunas para exibição
-                        df_exibicao = df_filtrado[['cenario', 'perfil', 'contingencia', 'ramo_cont_from', 'ramo_cont_to', 'fitness']].copy()
-                        df_exibicao.rename(columns={
-                            'cenario': 'Cenário',
-                            'perfil': 'Perfil Carga',
-                            'contingencia': 'ID Contingência',
-                            'ramo_cont_from': 'Ramo Falha (De)',
-                            'ramo_cont_to': 'Ramo Falha (Para)',
-                            'fitness': 'Fitness Penalidade'
-                        }, inplace=True)
-                        
+                        df_exibicao = df_filtrado[
+                            [
+                                "cenario",
+                                "perfil",
+                                "contingencia",
+                                "ramo_cont_from",
+                                "ramo_cont_to",
+                                "fitness",
+                            ]
+                        ].copy()
+                        df_exibicao.rename(
+                            columns={
+                                "cenario": "Cenário",
+                                "perfil": "Perfil Carga",
+                                "contingencia": "ID Contingência",
+                                "ramo_cont_from": "Ramo Falha (De)",
+                                "ramo_cont_to": "Ramo Falha (Para)",
+                                "fitness": "Fitness Penalidade",
+                            },
+                            inplace=True,
+                        )
+
                         st.dataframe(df_exibicao, use_container_width=True)
-                        
-                        soma_fitness = df_filtrado['fitness'].sum()
-                        st.metric("💥 Impacto Total (Soma Fitness)", f"{soma_fitness:.4f}", help="Soma das penalidades de todas as contingências para este desligamento.")
+
+                        soma_fitness = df_filtrado["fitness"].sum()
+                        st.metric(
+                            "💥 Impacto Total (Soma Fitness)",
+                            f"{soma_fitness:.4f}",
+                            help="Soma das penalidades de todas as contingências para este desligamento.",
+                        )
                     else:
-                        st.success("✅ Nenhuma contingência crítica gerou violação durante o desligamento deste ramo.")
-                        
+                        st.success(
+                            "✅ Nenhuma contingência crítica gerou violação durante o desligamento deste ramo."
+                        )
+
                 except Exception as e:
                     st.error(f"Erro ao ler detalhes de contingência do Excel: {e}")
             else:
                 st.warning(f"Arquivo de detalhes não encontrado: {excel_name}")
 
         if "best_variables" in results_data:
-            with st.expander("🎯 Ver Vetor de Solução Ótima (Varaíveis de Decisão)", expanded=False):
+            with st.expander(
+                "🎯 Ver Vetor de Solução Ótima (Varaíveis de Decisão)", expanded=False
+            ):
                 st.write(results_data["best_variables"])
 
 
@@ -449,27 +482,42 @@ class FrameworkRCEDashboard:
         df = st.session_state.df_consolidado
         if df is None or df.empty:
             return {}
-        
+
         # Colunas necessárias
         run_col = self._get_column_name_insensitive(df, ["pasta_run", "run", "pasta"])
         config_col, exec_col = self._validate_required_columns(df)
-        func_col = self._get_column_name_insensitive(df, ["Funcao_objetivo", "fitness_function", "funcao"])
-        
+        func_col = self._get_column_name_insensitive(
+            df, ["Funcao_objetivo", "fitness_function", "funcao"]
+        )
+
         if not run_col or not config_col or not exec_col:
-            st.error("O arquivo consolidado não contém colunas suficientes (Run, Config, Exec).")
+            st.error(
+                "O arquivo consolidado não contém colunas suficientes (Run, Config, Exec)."
+            )
             return {}
 
         df[run_col] = df[run_col].astype(str)
         df[config_col] = df[config_col].astype(str)
         df[exec_col] = df[exec_col].astype(str)
-        
+
         # Cria label amigável: [Função] Data/Hora | Config X
         if func_col:
-            df["func_clean"] = df[func_col].str.replace("funcao_objetivo_", "").str.replace("_otimizacao", "")
-            df["run_config_key"] = "🧪 " + df["func_clean"] + " (" + df[run_col].str.replace("run_", "") + ") | Config " + df[config_col]
+            df["func_clean"] = (
+                df[func_col]
+                .str.replace("funcao_objetivo_", "")
+                .str.replace("_otimizacao", "")
+            )
+            df["run_config_key"] = (
+                "🧪 "
+                + df["func_clean"]
+                + " ("
+                + df[run_col].str.replace("run_", "")
+                + ") | Config "
+                + df[config_col]
+            )
         else:
             df["run_config_key"] = df[run_col] + " | Config " + df[config_col]
-        
+
         return (
             df.groupby("run_config_key")[exec_col]
             .apply(lambda x: sorted(x.unique()))
@@ -490,15 +538,22 @@ class FrameworkRCEDashboard:
                 st.metric("📁 Total de Execuções", len(df))
             with col2:
                 # Conta pares únicos de Run e Config
-                run_col = self._get_column_name_insensitive(df, ["pasta_run", "run", "pasta"])
+                run_col = self._get_column_name_insensitive(
+                    df, ["pasta_run", "run", "pasta"]
+                )
                 config_col, _ = self._validate_required_columns(df)
                 if run_col and config_col:
                     unique_pairs = df.drop_duplicates(subset=[run_col, config_col])
                     st.metric("⚙️ Configurações (Total)", len(unique_pairs))
                 else:
-                    st.metric("⚙️ Configurações", df[config_col].nunique() if config_col else "N/A")
+                    st.metric(
+                        "⚙️ Configurações",
+                        df[config_col].nunique() if config_col else "N/A",
+                    )
             with col3:
-                st.metric("📊 Conjuntos Detectados", len(st.session_state.executions_map))
+                st.metric(
+                    "📊 Conjuntos Detectados", len(st.session_state.executions_map)
+                )
             with col4:
                 st.metric(
                     "📌 Config Fixada", st.session_state.locked_config or "Nenhuma"
@@ -528,6 +583,7 @@ class FrameworkRCEDashboard:
 
     def renderExecutionDetails(self, run_config_key, exec_num, pinned_tab_name=None):
         import re
+
         try:
             # Novo parsing para o formato: 🧪 IEEE30 (2026-05-27_11-57-31) | Config 1
             if "(" in run_config_key and ")" in run_config_key:
@@ -536,24 +592,31 @@ class FrameworkRCEDashboard:
                 run_name = f"run_{timestamp}"
             else:
                 run_name, _ = run_config_key.split(" | ")
-            
+
             config_part = run_config_key.split(" | ")[-1]
             config_num = re.search(r"Config (\d+)", config_part).group(1)
         except Exception as e:
             st.error(f"Erro ao parsear chave: {run_config_key} | Erro: {e}")
             return
 
-        results_data = self.db_controller.get_run_data(int(config_num), int(exec_num), run_name=run_name) or {}
+        results_data = (
+            self.db_controller.get_run_data(
+                int(config_num), int(exec_num), run_name=run_name
+            )
+            or {}
+        )
         df_consolidado = st.session_state.df_consolidado
 
         if df_consolidado is not None:
-            run_col = self._get_column_name_insensitive(df_consolidado, ["pasta_run", "run", "pasta"])
+            run_col = self._get_column_name_insensitive(
+                df_consolidado, ["pasta_run", "run", "pasta"]
+            )
             config_col, exec_col = self._validate_required_columns(df_consolidado)
             if run_col and config_col and exec_col:
                 row = df_consolidado[
-                    (df_consolidado[run_col].astype(str) == str(run_name)) &
-                    (df_consolidado[config_col].astype(str) == str(config_num)) &
-                    (df_consolidado[exec_col].astype(str) == str(exec_num))
+                    (df_consolidado[run_col].astype(str) == str(run_name))
+                    & (df_consolidado[config_col].astype(str) == str(config_num))
+                    & (df_consolidado[exec_col].astype(str) == str(exec_num))
                 ]
                 if not row.empty:
                     results_data.update(row.iloc[0].to_dict())
@@ -783,7 +846,9 @@ class FrameworkRCEDashboard:
                         with exec_tab_ui:
                             exec_num = exec_numbers[j]
                             self.renderExecutionDetails(
-                                run_config_key, exec_num, pinned_tab_name=selected_tab_name
+                                run_config_key,
+                                exec_num,
+                                pinned_tab_name=selected_tab_name,
                             )
 
                 else:
