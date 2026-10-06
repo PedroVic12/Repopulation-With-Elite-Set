@@ -19,6 +19,10 @@ from PyQt6.QtCore import QObject, pyqtSignal, pyqtProperty, pyqtSlot, QUrl
 from PyQt6.QtGui import QGuiApplication, QImage, QPixmap
 from PyQt6.QtQml import QQmlApplicationEngine
 
+from PyQt6.QtWidgets import QApplication
+
+#! pip install PyQt6 schemdraw pandapower numpy pandas 
+
 # -----------------------------------------------------------------------------
 # 1. CORE ENGINE: ANAREDE Deck Parser, Pandapower, Cramer 3x3 & Modal DBAR Manager
 # -----------------------------------------------------------------------------
@@ -98,13 +102,67 @@ Bem-vindo ao ambiente avançado de modelagem, simulação e análise de sistemas
         b1 = pp.create_bus(self._net, vn_kv=138.0, name="Barra-1", type="b")
         b2 = pp.create_bus(self._net, vn_kv=138.0, name="Barra-2", type="b")
         b3 = pp.create_bus(self._net, vn_kv=69.0, name="Barra-3", type="b")
-        
+
         pp.create_ext_grid(self._net, bus=b1, vm_pu=1.0, name="Ref_ONS")
         pp.create_load(self._net, bus=b2, p_mw=25.0, q_mvar=10.0, name="Carga_Sudeste")
         pp.create_gen(self._net, bus=b3, p_mw=40.0, vm_pu=1.02, name="UHE_Mock")
-        
-        pp.create_line(self._net, from_bus=b1, to_bus=b2, length_km=15.0, std_type="149-AL1/24-ST1 110.0", name="DLIN_1-2")
-        pp.create_transformer(self._net, hv_bus=b1, lv_bus=b3, std_type="25 MVA 138/69 kV", name="TRAFO_1-3")
+
+        line_types = pp.available_std_types(self._net).get("line", {})
+        trafo_types = pp.available_std_types(self._net).get("trafo", {})
+
+        preferred_line = "149-AL1/24-ST1 110.0"
+        preferred_trafo = "25 MVA 138/69 kV"
+
+        if preferred_line not in line_types:
+            line_name = "CUSTOM_LINE_110kV"
+            self._net.std_types.setdefault("line", {})
+            self._net.std_types["line"][line_name] = {
+                "r_ohm_per_km": 0.115,
+                "x_ohm_per_km": 0.4,
+                "c_nf_per_km": 0.0,
+                "max_i_ka": 0.4,
+            }
+            preferred_line = line_name
+
+        if preferred_trafo not in trafo_types:
+            trafo_name = "CUSTOM_TRAFO_138_69"
+            self._net.std_types.setdefault("trafo", {})
+            self._net.std_types["trafo"][trafo_name] = {
+                "sn_mva": 25.0,
+                "vn_hv_kv": 138.0,
+                "vn_lv_kv": 69.0,
+                "vk_percent": 10.0,
+                "vkr_percent": 0.4,
+                "pfe_kw": 0.0,
+                "i0_percent": 0.0,
+                "shift_degree": 0,
+            }
+            preferred_trafo = trafo_name
+
+        try:
+            pp.create_line(
+                self._net,
+                from_bus=b1,
+                to_bus=b2,
+                length_km=15.0,
+                std_type=preferred_line,
+                name="DLIN_1-2",
+            )
+        except Exception as e:
+            self.logMessage.emit(f"Erro ao criar linha padrão: {e}")
+            raise
+
+        try:
+            pp.create_transformer(
+                self._net,
+                hv_bus=b1,
+                lv_bus=b3,
+                std_type=preferred_trafo,
+                name="TRAFO_1-3",
+            )
+        except Exception as e:
+            self.logMessage.emit(f"Erro ao criar trafo padrão: {e}")
+            raise
         self._run_power_flow()
 
     def _generate_schemdraw_diagram(self):
@@ -307,337 +365,106 @@ import QtQuick.Controls 2.15
 import QtQuick.Layouts 1.15
 
 ApplicationWindow {
-    id: window
-    width: 1360
-    height: 768
+    id: root
+    width: 1200
+    height: 800
     visible: true
-    title: "Smart Grid Studio • ANAREDE + Modal DBAR + Schemdraw + Cramer 3x3 + Markdown Doc"
+    title: "Smart Grid Studio • ANAREDE + Pandapower + Cramer 3x3"
     color: "#081014"
 
-    ColumnLayout {
+    Rectangle {
         anchors.fill: parent
-        spacing: 0
+        anchors.margins: 16
+        radius: 12
+        color: "#101d24"
+        border.color: "#1e3642"
 
-        // Barra Superior de Ferramentas Estilo ANAREDE
-        Rectangle {
-            Layout.fillWidth: true
-            height: 60
-            color: "#0c171e"
-            border.color: "#182c36"
+        ColumnLayout {
+            anchors.fill: parent
+            anchors.margens: 20
+            spacing: 20
 
-            RowLayout {
-                anchors.fill: parent; anchors.leftMargin: 20; anchors.rightMargin: 20; spacing: 14
+            Text {
+                text: "SMART GRID POWER SYSTEM STUDIO"
+                color: "#ffffff"
+                font.pixelSize: 26
+                font.bold: true
+            }
 
-                Rectangle {
-                    width: 42; height: 36; radius: 6; color: "#182e38"; border.color: "#38e07b"; border.width: 1.5
-                    Text { anchors.centerIn: parent; text: "ONS"; color: "#38e07b"; font.bold: true; font.pixelSize: 12 }
-                }
+            Rectangle {
+                Layout.fillWidth: true
+                height: 120
+                radius: 8
+                color: "#15242e"
+                border.color: "#253e4c"
 
-                Row {
-                    spacing: 8
-                    Repeater {
-                        model: ["Hub SEP", "Modal DBAR (Barra CA)", "Esquemático Schemdraw", "Decks ANAREDE", "Cramer (3x3)", "Documentação (README)"]
-                        delegate: Rectangle {
-                            width: tabText.implicitWidth + 22; height: 38; radius: 6
-                            color: stackLayout.currentIndex === index ? "#3a4750" : (ma.containsMouse ? "#1c2e38" : "transparent")
-                            border.color: stackLayout.currentIndex === index ? "#38e07b" : "transparent"; border.width: 1.5
+                ColumnLayout {
+                    anchors.fill: parent
+                    anchors.margens: 16
+                    spacing: 10
 
-                            Text {
-                                id: tabText; anchors.centerIn: parent; text: modelData
-                                color: stackLayout.currentIndex === index ? "#ffffff" : "#8e9ea8"
-                                font.pixelSize: 13; font.bold: stackLayout.currentIndex === index
-                            }
-                            MouseArea {
-                                id: ma; anchors.fill: parent; hoverEnabled: true; cursorShape: Qt.PointingHandCursor
-                                onClicked: stackLayout.currentIndex = index
-                            }
+                    Text {
+                        text: "RELATÓRIO DO SISTEMA ELÉTRICO"
+                        color: "#38e07b"
+                        font.bold: true
+                    }
+
+                    TextArea {
+                        Layout.fillWidth: true
+                        Layout.fillHeight: true
+                        text: smartEngine.resultsSummary
+                        color: "#d0dce4"
+                        font.family: "Courier"
+                        readOnly: true
+                        background: Rectangle {
+                            color: "#091217"
+                            radius: 6
+                            border.color: "#1a2c36"
                         }
                     }
                 }
+            }
 
-                Item { Layout.fillWidth: true }
-                
+            RowLayout {
+                spacing: 12
+
                 Button {
                     text: "Executar Fluxo ONS"
                     onClicked: smartEngine.run_power_flow()
                     background: Rectangle { color: "#38e07b"; radius: 6 }
-                    contentItem: Text { text: parent.text; color: "#081014"; font.bold: true; horizontalAlignment: Text.AlignHCenter }
+                    contentItem: Text {
+                        text: parent.text
+                        color: "#081014"
+                        font.bold: true
+                        horizontalAlignment: Text.AlignHCenter
+                    }
                 }
-            }
-        }
 
-        // Stack Principal de Telas
-        StackLayout {
-            id: stackLayout
-            Layout.fillWidth: true; Layout.fillHeight: true; currentIndex: 0
-
-            // TELA 0: Hub SEP
-            Item {
-                Rectangle {
-                    anchors.fill: parent; anchors.margins: 24; radius: 12; color: "#101d24"; border.color: "#1e3642"
-                    ColumnLayout {
-                        anchors.fill: parent; anchors.margins: 28; spacing: 20
-                        Text { text: "SMART GRID POWER SYSTEM STUDIO - ONS / PANDAPOWER"; color: "#ffffff"; font.pixelSize: 26; font.bold: true }
-                        Rectangle {
-                            Layout.fillWidth: true; Layout.fillHeight: true; radius: 8; color: "#15242e"; border.color: "#253e4c"
-                            ColumnLayout {
-                                anchors.fill: parent; anchors.margins: 20; spacing: 12
-                                Text { text: "RELATÓRIO DO SISTEMA ELÉTRICO"; color: "#38e07b"; font.bold: true; font.pixelSize: 15 }
-                                TextArea {
-                                    Layout.fillWidth: true; Layout.fillHeight: true
-                                    text: smartEngine.resultsSummary
-                                    color: "#d0dce4"; font.family: "Courier"; font.pixelSize: 14; readOnly: true
-                                    background: Rectangle { color: "#091217"; radius: 6 }
-                                }
-                            }
-                        }
+                Button {
+                    text: "Calcular Cramer 3x3"
+                    onClicked: smartEngine.solve_circuit_cramer_3x3("nodal", "4 -1 0 -1 4 -1 0 -1 3", "10 0 5")
+                    background: Rectangle { color: "#22343f"; radius: 6 }
+                    contentItem: Text {
+                        text: parent.text
+                        color: "#ffffff"
+                        font.bold: true
+                        horizontalAlignment: Text.AlignHCenter
                     }
                 }
             }
 
-            // TELA 1: Modal DBAR (Dados de Barra CA com Tipos PQ, PV, Swing)
-            Item {
-                Rectangle {
-                    anchors.fill: parent; anchors.margins: 24; radius: 12; color: "#101d24"; border.color: "#1e3642"
-                    ColumnLayout {
-                        anchors.fill: parent; anchors.margins: 24; spacing: 16
-
-                        Text { text: "DADOS DE BARRA CA (DBAR) - CONFIGURAÇÃO ONS", color: "#ffffff"; font.bold: true; font.pixelSize: 18 }
-
-                        GridLayout {
-                            columns: 4; Layout.fillWidth: true; rowSpacing: 14; columnSpacing: 16
-
-                            // Número da Barra
-                            ColumnLayout {
-                                spacing: 4
-                                Text { text: "Número da Barra:"; color: "#8e9ea8"; font.pixelSize: 12 }
-                                TextField { id: dbarNum; text: "1"; Layout.preferredWidth: 150; color: "#fff"; background: Rectangle { color: "#15242e"; radius: 6; border.color: "#284450" } }
-                            }
-                            // Nome da Barra
-                            ColumnLayout {
-                                spacing: 4
-                                Text { text: "Nome:"; color: "#8e9ea8"; font.pixelSize: 12 }
-                                TextField { id: dbarName; text: "Barra-Principal"; Layout.preferredWidth: 200; color: "#fff"; background: Rectangle { color: "#15242e"; radius: 6; border.color: "#284450" } }
-                            }
-                            // Tipo da Barra (0-PQ, 1-PV, 2-Referência/Swing, 3-PQ VLIM)
-                            ColumnLayout {
-                                spacing: 4
-                                Text { text: "Tipo (CA):"; color: "#38e07b"; font.pixelSize: 12; font.bold: true }
-                                ComboBox {
-                                    id: dbarTypeCombo; Layout.preferredWidth: 180
-                                    model: ["0 - PQ (Carga)", "1 - PV (Geração)", "2 - Referência (Swing)", "3 - PQ VLIM"]
-                                    currentIndex: 0
-                                }
-                            }
-                            // Tensão Base (kV)
-                            ColumnLayout {
-                                spacing: 4
-                                Text { text: "Base de Tensão (kV):"; color: "#8e9ea8"; font.pixelSize: 12 }
-                                TextField { id: dbarKv; text: "138.0"; Layout.preferredWidth: 150; color: "#fff"; background: Rectangle { color: "#15242e"; radius: 6; border.color: "#284450" } }
-                            }
-
-                            // Tensão p.u.
-                            ColumnLayout {
-                                spacing: 4
-                                Text { text: "Tensão (p.u.):"; color: "#8e9ea8"; font.pixelSize: 12 }
-                                TextField { id: dbarVm; text: "1.0"; Layout.preferredWidth: 150; color: "#fff"; background: Rectangle { color: "#15242e"; radius: 6; border.color: "#284450" } }
-                            }
-                            // Ângulo Graus
-                            ColumnLayout {
-                                spacing: 4
-                                Text { text: "Ángulo (graus):"; color: "#8e9ea8"; font.pixelSize: 12 }
-                                TextField { id: dbarVa; text: "0.0"; Layout.preferredWidth: 150; color: "#fff"; background: Rectangle { color: "#15242e"; radius: 6; border.color: "#284450" } }
-                            }
-                            // Carga Ativa MW
-                            ColumnLayout {
-                                spacing: 4
-                                Text { text: "Carga Ativa (MW):"; color: "#8e9ea8"; font.pixelSize: 12 }
-                                TextField { id: dbarPload; text: "20.0"; Layout.preferredWidth: 150; color: "#fff"; background: Rectangle { color: "#15242e"; radius: 6; border.color: "#284450" } }
-                            }
-                            // Carga Reativa Mvar
-                            ColumnLayout {
-                                spacing: 4
-                                Text { text: "Carga Reativa (Mvar):"; color: "#8e9ea8"; font.pixelSize: 12 }
-                                TextField { id: dbarQload; text: "5.0"; Layout.preferredWidth: 150; color: "#fff"; background: Rectangle { color: "#15242e"; radius: 6; border.color: "#284450" } }
-                            }
-                        }
-
-                        RowLayout {
-                            spacing: 16; Layout.topMargin: 10
-                            Button {
-                                text: "Inserir / Atualizar Barra (DBAR)"
-                                onClicked: {
-                                    smartEngine.insert_or_update_dbar_bus(
-                                        parseInt(dbarNum.text),
-                                        dbarName.text,
-                                        dbarTypeCombo.currentIndex,
-                                        parseFloat(dbarVm.text),
-                                        parseFloat(dbarVa.text),
-                                        parseFloat(dbarKv.text),
-                                        parseFloat(dbarPload.text),
-                                        parseFloat(dbarQload.text),
-                                        0.0, 0.0
-                                    )
-                                }
-                                background: Rectangle { color: "#38e07b"; radius: 6 }
-                                contentItem: Text { text: parent.text; color: "#081014"; font.bold: true; horizontalAlignment: Text.AlignHCenter }
-                            }
-                        }
-
-                        Item { Layout.fillHeight: true }
-                    }
-                }
-            }
-
-            // TELA 2: Canvas com Schemdraw & Barra de Elementos CA/DC
-            Item {
-                Rectangle {
-                    anchors.fill: parent; anchors.margins: 24; radius: 12; color: "#0c171e"; border.color: "#1e3642"
-                    ColumnLayout {
-                        anchors.fill: parent; anchors.margins: 20; spacing: 14
-
-                        Rectangle {
-                            Layout.fillWidth: true; height: 48; radius: 6; color: "#15242e"; border.color: "#243a46"
-                            RowLayout {
-                                anchors.fill: parent; anchors.leftMargin: 16; anchors.rightMargin: 16; spacing: 12
-                                Text { text: "ELEMENTOS CA/DC:"; color: "#38e07b"; font.bold: true; font.pixelSize: 12 }
-                                Repeater {
-                                    model: ["⚡ Fonte AC", "🔌 Resistor", "🔋 Indutor", "⚡ Capacitor", "⏚ Terra", "⚙️ Trafo"]
-                                    delegate: Button {
-                                        text: modelData
-                                        background: Rectangle { color: "#22343f"; radius: 4 }
-                                        contentItem: Text { text: parent.text; color: "#ffffff"; font.pixelSize: 11; horizontalAlignment: Text.AlignHCenter }
-                                    }
-                                }
-                                Item { Layout.fillWidth: true }
-                            }
-                        }
-
-                        Rectangle {
-                            Layout.fillWidth: true; Layout.fillHeight: true; radius: 8; color: "#091217"; border.color: "#1a2c36"
-                            Image {
-                                anchors.centerIn: parent
-                                source: smartEngine.schematicImageUrl
-                                fillMode: Image.PreserveAspectFit
-                                width: parent.width - 40; height: parent.height - 40
-                            }
-                        }
-                    }
-                }
-            }
-
-            // TELA 3: Leitor de Deck ANAREDE (.pwf / .dat)
-            Item {
-                Rectangle {
-                    anchors.fill: parent; anchors.margins: 24; radius: 12; color: "#101d24"; border.color: "#1e3642"
-                    ColumnLayout {
-                        anchors.fill: parent; anchors.margins: 20; spacing: 14
-                        Text { text: "IMPORTAÇÃO DE DECK ANAREDE (.pwf / .dat) VIA PANDAS", color: "#ffffff"; font.bold: true; font.pixelSize: 16 }
-                        RowLayout {
-                            Layout.fillWidth: true
-                            TextField {
-                                id: deckInputPath; placeholderText: "Caminho do arquivo .pwf / .dat ou conteúdo bruto..."
-                                Layout.fillWidth: true; color: "#ffffff"
-                                background: Rectangle { color: "#15242e"; radius: 6; border.color: "#284450" }
-                            }
-                            Button {
-                                text: "Carregar Deck ONS"
-                                onClicked: smartEngine.parse_anarede_deck(deckInputPath.text)
-                                background: Rectangle { color: "#38e07b"; radius: 6 }
-                                contentItem: Text { text: parent.text; color: "#081014"; font.bold: true; horizontalAlignment: Text.AlignHCenter }
-                            }
-                        }
-                        TextArea {
-                            Layout.fillWidth: true; Layout.fillHeight: true
-                            text: smartEngine.resultsSummary; color: "#38e07b"; font.family: "Courier"; readOnly: true
-                            background: Rectangle { color: "#091217"; radius: 6 }
-                        }
-                    }
-                }
-            }
-
-            // TELA 4: Análise Nodal & de Malhas com Regra de Cramer (3x3)
-            Item {
-                Rectangle {
-                    anchors.fill: parent; anchors.margins: 24; radius: 12; color: "#101d24"; border.color: "#1e3642"
-                    ColumnLayout {
-                        anchors.fill: parent; anchors.margins: 20; spacing: 16
-
-                        Text { text: "RESOLUTOR DE CIRCUITOS - ANÁLISE NODAL & MALHAS (CRAMER 3x3)", color: "#ffffff"; font.bold: true; font.pixelSize: 16 }
-
-                        RowLayout {
-                            spacing: 16
-                            Button {
-                                text: "Análise Nodal (3 Nós)"
-                                onClicked: typeField.text = "nodal"
-                                background: Rectangle { color: "#22343f"; radius: 6 }
-                                contentItem: Text { text: parent.text; color: "#ffffff"; font.bold: true; horizontalAlignment: Text.AlignHCenter }
-                            }
-                            Button {
-                                text: "Análise de Malhas (3 Malhas)"
-                                onClicked: typeField.text = "mesh"
-                                background: Rectangle { color: "#22343f"; radius: 6 }
-                                contentItem: Text { text: parent.text; color: "#ffffff"; font.bold: true; horizontalAlignment: Text.AlignHCenter }
-                            }
-                            TextField {
-                                id: typeField; text: "nodal"; visible: false
-                            }
-                        }
-
-                        RowLayout {
-                            spacing: 14; Layout.fillWidth: true
-                            ColumnLayout {
-                                Layout.fillWidth: true; spacing: 6
-                                Text { text: "Matriz Coeficientes (9 valores para 3x3):"; color: "#8e9ea8"; font.pixelSize: 13 }
-                                TextField {
-                                    id: matInput; text: "4 -1 0  -1 4 -1  0 -1 3"
-                                    Layout.fillWidth: true; color: "#ffffff"
-                                    background: Rectangle { color: "#15242e"; radius: 6; border.color: "#284450" }
-                                }
-                            }
-                            ColumnLayout {
-                                Layout.preferredWidth: 260; spacing: 6
-                                Text { text: "Vetor Independente (3 valores):"; color: "#8e9ea8"; font.pixelSize: 13 }
-                                TextField {
-                                    id: vecInput; text: "10 0 5"
-                                    Layout.fillWidth: true; color: "#ffffff"
-                                    background: Rectangle { color: "#15242e"; radius: 6; border.color: "#284450" }
-                                }
-                            }
-                        }
-
-                        Button {
-                            text: "Calcular com Regra de Cramer (3x3)"
-                            onClicked: smartEngine.solve_circuit_cramer_3x3(typeField.text, matInput.text, vecInput.text)
-                            background: Rectangle { color: "#38e07b"; radius: 6 }
-                            contentItem: Text { text: parent.text; color: "#081014"; font.bold: true; horizontalAlignment: Text.AlignHCenter }
-                        }
-
-                        TextArea {
-                            Layout.fillWidth: true; Layout.fillHeight: true
-                            text: smartEngine.cramerResultText
-                            color: "#38e07b"; font.family: "Courier"; font.pixelSize: 15; readOnly: true
-                            background: Rectangle { color: "#091217"; radius: 6; border.color: "#1a2c36" }
-                        }
-                    }
-                }
-            }
-
-            // TELA 5: Documentação / Leitura do README.md com Cores e Formatação Markdown
-            Item {
-                Rectangle {
-                    anchors.fill: parent; anchors.margins: 24; radius: 12; color: "#101d24"; border.color: "#1e3642"
-                    ColumnLayout {
-                        anchors.fill: parent; anchors.margins: 20; spacing: 14
-                        Text { text: "DOCUMENTAÇÃO TÉCNICA • README.MD (MARKDOWN FORMATADO)", color: "#38e07b"; font.bold: true; font.pixelSize: 16 }
-                        TextArea {
-                            Layout.fillWidth: true; Layout.fillHeight: true
-                            text: smartEngine.readmeMarkdownContent
-                            color: "#d0dce4"; font.family: "Courier"; font.pixelSize: 14; readOnly: true
-                            textFormat: TextEdit.MarkdownText
-                            background: Rectangle { color: "#091217"; radius: 6; border.color: "#1a2c36" }
-                        }
-                    }
+            TextArea {
+                Layout.fillWidth: true
+                Layout.fillHeight: true
+                text: smartEngine.cramerResultText
+                color: "#38e07b"
+                font.family: "Courier"
+                font.pixelSize: 14
+                readOnly: true
+                background: Rectangle {
+                    color: "#091217"
+                    radius: 6
+                    border.color: "#1a2c36"
                 }
             }
         }
@@ -646,7 +473,7 @@ ApplicationWindow {
 """
 
 def main():
-    app = QGuiApplication(sys.argv)
+    app = QApplication(sys.argv)
     engine = QQmlApplicationEngine()
 
     smart_engine = SmartGridStudioEngine()
