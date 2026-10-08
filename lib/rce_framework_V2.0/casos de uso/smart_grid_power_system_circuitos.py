@@ -6,6 +6,7 @@
 
 import sys
 import os
+os.environ.setdefault("QT_QUICK_CONTROLS_STYLE", "Basic")
 import io
 import re
 import numpy as np
@@ -381,7 +382,7 @@ ApplicationWindow {
 
         ColumnLayout {
             anchors.fill: parent
-            anchors.margens: 20
+            anchors.margins: 20
             spacing: 20
 
             Text {
@@ -400,7 +401,7 @@ ApplicationWindow {
 
                 ColumnLayout {
                     anchors.fill: parent
-                    anchors.margens: 16
+                    anchors.margins: 16
                     spacing: 10
 
                     Text {
@@ -477,6 +478,7 @@ def main():
     engine = QQmlApplicationEngine()
 
     smart_engine = SmartGridStudioEngine()
+    smart_engine.setParent(engine)
     engine.rootContext().setContextProperty("smartEngine", smart_engine)
 
     engine.loadData(qml_code.encode('utf-8'))

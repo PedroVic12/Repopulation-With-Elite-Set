@@ -368,6 +368,11 @@ EOF
     # Script auxiliar de Build & Run
     cat << EOF > ${BASE_DIR}/build.sh
 #!/usr/bin/env bash
+
+#! Comando para instalar MSYS2 no Windows (compilador Cmake + Qt6)
+# winget install MSYS2.MSYS2
+
+
 set -e
 
 SCRIPT_DIR="\$(cd "\$(dirname "\${BASH_SOURCE[0]}")" && pwd)"

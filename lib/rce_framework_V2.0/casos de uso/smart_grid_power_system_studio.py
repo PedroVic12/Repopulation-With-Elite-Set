@@ -6,6 +6,7 @@
 
 import sys
 import os
+os.environ.setdefault("QT_QUICK_CONTROLS_STYLE", "Basic")
 import io
 import re
 import numpy as np
@@ -48,9 +49,36 @@ class SmartGridStudioEngine(QObject):
         pp.create_ext_grid(self._net, bus=b1, vm_pu=1.0, name="Ref_ONS")
         pp.create_load(self._net, bus=b2, p_mw=25.0, q_mvar=10.0, name="Carga_Sudeste")
         pp.create_gen(self._net, bus=b3, p_mw=40.0, vm_pu=1.02, name="UHE_Mock")
-        
-        pp.create_line(self._net, from_bus=b1, to_bus=b2, length_km=15.0, std_type="149-AL1/24-ST1 110.0", name="DLIN_1-2")
-        pp.create_transformer(self._net, hv_bus=b1, lv_bus=b3, std_type="25 MVA 138/69 kV", name="TRAFO_1-3")
+
+        line_types = pp.available_std_types(self._net).get("line", {})
+        trafo_types = pp.available_std_types(self._net).get("trafo", {})
+        preferred_line = "149-AL1/24-ST1 110.0"
+        preferred_trafo = "25 MVA 138/69 kV"
+
+        if preferred_line not in line_types:
+            preferred_line = "CUSTOM_LINE_110kV"
+            self._net.std_types.setdefault("line", {})[preferred_line] = {
+                "r_ohm_per_km": 0.115,
+                "x_ohm_per_km": 0.4,
+                "c_nf_per_km": 0.0,
+                "max_i_ka": 0.4,
+            }
+
+        if preferred_trafo not in trafo_types:
+            preferred_trafo = "CUSTOM_TRAFO_138_69"
+            self._net.std_types.setdefault("trafo", {})[preferred_trafo] = {
+                "sn_mva": 25.0,
+                "vn_hv_kv": 138.0,
+                "vn_lv_kv": 69.0,
+                "vk_percent": 10.0,
+                "vkr_percent": 0.4,
+                "pfe_kw": 0.0,
+                "i0_percent": 0.0,
+                "shift_degree": 0,
+            }
+
+        pp.create_line(self._net, from_bus=b1, to_bus=b2, length_km=15.0, std_type=preferred_line, name="DLIN_1-2")
+        pp.create_transformer(self._net, hv_bus=b1, lv_bus=b3, std_type=preferred_trafo, name="TRAFO_1-3")
         self._run_power_flow()
 
     def _generate_schemdraw_diagram(self):
@@ -332,7 +360,7 @@ ApplicationWindow {
                     anchors.fill: parent; anchors.margins: 24; radius: 12; color: "#101d24"; border.color: "#1e3642"
                     ColumnLayout {
                         anchors.fill: parent; anchors.margins: 20; spacing: 14
-                        Text { text: "IMPORTAÇÃO DE DECK ANAREDE (.pwf / .dat)", color: "#ffffff"; font.bold: true; font.pixelSize: 16 }
+                        Text { text: "IMPORTAÇÃO DE DECK ANAREDE (.pwf / .dat)"; color: "#ffffff"; font.bold: true; font.pixelSize: 16 }
                         RowLayout {
                             Layout.fillWidth: true
                             TextField {
@@ -363,7 +391,7 @@ ApplicationWindow {
                     ColumnLayout {
                         anchors.fill: parent; anchors.margins: 20; spacing: 16
 
-                        Text { text: "RESOLUTOR DE CIRCUITOS - ANÁLISE NODAL & MALHAS (CRAMER 3x3)", color: "#ffffff"; font.bold: true; font.pixelSize: 16 }
+                        Text { text: "RESOLUTOR DE CIRCUITOS - ANÁLISE NODAL & MALHAS (CRAMER 3x3)"; color: "#ffffff"; font.bold: true; font.pixelSize: 16 }
 
                         RowLayout {
                             spacing: 16
@@ -432,6 +460,7 @@ def main():
     engine = QQmlApplicationEngine()
 
     smart_engine = SmartGridStudioEngine()
+    smart_engine.setParent(engine)
     engine.rootContext().setContextProperty("smartEngine", smart_engine)
 
     engine.loadData(qml_code.encode('utf-8'))
