@@ -1,0 +1,61 @@
+<!-- Escolha do nível -->
+<form id="levelForm">
+    <select id="level">
+        <option value="easy">Fácil</option>
+        <option value="medium">Médio</option>
+        <option value="hard">Difícil</option>
+    </select>
+    <button type="button" onclick="startGame()">Começar Jogo</button>
+</form>
+
+<!-- Área do Jogo -->
+<div id="gameArea" style="display:none;">
+    <div id="gameQuestion"></div>
+    <input type="text" id="userAnswer" placeholder="Digite sua resposta">
+    <button type="button" onclick="submitAnswer()">Responder</button>
+    <div id="feedback"></div>
+    <div id="score"></div>
+</div>
+
+<!-- Scripts -->
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script>
+function startGame() {
+    var level = $("#level").val();
+    $.ajax({
+        url: '/start',
+        method: 'POST',
+        data: { level: level },
+        success: function(data) {
+            $("#gameQuestion").text(data.question);
+            $("#gameArea").show();
+            $("#score").text("Pontuação: 0");
+        },
+        error: function(error) {
+            console.error("Erro:", error);
+        }
+    });
+}
+
+function submitAnswer() {
+    var userAnswer = $("#userAnswer").val();
+    $.ajax({
+        url: '/check',
+        method: 'POST',
+        data: { answer: userAnswer },
+        dataType: 'json',
+        success: function(response) {
+            if (response.correct) {
+                $("#feedback").text("Resposta correta!");
+                $("#score").text("Pontuação: " + response.score);
+            } else {
+                $("#feedback").text("Resposta errada. Tente novamente.");
+            }
+            $("#userAnswer").val(''); // limpa o input para próxima resposta
+        },
+        error: function(error) {
+            console.error("Erro:", error);
+        }
+    });
+}
+</script>

@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Jogo Matemático</title>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+</head>
+<body>
+    <!-- Escolha do nível -->
+    <div>
+        <select id="level">
+            <option value="easy">Fácil</option>
+            <option value="medium">Médio</option>
+            <option value="hard">Difícil</option>
+        </select>
+        <button onclick="startGame()">Começar Jogo</button>
+    </div>
+
+    <!-- Área do Jogo -->
+    <div id="gameArea" style="display:none;">
+        <p id="gameQuestion"></p>
+        <input type="number" id="userAnswer">
+        <button onclick="submitAnswer()">Responder</button>
+        <p id="feedback"></p>
+        <p id="score"></p>
+        <button onclick="continueGame()">Continuar Jogo</button>
+    </div>
+
+    <script>
+        function startGame() {
+            var level = $("#level").val();
+            $.ajax({
+                url: '/start',
+                method: 'POST',
+                data: { level: level },
+                success: function(data) {
+                    $("#gameQuestion").text(data.question);
+                    $("#gameArea").show();
+                },
+                error: function(error) {
+                    console.error("Erro:", error);
+                }
+            });
+        }
+
+        function submitAnswer() {
+            var userAnswer = $("#userAnswer").val();
+            $.ajax({
+                url: '/check',
+                method: 'POST',
+                data: { answer: userAnswer },
+                dataType: 'json',
+                success: function(response) {
+                    if (response.correct) {
+                        $("#feedback").text("Resposta correta!");
+                        $("#score").text("Pontuação: " + response.score);
+                    } else {
+                        $("#feedback").text("Resposta errada. Tente novamente.");
+                    }
+                },
+                error: function(error) {
+                    console.log(error);
+                }
+            });
+        }
+
+        function continueGame() {
+            var level = $("#level").val();
+            $.ajax({
+                url: '/start',
+                method: 'POST',
+                data: { level: level },
+                success: function(data) {
+                    $("#gameQuestion").text(data.question);
+                    $("#feedback").text(""); // Limpando o feedback
+                },
+                error: function(error) {
+                    console.error("Erro:", error);
+                }
+            });
+        }
+    </script>
+</body>
+</html>

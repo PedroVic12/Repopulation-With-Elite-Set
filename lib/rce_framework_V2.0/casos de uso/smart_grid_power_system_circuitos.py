@@ -716,10 +716,21 @@ ApplicationWindow {
 
                             RowLayout {
                                 Layout.fillWidth: true
+                                Text {
+                                    Layout.fillWidth: true
+                                    text: "Comandos: DBAR num PQ|PV|REF nome kV Vm ang Pg Qg Pl Ql   |   DLIN de para circ R% X% Mvar tap"
+                                    color: "#8da19f"
+                                    font.pixelSize: 11
+                                    wrapMode: Text.WordWrap
+                                }
+                            }
+
+                            RowLayout {
+                                Layout.fillWidth: true
                                 TextField {
                                     id: commandInput
                                     Layout.fillWidth: true
-                                    placeholderText: "DBAR 4 PQ BARRA_4 230 1 0 0 0 20 8  |  DLIN 1 4 1 0.6 8 0 1"
+                                    placeholderText: "Ex.: DBAR 4 PQ BARRA_4 230 1 0 0 0 20 8"
                                     onAccepted: {
                                         smartEngine.append_anarede_record(text)
                                         clear()
