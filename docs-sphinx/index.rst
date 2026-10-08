@@ -30,6 +30,7 @@ FRAMEWORK DESENVOLVIDO PARA FINS ACADÊMICOS USANDO ALGORITMOS GENÉTICOS PARA R
    :caption: Rede Elétrica usando PandaPower
 
    guias/rede_eletrica_doc
+   pages/exemplo_rede_eletrica_pandapower
 ..   guias/RedeEletrica_backup_rede_eletrica
    guias/RedeEletrica_backup_exemplos_getting_started_deap_pandapower_exemplo
 ..   guias/SIN_45_SIMULATOR_ANAREDE
