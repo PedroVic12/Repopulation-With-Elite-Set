@@ -207,6 +207,7 @@
  mdp:/usr/include/c++/16/ext/numeric_traits.h
  mdp:/usr/include/c++/16/ext/string_conversions.h
  mdp:/usr/include/c++/16/ext/type_traits.h
+ mdp:/usr/include/c++/16/filesystem
  mdp:/usr/include/c++/16/functional
  mdp:/usr/include/c++/16/initializer_list
  mdp:/usr/include/c++/16/iosfwd
@@ -275,6 +276,8 @@
  mdp:/usr/include/locale.h
  mdp:/usr/include/pthread.h
  mdp:/usr/include/qt6/QtCore/QDebug
+ mdp:/usr/include/qt6/QtCore/QDir
+ mdp:/usr/include/qt6/QtCore/QFileInfo
  mdp:/usr/include/qt6/QtCore/QObject
  mdp:/usr/include/qt6/QtCore/q17memory.h
  mdp:/usr/include/qt6/QtCore/q20bit.h
@@ -323,8 +326,13 @@
  mdp:/usr/include/qt6/QtCore/qdatetime.h
  mdp:/usr/include/qt6/QtCore/qdeadlinetimer.h
  mdp:/usr/include/qt6/QtCore/qdebug.h
+ mdp:/usr/include/qt6/QtCore/qdir.h
+ mdp:/usr/include/qt6/QtCore/qdirlisting.h
  mdp:/usr/include/qt6/QtCore/qeventloop.h
  mdp:/usr/include/qt6/QtCore/qexceptionhandling.h
+ mdp:/usr/include/qt6/QtCore/qfile.h
+ mdp:/usr/include/qt6/QtCore/qfiledevice.h
+ mdp:/usr/include/qt6/QtCore/qfileinfo.h
  mdp:/usr/include/qt6/QtCore/qflags.h
  mdp:/usr/include/qt6/QtCore/qfloat16.h
  mdp:/usr/include/qt6/QtCore/qforeach.h
@@ -335,6 +343,7 @@
  mdp:/usr/include/qt6/QtCore/qglobalstatic.h
  mdp:/usr/include/qt6/QtCore/qhash.h
  mdp:/usr/include/qt6/QtCore/qhashfunctions.h
+ mdp:/usr/include/qt6/QtCore/qiodevice.h
  mdp:/usr/include/qt6/QtCore/qiodevicebase.h
  mdp:/usr/include/qt6/QtCore/qiterable.h
  mdp:/usr/include/qt6/QtCore/qiterable_impl.h

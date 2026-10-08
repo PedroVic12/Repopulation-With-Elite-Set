@@ -173,7 +173,7 @@ CMAKE_PROJECT_DESCRIPTION:STATIC=
 CMAKE_PROJECT_HOMEPAGE_URL:STATIC=
 
 //Value Computed by CMake
-CMAKE_PROJECT_NAME:STATIC=SereneHybridCore
+CMAKE_PROJECT_NAME:STATIC=serene_hybrid_core
 
 //Value Computed by CMake
 CMAKE_PROJECT_SPDX_LICENSE:STATIC=
@@ -363,6 +363,15 @@ Vulkan_INCLUDE_DIR:PATH=Vulkan_INCLUDE_DIR-NOTFOUND
 
 //Path to a library.
 Vulkan_LIBRARY:FILEPATH=/usr/lib/libvulkan.so
+
+//Value Computed by CMake
+serene_hybrid_core_BINARY_DIR:STATIC=/home/pedrov12/Documentos/GitHub/Repopulation-With-Elite-Set/lib/rce_framework_V2.0/casos de uso/serene_hybrid_core/build
+
+//Value Computed by CMake
+serene_hybrid_core_IS_TOP_LEVEL:STATIC=ON
+
+//Value Computed by CMake
+serene_hybrid_core_SOURCE_DIR:STATIC=/home/pedrov12/Documentos/GitHub/Repopulation-With-Elite-Set/lib/rce_framework_V2.0/casos de uso/serene_hybrid_core
 
 
 ########################

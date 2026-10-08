@@ -14,3 +14,11 @@ docs-sphinx/_build/
 #! Comandos para retirar o cache no github e manter os arquivos na maquina local
 # git rm -r --cached .
 # git add .
+
+# Build artifacts
+build/
+**/build/
+*.o
+*.moc
+SereneHybridCore
+

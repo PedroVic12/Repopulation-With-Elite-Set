@@ -203,6 +203,7 @@
   /usr/include/c++/16/ext/numeric_traits.h \
   /usr/include/c++/16/ext/string_conversions.h \
   /usr/include/c++/16/ext/type_traits.h \
+  /usr/include/c++/16/filesystem \
   /usr/include/c++/16/functional \
   /usr/include/c++/16/initializer_list \
   /usr/include/c++/16/iosfwd \
@@ -271,6 +272,8 @@
   /usr/include/locale.h \
   /usr/include/pthread.h \
   /usr/include/qt6/QtCore/QDebug \
+  /usr/include/qt6/QtCore/QDir \
+  /usr/include/qt6/QtCore/QFileInfo \
   /usr/include/qt6/QtCore/QObject \
   /usr/include/qt6/QtCore/q17memory.h \
   /usr/include/qt6/QtCore/q20bit.h \
@@ -319,8 +322,13 @@
   /usr/include/qt6/QtCore/qdatetime.h \
   /usr/include/qt6/QtCore/qdeadlinetimer.h \
   /usr/include/qt6/QtCore/qdebug.h \
+  /usr/include/qt6/QtCore/qdir.h \
+  /usr/include/qt6/QtCore/qdirlisting.h \
   /usr/include/qt6/QtCore/qeventloop.h \
   /usr/include/qt6/QtCore/qexceptionhandling.h \
+  /usr/include/qt6/QtCore/qfile.h \
+  /usr/include/qt6/QtCore/qfiledevice.h \
+  /usr/include/qt6/QtCore/qfileinfo.h \
   /usr/include/qt6/QtCore/qflags.h \
   /usr/include/qt6/QtCore/qfloat16.h \
   /usr/include/qt6/QtCore/qforeach.h \
@@ -331,6 +339,7 @@
   /usr/include/qt6/QtCore/qglobalstatic.h \
   /usr/include/qt6/QtCore/qhash.h \
   /usr/include/qt6/QtCore/qhashfunctions.h \
+  /usr/include/qt6/QtCore/qiodevice.h \
   /usr/include/qt6/QtCore/qiodevicebase.h \
   /usr/include/qt6/QtCore/qiterable.h \
   /usr/include/qt6/QtCore/qiterable_impl.h \

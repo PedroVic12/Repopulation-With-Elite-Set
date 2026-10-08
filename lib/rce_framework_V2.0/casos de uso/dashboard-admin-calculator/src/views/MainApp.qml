@@ -7,7 +7,7 @@ ApplicationWindow {
     visible: true
     width: 440
     height: 860
-    title: "Serene & Performance Suite"
+    title: "Bem vindo a nova era digital com Veras Tecnologia!"
     color: "#0f141c"
 
     header: ToolBar {
@@ -31,7 +31,7 @@ ApplicationWindow {
 
             Text {
                 id: headerTitle
-                text: "Serene & Performance Suite"
+                text: "Bem vindo a nova era digital com Veras Tecnologia!"
                 color: "#ffffff"
                 font.bold: true
                 font.pointSize: 14
@@ -83,10 +83,6 @@ ApplicationWindow {
 
     ListModel {
         id: screenModel
-        ListElement { title: "PersonalityMatrix"; componentUrl: "PersonalityMatrixView.qml" }
-        ListElement { title: "JournalTimeline"; componentUrl: "JournalTimelineView.qml" }
-        ListElement { title: "SentimentReview"; componentUrl: "SentimentReviewView.qml" }
-        ListElement { title: "MoodVoice"; componentUrl: "MoodVoiceView.qml" }
         ListElement { title: "Home"; componentUrl: "HomeView.qml" }
     }
 

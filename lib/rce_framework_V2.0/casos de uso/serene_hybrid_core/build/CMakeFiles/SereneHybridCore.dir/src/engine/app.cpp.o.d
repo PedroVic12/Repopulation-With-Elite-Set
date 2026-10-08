@@ -348,6 +348,35 @@ CMakeFiles/SereneHybridCore.dir/src/engine/app.cpp.o: \
  /usr/include/qt6/QtQml/qqmlabstracturlinterceptor.h \
  /usr/include/qt6/QtQml/QQmlContext /usr/include/qt6/QtQml/qqmlcontext.h \
  /usr/include/qt6/QtCore/QObject /usr/include/qt6/QtCore/QDebug \
+ /usr/include/qt6/QtCore/QDir /usr/include/qt6/QtCore/qdir.h \
+ /usr/include/qt6/QtCore/qdirlisting.h \
+ /usr/include/qt6/QtCore/qfiledevice.h \
+ /usr/include/qt6/QtCore/qiodevice.h /usr/include/c++/16/filesystem \
+ /usr/include/c++/16/bits/fs_fwd.h /usr/include/c++/16/bits/fs_path.h \
+ /usr/include/c++/16/locale /usr/include/c++/16/bits/locale_facets.h \
+ /usr/include/c++/16/cwctype /usr/include/wctype.h \
+ /usr/include/bits/wctype-wchar.h \
+ /usr/include/c++/16/x86_64-pc-linux-gnu/bits/ctype_base.h \
+ /usr/include/c++/16/x86_64-pc-linux-gnu/bits/ctype_inline.h \
+ /usr/include/c++/16/bits/locale_facets.tcc \
+ /usr/include/c++/16/bits/locale_facets_nonio.h \
+ /usr/include/c++/16/x86_64-pc-linux-gnu/bits/time_members.h \
+ /usr/include/c++/16/x86_64-pc-linux-gnu/bits/messages_members.h \
+ /usr/include/libintl.h /usr/include/c++/16/bits/codecvt.h \
+ /usr/include/c++/16/bits/locale_facets_nonio.tcc \
+ /usr/include/c++/16/bits/locale_conv.h /usr/include/c++/16/iomanip \
+ /usr/include/c++/16/bits/quoted_string.h /usr/include/c++/16/sstream \
+ /usr/include/c++/16/istream /usr/include/c++/16/ios \
+ /usr/include/c++/16/bits/basic_ios.h \
+ /usr/include/c++/16/bits/basic_ios.tcc /usr/include/c++/16/ostream \
+ /usr/include/c++/16/bits/ostream.h \
+ /usr/include/c++/16/bits/ostream_print.h \
+ /usr/include/c++/16/bits/ostream.tcc \
+ /usr/include/c++/16/bits/istream.tcc \
+ /usr/include/c++/16/bits/sstream.tcc /usr/include/c++/16/codecvt \
+ /usr/include/c++/16/bits/fs_dir.h /usr/include/c++/16/bits/fs_ops.h \
+ /usr/include/qt6/QtCore/qfile.h /usr/include/qt6/QtCore/qfileinfo.h \
+ /usr/include/qt6/QtCore/QFileInfo \
  /home/pedrov12/Documentos/GitHub/Repopulation-With-Elite-Set/lib/rce_framework_V2.0/casos\ de\ uso/serene_hybrid_core/build/SereneHybridCore_autogen/include/app.moc \
  /usr/include/qt6/QtCore/qtmochelpers.h \
  /usr/include/qt6/QtCore/qtmocconstants.h \
