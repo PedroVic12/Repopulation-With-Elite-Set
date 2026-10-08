@@ -1,0 +1,24 @@
+(Deck didatico PWF - Smart Grid Studio)
+(DBAR: numero tipo nome kV Vm angulo Pg Qg Pl Ql)
+(DLIN: barra_de barra_para circuito R% X% Mvar tap)
+TITU
+REDE DIDATICA 5 BARRAS
+DGBT
+(G kV)
+A 230
+B 69
+99999
+DBAR
+1 REF BARRA_1 230 1.00 0 0 0 0 0
+2 PQ BARRA_2 230 1.00 0 0 0 35 14
+3 PQ BARRA_3 230 1.00 0 0 0 25 10
+4 PV BARRA_4 230 1.02 0 45 0 0 0
+5 PQ BARRA_5 69 1.00 0 0 0 20 8
+99999
+DLIN
+1 2 1 0.8 7.0 0.0 1.0
+2 3 1 0.7 6.0 0.0 1.0
+3 4 1 0.6 5.0 0.0 1.0
+4 5 1 0.5 10.0 0.0 1.0
+99999
+FIM

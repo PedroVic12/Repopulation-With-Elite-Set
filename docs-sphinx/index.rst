@@ -5,14 +5,6 @@ HOME
 ======================================================================================================
 FRAMEWORK DESENVOLVIDO PARA FINS ACADÊMICOS USANDO ALGORITMOS GENÉTICOS PARA RESOLVER PROBLEMAS DE OTIMIZAÇÃO EM REDES ELÉTRICAS, FINANCIADO POR BOLSA DE INICIAÇÃO CIENTÍFICA PELA UNIVERSIDADE FEDERAL FLUMINENSE (UFF)
 
-.. toctree::
-   :maxdepth: 2
-   :caption: Guia Documentação
-
-   guias/guia_documentacao
-..   guias/sphinx_vs_mkdocs
-..   guias/instalador
-..   guias/run_agendamento
 
 .. toctree::
    :maxdepth: 2

@@ -9,6 +9,7 @@ import os
 os.environ.setdefault("QT_QUICK_CONTROLS_STYLE", "Basic")
 import io
 import re
+import json
 import numpy as np
 import pandas as pd
 
@@ -21,6 +22,7 @@ from PyQt6.QtGui import QGuiApplication, QImage, QPixmap
 from PyQt6.QtQml import QQmlApplicationEngine
 
 from PyQt6.QtWidgets import QApplication
+from PyQt6.QtWidgets import QFileDialog
 
 #! pip install PyQt6 schemdraw pandapower numpy pandas 
 
@@ -40,6 +42,7 @@ class SmartGridStudioEngine(QObject):
         self._schematic_path = os.path.abspath("circuit_schematic.png")
         self._cramer_result_text = "Nenhuma análise nodal/malha resolvida por Cramer (3x3)."
         self._readme_content = self._load_readme_file()
+        self._deck_text = ""
         
         # Propriedades do Modal DBAR (Espelhando a tela padrão ONS/ANAREDE)
         self._modal_bus_num = 1
@@ -55,6 +58,9 @@ class SmartGridStudioEngine(QObject):
         
         # Inicializa caso padrão e gera esquemático inicial Schemdraw
         self._build_default_network()
+        example_path = os.path.join(os.path.dirname(__file__), "examples", "rede_3_barras.pwf")
+        if os.path.isfile(example_path):
+            self.load_example_deck("3")
         self._generate_schemdraw_diagram()
 
     def _load_readme_file(self):
@@ -184,56 +190,274 @@ Bem-vindo ao ambiente avançado de modelagem, simulação e análise de sistemas
         except Exception as e:
             self.logMessage.emit(f"Aviso Schemdraw: {e}")
 
+    @staticmethod
+    def _number(value, default=0.0):
+        try:
+            return float(value.strip().replace(",", "."))
+        except (AttributeError, TypeError, ValueError):
+            return default
+
+    @staticmethod
+    def _section_records(content):
+        sections = {"DBAR": [], "DLIN": [], "DGBT": []}
+        active_section = None
+        for raw_line in content.splitlines():
+            line = raw_line.strip()
+            if not line or line.startswith(("(", "#")):
+                continue
+            if line.startswith("99999") or line.upper() == "FIM":
+                active_section = None
+                continue
+            command = line.split()[0].upper()
+            if command in sections and len(line.split()) == 1:
+                active_section = command
+                continue
+            if active_section:
+                sections[active_section].append(raw_line.rstrip())
+        return sections
+
+    def _parse_bus_record(self, line, voltage_groups):
+        parts = line.split()
+        kinds = {"REF", "SLACK", "SWING", "PV", "PQ"}
+        if len(parts) >= 7 and parts[0].lstrip("+-").isdigit() and parts[1].upper() in kinds:
+            values = parts[7:] + ["0"] * max(0, 10 - len(parts))
+            return {
+                "num": int(parts[0]),
+                "kind": "REF" if parts[1].upper() in {"REF", "SLACK", "SWING"} else parts[1].upper(),
+                "name": parts[2],
+                "vn_kv": self._number(parts[3], 230.0),
+                "vm_pu": self._number(parts[4], 1.0),
+                "va_degree": self._number(parts[5]),
+                "pg": self._number(parts[6]),
+                "qg": self._number(values[0]),
+                "pl": self._number(values[1]),
+                "ql": self._number(values[2]),
+            }
+
+        if len(line) < 28:
+            raise ValueError(f"Registro DBAR inválido: {line}")
+        number = int(line[0:5])
+        group = line[22:23].strip().upper()
+        bus_code = line[7:8].strip()
+        return {
+            "num": number,
+            "kind": "REF" if bus_code == "2" else "PV" if bus_code == "1" else "PQ",
+            "name": line[10:22].strip() or f"BARRA_{number}",
+            "vn_kv": voltage_groups.get(group, 230.0),
+            "vm_pu": self._number(line[24:28], 1000.0) / 1000.0,
+            "va_degree": self._number(line[28:32]),
+            "pg": self._number(line[32:38]),
+            "qg": self._number(line[38:44]),
+            "pl": self._number(line[59:65]),
+            "ql": self._number(line[65:71]),
+        }
+
+    def _parse_branch_record(self, line):
+        parts = line.split()
+        if len(line) >= 44:
+            return {
+                "from": int(line[0:5]),
+                "to": int(line[11:16]),
+                "circuit": line[16:17].strip() or "1",
+                "r_pct": self._number(line[20:26]),
+                "x_pct": self._number(line[26:32]),
+                "b_mvar": self._number(line[32:38]),
+                "tap": self._number(line[38:44], 1.0) or 1.0,
+            }
+        if len(parts) >= 6 and all(part.lstrip("+-").isdigit() for part in parts[:3]):
+            numeric = parts[3:]
+            if len(numeric) >= 3:
+                parsed = [self._number(value, float("nan")) for value in numeric]
+                if all(np.isfinite(parsed[:3])):
+                    return {
+                        "from": int(parts[0]), "to": int(parts[1]), "circuit": parts[2],
+                        "r_pct": parsed[0], "x_pct": parsed[1], "b_mvar": parsed[2],
+                        "tap": parsed[3] if len(parsed) > 3 and np.isfinite(parsed[3]) else 1.0,
+                    }
+
+        if len(line) < 38:
+            raise ValueError(f"Registro DLIN inválido: {line}")
+        return {
+            "from": int(line[0:5]),
+            "to": int(line[11:16]),
+            "circuit": line[16:17].strip() or "1",
+            "r_pct": self._number(line[20:26]),
+            "x_pct": self._number(line[26:32]),
+            "b_mvar": self._number(line[32:38]),
+            "tap": self._number(line[38:44], 1.0) or 1.0,
+        }
+
+    def _build_network_from_pwf(self, content):
+        sections = self._section_records(content)
+        voltage_groups = {}
+        for row in sections["DGBT"]:
+            fields = row.split()
+            if len(fields) >= 2:
+                voltage_groups[fields[0].upper()] = self._number(fields[1])
+
+        buses = [self._parse_bus_record(row, voltage_groups) for row in sections["DBAR"] if row.strip()]
+        branches = [self._parse_branch_record(row) for row in sections["DLIN"] if row.strip()]
+        if not buses:
+            raise ValueError("O deck não contém registros DBAR válidos.")
+
+        numbers = [bus["num"] for bus in buses]
+        if len(numbers) != len(set(numbers)):
+            raise ValueError("O deck contém números DBAR duplicados.")
+        bus_numbers = set(numbers)
+        missing = sorted({branch[key] for branch in branches for key in ("from", "to") if branch[key] not in bus_numbers})
+        if missing:
+            raise ValueError(f"DLIN referencia barras não cadastradas: {', '.join(map(str, missing))}.")
+
+        net = pp.create_empty_network(name="ANAREDE_PWF", sn_mva=100.0, f_hz=60.0)
+        for bus in buses:
+            pp.create_bus(net, index=bus["num"], vn_kv=bus["vn_kv"], name=bus["name"], type="b")
+
+        reference = next((bus for bus in buses if bus["kind"] == "REF"), buses[0])
+        pp.create_ext_grid(net, bus=reference["num"], vm_pu=reference["vm_pu"], name=f"Referência {reference['num']}")
+        for bus in buses:
+            number = bus["num"]
+            if number != reference["num"] and bus["kind"] == "PV":
+                pp.create_gen(net, bus=number, p_mw=bus["pg"], vm_pu=bus["vm_pu"], name=f"Gerador {number}")
+            if bus["pl"] > 0 or bus["ql"] > 0:
+                pp.create_load(net, bus=number, p_mw=max(bus["pl"], 0.0), q_mvar=max(bus["ql"], 0.0), name=f"Carga {number}")
+
+        for branch in branches:
+            from_bus, to_bus = branch["from"], branch["to"]
+            vn_from = float(net.bus.at[from_bus, "vn_kv"])
+            vn_to = float(net.bus.at[to_bus, "vn_kv"])
+            r_pct = abs(branch["r_pct"])
+            x_pct = abs(branch["x_pct"])
+            tap = branch["tap"]
+            is_transformer = abs(vn_from - vn_to) > 1.0 or abs(tap - 1.0) > 0.01
+            name = f"{from_bus}-{to_bus} circ. {branch['circuit']}"
+            if is_transformer:
+                hv_bus, lv_bus = (from_bus, to_bus) if vn_from >= vn_to else (to_bus, from_bus)
+                vn_hv, vn_lv = max(vn_from, vn_to), min(vn_from, vn_to)
+                transformer_args = {}
+                if abs(tap - 1.0) > 0.01:
+                    transformer_args = {
+                        "tap_side": "hv", "tap_neutral": 0, "tap_step_percent": 1.0,
+                        "tap_pos": round((tap - 1.0) * 100),
+                    }
+                pp.create_transformer_from_parameters(
+                    net, hv_bus=hv_bus, lv_bus=lv_bus, sn_mva=100.0,
+                    vn_hv_kv=vn_hv, vn_lv_kv=vn_lv,
+                    vkr_percent=max(r_pct, 0.01),
+                    vk_percent=max(float(np.hypot(r_pct, x_pct)), max(r_pct, 0.01) + 0.01),
+                    pfe_kw=0.0, i0_percent=0.0, name=name, **transformer_args,
+                )
+            else:
+                z_base = vn_from ** 2 / net.sn_mva
+                pp.create_line_from_parameters(
+                    net, from_bus=from_bus, to_bus=to_bus, length_km=1.0,
+                    r_ohm_per_km=max(r_pct * z_base / 100.0, 1e-5),
+                    x_ohm_per_km=max(x_pct * z_base / 100.0, 1e-5),
+                    c_nf_per_km=0.0, max_i_ka=1.0, name=name,
+                )
+        return net, len(buses), len(branches)
+
     @pyqtSlot(str)
     def parse_anarede_deck(self, filepath_or_text):
-        """Lê decks ANAREDE (.pwf / .dat) extraindo DBAR e DLIN com pandas"""
-        self.logMessage.emit(f"Processando deck ANAREDE: {filepath_or_text}")
-        content = ""
-        if os.path.exists(filepath_or_text):
-            with open(filepath_or_text, 'r', encoding='latin1') as f:
-                content = f.read()
-        else:
-            content = filepath_or_text
-
-        dbar_pattern = re.compile(r'DBAR\s*\n(.*?)(?:9{5}|FIM)', re.DOTALL | re.IGNORECASE)
-        dbar_match = dbar_pattern.search(content)
-        
-        buses_list = []
-        if dbar_match:
-            lines = [l for l in dbar_match.group(1).strip().split('\n') if l.strip() and not l.strip().startswith('(')]
-            for line in lines:
-                parts = line.split()
-                if len(parts) >= 6:
-                    try:
-                        buses_list.append({
-                            "num": int(parts[0]), 
-                            "nome": parts[1], 
-                            "base_kv": float(parts[2]), 
-                            "pg": float(parts[3]), 
-                            "qg": float(parts[4])
-                        })
-                    except ValueError:
-                        continue
-
-        if buses_list:
-            # Demonstração explícita de uso de DataFrame pandas para análise dos dados ANAREDE
-            df_dbar = pd.DataFrame(buses_list)
-            self.logMessage.emit(f"Pandas DataFrame DBAR criado com {len(df_dbar)} registros.")
-
-            self._net = pp.create_empty_network(name="Anarede_Imported_Grid")
-            bus_map = {}
-            for _, b in df_dbar.iterrows():
-                b_id = pp.create_bus(self._net, vn_kv=b["base_kv"], name=b["nome"])
-                bus_map[int(b["num"])] = b_id
-                if b["num"] == df_dbar.iloc[0]["num"]:
-                    pp.create_ext_grid(self._net, bus=b_id, vm_pu=1.0)
-                elif b["pg"] > 0:
-                    pp.create_gen(self._net, bus=b_id, p_mw=b["pg"])
-                else:
-                    pp.create_load(self._net, bus=b_id, p_mw=abs(b["pg"]), q_mvar=abs(b["qg"]))
-            
+        """Importa as seções DBAR, DLIN e DGBT de um deck PWF."""
+        try:
+            source = str(filepath_or_text)
+            if "\n" not in source and os.path.isfile(source):
+                with open(source, "r", encoding="latin1") as deck_file:
+                    content = deck_file.read()
+            else:
+                content = source
+            net, bus_count, branch_count = self._build_network_from_pwf(content)
+            self._net = net
+            self._deck_text = content
+            self._results_summary = f"Deck ANAREDE carregado: {bus_count} barras | {branch_count} ramos."
             self._run_power_flow()
-            self.logMessage.emit(f"Deck ANAREDE importado com sucesso via pandas! {len(buses_list)} barramentos configurados.")
+            self.logMessage.emit(f"PWF importado: {bus_count} barras e {branch_count} ramos.")
+        except Exception as error:
+            self.logMessage.emit(f"[Erro PWF]: {error}")
+            self._results_summary = f"Falha ao importar PWF: {error}"
+            self.networkUpdated.emit()
+
+    @pyqtSlot(str)
+    def set_deck_text(self, text):
+        self._deck_text = text
+        self.networkUpdated.emit()
+
+    @pyqtSlot(str)
+    def load_example_deck(self, bus_count):
+        example_path = os.path.join(os.path.dirname(__file__), "examples", f"rede_{bus_count}_barras.pwf")
+        try:
+            with open(example_path, "r", encoding="latin1") as deck_file:
+                self.parse_anarede_deck(deck_file.read())
+        except OSError as error:
+            self.logMessage.emit(f"[Erro exemplo]: {error}")
+
+    @pyqtSlot()
+    def open_deck_file(self):
+        path, _ = QFileDialog.getOpenFileName(None, "Abrir deck ANAREDE", "", "Decks ANAREDE (*.pwf *.dat);;Todos os arquivos (*)")
+        if path:
+            self.parse_anarede_deck(path)
+
+    @pyqtSlot()
+    def save_deck_file(self):
+        path, _ = QFileDialog.getSaveFileName(None, "Salvar deck ANAREDE", "rede.pwf", "Deck ANAREDE (*.pwf)")
+        if path:
+            if not path.lower().endswith(".pwf"):
+                path += ".pwf"
+            with open(path, "w", encoding="latin1", errors="replace") as deck_file:
+                deck_file.write(self._deck_text)
+            self.logMessage.emit(f"Deck salvo em {path}")
+
+    @pyqtSlot(str)
+    def append_anarede_record(self, command):
+        fields = command.strip().split()
+        if len(fields) < 2 or fields[0].upper() not in {"DBAR", "DLIN"}:
+            self.logMessage.emit("Use DBAR para barra ou DLIN para ramo. Transformadores são DLIN com tap ou bases diferentes.")
+            return
+
+        section = fields[0].upper()
+        record = " ".join(fields[1:])
+        lines = self._deck_text.splitlines()
+        section_index = next((index for index, line in enumerate(lines) if line.strip().upper() == section), None)
+        if section_index is None:
+            try:
+                end_index = next(index for index, line in enumerate(lines) if line.strip().upper() == "FIM")
+            except StopIteration:
+                end_index = len(lines)
+            lines[end_index:end_index] = [section, record, "99999"]
+        else:
+            end_index = next(
+                (index for index in range(section_index + 1, len(lines)) if lines[index].strip().startswith("99999")),
+                len(lines),
+            )
+            lines.insert(end_index, record)
+        self.parse_anarede_deck("\n".join(lines))
+
+    @pyqtProperty(str, notify=networkUpdated)
+    def deckText(self):
+        return self._deck_text
+
+    @pyqtProperty(str, notify=networkUpdated)
+    def networkTopology(self):
+        bus_ids = list(self._net.bus.index)
+        count = len(bus_ids)
+        bus_positions = {}
+        for index, bus_id in enumerate(bus_ids):
+            angle = -np.pi / 2 + 2 * np.pi * index / max(count, 1)
+            bus_positions[int(bus_id)] = (0.5 + 0.40 * np.cos(angle), 0.5 + 0.38 * np.sin(angle))
+
+        reference_ids = set(self._net.ext_grid.bus.astype(int).tolist())
+        generator_ids = set(self._net.gen.bus.astype(int).tolist())
+        load_ids = set(self._net.load.bus.astype(int).tolist())
+        buses = []
+        for bus_id, bus in self._net.bus.iterrows():
+            bus_id = int(bus_id)
+            x, y = bus_positions[bus_id]
+            kind = "reference" if bus_id in reference_ids else "generator" if bus_id in generator_ids else "load" if bus_id in load_ids else "bus"
+            buses.append({"id": bus_id, "name": str(bus["name"] or f"Barra {bus_id}"), "kv": float(bus.vn_kv), "kind": kind, "x": float(x), "y": float(y)})
+
+        lines = [{"from": int(row.from_bus), "to": int(row.to_bus)} for row in self._net.line.itertuples()]
+        transformers = [{"from": int(row.hv_bus), "to": int(row.lv_bus)} for row in self._net.trafo.itertuples()]
+        return json.dumps({"buses": buses, "lines": lines, "transformers": transformers}, ensure_ascii=True)
 
     @pyqtSlot(int, str, int, float, float, float, float, float, float, float)
     def insert_or_update_dbar_bus(self, num, name, bus_type, vm, va, kv, p_load, q_load, p_gen, q_gen):
@@ -367,105 +591,325 @@ import QtQuick.Layouts 1.15
 
 ApplicationWindow {
     id: root
-    width: 1200
-    height: 800
+    width: 1480
+    height: 900
+    minimumWidth: 1120
+    minimumHeight: 720
     visible: true
-    title: "Smart Grid Studio • ANAREDE + Pandapower + Cramer 3x3"
-    color: "#081014"
+    title: "Smart Grid Studio | ANAREDE PWF"
+    color: "#0b1419"
+    property var topology: JSON.parse(smartEngine.networkTopology)
 
-    Rectangle {
+    Connections {
+        target: smartEngine
+        function onNetworkUpdated() {
+            root.topology = JSON.parse(smartEngine.networkTopology)
+            if (!deckEditor.activeFocus)
+                deckEditor.text = smartEngine.deckText
+            topologyCanvas.requestPaint()
+        }
+    }
+
+    ColumnLayout {
         anchors.fill: parent
-        anchors.margins: 16
-        radius: 12
-        color: "#101d24"
-        border.color: "#1e3642"
+        spacing: 0
 
-        ColumnLayout {
-            anchors.fill: parent
-            anchors.margins: 20
-            spacing: 20
+        Rectangle {
+            Layout.fillWidth: true
+            Layout.preferredHeight: 76
+            color: "#111e24"
+            border.color: "#263841"
 
-            Text {
-                text: "SMART GRID POWER SYSTEM STUDIO"
-                color: "#ffffff"
-                font.pixelSize: 26
-                font.bold: true
-            }
-
-            Rectangle {
-                Layout.fillWidth: true
-                height: 120
-                radius: 8
-                color: "#15242e"
-                border.color: "#253e4c"
+            RowLayout {
+                anchors.fill: parent
+                anchors.leftMargin: 24
+                anchors.rightMargin: 24
 
                 ColumnLayout {
-                    anchors.fill: parent
-                    anchors.margins: 16
-                    spacing: 10
+                    spacing: 3
+                    Text { text: "SMART GRID / ANAREDE"; color: "#f0f5f2"; font.pixelSize: 21; font.bold: true }
+                    Text { text: "PWF editor · Pandapower · topologia"; color: "#93a7a6"; font.pixelSize: 12 }
+                }
 
-                    Text {
-                        text: "RELATÓRIO DO SISTEMA ELÉTRICO"
-                        color: "#38e07b"
-                        font.bold: true
+                Item { Layout.fillWidth: true }
+
+                Text {
+                    text: root.topology.buses.length + " barras   /   " + root.topology.lines.length + " linhas   /   " + root.topology.transformers.length + " trafos"
+                    color: "#67d9b2"
+                    font.pixelSize: 14
+                    font.bold: true
+                }
+            }
+        }
+
+        TabBar {
+            id: tabs
+            Layout.fillWidth: true
+            background: Rectangle { color: "#0e191e" }
+            TabButton { text: "Rede PWF" }
+            TabButton { text: "Análise" }
+        }
+
+        StackLayout {
+            Layout.fillWidth: true
+            Layout.fillHeight: true
+            currentIndex: tabs.currentIndex
+
+            Item {
+                RowLayout {
+                    anchors.fill: parent
+                    anchors.margins: 18
+                    spacing: 14
+
+                    Rectangle {
+                        Layout.preferredWidth: 610
+                        Layout.fillHeight: true
+                        color: "#111e24"
+                        border.color: "#293b42"
+
+                        ColumnLayout {
+                            anchors.fill: parent
+                            anchors.margins: 14
+                            spacing: 10
+
+                            RowLayout {
+                                Layout.fillWidth: true
+                                Text { text: "DECK ANAREDE"; color: "#edf3ef"; font.bold: true; font.pixelSize: 14 }
+                                Item { Layout.fillWidth: true }
+                                ComboBox {
+                                    id: examplePicker
+                                    model: ["3 barras", "5 barras", "10 barras"]
+                                    implicitWidth: 130
+                                    onActivated: smartEngine.load_example_deck(["3", "5", "10"][currentIndex])
+                                }
+                            }
+
+                            RowLayout {
+                                Layout.fillWidth: true
+                                Button { text: "Abrir PWF"; onClicked: smartEngine.open_deck_file() }
+                                Button { text: "Salvar PWF"; onClicked: smartEngine.save_deck_file() }
+                                Item { Layout.fillWidth: true }
+                                Button {
+                                    text: "Importar rede"
+                                    onClicked: smartEngine.parse_anarede_deck(deckEditor.text)
+                                    background: Rectangle { color: "#55d2a7"; radius: 4 }
+                                    contentItem: Text { text: parent.text; color: "#0b1717"; font.bold: true; horizontalAlignment: Text.AlignHCenter; verticalAlignment: Text.AlignVCenter }
+                                }
+                            }
+
+                            TextArea {
+                                id: deckEditor
+                                Layout.fillWidth: true
+                                Layout.fillHeight: true
+                                Layout.minimumHeight: 280
+                                color: "#d8e5e0"
+                                selectionColor: "#286a5d"
+                                selectedTextColor: "#ffffff"
+                                font.family: "Consolas"
+                                font.pixelSize: 12
+                                wrapMode: TextEdit.NoWrap
+                                selectByMouse: true
+                                background: Rectangle { color: "#091216"; border.color: "#25363c" }
+                                Component.onCompleted: text = smartEngine.deckText
+                                onTextChanged: if (activeFocus) smartEngine.set_deck_text(text)
+                            }
+
+                            RowLayout {
+                                Layout.fillWidth: true
+                                TextField {
+                                    id: commandInput
+                                    Layout.fillWidth: true
+                                    placeholderText: "DBAR 4 PQ BARRA_4 230 1 0 0 0 20 8  |  DLIN 1 4 1 0.6 8 0 1"
+                                    onAccepted: {
+                                        smartEngine.append_anarede_record(text)
+                                        clear()
+                                    }
+                                }
+                                Button {
+                                    text: "Inserir registro"
+                                    onClicked: {
+                                        smartEngine.append_anarede_record(commandInput.text)
+                                        commandInput.clear()
+                                    }
+                                }
+                            }
+
+                            Text {
+                                Layout.fillWidth: true
+                                text: "Trafo: DLIN entre níveis de tensão diferentes ou com tap diferente de 1.0."
+                                color: "#8da19f"
+                                font.pixelSize: 11
+                                wrapMode: Text.WordWrap
+                            }
+
+                            Text {
+                                Layout.fillWidth: true
+                                text: smartEngine.resultsSummary
+                                color: smartEngine.resultsSummary.indexOf("CONVERGIDO") >= 0 ? "#67d9b2" : "#f0bf69"
+                                font.pixelSize: 12
+                                wrapMode: Text.WordWrap
+                            }
+                        }
                     }
 
-                    TextArea {
+                    Rectangle {
                         Layout.fillWidth: true
                         Layout.fillHeight: true
-                        text: smartEngine.resultsSummary
-                        color: "#d0dce4"
-                        font.family: "Courier"
-                        readOnly: true
-                        background: Rectangle {
-                            color: "#091217"
-                            radius: 6
-                            border.color: "#1a2c36"
+                        color: "#111e24"
+                        border.color: "#293b42"
+
+                        ColumnLayout {
+                            anchors.fill: parent
+                            anchors.margins: 14
+                            spacing: 8
+
+                            RowLayout {
+                                Layout.fillWidth: true
+                                Text { text: "TOPOLOGIA DA REDE"; color: "#edf3ef"; font.bold: true; font.pixelSize: 14 }
+                                Item { Layout.fillWidth: true }
+                                Text { text: "● referência"; color: "#f2c66d"; font.pixelSize: 11 }
+                                Text { text: "● geração"; color: "#65d8b2"; font.pixelSize: 11 }
+                                Text { text: "● carga"; color: "#79a9d2"; font.pixelSize: 11 }
+                            }
+
+                            Item {
+                                Layout.fillWidth: true
+                                Layout.fillHeight: true
+
+                                Canvas {
+                                    id: topologyCanvas
+                                    anchors.fill: parent
+                                    onPaint: {
+                                        var ctx = getContext("2d")
+                                        ctx.clearRect(0, 0, width, height)
+                                        ctx.fillStyle = "#0b151a"
+                                        ctx.fillRect(0, 0, width, height)
+                                        var data = root.topology
+                                        var positions = ({})
+                                        var centerX = width / 2
+                                        var centerY = height / 2
+                                        var radiusX = Math.max(40, width * 0.36)
+                                        var radiusY = Math.max(40, height * 0.36)
+
+                                        for (var i = 0; i < data.buses.length; ++i) {
+                                            var angle = -Math.PI / 2 + 2 * Math.PI * i / Math.max(1, data.buses.length)
+                                            positions[data.buses[i].id] = {
+                                                x: centerX + radiusX * Math.cos(angle),
+                                                y: centerY + radiusY * Math.sin(angle)
+                                            }
+                                        }
+
+                                        function drawEdges(edges, transformer) {
+                                            for (var j = 0; j < edges.length; ++j) {
+                                                var start = positions[edges[j].from]
+                                                var end = positions[edges[j].to]
+                                                if (!start || !end) continue
+                                                ctx.beginPath()
+                                                ctx.moveTo(start.x, start.y)
+                                                ctx.lineTo(end.x, end.y)
+                                                ctx.strokeStyle = transformer ? "#df9d57" : "#52747b"
+                                                ctx.lineWidth = transformer ? 2.5 : 1.6
+                                                ctx.stroke()
+                                                if (transformer) {
+                                                    var middleX = (start.x + end.x) / 2
+                                                    var middleY = (start.y + end.y) / 2
+                                                    ctx.fillStyle = "#0b151a"
+                                                    ctx.beginPath(); ctx.arc(middleX - 5, middleY, 5, 0, 2 * Math.PI); ctx.fill()
+                                                    ctx.beginPath(); ctx.arc(middleX + 5, middleY, 5, 0, 2 * Math.PI); ctx.fill()
+                                                    ctx.strokeStyle = "#f0b36e"
+                                                    ctx.lineWidth = 2
+                                                    ctx.beginPath(); ctx.arc(middleX - 5, middleY, 5, 0, 2 * Math.PI); ctx.stroke()
+                                                    ctx.beginPath(); ctx.arc(middleX + 5, middleY, 5, 0, 2 * Math.PI); ctx.stroke()
+                                                }
+                                            }
+                                        }
+
+                                        drawEdges(data.lines, false)
+                                        drawEdges(data.transformers, true)
+
+                                        for (var k = 0; k < data.buses.length; ++k) {
+                                            var bus = data.buses[k]
+                                            var point = positions[bus.id]
+                                            var fill = bus.kind === "reference" ? "#f2c66d" : bus.kind === "generator" ? "#65d8b2" : bus.kind === "load" ? "#79a9d2" : "#d7e2dc"
+                                            ctx.beginPath()
+                                            ctx.arc(point.x, point.y, 17, 0, 2 * Math.PI)
+                                            ctx.fillStyle = fill
+                                            ctx.fill()
+                                            ctx.strokeStyle = "#071114"
+                                            ctx.lineWidth = 2
+                                            ctx.stroke()
+                                            ctx.fillStyle = "#102027"
+                                            ctx.font = "bold 11px 'Segoe UI'"
+                                            ctx.textAlign = "center"
+                                            ctx.textBaseline = "middle"
+                                            ctx.fillText(String(bus.id), point.x, point.y)
+                                            ctx.fillStyle = "#d6e2dd"
+                                            ctx.font = "11px 'Segoe UI'"
+                                            ctx.textAlign = point.x < centerX ? "right" : "left"
+                                            ctx.fillText(bus.name + " · " + bus.kv + " kV", point.x + (point.x < centerX ? -23 : 23), point.y + 1)
+                                        }
+                                    }
+                                }
+                            }
                         }
                     }
                 }
             }
 
-            RowLayout {
-                spacing: 12
+            Item {
+                RowLayout {
+                    anchors.fill: parent
+                    anchors.margins: 18
+                    spacing: 14
 
-                Button {
-                    text: "Executar Fluxo ONS"
-                    onClicked: smartEngine.run_power_flow()
-                    background: Rectangle { color: "#38e07b"; radius: 6 }
-                    contentItem: Text {
-                        text: parent.text
-                        color: "#081014"
-                        font.bold: true
-                        horizontalAlignment: Text.AlignHCenter
+                    Rectangle {
+                        Layout.fillWidth: true
+                        Layout.fillHeight: true
+                        color: "#111e24"
+                        border.color: "#293b42"
+                        ColumnLayout {
+                            anchors.fill: parent
+                            anchors.margins: 18
+                            Text { text: "RELATÓRIO DO FLUXO DE POTÊNCIA"; color: "#edf3ef"; font.bold: true; font.pixelSize: 14 }
+                            TextArea {
+                                Layout.fillWidth: true
+                                Layout.fillHeight: true
+                                text: smartEngine.resultsSummary
+                                color: "#bfe7d7"
+                                font.family: "Consolas"
+                                readOnly: true
+                                background: Rectangle { color: "#091216"; border.color: "#25363c" }
+                            }
+                            Button { text: "Executar fluxo Newton-Raphson"; onClicked: smartEngine.run_power_flow() }
+                        }
                     }
-                }
 
-                Button {
-                    text: "Calcular Cramer 3x3"
-                    onClicked: smartEngine.solve_circuit_cramer_3x3("nodal", "4 -1 0 -1 4 -1 0 -1 3", "10 0 5")
-                    background: Rectangle { color: "#22343f"; radius: 6 }
-                    contentItem: Text {
-                        text: parent.text
-                        color: "#ffffff"
-                        font.bold: true
-                        horizontalAlignment: Text.AlignHCenter
+                    Rectangle {
+                        Layout.preferredWidth: 520
+                        Layout.fillHeight: true
+                        color: "#111e24"
+                        border.color: "#293b42"
+                        ColumnLayout {
+                            anchors.fill: parent
+                            anchors.margins: 18
+                            Text { text: "CRAMER 3×3"; color: "#edf3ef"; font.bold: true; font.pixelSize: 14 }
+                            TextField { id: matrixInput; Layout.fillWidth: true; text: "4 -1 0 -1 4 -1 0 -1 3"; placeholderText: "9 coeficientes da matriz" }
+                            TextField { id: vectorInput; Layout.fillWidth: true; text: "10 0 5"; placeholderText: "3 valores independentes" }
+                            RowLayout {
+                                ComboBox { id: matrixType; model: ["nodal", "malhas"] }
+                                Button { text: "Resolver"; onClicked: smartEngine.solve_circuit_cramer_3x3(matrixType.currentIndex === 0 ? "nodal" : "mesh", matrixInput.text, vectorInput.text) }
+                            }
+                            TextArea {
+                                Layout.fillWidth: true
+                                Layout.fillHeight: true
+                                text: smartEngine.cramerResultText
+                                color: "#67d9b2"
+                                font.family: "Consolas"
+                                readOnly: true
+                                background: Rectangle { color: "#091216"; border.color: "#25363c" }
+                            }
+                        }
                     }
-                }
-            }
-
-            TextArea {
-                Layout.fillWidth: true
-                Layout.fillHeight: true
-                text: smartEngine.cramerResultText
-                color: "#38e07b"
-                font.family: "Courier"
-                font.pixelSize: 14
-                readOnly: true
-                background: Rectangle {
-                    color: "#091217"
-                    radius: 6
-                    border.color: "#1a2c36"
                 }
             }
         }
