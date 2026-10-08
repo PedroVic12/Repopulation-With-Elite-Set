@@ -55,6 +55,7 @@ class SmartGridStudioEngine(QObject):
         self._modal_q_mvar = 10.0
         self._modal_pg_mw = 0.0
         self._modal_qg_mvar = 0.0
+
         
         # Inicializa caso padrão e gera esquemático inicial Schemdraw
         self._build_default_network()
