@@ -1,17 +1,14 @@
 # Exemplo básico de criar uma rede elétrica passando os parametros de SEP
 
-O arquivo `rede_eletrica.py` define a classe `RedeEletricaPandaPower`, que é responsável por modelar e simular sistemas de energia elétrica usando a biblioteca `pandapower`.
+O pandapower possui sinergia com Dataframes dos pandas, a propria biblioteca recomenda trabalhar com os dados da Rede Elétrica em formato de tabelas
 
 ## Classe `RedeEletricaPandaPower`
 
-Esta classe encapsula a rede elétrica, permitindo a manipulação de seus componentes e a execução de simulações de fluxo de potência.
+Esta classe encapsula a rede elétrica, permitindo a manipulação de seus componentes e a execução de simulações de fluxo de potência. Criamos barras, linhas, transformadores e reatores na rede.
 
-### `__init__(self, network_name="", debug=False, ...)`
+Precisamos escolher qual a barra vai ser a SWING, por default, é a barra 0
 
-O construtor carrega um caso de rede elétrica da biblioteca `pandapower` (ex: '14' para o sistema IEEE 14 barras) ou cria uma rede vazia.
-
--   **`network_name`**: O nome do caso da rede a ser carregada.
--   **`debug`**: Ativa mensagens de depuração.
+Em seguida, segue um script completo cirando uma rede de 16 barras
 
 ```py
 
@@ -70,11 +67,9 @@ def simulate_NEW_network():
 
     for barra in barras:
         pp.create_bus(net, name=barra["nome"], vn_kv=barra["tensao"], index=barra["id"])
-        # Criando a barra de referência (Slack)
-        # A barra 0 é a barra de referência, com tensão de 1.05 
-            
 
-
+    # Criando a barra de referência (SWING)
+    # A barra 0 é a barra de referência, com tensão de 1.05 
     pp.create_ext_grid(net, bus=0, vm_pu=1.0, name="Slack")
 
     for linha in linhas:
@@ -86,11 +81,9 @@ def simulate_NEW_network():
 
     pp.create_load(net, bus=1, p_mw=0.02, q_mvar=0.01, name="Carga 1")
     pp.create_load(net, bus=2, p_mw=0.03, q_mvar=0.015, name="Carga 2")
+    
     # Criando um gerador fotovoltaico na barra 3
     # com potência ativa de 0.05 MW e tensão de 1.02 pu
-
-    
-
     pp.create_sgen(net, bus=3, p_mw=0.05, vm_pu=1.02, name="Gerador PV")
 
     pp.runpp(net)
