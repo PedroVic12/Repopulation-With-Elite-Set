@@ -1,0 +1,434 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistema Elétrico de Potência Interativo (Componentizado)</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;900&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --color-primary: #0891b2;
+            --color-primary-dark: #164e63;
+            --color-primary-light: #f0f9ff;
+            --color-primary-border: #67e8f9;
+            --color-text-dark: #1e293b;
+            --color-text-medium: #475569;
+            --color-text-light: #f8fafc;
+            --color-bg-card: #ffffff;
+            --color-bg-card-alt: #f8fafc;
+            --color-bg-body-start: #f0f9ff;
+            --color-bg-body-end: #e0f2fe;
+            --color-border: #e2e8f0;
+            --color-zinc: #a1a1aa;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            color: var(--color-text-dark);
+            background-color: var(--color-bg-body-start);
+            transition: background 0.7s ease-out;
+        }
+
+        .content-section {
+            display: none;
+            opacity: 0;
+            transition: opacity 0.6s ease-in-out;
+            background-color: var(--color-bg-card);
+            border-color: var(--color-border);
+        }
+
+        .content-section.open {
+            display: block;
+            opacity: 1;
+        }
+
+        .main-nav-btn {
+            border-width: 2px;
+            border-color: transparent;
+        }
+
+        .main-nav-btn.active {
+            border-color: var(--color-primary-border);
+            background-color: var(--color-primary-light);
+            transform: scale(1.02);
+        }
+
+        .tab-btn.active,
+        .component-btn.active {
+            background-color: var(--color-primary);
+            color: var(--color-text-light);
+        }
+
+        .flow-arrow {
+            font-size: 2rem;
+            color: var(--color-zinc);
+        }
+
+        .animate-on-scroll {
+            opacity: 0;
+            transform: translateY(20px);
+            transition: opacity 0.6s ease-out, transform 0.7s ease-out;
+            transition-delay: 0.2s;
+        }
+
+        .animate-on-scroll.is-visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    </style>
+</head>
+
+<body>
+    <div id="app-root"></div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+
+            /**
+             * ------------------------------------------------------------------
+             * FONTE DE CONTEÚDO (Simulando a leitura do arquivo conteudo.md)
+             * ------------------------------------------------------------------
+             */
+            const markdownContent = `
+                ### HEADER
+                title: Sistema Elétrico de Potência Interativo para Leigos e Estudantes
+                subtitle: Uma jornada visual pela geração, transmissão e distribuição da energia elétrica que move nosso mundo.
+                logo: assets/Logo_ONSInspira_1 1.png
+
+                ---
+                ### MAIN_NAV
+                items:
+                - Geração|Onde tudo começa
+                - Transmissão|Levando energia longe
+                - Distribuição|Energia na sua porta
+
+                ---
+                ### GENERATION_SECTION
+                title: 1. Geração de Energia Elétrica
+                description: Esta é a primeira etapa, onde a energia é produzida a partir de diversas fontes. Explore os principais tipos de usinas e veja uma representação de como elas compõem nossa matriz energética.
+                chartTitle: Exemplo de Matriz Energética
+                tabs:
+                - Hidrelétricas|Utilizam a força da água para girar turbinas e geradores. São uma fonte limpa e renovável, mas dependem de recursos hídricos.
+                - Termelétricas|Queimam combustíveis fósseis ou biomassa para aquecer água, produzir vapor e girar turbinas. São flexíveis, mas emitem gases de efeito estufa.
+                - Nucleares|Utilizam a fissão nuclear para gerar calor, que produz vapor para as turbinas. São eficientes e não emitem gases de efeito estufa, mas geram resíduos radioativos.
+                - Eólicas|Convertem a energia do vento em eletricidade através de aerogeradores. São renováveis e limpas, mas intermitentes.
+                - Solares|Convertem a luz do sol em eletricidade, seja por painéis fotovoltaicos (diretamente) ou por usinas termossolares. Também são renováveis e limpas, mas intermitentes.
+
+                ---
+                ### TRANSMISSION_SECTION
+                title: 2. Transmissão de Energia Elétrica
+                description: Após ser gerada, a energia precisa viajar grandes distâncias. Esta seção detalha como esse transporte é feito de forma eficiente e segura.
+                points:
+                - Altas Tensões|Para reduzir perdas, a energia é transmitida em tensões muito elevadas, permitindo transportar mais energia com menos desperdício.
+                - Linhas de Transmissão|São as grandes torres e cabos que levam a eletricidade por todo o país.
+                - Subestações de Transmissão|Usam transformadores para elevar a tensão na saída das usinas e rebaixá-la perto das cidades.
+
+                ---
+                ### DISTRIBUTION_SECTION
+                title: 3. Distribuição de Energia Elétrica
+                description: Esta é a etapa final da jornada, onde a energia elétrica é entregue aos consumidores em tensões seguras e utilizáveis.
+                points:
+                - Redução de Tensão|Transformadores em subestações de distribuição reduzem a tensão para níveis utilizáveis e seguros.
+                - Redes de Distribuição|São os cabos e postes nas cidades que levam a energia até os transformadores de rua e, daí, para os consumidores.
+                - Consumo Final|A energia chega em residências, comércios e indústrias, pronta para ser utilizada.
+
+                ---
+                ### KEY_COMPONENTS_SECTION
+                title: 4. Componentes Chave de um Sistema de Potência
+                description: Um sistema de potência é composto por diversos equipamentos. Clique nos botões para conhecer a função de cada um.
+                placeholder: Selecione um componente para ver sua descrição.
+                components:
+                - Geradores|Convertem outras formas de energia (mecânica, térmica, etc.) em energia elétrica. São o coração das usinas.
+                - Transformadores|Alteram os níveis de tensão da eletricidade. Elevam a tensão para a transmissão e a reduzem para a distribuição e consumo.
+                - Linhas|Conduzem a energia através de cabos aéreos ou subterrâneos, formando as redes de transmissão e distribuição.
+                - Disjuntores|Controlam o fluxo de energia e protegem o sistema contra falhas. Atuam como interruptores de grande porte.
+                - Relés|Detectam condições anormais (curtos-circuitos) e acionam os disjuntores para isolar a falha e proteger o resto do sistema.
+                - Barramentos|São barras condutoras que conectam vários circuitos em uma subestação, funcionando como um nó de distribuição de energia.
+                - Reativos|Capacitores e Reatores são usados para controlar a tensão e compensar a potência reativa na rede, melhorando a eficiência e a estabilidade.
+
+                ---
+                ### FOOTER
+                line1: Aplicação Interativa desenvolvida para fins educacionais pela UFF e ONS.
+                line2: Desenvolvido por Pedro Victor Rodrigues Veras
+            `;
+
+            /**
+             * ------------------------------------------------------------------
+             * DATA PARSER (O nosso "ModelComponent")
+             * Transforma o texto Markdown em objetos JavaScript.
+             * ------------------------------------------------------------------
+             */
+            const DataParser = {
+                parse(md) {
+                    const sections = {};
+                    const blocks = md.trim().split('---');
+                    blocks.forEach(block => {
+                        const lines = block.trim().split('\n');
+                        const header = lines.shift().trim();
+                        if (!header.startsWith('###')) return;
+                        const key = header.replace('###', '').trim();
+                        sections[key] = this.parseBlock(lines);
+                    });
+                    return sections;
+                },
+                parseBlock(lines) {
+                    const data = {};
+                    let currentListKey = null;
+                    lines.forEach(line => {
+                        const trimmedLine = line.trim();
+                        if (!trimmedLine) return; // Skip empty lines
+
+                        if (trimmedLine.includes(':')) {
+                            const [key, ...valueParts] = trimmedLine.split(':');
+                            const value = valueParts.join(':').trim();
+                            const currentKey = key.trim();
+
+                            if (value === '') {
+                                // This line declares a list (e.g., "points:")
+                                currentListKey = currentKey;
+                                data[currentListKey] = [];
+                            } else {
+                                // This is a simple key-value pair
+                                currentListKey = null; // Reset list key
+                                data[currentKey] = value;
+                            }
+                        } else if (trimmedLine.startsWith('-') && currentListKey) {
+                            // This line is an item of the current list
+                            const [name, description] = trimmedLine.substring(1).split('|');
+                            data[currentListKey].push({ name: name.trim(), description: (description || '').trim() });
+                        }
+                    });
+                    return data;
+                }
+            };
+
+            /**
+             * ------------------------------------------------------------------
+             * MODEL
+             * Armazena os dados da aplicação após serem processados pelo Parser.
+             * ------------------------------------------------------------------
+             */
+            const Model = {
+                data: {},
+                init() {
+                    this.data = DataParser.parse(markdownContent);
+                },
+                get(key) {
+                    return this.data[key] || {};
+                },
+                getComponentData(sectionKey, componentKey) {
+                    return this.data[sectionKey]?.[componentKey] || [];
+                }
+            };
+
+            /**
+             * ------------------------------------------------------------------
+             * VIEW (O nosso "ViewComponent")
+             * Contém os componentes que renderizam o HTML a partir dos dados.
+             * ------------------------------------------------------------------
+             */
+            const View = {
+                uiSelectors: {},
+                HeaderComponent(data) {
+                    return `
+                        <header class="text-center mb-12 animate-on-scroll">
+                            <h1 class="text-4xl md:text-5xl font-bold mb-2" style="color: var(--color-primary-dark);">${data.title}</h1>
+                            <p class="text-lg max-w-3xl mx-auto" style="color: var(--color-text-medium);">${data.subtitle}</p>
+                            <img src="${data.logo}" alt="Logo ONS Inspira" class="mx-auto h-48 w-auto mb-4">
+                        </header>
+                    `;
+                },
+                MainNavComponent(data) {
+                    const icons = ['⚡', '🗼', '🏠'];
+                    const ids = ['geracao', 'transmissao', 'distribuicao'];
+                    return `
+                        <div class="flex flex-col md:flex-row items-center justify-center text-center mb-8 animate-on-scroll">
+                            ${data.map((item, i) => `
+                                <div id="btn-${ids[i]}" class="main-nav-btn m-2 cursor-pointer p-4 rounded-lg hover:bg-cyan-100 transition-all duration-300">
+                                    <h2 class="text-2xl font-bold" style="color: var(--color-primary);">${icons[i]} ${item.name}</h2>
+                                    <p style="color: var(--color-text-medium);">${item.description}</p>
+                                </div>
+                                ${i < data.length - 1 ? '<div class="flow-arrow hidden md:block mx-4">→</div><div class="flow-arrow block md:hidden my-2">↓</div>' : ''}
+                            `).join('')}
+                        </div>
+                    `;
+                },
+                GenerationSectionComponent(data) {
+                    return `
+                        <section id="content-geracao" class="content-section rounded-xl shadow-lg p-6 md:p-8 mb-8 border animate-on-scroll">
+                            <h3 class="text-3xl font-bold mb-4" style="color: var(--color-primary-dark);">${data.title}</h3>
+                            <p class="mb-6" style="color: var(--color-text-medium);">${data.description}</p>
+                            <div class="flex flex-col lg:flex-row gap-8">
+                                <div class="lg:w-1/2">
+                                    <div id="tabs-container" class="flex flex-wrap gap-2 mb-4 border-b pb-2" style="border-color: var(--color-border);"></div>
+                                    <div id="tab-content-container" class="p-4 rounded-lg min-h-[200px]" style="background-color: var(--color-bg-card-alt);"></div>
+                                </div>
+                                <div class="lg:w-1/2 flex flex-col items-center">
+                                    <h4 class="text-xl font-semibold text-center mb-4">${data.chartTitle}</h4>
+                                    <div class="chart-container relative w-full max-w-sm mx-auto h-72 md:h-80"><canvas id="generationChart"></canvas></div>
+                                </div>
+                            </div>
+                        </section>
+                    `;
+                },
+                ContentSectionComponent(data, id) {
+                    return `
+                        <section id="content-${id}" class="content-section rounded-xl shadow-lg p-6 md:p-8 mb-8 border animate-on-scroll">
+                            <h3 class="text-3xl font-bold mb-4" style="color: var(--color-primary-dark);">${data.title}</h3>
+                            <p class="mb-6" style="color: var(--color-text-medium);">${data.description}</p>
+                            <ul class="space-y-4">
+                                ${data.points.map(point => `
+                                    <li class="p-4 rounded-lg" style="background-color: var(--color-bg-card-alt);">
+                                        <strong>${point.name}:</strong> ${point.description}
+                                    </li>
+                                `).join('')}
+                            </ul>
+                        </section>
+                    `;
+                },
+                KeyComponentsSectionComponent(data) {
+                    return `
+                        <section class="rounded-xl shadow-lg p-6 md:p-8 mt-12 border animate-on-scroll" style="background-color: var(--color-bg-card); border-color: var(--color-border);">
+                            <h3 class="text-3xl font-bold text-center mb-2" style="color: var(--color-primary-dark);">${data.title}</h3>
+                            <p class="mb-8 text-center max-w-3xl mx-auto" style="color: var(--color-text-medium);">${data.description}</p>
+                            <div id="components-btn-container" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3 md:gap-4 mb-6"></div>
+                            <div id="component-content-display" class="p-6 rounded-lg min-h-[100px] transition-all duration-300" style="background-color: var(--color-primary-light); color: var(--color-primary-dark);">
+                                <p class="text-center">${data.placeholder}</p>
+                            </div>
+                        </section>
+                    `;
+                },
+                FooterComponent(data) {
+                    return `
+                        <footer class="text-center mt-12 text-sm animate-on-scroll" style="color: var(--color-text-medium);">
+                            <p>${data.line1}</p>
+                            <p>${data.line2}</p>
+                        </footer>
+                    `;
+                },
+                renderApp() {
+                    const appRoot = document.getElementById('app-root');
+                    appRoot.innerHTML = `
+                        <div class="container mx-auto p-4 md:p-8">
+                            ${this.HeaderComponent(Model.get('HEADER'))}
+                            <main>
+                                ${this.MainNavComponent(Model.getComponentData('MAIN_NAV', 'items'))}
+                                <div id="content-container" class="mt-4">
+                                    ${this.GenerationSectionComponent(Model.get('GENERATION_SECTION'))}
+                                    ${this.ContentSectionComponent(Model.get('TRANSMISSION_SECTION'), 'transmissao')}
+                                    ${this.ContentSectionComponent(Model.get('DISTRIBUTION_SECTION'), 'distribuicao')}
+                                </div>
+                                ${this.KeyComponentsSectionComponent(Model.get('KEY_COMPONENTS_SECTION'))}
+                            </main>
+                            ${this.FooterComponent(Model.get('FOOTER'))}
+                        </div>
+                    `;
+                },
+                renderButtons(container, data, baseClass) {
+                    if (!container) return;
+                    container.innerHTML = data.map((item, index) => `<button class="${baseClass}" data-index="${index}">${item.name}</button>`).join('');
+                },
+                updateContent(container, html) {
+                    if (container) container.innerHTML = html;
+                },
+                createGenerationChart() {
+                    if (!this.uiSelectors.generation.chartCanvas) return;
+                    new Chart(this.uiSelectors.generation.chartCanvas.getContext('2d'), { type: 'doughnut', data: { labels: ['Hidrelétrica', 'Termelétrica', 'Eólica', 'Solar', 'Nuclear & Outras'], datasets: [{ label: 'Matriz Energética (%)', data: [62, 20, 11, 5, 2], backgroundColor: ['#06b6d4', '#64748b', '#38bdf8', '#facc15', '#a8a29e'], borderColor: 'var(--color-bg-card)', borderWidth: 3 }] }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom' }, tooltip: { callbacks: { label: ctx => `${ctx.label || ''}: ${ctx.parsed || 0}%` } } } } });
+                }
+            };
+
+            /**
+             * ------------------------------------------------------------------
+             * CONTROLLER
+             * Orquestra a aplicação: inicializa o modelo, renderiza a view e
+             * configura os eventos.
+             * ------------------------------------------------------------------
+             */
+            const Controller = {
+                init() {
+                    Model.init();
+                    View.renderApp();
+                    this.bindUiSelectors();
+                    this.setupEventListeners();
+                    this.renderDynamicSubComponents();
+                    this.setupVisualEffects();
+                },
+                bindUiSelectors() {
+                    View.uiSelectors = {
+                        mainNav: { geracao: document.getElementById('btn-geracao'), transmissao: document.getElementById('btn-transmissao'), distribuicao: document.getElementById('btn-distribuicao'), all: document.querySelectorAll('.main-nav-btn') },
+                        contentSections: { geracao: document.getElementById('content-geracao'), transmissao: document.getElementById('content-transmissao'), distribuicao: document.getElementById('content-distribuicao'), all: document.querySelectorAll('.content-section') },
+                        generation: { tabsContainer: document.getElementById('tabs-container'), tabContentContainer: document.getElementById('tab-content-container'), chartCanvas: document.getElementById('generationChart'), },
+                        components: { btnContainer: document.getElementById('components-btn-container'), contentDisplay: document.getElementById('component-content-display'), },
+                        animatedElements: document.querySelectorAll('.animate-on-scroll'),
+                    };
+                },
+                setupEventListeners() {
+                    Object.values(View.uiSelectors.mainNav).forEach(btn => {
+                        if (btn && typeof btn.addEventListener === 'function') {
+                            btn.addEventListener('click', (e) => this.handleMainNavigation(e.currentTarget.id.replace('btn-', '')));
+                        }
+                    });
+                    View.uiSelectors.generation.tabsContainer?.addEventListener('click', (e) => {
+                        if (e.target.matches('.tab-btn')) this.handleTabClick(e.target);
+                    });
+                    View.uiSelectors.components.btnContainer?.addEventListener('click', (e) => {
+                        if (e.target.matches('.component-btn')) this.handleComponentClick(e.target);
+                    });
+                },
+                renderDynamicSubComponents() {
+                    const generationTabsData = Model.getComponentData('GENERATION_SECTION', 'tabs');
+                    View.renderButtons(View.uiSelectors.generation.tabsContainer, generationTabsData, 'tab-btn px-4 py-2 rounded-md text-sm font-medium');
+
+                    const componentsData = Model.getComponentData('KEY_COMPONENTS_SECTION', 'components');
+                    View.renderButtons(View.uiSelectors.components.btnContainer, componentsData, 'component-btn p-3 text-center rounded-lg');
+
+                    View.createGenerationChart();
+
+                    const firstTab = View.uiSelectors.generation.tabsContainer?.querySelector('.tab-btn');
+                    if (firstTab) this.handleTabClick(firstTab);
+                },
+                handleMainNavigation(sectionId) {
+                    const sectionToShow = View.uiSelectors.contentSections[sectionId];
+                    View.uiSelectors.contentSections.all.forEach(s => s.classList.remove('open'));
+                    if (sectionToShow) sectionToShow.classList.add('open');
+
+                    View.uiSelectors.mainNav.all.forEach(btn => btn.classList.remove('active'));
+                    const activeBtn = View.uiSelectors.mainNav[sectionId];
+                    if (activeBtn) activeBtn.classList.add('active');
+                },
+                handleTabClick(tabElement) {
+                    const itemData = Model.getComponentData('GENERATION_SECTION', 'tabs')[tabElement.dataset.index];
+                    View.updateContent(View.uiSelectors.generation.tabContentContainer, `<p>${itemData.description}</p>`);
+                    tabElement.parentElement.querySelectorAll('.active').forEach(el => el.classList.remove('active'));
+                    tabElement.classList.add('active');
+                },
+                handleComponentClick(componentElement) {
+                    const itemData = Model.getComponentData('KEY_COMPONENTS_SECTION', 'components')[componentElement.dataset.index];
+                    View.updateContent(View.uiSelectors.components.contentDisplay, `<h4 class="font-bold text-lg mb-2">${itemData.name}</h4><p>${itemData.description}</p>`);
+                    componentElement.parentElement.querySelectorAll('.active').forEach(el => el.classList.remove('active'));
+                    componentElement.classList.add('active');
+                },
+                setupVisualEffects() {
+                    const observer = new IntersectionObserver((entries) => {
+                        entries.forEach(entry => {
+                            if (entry.isIntersecting) {
+                                entry.target.classList.add('is-visible');
+                                observer.unobserve(entry.target);
+                            }
+                        });
+                    }, { threshold: 0.1 });
+                    View.uiSelectors.animatedElements.forEach(el => observer.observe(el));
+                }
+            };
+
+            Controller.init();
+        });
+    </script>
+</body>
+
+</html>

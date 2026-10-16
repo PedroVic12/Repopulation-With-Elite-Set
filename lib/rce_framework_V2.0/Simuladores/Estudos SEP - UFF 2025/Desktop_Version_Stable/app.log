@@ -1,0 +1,17 @@
+2025-10-02 03:29:48,540 [INFO] - Aplicação iniciada. Sistema de logs configurado.
+2025-10-02 03:29:48,683 [INFO] - Conexão com o banco de dados 'settings.db' estabelecida.
+2025-10-02 03:29:48,689 [INFO] - Configurações carregadas do banco de dados.
+2025-10-02 03:29:48,703 [INFO] - Ação do usuário: Mudar 'Quebra automática de linha' para True
+2025-10-02 03:29:48,775 [INFO] - Configuração salva no BD: word_wrap = 1
+2025-10-02 03:29:48,776 [INFO] - Ação do usuário: Mudar 'Formatando' para True
+2025-10-02 03:29:48,841 [INFO] - Configuração salva no BD: formatting = 1
+2025-10-02 03:29:51,428 [INFO] - Navegando para a página: 'Sobre'
+2025-10-02 03:29:52,217 [INFO] - Navegando para a página: 'Configurações'
+2025-10-02 03:29:54,298 [INFO] - Ação do usuário: Clique no botão 'Enviar Comentários'
+2025-10-02 03:29:54,922 [INFO] - Ação do usuário: Clique no botão 'Ajuda'
+2025-10-02 03:30:00,999 [INFO] - Ação do usuário: Clique no botão 'Termos de Licença'
+2025-10-02 03:30:01,639 [INFO] - Ação do usuário: Clique no botão 'Política de Privacidade'
+2025-10-02 03:30:07,608 [INFO] - Ação do usuário: Mudar tema para 'light'
+2025-10-02 03:30:07,658 [INFO] - Configuração salva no BD: theme = light
+2025-10-02 03:30:11,472 [INFO] - Navegando para a página: 'Sobre'
+2025-10-02 03:30:12,254 [INFO] - Navegando para a página: 'Configurações'
