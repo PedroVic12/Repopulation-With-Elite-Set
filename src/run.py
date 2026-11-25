@@ -410,6 +410,8 @@ def run_framework_many_executions(
 
         config_num += 1
 
+    
+
     print("\nTodas as execuções foram concluídas.")
 
     try:
@@ -427,14 +429,15 @@ if __name__ == "__main__":
     parser.add_argument("--config_num", type=int)
     parser.add_argument("--exec_num", type=int)
     parser.add_argument("--objective_function_index", type=int)
-    parser.add_argument("--debug", action="store_true")
-    parser.add_argument("--benchmark", action="store_true")
+    parser.add_argument("--debug", action="store_true") #opcional
+    parser.add_argument("--benchmark", action="store_true") #opcional
 
     args = parser.parse_args()
 
     if args.debug: DEBUG_MODE = True
     if args.benchmark: BECHMARKING_MODE = True
 
+    
     run_framework_many_executions(
         function_bechmarking=BECHMARKING_MODE,
         config_num_arg=args.config_num,
