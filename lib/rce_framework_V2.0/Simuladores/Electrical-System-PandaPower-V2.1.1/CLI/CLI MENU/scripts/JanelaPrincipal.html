@@ -1,0 +1,37 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+    <!-- React and ReactDOM via unpkg CDN -->
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+    <!-- Babel for JSX transformation -->
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100">
+    <div id="root"></div>
+    <script type="text/babel">
+        class JanelaPrincipal extends React.Component {
+            render() {
+                return (
+                    <div className="p-8 text-center">
+                        <p>Janela Principal</p>
+                        <h1 className="text-3xl font-bold text-blue-600">Componente JanelaPrincipal</h1>
+                        <button
+                            className="mt-4 px-4 py-2 bg-black text-white rounded"
+                            onClick={() => alert('Você clicou no botão!')}
+                        >
+                            Clique Aqui
+                        </button>
+                    </div>
+                );
+            }
+        }
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<JanelaPrincipal />);
+        console.log("Janela Principal renderizada");
+    </script>
+</body>
+</html>
